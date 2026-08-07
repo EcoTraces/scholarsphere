@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "715902501201",
+    "project_id": "scholarsphere-d44f5",
+    "storage_bucket": "scholarsphere-d44f5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715902501201:android:4621ce594064ece6711370",
+        "android_client_info": {
+          "package_name": "com.example.scholarsphere"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "715902501201-igjd3imrhdacpitetrpcq89ui0o5elvk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvmRuytsZBumzhUR0D4SBjUxjCrXjUI4M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "715902501201-igjd3imrhdacpitetrpcq89ui0o5elvk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

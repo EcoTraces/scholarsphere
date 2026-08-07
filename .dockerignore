@@ -1,0 +1,8 @@
+.dart_tool
+.git
+.github
+.idea
+.dart-local
+build
+coverage
+*.iml

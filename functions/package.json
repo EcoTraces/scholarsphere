@@ -1,0 +1,19 @@
+{
+  "name": "scholarsphere-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "bootstrap-admin": "node scripts/bootstrap-admin.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.2.0",
+    "firebase-functions": "^7.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.30.0"
+  }
+}

@@ -1,0 +1,2 @@
+"""ScholarSphere backend application."""
+

@@ -1,0 +1,32 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "scholarsphere-d44f5",
+          "appId": "1:715902501201:android:4621ce594064ece6711370",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "scholarsphere-d44f5",
+          "configurations": {
+            "android": "1:715902501201:android:4621ce594064ece6711370",
+            "ios": "1:715902501201:ios:da78114a6092a2d3711370",
+            "macos": "1:715902501201:ios:da78114a6092a2d3711370",
+            "web": "1:715902501201:web:97fd2e1aab01e813711370",
+            "windows": "1:715902501201:web:2437637b64405c3a711370"
+          }
+        }
+      }
+    }
+  }
+}
