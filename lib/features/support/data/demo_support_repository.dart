@@ -386,8 +386,7 @@ final _seedArticles = [
     id: 'kb-profile',
     title: 'Complete your applicant profile',
     summary: 'Add academic and eligibility details for better matching.',
-    content:
-        'Open your profile from the account menu and complete each relevant field.',
+    content: 'Open your profile from the account menu and complete each relevant field.',
     type: KnowledgeContentType.tutorial,
     category: SupportTicketCategory.profileProblem,
     languageCode: 'en',
@@ -399,8 +398,7 @@ final _seedArticles = [
     id: 'kb-eligibility',
     title: 'Understanding eligibility results',
     summary: 'Eligibility results are guidance, not acceptance guarantees.',
-    content:
-        'Review missing and uncertain requirements, then confirm the official source.',
+    content: 'Review missing and uncertain requirements, then confirm the official source.',
     type: KnowledgeContentType.frequentlyAskedQuestion,
     category: SupportTicketCategory.eligibilityResult,
     languageCode: 'en',

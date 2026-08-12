@@ -50,10 +50,7 @@ class _ApplicantProfileScreenState extends State<ApplicantProfileScreen> {
 }
 
 class _ProfileForm extends StatefulWidget {
-  const _ProfileForm({
-    required this.profile,
-    required this.repository,
-  });
+  const _ProfileForm({required this.profile, required this.repository});
 
   final ApplicantProfile profile;
   final ApplicantProfileRepository repository;

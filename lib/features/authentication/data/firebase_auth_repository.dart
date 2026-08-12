@@ -243,7 +243,9 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<List<UserAccount>> getAllForAdministration() async {
     try {
       final snapshot = await _users.orderBy('fullName').get();
-      return snapshot.docs.map((document) => _fromMap(document.data())).toList();
+      return snapshot.docs
+          .map((document) => _fromMap(document.data()))
+          .toList();
     } on FirebaseException catch (error) {
       throw AuthFailure(error.message ?? 'User accounts could not be loaded.');
     }
@@ -252,11 +254,9 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> suspendAccount(String userId) async {
     try {
-      await _functions
-          .httpsCallable('suspendUser')
-          .call<Map<String, dynamic>>({
-            'userId': userId,
-          });
+      await _functions.httpsCallable('suspendUser').call<Map<String, dynamic>>({
+        'userId': userId,
+      });
     } on FirebaseFunctionsException catch (error) {
       throw AuthFailure(error.message ?? 'The account could not be suspended.');
     }

@@ -171,7 +171,10 @@ class DemoAuthRepository implements AuthRepository {
   }) async {
     final administrator = _currentUser;
     if (administrator == null ||
-        !AccessControlPolicy.allows(administrator.role, Permission.manageUsers)) {
+        !AccessControlPolicy.allows(
+          administrator.role,
+          Permission.manageUsers,
+        )) {
       throw const AuthFailure(
         'An authorized administrator must create managed accounts.',
       );
