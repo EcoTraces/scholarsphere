@@ -87,8 +87,7 @@ final _demoOpportunities = <Opportunity>[
     eligibleNationalities: const ['All nationalities'],
     studyLevels: const ['Master\'s'],
     fieldsOfStudy: const ['All fields'],
-    summary:
-        'Postgraduate funding for students with strong academic records and demonstrated community leadership.',
+    summary: 'Postgraduate funding for students with strong academic records and demonstrated community leadership.',
     benefits: const ['Full tuition', 'Living stipend', 'Return airfare'],
     eligibilityRequirements: const [
       'Open to applicants of all nationalities',
@@ -132,8 +131,7 @@ final _demoOpportunities = <Opportunity>[
     eligibleNationalities: const ['Africa', 'Asia', 'Latin America'],
     studyLevels: const ['Graduate', 'Professional'],
     fieldsOfStudy: const ['Climate', 'Engineering', 'Public policy'],
-    summary:
-        'A six-month program supporting early-career innovators working on practical climate solutions.',
+    summary: 'A six-month program supporting early-career innovators working on practical climate solutions.',
     benefits: const ['Monthly stipend', 'Mentorship', 'Travel support'],
     eligibilityRequirements: const [
       'Early-career professional based in an eligible region',
@@ -174,8 +172,7 @@ final _demoOpportunities = <Opportunity>[
     eligibleNationalities: const ['All nationalities'],
     studyLevels: const ['Undergraduate', 'Graduate'],
     fieldsOfStudy: const ['Public policy', 'Technology', 'Law'],
-    summary:
-        'Remote policy research placement focused on responsible technology and digital inclusion.',
+    summary: 'Remote policy research placement focused on responsible technology and digital inclusion.',
     benefits: const ['Monthly allowance', 'Remote placement', 'Certificate'],
     eligibilityRequirements: const [
       'Current undergraduate or graduate student',
@@ -212,8 +209,7 @@ final _demoOpportunities = <Opportunity>[
     eligibleNationalities: const ['All nationalities'],
     studyLevels: const ['Undergraduate', 'Graduate', 'PhD'],
     fieldsOfStudy: const ['All research fields'],
-    summary:
-        'A multidisciplinary forum for emerging researchers to present work and build international networks.',
+    summary: 'A multidisciplinary forum for emerging researchers to present work and build international networks.',
     benefits: const ['Conference access', 'Accommodation support'],
     eligibilityRequirements: const [
       'Current undergraduate, graduate, or doctoral researcher',

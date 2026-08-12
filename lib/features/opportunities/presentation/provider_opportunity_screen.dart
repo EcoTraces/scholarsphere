@@ -264,10 +264,7 @@ class _ProviderNavigation extends StatelessWidget {
                       ),
                       Text(
                         'Opportunities Without Borders',
-                        style: TextStyle(
-                          color: Color(0xFFB8C7DC),
-                          fontSize: 9,
-                        ),
+                        style: TextStyle(color: Color(0xFFB8C7DC), fontSize: 9),
                       ),
                     ],
                   ),
@@ -302,18 +299,42 @@ class _ProviderNavigation extends StatelessWidget {
                 _providerNav(Icons.event_busy_outlined, 'Expired', () {}),
                 _providerNav(Icons.archive_outlined, 'Archived', () {}),
                 _providerSection('APPLICATIONS'),
-                _providerNav(Icons.groups_outlined, 'All Applications', onAnalytics),
+                _providerNav(
+                  Icons.groups_outlined,
+                  'All Applications',
+                  onAnalytics,
+                ),
                 _providerNav(Icons.star_outline, 'Shortlisted', onAnalytics),
-                _providerNav(Icons.emoji_events_outlined, 'Selected', onAnalytics),
-                _providerNav(Icons.person_off_outlined, 'Rejected', onAnalytics),
+                _providerNav(
+                  Icons.emoji_events_outlined,
+                  'Selected',
+                  onAnalytics,
+                ),
+                _providerNav(
+                  Icons.person_off_outlined,
+                  'Rejected',
+                  onAnalytics,
+                ),
                 _providerSection('ANALYTICS'),
                 _providerNav(Icons.analytics_outlined, 'Overview', onAnalytics),
-                _providerNav(Icons.description_outlined, 'Reports', onAnalytics),
+                _providerNav(
+                  Icons.description_outlined,
+                  'Reports',
+                  onAnalytics,
+                ),
                 _providerNav(Icons.download_outlined, 'Downloads', onAnalytics),
                 _providerSection('SETTINGS'),
-                _providerNav(Icons.business_outlined, 'Organization Profile', () {}),
+                _providerNav(
+                  Icons.business_outlined,
+                  'Organization Profile',
+                  () {},
+                ),
                 _providerNav(Icons.group_outlined, 'Team Members', () {}),
-                _providerNav(Icons.settings_outlined, 'Account Settings', () {}),
+                _providerNav(
+                  Icons.settings_outlined,
+                  'Account Settings',
+                  () {},
+                ),
               ],
             ),
           ),
@@ -434,10 +455,7 @@ class _ProviderDashboard extends StatelessWidget {
                             onAnalytics: onAnalytics,
                           ),
                         ),
-                        SizedBox(
-                          width: width,
-                          child: const _ProviderTips(),
-                        ),
+                        SizedBox(width: width, child: const _ProviderTips()),
                         SizedBox(
                           width: width,
                           child: const _ProviderResources(),
@@ -479,48 +497,72 @@ class _ProviderMetrics extends StatelessWidget {
           : 2;
       final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
       final values = [
-        ('Total Opportunities', total, Icons.inventory_2_outlined, const Color(0xFF7047EB)),
-        ('Published Opportunities', published, Icons.verified_outlined, const Color(0xFF16B76A)),
-        ('Application Clicks', applications, Icons.groups_outlined, const Color(0xFF2878F0)),
-        ('Opportunity Views', views, Icons.visibility_outlined, const Color(0xFFFF7A21)),
+        (
+          'Total Opportunities',
+          total,
+          Icons.inventory_2_outlined,
+          const Color(0xFF7047EB),
+        ),
+        (
+          'Published Opportunities',
+          published,
+          Icons.verified_outlined,
+          const Color(0xFF16B76A),
+        ),
+        (
+          'Application Clicks',
+          applications,
+          Icons.groups_outlined,
+          const Color(0xFF2878F0),
+        ),
+        (
+          'Opportunity Views',
+          views,
+          Icons.visibility_outlined,
+          const Color(0xFFFF7A21),
+        ),
         ('Saved', saves, Icons.star_outline, const Color(0xFFF2B91D)),
       ];
       return Wrap(
         spacing: 12,
         runSpacing: 12,
-        children: values.map(
-          (item) => SizedBox(
-            width: width,
-            height: 124,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: item.$4.withValues(alpha: 0.12),
-                      child: Icon(item.$3, color: item.$4),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item.$1, maxLines: 2),
-                          Text(
-                            '${item.$2}',
-                            style: Theme.of(context).textTheme.headlineSmall,
+        children: values
+            .map(
+              (item) => SizedBox(
+                width: width,
+                height: 124,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: item.$4.withValues(alpha: 0.12),
+                          child: Icon(item.$3, color: item.$4),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.$1, maxLines: 2),
+                              Text(
+                                '${item.$2}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ).toList(),
+            )
+            .toList(),
       );
     },
   );
@@ -540,11 +582,7 @@ class _EngagementOverview extends StatelessWidget {
         children: [
           _bar('Views', analytics.views, const Color(0xFF2878F0)),
           _bar('Saves', analytics.saves, const Color(0xFF16B76A)),
-          _bar(
-            'Clicks',
-            analytics.applicationClicks,
-            const Color(0xFF7047EB),
-          ),
+          _bar('Clicks', analytics.applicationClicks, const Color(0xFF7047EB)),
         ],
       ),
     ),
@@ -590,7 +628,10 @@ class _OpportunityStatus extends StatelessWidget {
             child: Column(
               children: [
                 _providerValue('Published', count(VerificationStatus.verified)),
-                _providerValue('Under Review', count(VerificationStatus.pending)),
+                _providerValue(
+                  'Under Review',
+                  count(VerificationStatus.pending),
+                ),
                 _providerValue('Expired', count(VerificationStatus.expired)),
                 _providerValue('Archived', count(VerificationStatus.archived)),
               ],
@@ -631,17 +672,20 @@ class _ProviderOpportunityTable extends StatelessWidget {
             ),
           )
         : Column(
-            children: opportunities.take(7).map(
-              (item) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  child: Icon(Icons.school_outlined),
-                ),
-                title: Text(item.title),
-                subtitle: Text('${item.hostCountry} • ${item.typeLabel}'),
-                trailing: Chip(label: Text(item.verificationLabel)),
-              ),
-            ).toList(),
+            children: opportunities
+                .take(7)
+                .map(
+                  (item) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.school_outlined),
+                    ),
+                    title: Text(item.title),
+                    subtitle: Text('${item.hostCountry} • ${item.typeLabel}'),
+                    trailing: Chip(label: Text(item.verificationLabel)),
+                  ),
+                )
+                .toList(),
           ),
   );
 }
@@ -786,7 +830,12 @@ Widget _providerSection(String label) => Padding(
 
 Widget _providerValue(String label, int value) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 7),
-  child: Row(children: [Expanded(child: Text(label)), Text('$value')]),
+  child: Row(
+    children: [
+      Expanded(child: Text(label)),
+      Text('$value'),
+    ],
+  ),
 );
 
 Widget _bar(String label, int value, Color color) {
@@ -1095,11 +1144,12 @@ class _OpportunitySubmissionScreenState
 
   String _value(String key) => _controller(key).text.trim();
 
-  List<String> _list(String key) => _value(key)
-      .split(',')
-      .map((value) => value.trim())
-      .where((value) => value.isNotEmpty)
-      .toList();
+  List<String> _list(String key) =>
+      _value(key)
+          .split(',')
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toList();
 
   static String _dateText(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-'

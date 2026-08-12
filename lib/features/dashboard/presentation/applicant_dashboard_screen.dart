@@ -248,8 +248,7 @@ class _TopBar extends StatelessWidget {
               decoration: const InputDecoration(
                 isDense: true,
                 prefixIcon: Icon(Icons.search),
-                hintText:
-                    'Search scholarships, fellowships, webinars, summits and more...',
+                hintText: 'Search scholarships, fellowships, webinars, summits and more...',
               ),
             ),
           ),

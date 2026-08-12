@@ -56,10 +56,7 @@ void main() {
     }
 
     await expectLater(
-      auth.signIn(
-        email: administratorEmail,
-        password: administratorPassword,
-      ),
+      auth.signIn(email: administratorEmail, password: administratorPassword),
       throwsA(
         isA<AuthFailure>().having(
           (failure) => failure.message,

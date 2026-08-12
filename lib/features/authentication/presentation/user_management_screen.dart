@@ -184,9 +184,8 @@ class _CreateManagedAccountDialogState
                     tooltip: _obscurePassword
                         ? 'Show password'
                         : 'Hide password',
-                    onPressed: () => setState(
-                      () => _obscurePassword = !_obscurePassword,
-                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_outlined
@@ -194,8 +193,9 @@ class _CreateManagedAccountDialogState
                     ),
                   ),
                 ),
-                validator: (value) =>
-                    (value?.length ?? 0) < 12 ? 'Use at least 12 characters.' : null,
+                validator: (value) => (value?.length ?? 0) < 12
+                    ? 'Use at least 12 characters.'
+                    : null,
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
