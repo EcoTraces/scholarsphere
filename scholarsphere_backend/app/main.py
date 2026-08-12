@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api.routes.external_opportunities import router as external_router
+from app.api.routes.public_opportunities import router as public_opportunities_router
 from app.core.config import get_settings
 from app.core.errors import install_error_handling
 from app.db.session import AsyncSessionFactory, dispose_engine
@@ -35,6 +36,7 @@ app.add_middleware(
 )
 install_error_handling(app, max_request_bytes=settings.max_request_bytes)
 app.include_router(external_router, prefix=settings.api_v1_prefix)
+app.include_router(public_opportunities_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["health"])

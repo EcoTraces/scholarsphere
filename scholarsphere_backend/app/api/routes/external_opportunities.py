@@ -31,6 +31,7 @@ from app.schemas.external_source import (
     SyncQueued,
     VerificationDecisionRequest,
 )
+from app.schemas.opportunity_public import VerificationHistoryItem, VerificationHistoryPage
 from app.services.eu_funding import EUFundingSource
 from app.services.audit import append_audit
 from app.services.grants_gov import GrantsGovSource
@@ -338,6 +339,31 @@ async def list_pending_verification(
     ).all()
     return PendingOpportunityPage(
         items=list(items), total=total or 0, page=page, page_size=page_size
+    )
+
+
+@router.get(
+    "/opportunities/{opportunity_id}/verification-history",
+    response_model=VerificationHistoryPage,
+)
+async def get_verification_history(
+    opportunity_id: UUID,
+    _: Annotated[AuthenticatedUser, Depends(preview_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> VerificationHistoryPage:
+    opportunity = await session.get(ExternalOpportunity, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found.")
+    rows = (
+        await session.scalars(
+            select(VerificationHistory)
+            .where(VerificationHistory.opportunity_id == opportunity_id)
+            .order_by(VerificationHistory.changed_at.asc())
+        )
+    ).all()
+    return VerificationHistoryPage(
+        opportunity_id=opportunity_id,
+        items=[VerificationHistoryItem.model_validate(row) for row in rows],
     )
 
 

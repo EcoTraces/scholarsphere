@@ -27,7 +27,9 @@ import '../features/guidance/data/demo_application_guidance_repository.dart';
 import '../features/moderation/data/demo_moderation_repository.dart';
 import '../features/moderation/presentation/moderator_dashboard_screen.dart';
 import '../features/opportunities/data/demo_opportunity_repository.dart';
+import '../features/opportunities/data/live_opportunity_repository.dart';
 import '../features/opportunities/domain/opportunity.dart';
+import '../features/opportunities/presentation/live_opportunities_screen.dart';
 import '../features/operations/data/demo_backup_repository.dart';
 import '../features/operations/data/demo_observability_repository.dart';
 import '../features/operations/data/demo_release_repository.dart';
@@ -94,6 +96,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   );
   final _authRepository = FirebaseAuthRepository();
   final _opportunityRepository = DemoOpportunityRepository();
+  final _liveOpportunityRepository = LiveOpportunityRepository();
   final _profileRepository = DemoApplicantProfileRepository();
   final _notificationRepository = DemoNotificationRepository();
   final _applicationRepository = DemoApplicationRepository();
@@ -308,6 +311,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         openCalendar: () => _openApplicantCalendar(user),
         openDocuments: () => _openApplicantProfile(user),
         openSettings: () => _openApplicantSettings(user),
+        openLiveOpportunities: _openLiveOpportunities,
         onSignOut: _signOut,
       );
     }
@@ -396,6 +400,15 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
           opportunities: opportunities,
           repository: _notificationRepository,
         ),
+      ),
+    );
+  }
+
+  void _openLiveOpportunities() {
+    _navigatorKey.currentState?.push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            LiveOpportunitiesScreen(repository: _liveOpportunityRepository),
       ),
     );
   }
