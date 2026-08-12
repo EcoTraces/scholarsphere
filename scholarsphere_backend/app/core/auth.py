@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Annotated
@@ -9,6 +10,7 @@ from firebase_admin import auth, credentials
 
 from app.core.config import Settings, get_settings
 
+logger = logging.getLogger(__name__)
 bearer_scheme = HTTPBearer(auto_error=False)
 ROLE_ALIASES = {
     "opportunity_provider": "opportunityProvider",
@@ -56,10 +58,15 @@ async def get_current_user(
         initialize_firebase()
         claims = auth.verify_id_token(
             token.credentials,
-            check_revoked=True,
+            check_revoked=settings.firebase_check_revoked,
             app=firebase_admin.get_app(),
         )
     except Exception as exc:
+        logger.warning(
+            "firebase_token_verification_failed error_type=%s check_revoked=%s",
+            type(exc).__name__,
+            settings.firebase_check_revoked,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired authentication token.",

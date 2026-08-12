@@ -37,8 +37,10 @@ from app.services.audit import append_audit
 from app.services.grants_gov import GrantsGovSource
 from app.services.opportunity_import import ImportConflict, import_opportunities
 from app.services.parsing import utc_now
+from app.services.reliefweb import ReliefWebJobsSource, ReliefWebTrainingSource
 from app.services.simpler_grants import SimplerGrantsSource
 from app.services.source_registry import seed_opportunity_sources
+from app.services.usajobs import UsaJobsSource
 from app.tasks.opportunity_sync import queue_source_sync
 
 logger = logging.getLogger(__name__)
@@ -678,6 +680,9 @@ def _source_code(source: str) -> str:
             "grants-gov": "grants_gov",
             "simpler-grants": "simpler_grants",
             "eu-funding": "eu_funding_tenders",
+            "usajobs": "usajobs",
+            "reliefweb-jobs": "reliefweb_jobs",
+            "reliefweb-training": "reliefweb_training",
         }[source]
     except KeyError as error:
         raise HTTPException(status_code=404, detail="Unknown external source.") from error
@@ -688,6 +693,9 @@ def _collector_for(source: str):
         "grants-gov": GrantsGovSource,
         "simpler-grants": SimplerGrantsSource,
         "eu-funding": EUFundingSource,
+        "usajobs": UsaJobsSource,
+        "reliefweb-jobs": ReliefWebJobsSource,
+        "reliefweb-training": ReliefWebTrainingSource,
     }.get(source, _unknown_source)()
 
 

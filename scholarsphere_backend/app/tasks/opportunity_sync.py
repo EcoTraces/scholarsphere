@@ -32,8 +32,10 @@ from app.services.audit import append_audit
 from app.services.grants_gov import GrantsGovSource
 from app.services.opportunity_import import import_opportunities
 from app.services.parsing import utc_now
+from app.services.reliefweb import ReliefWebJobsSource, ReliefWebTrainingSource
 from app.services.simpler_grants import SimplerGrantsSource
 from app.services.source_registry import seed_opportunity_sources
+from app.services.usajobs import UsaJobsSource
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -64,6 +66,18 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_eu_funding",
             "schedule": crontab(minute=40, hour="*/12"),
         },
+        "sync-usajobs": {
+            "task": "app.tasks.opportunity_sync.sync_usajobs",
+            "schedule": crontab(minute=0, hour="*/6"),
+        },
+        "sync-reliefweb-jobs": {
+            "task": "app.tasks.opportunity_sync.sync_reliefweb_jobs",
+            "schedule": crontab(minute=20, hour="*/6"),
+        },
+        "sync-reliefweb-training": {
+            "task": "app.tasks.opportunity_sync.sync_reliefweb_training",
+            "schedule": crontab(minute=50, hour="*/12"),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -89,6 +103,9 @@ SOURCE_TASK_NAMES = {
     "grants_gov": "app.tasks.opportunity_sync.sync_grants_gov",
     "simpler_grants": "app.tasks.opportunity_sync.sync_simpler_grants",
     "eu_funding_tenders": "app.tasks.opportunity_sync.sync_eu_funding",
+    "usajobs": "app.tasks.opportunity_sync.sync_usajobs",
+    "reliefweb_jobs": "app.tasks.opportunity_sync.sync_reliefweb_jobs",
+    "reliefweb_training": "app.tasks.opportunity_sync.sync_reliefweb_training",
 }
 
 
@@ -202,6 +219,45 @@ def sync_eu_funding(
     return _execute_source_task(self, "eu_funding_tenders", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_usajobs",
+    max_retries=3,
+)
+def sync_usajobs(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "usajobs", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_reliefweb_jobs",
+    max_retries=3,
+)
+def sync_reliefweb_jobs(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "reliefweb_jobs", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_reliefweb_training",
+    max_retries=3,
+)
+def sync_reliefweb_training(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "reliefweb_training", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -311,7 +367,9 @@ async def _run_source_sync(
                 source.last_failed_sync_at = history.finished_at
                 source.most_recent_error = history.error_summary
             source.next_scheduled_sync = history.finished_at + timedelta(
-                hours=12 if source_code == "eu_funding_tenders" else 6
+                hours=12
+                if source_code in {"eu_funding_tenders", "reliefweb_training"}
+                else 6
             )
             append_audit(
                 session,
@@ -403,6 +461,9 @@ def _collector(source_code: str) -> Any:
         "grants_gov": GrantsGovSource,
         "simpler_grants": SimplerGrantsSource,
         "eu_funding_tenders": EUFundingSource,
+        "usajobs": UsaJobsSource,
+        "reliefweb_jobs": ReliefWebJobsSource,
+        "reliefweb_training": ReliefWebTrainingSource,
     }[source_code]()
 
 

@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     firebase_project_id: str = "scholarsphere-d44f5"
     firebase_credentials_path: Path | None = None
+    # Revocation checking calls the Identity Toolkit API, which needs a real
+    # service-account credential (firebase_credentials_path or ADC). Keep
+    # this True in every real deployment. It exists only so local/demo runs
+    # without a service account can still verify token signatures.
+    firebase_check_revoked: bool = True
     allowed_origins: Annotated[list[str], NoDecode] = [
         "http://localhost:3000",
         "http://localhost:8080",
@@ -70,6 +75,13 @@ class Settings(BaseSettings):
         "31094503": "closed",
     }
 
+    usajobs_base_url: str = "https://data.usajobs.gov/api/search"
+    usajobs_api_key: SecretStr = SecretStr("")
+    usajobs_user_agent: str = ""
+
+    reliefweb_base_url: str = "https://api.reliefweb.int/v2"
+    reliefweb_appname: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -110,6 +122,8 @@ class Settings(BaseSettings):
         "grants_gov_base_url",
         "simpler_grants_base_url",
         "eu_funding_api_url",
+        "usajobs_base_url",
+        "reliefweb_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

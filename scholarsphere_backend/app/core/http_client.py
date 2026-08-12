@@ -36,15 +36,55 @@ async def post_json(
     params: Mapping[str, Any] | None = None,
     headers: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
+    return await _request_json(
+        "POST", url, json=json, data=data, files=files, params=params, headers=headers
+    )
+
+
+async def get_json(
+    url: str,
+    *,
+    params: Mapping[str, Any] | None = None,
+    headers: Mapping[str, str] | None = None,
+    override_user_agent: bool = True,
+) -> dict[str, Any]:
+    """GET a JSON resource.
+
+    ``override_user_agent=False`` lets a caller's own ``User-Agent`` survive
+    unchanged - some official APIs (e.g. USAJOBS) require the header to be
+    the caller's registered contact address as part of authentication, not
+    a generic client identifier.
+    """
+    return await _request_json(
+        "GET",
+        url,
+        params=params,
+        headers=headers,
+        override_user_agent=override_user_agent,
+    )
+
+
+async def _request_json(
+    method: str,
+    url: str,
+    *,
+    json: dict[str, Any] | None = None,
+    data: Mapping[str, Any] | None = None,
+    files: Mapping[str, Any] | None = None,
+    params: Mapping[str, Any] | None = None,
+    headers: Mapping[str, str] | None = None,
+    override_user_agent: bool = True,
+) -> dict[str, Any]:
     _validate_url(url)
     settings = get_settings()
     correlation_id = str(uuid4())
     safe_headers = {
         **dict(headers or {}),
         "Accept": "application/json",
-        "User-Agent": "ScholarSphere/1.0",
         "X-Correlation-ID": correlation_id,
     }
+    if override_user_agent or "User-Agent" not in safe_headers:
+        safe_headers["User-Agent"] = "ScholarSphere/1.0"
     timeout = httpx.Timeout(settings.http_timeout_seconds)
 
     async with httpx.AsyncClient(
@@ -55,7 +95,7 @@ async def post_json(
         for attempt in range(settings.http_max_retries + 1):
             try:
                 async with client.stream(
-                    "POST",
+                    method,
                     url,
                     json=json,
                     data=data,

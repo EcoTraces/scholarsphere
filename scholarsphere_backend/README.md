@@ -14,11 +14,50 @@ Supported sources:
 | `grants-gov` | Grants.gov Search2 | US federal grants |
 | `simpler-grants` | Simpler.Grants.gov | US federal grants |
 | `eu-funding` | EC Funding & Tenders | European grants, calls, tenders, research and funding opportunities |
+| `usajobs` | USAJOBS | US federal jobs and student/internship postings (Pathways hiring path) |
+| `reliefweb-jobs` | ReliefWeb Jobs (UN OCHA) | Global humanitarian/development jobs and internships |
+| `reliefweb-training` | ReliefWeb Training (UN OCHA) | Global humanitarian/development training courses and workshops |
 
 These APIs do not contain every scholarship, internship, webinar, conference,
 summit, exchange, fellowship, or course. ScholarSphere will continue to need
 verified provider submissions, manual entry, official feeds, partner APIs, and
 collection from official sources where permission and terms allow it.
+
+### Source research notes (what was checked and rejected)
+
+Before adding `usajobs` and `reliefweb-jobs`/`reliefweb-training`, the
+following candidates were researched for broader coverage (scholarships,
+fellowships, competitions, conferences, exchange programs) and found *not*
+suitable for a direct API integration at this time:
+
+- **StudyPortals / ScholarshipPortal, MastersPortal, PhDPortal** - no
+  official public API; only unofficial third-party scraper wrappers exist.
+- **ScholarshipAPI.com** - a real commercial product with a free tier, but
+  its actual endpoint/auth documentation could not be independently fetched
+  (blocked automated access) in the environment this was researched from, so
+  no integration was written against unverified assumptions about its
+  contract. Worth revisiting with direct access to their docs.
+- **Devpost** (hackathons/competitions) - has no officially documented
+  public API; only an undocumented internal endpoint used by unofficial
+  scrapers, which does not meet this project's "official/documented source"
+  bar.
+- **Eventbrite** (webinars/conferences/workshops) - removed public
+  Event Search API access in 2019; only organizer/venue-scoped endpoints
+  remain, which don't support open-ended discovery.
+- **UKRI Gateway to Research** (`gtr.ukri.org`) - a real, free, no-key
+  official API, but it publishes a database of *already-awarded* UK
+  research grants, not open calls to apply to. Integrating it would mean
+  presenting closed/historical awards as live opportunities, which
+  conflicts with the "never mislead" principle, so it was left out.
+- **EURAXESS** (European researcher jobs/fellowships) - no official public
+  API found, only third-party scrapers.
+
+Scholarships and fellowships aimed at individual students remain the
+biggest real gap: almost none of the well-known providers (DAAD, Chevening,
+Fulbright, Commonwealth Scholarships, university-specific funds) publish a
+public API. Closing that gap needs either a licensed commercial data feed
+or per-provider scraping/partnership work, both a substantially different
+and larger effort than the other integrations here.
 
 The production flow is enforced as:
 
@@ -83,6 +122,11 @@ JSON. Required/operational values include:
 | `EU_FUNDING_API_URL` | HTTPS EC search URL |
 | `EU_FUNDING_API_KEY` | EC API identifier, normally `SEDIA` |
 | `EU_FUNDING_*` | Configurable filters, mappings, language and fields |
+| `USAJOBS_BASE_URL` | HTTPS USAJOBS Search API base URL |
+| `USAJOBS_API_KEY` | Free, self-service key from developer.usajobs.gov |
+| `USAJOBS_USER_AGENT` | The email address registered with the USAJOBS key - USAJOBS requires this exact value as the `User-Agent` header for authentication, not a generic client string |
+| `RELIEFWEB_BASE_URL` | HTTPS ReliefWeb API v2 base URL |
+| `RELIEFWEB_APPNAME` | Pre-approved ReliefWeb application identifier (not a secret) |
 
 Obtain a Simpler.Grants.gov API key through the current registration process
 linked from the official Simpler.Grants.gov API documentation. Put the issued
@@ -264,6 +308,39 @@ earliest valid deadline is selected; currency is `EUR`; country is
 `European Union`. Supplied result URLs are preferred, otherwise a topic URL is
 built from reference or identifier.
 
+### USAJOBS
+
+`PositionID`/`MatchedObjectId` becomes `external_id`; `PositionTitle`,
+`OrganizationName`/`DepartmentName`, `PositionStartDate` and
+`ApplicationCloseDate` map to their normalized equivalents. Postings whose
+`HiringPath` mentions students, recent graduates or interns are typed
+`internship`; everything else is typed `job`. Country is always
+`United States`. Authentication requires `Host: data.usajobs.gov`,
+`Authorization-Key: <key>` and `User-Agent: <registered email>` on every
+request - USAJOBS uses the `User-Agent` value as part of authentication,
+so it is exempt from the HTTP client's default `User-Agent` override.
+
+**Verification note:** the response field names above come from USAJOBS'
+long-stable, widely-documented schema, but this adapter has not been
+exercised against a live authenticated response in this codebase's
+development environment (no outbound internet access when it was written).
+Smoke-test it with a real `USAJOBS_API_KEY` before enabling scheduled sync.
+
+### ReliefWeb (UN OCHA)
+
+Two independent sources share one normalizer: `reliefweb-jobs` (job/
+internship postings) and `reliefweb-training` (training courses and
+workshops). Both map `id` to `external_id`, `fields.title`,
+`fields.source[0].name`, `fields.country[0].name` and `fields.url` to their
+normalized equivalents, and `fields.date.created` to `opening_date`.
+Jobs use `fields.date.closing` as the deadline; training uses
+`fields.date.registration` (the registration close date). Every request
+requires a pre-approved `appname` as a URL parameter (ReliefWeb's own
+authentication mechanism, not a secret credential) - see
+[apidoc.reliefweb.int](https://apidoc.reliefweb.int/). Field names were
+confirmed directly against ReliefWeb's official parameter and field-table
+documentation.
+
 ## Duplicate detection and reverification
 
 Exact duplicates use source plus external ID and deterministic payload SHA-256.
@@ -329,13 +406,14 @@ redis-cli -u "$REDIS_URL" ping
 - PostgreSQL connection refused: verify `DATABASE_URL`, PostgreSQL health and firewall.
 - Redis/Celery unavailable: verify `REDIS_URL`, `redis-cli ping`, worker and Beat logs.
 - Migration import error: activate the backend environment and install requirements.
-- Firebase 401: verify project ID, credentials, token audience, expiry and revocation.
+- Firebase 401: verify project ID, credentials, token audience, expiry and revocation. Revocation checking (`check_revoked=True`) requires a real service-account credential (`FIREBASE_CREDENTIALS_PATH` or ADC) - without one, every token fails even if it's genuinely valid. The server logs `firebase_token_verification_failed` with the exception type (never the token) when this happens. For local/demo runs with no service account, set `FIREBASE_CHECK_REVOKED=false`; never do this in production.
 - 429/503: inspect the returned correlation ID and safe worker logs; retries are bounded.
 - Empty previews: confirm source filters and upstream availability without bypassing TLS.
 
 ## Known limitations
 
-- The three feeds cover only their official funding domains, not all ScholarSphere opportunity types.
+- The six feeds cover US/EU government grants, US federal jobs, and UN humanitarian jobs/training - not scholarships, fellowships, conferences, competitions, or exchange programs, which remain a real gap (see "Source research notes" above for what was checked and why it wasn't integrated).
+- The USAJOBS adapter's response field names are based on established public documentation, not a live-verified response in this development environment; smoke-test with a real key before enabling scheduled sync.
 - Reverification reminders currently produce worker/audit signals; user delivery needs a backend notification provider.
 - Cross-source duplicate matching is conservative and always requires human review.
 - Firebase roles are authoritative today; granular permission claims require consistent claim provisioning.

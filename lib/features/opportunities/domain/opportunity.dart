@@ -13,6 +13,8 @@ enum OpportunityType {
   youthProgram,
   onlineCourse,
   fundedEvent,
+  grant,
+  job,
 }
 
 enum FundingType { fullyFunded, partiallyFunded, selfFunded }
@@ -150,6 +152,8 @@ class Opportunity {
     OpportunityType.youthProgram => 'Youth program',
     OpportunityType.onlineCourse => 'Online course',
     OpportunityType.fundedEvent => 'Funded event',
+    OpportunityType.grant => 'Grant',
+    OpportunityType.job => 'Job',
   };
 
   String get fundingLabel => switch (funding) {

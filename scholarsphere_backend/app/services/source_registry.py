@@ -27,15 +27,37 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "api_key",
         "trust_level": "official",
     },
+    "usajobs": {
+        "source_name": "USAJOBS",
+        "source_type": "government",
+        "authentication_type": "api_key",
+        "trust_level": "official",
+    },
+    "reliefweb_jobs": {
+        "source_name": "ReliefWeb Jobs",
+        "source_type": "international_organization",
+        "authentication_type": "app_identifier",
+        "trust_level": "official",
+    },
+    "reliefweb_training": {
+        "source_name": "ReliefWeb Training",
+        "source_type": "international_organization",
+        "authentication_type": "app_identifier",
+        "trust_level": "official",
+    },
 }
 
 
 def _base_urls() -> dict[str, str]:
     settings = get_settings()
+    reliefweb_base = settings.reliefweb_base_url.rstrip("/")
     return {
         "grants_gov": settings.grants_gov_base_url,
         "simpler_grants": settings.simpler_grants_base_url,
         "eu_funding_tenders": settings.eu_funding_api_url,
+        "usajobs": settings.usajobs_base_url,
+        "reliefweb_jobs": f"{reliefweb_base}/jobs",
+        "reliefweb_training": f"{reliefweb_base}/training",
     }
 
 
@@ -54,20 +76,25 @@ async def seed_opportunity_sources(
         ).all()
     }
     base_urls = _base_urls()
+    now = utc_now()
     next_runs = {
-        "grants_gov": utc_now() + timedelta(hours=6),
-        "simpler_grants": utc_now() + timedelta(hours=6),
-        "eu_funding_tenders": utc_now() + timedelta(hours=12),
+        "grants_gov": now + timedelta(hours=6),
+        "simpler_grants": now + timedelta(hours=6),
+        "eu_funding_tenders": now + timedelta(hours=12),
+        "usajobs": now + timedelta(hours=6),
+        "reliefweb_jobs": now + timedelta(hours=6),
+        "reliefweb_training": now + timedelta(hours=12),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
+        next_run = next_runs.get(source_code, now + timedelta(hours=6))
         if source_code in existing:
             if existing[source_code].next_scheduled_sync is None:
-                existing[source_code].next_scheduled_sync = next_runs[source_code]
+                existing[source_code].next_scheduled_sync = next_run
             continue
         source = OpportunitySource(
             source_code=source_code,
             base_url=base_urls[source_code],
-            next_scheduled_sync=next_runs[source_code],
+            next_scheduled_sync=next_run,
             **definition,
         )
         session.add(source)

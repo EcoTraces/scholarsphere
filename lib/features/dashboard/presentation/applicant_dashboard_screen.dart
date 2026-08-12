@@ -26,7 +26,6 @@ class ApplicantDashboardScreen extends StatefulWidget {
     required this.openCalendar,
     required this.openDocuments,
     required this.openSettings,
-    required this.openLiveOpportunities,
     required this.onSignOut,
   });
 
@@ -40,7 +39,6 @@ class ApplicantDashboardScreen extends StatefulWidget {
   final VoidCallback openSaved;
   final VoidCallback openNotifications;
   final VoidCallback openProfile;
-  final VoidCallback openLiveOpportunities;
   final VoidCallback openCalendar;
   final VoidCallback openDocuments;
   final VoidCallback openSettings;
@@ -143,7 +141,6 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
     openCalendar: widget.openCalendar,
     openProfile: widget.openProfile,
     openSettings: widget.openSettings,
-    openLiveOpportunities: widget.openLiveOpportunities,
   );
 
   void _openOpportunities() {
@@ -309,7 +306,6 @@ class _SideNavigation extends StatelessWidget {
     required this.openCalendar,
     required this.openProfile,
     required this.openSettings,
-    required this.openLiveOpportunities,
   });
   final UserAccount user;
   final bool compact;
@@ -323,7 +319,6 @@ class _SideNavigation extends StatelessWidget {
   final VoidCallback openCalendar;
   final VoidCallback openProfile;
   final VoidCallback openSettings;
-  final VoidCallback openLiveOpportunities;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -392,11 +387,6 @@ class _SideNavigation extends StatelessWidget {
                   openApplications,
                 ),
                 _nav(Icons.bookmark_outline, 'Saved Opportunities', openSaved),
-                _nav(
-                  Icons.travel_explore,
-                  'Live Opportunities (Beta)',
-                  openLiveOpportunities,
-                ),
                 _nav(
                   Icons.notifications_none,
                   'Notifications',
