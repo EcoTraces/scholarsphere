@@ -64,17 +64,47 @@ class _AuthScreenState extends State<AuthScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= _wideBreakpoint;
-            if (!wide) return _buildFormPane(theme, wide: false);
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(flex: 6, child: _buildFormPane(theme, wide: true)),
-                Expanded(flex: 5, child: _buildSidePanel(theme)),
-              ],
+            return SingleChildScrollView(
+              child: wide
+                  ? _buildWideLayout(theme, constraints.maxHeight)
+                  : _buildNarrowLayout(theme),
             );
           },
         ),
       ),
+    );
+  }
+
+  // The hero row is pinned to exactly one viewport tall (like the original
+  // implementation) so the decorative side panel gets a bounded height to
+  // fill via Expanded+stretch without relying on IntrinsicHeight, which
+  // under-measures Expanded children and clipped the panel's content.
+  Widget _buildWideLayout(ThemeData theme, double viewportHeight) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: viewportHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(flex: 6, child: _buildFormPane(theme, wide: true)),
+              Expanded(flex: 5, child: _buildSidePanel(theme)),
+            ],
+          ),
+        ),
+        _buildTrustSection(theme, wide: true),
+      ],
+    );
+  }
+
+  Widget _buildNarrowLayout(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildFormPane(theme, wide: false),
+        _buildTrustSection(theme, wide: false),
+      ],
     );
   }
 
@@ -202,20 +232,34 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          'At least 12 characters with upper/lowercase, a '
-                          'number, and a symbol.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 12,
-                            color: const Color(0xFF98A2B3),
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              size: 14,
+                              color: Color(0xFF98A2B3),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'At least 12 characters with upper/lowercase, '
+                                'a number, and a symbol.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontSize: 12,
+                                  color: const Color(0xFF98A2B3),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       CheckboxListTile(
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
+                        visualDensity: VisualDensity.standard,
                         value: _acceptPrivacy,
                         title: const Text('Accept the privacy policy'),
                         onChanged: _busy
@@ -227,7 +271,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       CheckboxListTile(
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
+                        visualDensity: VisualDensity.standard,
                         value: _acceptTerms,
                         title: const Text('Accept the terms and conditions'),
                         onChanged: _busy
@@ -289,14 +333,15 @@ class _AuthScreenState extends State<AuthScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 32),
-        _buildTrustBadges(theme),
       ],
     );
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: wide ? 56 : 24, vertical: 32),
+        padding: EdgeInsets.symmetric(
+          horizontal: wide ? 56 : 24,
+          vertical: wide ? 40 : 32,
+        ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
           child: content,
@@ -306,17 +351,19 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildBrandRow(ThemeData theme, {required bool centered}) {
-    final primary = theme.colorScheme.primary;
     final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(11),
+          child: Image.asset(
+            'assets/branding/icon-1024.png',
+            width: 44,
+            height: 44,
+            fit: BoxFit.cover,
+            cacheWidth: 132,
+            semanticLabel: 'ScholarSphere',
           ),
-          child: Icon(Icons.public, color: primary, size: 24),
         ),
         const SizedBox(width: 12),
         Column(
@@ -374,32 +421,43 @@ class _AuthScreenState extends State<AuthScreen> {
     required bool selected,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: _busy ? null : onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: _busy ? null : onTap,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: selected
-                ? theme.colorScheme.primary
-                : const Color(0xFF667085),
+          focusColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+          hoverColor: theme.colorScheme.primary.withValues(alpha: 0.05),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: selected
+                    ? theme.colorScheme.primary
+                    : const Color(0xFF667085),
+              ),
+            ),
           ),
         ),
       ),
@@ -470,76 +528,144 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildTrustBadges(ThemeData theme) {
-    final items = [
-      (
-        Icons.verified_user_outlined,
-        'Secure & trusted',
-        'Your data is protected with industry-standard security.',
+  static const _trustItems = [
+    (
+      Icons.verified_user_outlined,
+      'Secure & trusted',
+      'Your data is protected with industry-standard security.',
+    ),
+    (
+      Icons.public,
+      'Global opportunities',
+      'Access scholarships, grants, and internships worldwide.',
+    ),
+    (
+      Icons.groups_outlined,
+      'For everyone',
+      'Students, professionals, and organizations, all in one place.',
+    ),
+  ];
+
+  /// Full-width section below the auth card. Kept outside the 440px-capped
+  /// form column (unlike the old implementation) so the three items have
+  /// room to sit in equal horizontal columns instead of wrapping into a
+  /// cramped vertical stack.
+  Widget _buildTrustSection(ThemeData theme, {required bool wide}) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFFE7EAF0))),
       ),
-      (
-        Icons.public,
-        'Global opportunities',
-        'Access scholarships, grants, and internships worldwide.',
+      padding: EdgeInsets.symmetric(
+        horizontal: wide ? 56 : 24,
+        vertical: wide ? 40 : 32,
       ),
-      (
-        Icons.groups_outlined,
-        'For everyone',
-        'Students, professionals, and organizations, all in one place.',
-      ),
-    ];
-    return Wrap(
-      spacing: 24,
-      runSpacing: 20,
-      children: [
-        for (final item in items)
-          SizedBox(
-            width: 220,
-            child: _buildBadge(theme, item.$1, item.$2, item.$3),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 640;
+              if (!columns) {
+                return Column(
+                  children: [
+                    for (var i = 0; i < _trustItems.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 24),
+                      _buildTrustItem(
+                        theme,
+                        _trustItems[i].$1,
+                        _trustItems[i].$2,
+                        _trustItems[i].$3,
+                        centered: false,
+                      ),
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < _trustItems.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 32),
+                    Expanded(
+                      child: _buildTrustItem(
+                        theme,
+                        _trustItems[i].$1,
+                        _trustItems[i].$2,
+                        _trustItems[i].$3,
+                        centered: true,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
-      ],
+        ),
+      ),
     );
   }
 
-  Widget _buildBadge(
+  Widget _buildTrustItem(
     ThemeData theme,
     IconData icon,
     String title,
-    String subtitle,
-  ) {
+    String subtitle, {
+    required bool centered,
+  }) {
     final primary = theme.colorScheme.primary;
+    final badge = Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(icon, size: 20, color: primary),
+    );
+    final titleText = Text(
+      title,
+      textAlign: centered ? TextAlign.center : TextAlign.left,
+      style: const TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 14,
+        color: Color(0xFF14213D),
+      ),
+    );
+    final subtitleText = Text(
+      subtitle,
+      textAlign: centered ? TextAlign.center : TextAlign.left,
+      style: const TextStyle(
+        fontSize: 13,
+        color: Color(0xFF667085),
+        height: 1.45,
+      ),
+    );
+
+    if (centered) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          badge,
+          const SizedBox(height: 14),
+          titleText,
+          const SizedBox(height: 6),
+          subtitleText,
+        ],
+      );
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 18, color: primary),
-        ),
-        const SizedBox(width: 10),
+        badge,
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF667085),
-                  height: 1.3,
-                ),
-              ),
+              titleText,
+              const SizedBox(height: 4),
+              subtitleText,
             ],
           ),
         ),
@@ -586,14 +712,16 @@ class _AuthScreenState extends State<AuthScreen> {
                     Container(
                       width: 108,
                       height: 108,
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withValues(alpha: 0.12),
                       ),
-                      child: const Icon(
-                        Icons.travel_explore,
-                        size: 52,
-                        color: Colors.white,
+                      child: Image.asset(
+                        'assets/branding/icon-foreground-1024.png',
+                        fit: BoxFit.contain,
+                        cacheWidth: 204,
+                        semanticLabel: 'ScholarSphere',
                       ),
                     ),
                     const SizedBox(height: 28),
