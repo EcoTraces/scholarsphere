@@ -704,8 +704,9 @@ class _TicketQueue extends StatelessWidget {
                 (ticket) => ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: _priorityColor(ticket.priority)
-                        .withValues(alpha: 0.12),
+                    backgroundColor: _priorityColor(
+                      ticket.priority,
+                    ).withValues(alpha: 0.12),
                     child: Icon(
                       Icons.support_agent,
                       color: _priorityColor(ticket.priority),

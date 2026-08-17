@@ -221,11 +221,9 @@ class DemoSearchIndexRepository implements SearchIndexRepository {
     return expanded;
   }
 
-  Set<String> _tokenize(String value) =>
-      RegExp(r'[a-z0-9]+')
-          .allMatches(value.toLowerCase())
-          .map((match) => match.group(0)!)
-          .toSet();
+  Set<String> _tokenize(String value) => RegExp(
+    r'[a-z0-9]+',
+  ).allMatches(value.toLowerCase()).map((match) => match.group(0)!).toSet();
 
   int _tolerance(String term) => term.length >= 7
       ? 2

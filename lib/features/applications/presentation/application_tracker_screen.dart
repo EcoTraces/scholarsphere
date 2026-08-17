@@ -283,12 +283,11 @@ class _ApplicationRecordScreenState extends State<ApplicationRecordScreen> {
 
   String _value(String key) => _controllers[key]!.text.trim();
 
-  List<String> _list(String key) =>
-      _value(key)
-          .split(',')
-          .map((item) => item.trim())
-          .where((item) => item.isNotEmpty)
-          .toList();
+  List<String> _list(String key) => _value(key)
+      .split(',')
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toList();
 
   DateTime? _parsedDate(String key) {
     final value = _value(key);

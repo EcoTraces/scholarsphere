@@ -3,7 +3,7 @@ from uuid import UUID
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from app.models.external_opportunity import SyncStatus
 
@@ -67,8 +67,18 @@ class PendingOpportunityItem(BaseModel):
     external_reference: str | None
     title: str
     provider_name: str
+    opportunity_type: str
+    country: str | None
+    description: str | None
+    opening_date: date | None = None
     deadline: date | None = None
     opportunity_status: str
+    funding_type: str | None
+    award_floor: float | None
+    award_ceiling: float | None
+    currency: str | None
+    official_source_url: str | None
+    official_application_url: str | None
     duplicate_review_required: bool
     collected_at: datetime
 
@@ -90,12 +100,19 @@ class SourceHealth(BaseModel):
 
 
 class VerificationDecisionRequest(BaseModel):
-    decision: Literal["approved", "rejected"]
+    decision: Literal[
+        "approved",
+        "rejected",
+        "reverification_required",
+        "expired",
+        "source_unavailable",
+        "suspicious",
+    ]
     notes: str = Field(min_length=1, max_length=4000)
-    source_checked: bool
-    application_link_checked: bool
-    deadline_checked: bool
-    duplicate_checked: bool
+    source_checked: bool = False
+    application_link_checked: bool = False
+    deadline_checked: bool = False
+    duplicate_checked: bool = False
 
 
 class PublicationRequest(BaseModel):
@@ -110,3 +127,48 @@ class OpportunityState(BaseModel):
     id: UUID
     verification_status: str
     publication_status: str
+
+
+class VerificationReviewState(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    opportunity_id: UUID
+    verification_officer_id: str | None
+    source_checked: bool
+    application_link_checked: bool
+    deadline_checked: bool
+    duplicate_checked: bool
+    decision: str
+    notes: str | None
+    verified_at: datetime | None
+    updated_at: datetime
+
+
+class OpportunityNoteRequest(BaseModel):
+    note: str = Field(min_length=1, max_length=4000)
+
+
+class OpportunityEditRequest(BaseModel):
+    reason: str = Field(min_length=1, max_length=2000)
+    title: str | None = Field(default=None, min_length=1, max_length=1000)
+    description: str | None = None
+    opening_date: date | None = None
+    deadline: date | None = None
+    funding_type: str | None = Field(default=None, max_length=128)
+    award_floor: float | None = None
+    award_ceiling: float | None = None
+    currency: str | None = Field(default=None, min_length=3, max_length=3)
+    official_source_url: HttpUrl | None = None
+    official_application_url: HttpUrl | None = None
+
+    @field_validator("official_source_url", "official_application_url")
+    @classmethod
+    def https_urls_only(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is not None and value.scheme != "https":
+            raise ValueError("official URLs must use HTTPS")
+        return value
+
+
+class OpportunityEditResponse(BaseModel):
+    id: UUID
+    changed_fields: list[str]

@@ -24,9 +24,7 @@ class _AuthScreenState extends State<AuthScreen> {
   // obvious malformed input like "a@" or "@@" while still accepting real
   // addresses. Firebase Auth performs the authoritative validation server
   // side; this only improves the error message shown before that call.
-  static final RegExp _emailPattern = RegExp(
-    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-  );
+  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   static bool _isValidEmail(String email) => _emailPattern.hasMatch(email);
 
@@ -731,8 +729,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 );
               } on AuthFailure catch (failure) {
                 if (!dialogContext.mounted) return;
-                ScaffoldMessenger.of(dialogContext)
-                    .showSnackBar(SnackBar(content: Text(failure.message)));
+                ScaffoldMessenger.of(
+                  dialogContext,
+                ).showSnackBar(SnackBar(content: Text(failure.message)));
               }
             },
             child: const Text('Resend email'),
@@ -747,8 +746,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 widget.onAuthenticated(account);
               } on AuthFailure catch (failure) {
                 if (!dialogContext.mounted) return;
-                ScaffoldMessenger.of(dialogContext)
-                    .showSnackBar(SnackBar(content: Text(failure.message)));
+                ScaffoldMessenger.of(
+                  dialogContext,
+                ).showSnackBar(SnackBar(content: Text(failure.message)));
               }
             },
             child: const Text('Check verification'),

@@ -668,9 +668,9 @@ class _ModeratorMetricWrap extends StatelessWidget {
                               Text(metric.$1, maxLines: 2),
                               Text(
                                 '${metric.$2}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
                               ),
                             ],
                           ),

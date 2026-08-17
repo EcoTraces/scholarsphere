@@ -92,7 +92,8 @@ class DemoApplicationGuidanceRepository
         id: 'interview',
         type: GuidanceItemType.interviewPreparation,
         title: 'Interview preparation',
-        guidance: 'Review the program, prepare evidence-based examples, and test your setup.',
+        guidance:
+            'Review the program, prepare evidence-based examples, and test your setup.',
         status: GuidanceItemStatus.notStarted,
         required: false,
         order: order++,

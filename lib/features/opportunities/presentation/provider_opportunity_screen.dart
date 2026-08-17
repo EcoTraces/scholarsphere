@@ -549,9 +549,9 @@ class _ProviderMetrics extends StatelessWidget {
                               Text(item.$1, maxLines: 2),
                               Text(
                                 '${item.$2}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
                               ),
                             ],
                           ),
@@ -1144,12 +1144,11 @@ class _OpportunitySubmissionScreenState
 
   String _value(String key) => _controller(key).text.trim();
 
-  List<String> _list(String key) =>
-      _value(key)
-          .split(',')
-          .map((value) => value.trim())
-          .where((value) => value.isNotEmpty)
-          .toList();
+  List<String> _list(String key) => _value(key)
+      .split(',')
+      .map((value) => value.trim())
+      .where((value) => value.isNotEmpty)
+      .toList();
 
   static String _dateText(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-'

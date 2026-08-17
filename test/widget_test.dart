@@ -53,6 +53,12 @@ void main() {
       password: 'Scholarsphere2026!',
       role: UserRole.applicant,
     );
+    // register() leaves the account pendingVerification/emailVerified:false
+    // by design (real self-registration requires a real verification
+    // email). Without confirming it here, every applicant-flow test below
+    // lands on the "verify your email" gate instead of the dashboard, and
+    // hangs pumpAndSettle() on that screen's perpetual spinner.
+    await authRepository.confirmEmailVerification();
     await authRepository.signOut();
   });
 
@@ -95,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Sign in to discover trusted opportunities'),
+      find.text('Sign in to continue and discover trusted opportunities.'),
       findsOneWidget,
     );
     await signIn(tester);

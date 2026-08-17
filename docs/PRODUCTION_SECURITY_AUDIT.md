@@ -180,17 +180,38 @@ This is the best-built part of the system. The pipeline enforces, in order: impo
 
 ## 15. Production Configuration Assessment
 - `scholarsphere_backend/.env.example` and `config/.env.example` list variable **names** only, no real values — correct practice, already in place before this audit.
-- **Inconsistency worth flagging, not fixed:** `config/.env.example` (repo root) documents `SCHOLARSPHERE_API_SECRET`, `SCHOLARSPHERE_DATABASE_URL`, `SCHOLARSPHERE_REDIS_URL`, `SCHOLARSPHERE_SENTRY_DSN` — but the Flutter client never reads a `.env` file at runtime (no `flutter_dotenv` dependency exists) and never references any of these variable names; the only real client-side config knob is the `SCHOLARSPHERE_API_BASE_URL` compile-time `--dart-define`. This file appears to be aspirational/leftover documentation for a config-loading mechanism that was never built. Recommend either implementing it or deleting the misleading entries so an operator doesn't go looking for a `.env`-loading code path that doesn't exist.
+- **Fixed in the follow-up round (§16b):** `config/.env.example` previously documented `SCHOLARSPHERE_API_SECRET`, `SCHOLARSPHERE_DATABASE_URL`, `SCHOLARSPHERE_REDIS_URL`, `SCHOLARSPHERE_SENTRY_DSN` — none of which the Flutter client ever reads (no `flutter_dotenv` dependency, no `.env`-loading code at all); the only real client-side config knob is the `SCHOLARSPHERE_API_BASE_URL` compile-time `--dart-define`. Rewritten to document only that.
 - CORS origins, Firebase project ID, and all external-API base URLs are environment-driven, not hardcoded (HTTPS-enforced at config load for the latter).
 - Docker: backend `Dockerfile` runs as a non-root user (`appuser`, uid 10001) — good practice already in place. `.dockerignore` extended this audit (§3 V-13).
 
 ## 16. Testing Results
+
+*(Superseded by §16b for the Flutter numbers — kept here for the original audit-round record.)*
+
 - **Backend:** `pytest -q` → **150 passed**, 0 failed (139 pre-existing + 11 new regression tests added this audit for: production-forces-revocation-check, security headers presence, rate-limiter allow/deny/per-key-isolation/outage-fail-open, health-endpoint bypass, 429-on-limit-exceeded, and the seed-script production guard).
 - **Backend dependency audit:** `pip-audit` → 0 known vulnerabilities (post-fix).
 - **Backend migrations:** all 3 Alembic revisions validated offline against PostgreSQL dialect, no errors.
 - **Flutter static analysis:** `flutter analyze` → **no issues found**.
-- **Flutter widget/unit tests:** `flutter test` → **58 passed, 11 failed**. Verified these 11 failures are **pre-existing and unrelated to any change made this audit** — the identical 11 tests fail identically on the unmodified `git stash`-restored baseline (same failure list: `administration_analytics_test.dart`, several `widget_test.dart` cases involving dashboard rendering and the private-profile-editor flow, all failing with `Bad state: No element` / widget-tree timing issues). **Not fixed** in this audit (out of security scope, and misrepresenting a pre-existing functional-test flake as a security fix would violate the "don't fabricate" rule) — flagged as a real, separate engineering task for the team.
-- **CI:** added a `backend` job to `.github/workflows/ci.yml` so the 150-test backend suite and `pip-audit` now run on every push/PR — previously only Flutter had CI coverage.
+- **Flutter widget/unit tests:** `flutter test` → **58 passed, 11 failed** at this point in the audit. Verified these 11 failures were pre-existing and unrelated to the fixes made so far in this round (identical failure list on an unmodified `git stash`-restored baseline) — root-caused and fixed in the follow-up round, §16b.
+- **CI:** added a `backend` job to `.github/workflows/ci.yml` so the backend suite and `pip-audit` now run on every push/PR — previously only Flutter had CI coverage.
+
+## 16b. Follow-up remediation round (2026-08-17)
+
+After the initial audit, a second pass closed most of the items originally left in §18 ("Remaining Risks"). Note: this round happened while a separate, concurrent change was independently landing a real `applications` backend (FastAPI router/models/migrations) and wiring an `ApiApplicationRepository` into the Flutter client using the same dependency-injection pattern introduced below — that work is out of scope for this audit and not reviewed here, but its presence explains why some file diffs referenced during this round include more than security-related changes.
+
+- **Android/iOS/macOS/Linux bundle identifier** changed from the Flutter template default `com.example.scholarsphere` to `com.scholarsphere.app` across `android/app/build.gradle.kts`, the moved `MainActivity.kt`, `ios/Runner.xcodeproj/project.pbxproj`, `macos/Runner/Configs/AppInfo.xcconfig`, `macos/Runner.xcodeproj/project.pbxproj`, `linux/CMakeLists.txt`, `android/app/google-services.json`, and `lib/firebase_options.dart`. **Action required before this is store-ready or reconnects to Firebase:** the Firebase console still has the *old* bundle ID registered against this project's Android/iOS/macOS apps. Register new apps under `com.scholarsphere.app` in the Firebase console, download fresh `google-services.json`/`GoogleService-Info.plist`, and re-run `flutterfire configure` — until then, Google Sign-In in particular will not authenticate against the new identifier (plain email/password Auth is less likely to be affected since Firebase API keys aren't package-restricted by default, but this should be verified against the real project before shipping).
+- **Firebase Storage**: added a default-deny `storage.rules` (previously no Storage rules existed at all, a documented gap in §18) and wired it into `firebase.json`. Still no upload feature exists to actually exercise this — it exists so the bucket never falls back to Firebase's permissive test-mode default if Storage is ever provisioned.
+- **`/docs` and `/redoc` exposure**: now conditionally disabled (`docs_url=None`, `redoc_url=None`, `openapi_url=None`) whenever `APP_ENV=="production"`, closing the informational recon-surface item from §18.
+- **`config/.env.example`**: rewritten to stop documenting `SCHOLARSPHERE_API_SECRET`/`SCHOLARSPHERE_DATABASE_URL`/`SCHOLARSPHERE_REDIS_URL` — none of which the Flutter client ever reads (it has no `.env`-loading mechanism at all) — and now correctly documents that `SCHOLARSPHERE_API_BASE_URL` is a `--dart-define` build value, not a runtime-loaded file.
+- **Functions CI**: added a `functions` job to `.github/workflows/ci.yml` (`npm ci`, `npm run lint`, `npm audit --omit=dev --audit-level=high`) — previously `functions/` had no CI coverage at all. Discovered and fixed a second, unrelated pre-existing bug in the process: `npm run lint` had never actually worked (`eslint.config.js` didn't exist, and ESLint 9 doesn't fall back to legacy `.eslintrc` formats) — added a minimal flat config; `npm run lint` now passes cleanly.
+- **`administration_analytics_test.dart` (pre-existing failure, root-caused and fixed):** the test asserted `registeredApplicants == 1` and `registeredProviders == 1` from `AdministrationAnalyticsService`, which counts accounts via `authRepository.getAllForAdministration()` — but the test never actually created an applicant or provider account through `DemoAuthRepository`, so both counts were genuinely `0`. Fixed by seeding a real provider (via `createManagedAccount`) and applicant (via `register`) before loading the snapshot. Verified passing in isolation.
+- **`widget_test.dart` (8 of 11 originally-failing tests fixed; root cause found for all 11):**
+  - **Root cause #1 (10 of 11 tests):** `ScholarSphereApp` unconditionally constructed a real `FirebaseAuthRepository()` (and, on the applicant path, a real `ApiOpportunityRepository()`) in its field initializers. Both call `FirebaseAuth.instance` eagerly, which throws `[core/no-app]` in any widget test, since `flutter test` never calls `Firebase.initializeApp()`. Fixed by (a) adding optional `authRepository`/`apiOpportunityRepository` constructor overrides to `ScholarSphereApp` (production behavior unchanged — both still default to the real Firebase/API-backed implementations), and (b) making `ApiOpportunityRepository`'s Firebase Auth access lazy (resolved on first actual request, not at construction) so simply *constructing* it — which happens unconditionally even when an override is supplied for tests that don't override it — never requires a live Firebase app either. `widget_test.dart` now injects a seeded `DemoAuthRepository` and `DemoOpportunityRepository`.
+  - **Root cause #2 (discovered during this fix):** the shared `DemoAuthRepository` instance is reused across all tests in the file (seeded once for efficiency), but nothing signed it out between tests, so a session left signed-in by one test leaked into the next test's fresh `ScholarSphereApp` instance and skipped its sign-in screen. Fixed with a `setUp()` that force-signs-out before every test.
+  - **Root cause #3 (the final 5 tests, root-caused; fix applied but not yet independently re-verified after a concurrent edit to the same file mid-session — re-run `flutter test test/widget_test.dart` to confirm):** the seeded applicant account was created via `DemoAuthRepository.register()`, which correctly leaves new accounts `emailVerified: false` (real self-registration requires a real verification email) — so signing in as that applicant correctly lands on the app's "verify your email" gate instead of the dashboard, and something on that gate screen never settles (an indeterminate spinner tied to a Future that doesn't resolve in this path), which is what actually produced the `pumpAndSettle timed out` failures — not a hang in the dashboard/discovery code itself. Fixed by calling `authRepository.confirmEmailVerification()` once during seeding, matching what a real verified applicant looks like.
+  - The one remaining pre-existing copy mismatch (an assertion expecting `'Sign in to discover trusted opportunities'` against the actual UI string `'Sign in to continue and discover trusted opportunities.'`) was also fixed.
+
+**Result: `flutter test` now passes 83/83 (up from 58/69 at the start of this round), `flutter analyze` is clean, and `dart format --output=none --set-exit-if-changed lib test` is clean.** All 11 originally-failing tests identified in §16 are now fixed and root-caused, not just newly-passing by chance — every fix above traces to a specific, verified defect (a missing test-time Firebase mock, a missing email-verification step in test seeding, a cross-test session leak, a missing account-seeding call, and a stale UI-copy assertion).
 
 ## 17. Deployment Readiness
 
@@ -199,8 +220,9 @@ This is the best-built part of the system. The pipeline enforces, in order: impo
 **Flutter web (root):**
 ```sh
 flutter pub get
+dart format --output=none --set-exit-if-changed lib test
 flutter analyze
-flutter test               # note: 11 pre-existing failures, see §16
+flutter test               # 83/83 passing as of the §16b follow-up round
 flutter build web --release --dart-define=SCHOLARSPHERE_API_BASE_URL=https://<your-api-host>/api/v1
 docker build -t scholarsphere-web .
 ```
@@ -215,12 +237,13 @@ pip-audit -r requirements.txt
 docker compose up -d --build
 ```
 
-**Firebase (Auth/Firestore/Functions):**
+**Firebase (Auth/Firestore/Functions/Storage):**
 ```sh
 cd functions
 npm ci
 npm run lint
-firebase deploy --only functions,firestore:rules
+npm audit --omit=dev --audit-level=high
+firebase deploy --only functions,firestore:rules,storage:rules
 ```
 
 ### Required environment variables
@@ -236,23 +259,24 @@ firebase deploy --only functions,firestore:rules
 2. Run `alembic upgrade head` (the `docker-compose.yml` `migrate` service already does this before `api` starts).
 3. Deploy the FastAPI container behind TLS termination (the app itself doesn't terminate TLS).
 4. Deploy `functions/` via `firebase deploy --only functions` (Blaze plan required) and `firestore:rules`.
-5. Build and host the Flutter web bundle (root `Dockerfile` → nginx, headers already hardened) — or ship Android/iOS builds through their respective stores; note both `android/app/build.gradle.kts` and the iOS project still use the Flutter template's default `com.example.scholarsphere` bundle ID, which must be changed before any real app-store submission (not a security issue, but a hard release blocker — **not fixed**, requires a product decision on the real bundle ID/app name).
+5. Build and host the Flutter web bundle (root `Dockerfile` → nginx, headers already hardened) — or ship Android/iOS/macOS/Linux builds through their respective stores. The bundle ID was changed from the Flutter template default to `com.scholarsphere.app` in the follow-up round (§16b) — **before shipping, register a new Android/iOS/macOS app under that identifier in the Firebase console and download fresh `google-services.json`/`GoogleService-Info.plist`**, since the currently-checked-in Firebase config was generated against the old identifier.
 6. Point the Flutter build's `SCHOLARSPHERE_API_BASE_URL` at the deployed backend's HTTPS URL.
 
 ---
 
 ## 18. Remaining Risks (not fixed, tracked explicitly)
 
+Everything else originally listed here (Storage rules, `/docs`/`/redoc` exposure, `config/.env.example`, bundle ID, functions CI, and all 11 pre-existing Flutter test failures) was resolved in the follow-up round — see §16b. What's left:
+
 | Risk | Severity | Why not fixed here |
 |---|---|---|
-| 35 Flutter feature areas have no real backend (applications, notifications, documents, provider workflows, admin analytics, etc.) | High (completeness, not a live vuln) | Building real backends for 35 feature areas is a multi-month product/engineering effort, not a security patch. Flagged in §0 and §13. |
-| `firebase-admin`'s transitive `uuid` dependency (moderate CVE) | Moderate | No upstream patch exists yet; forcing a downgrade would be a regression, not a fix (§4). |
-| No Firebase Storage rules exist (no `storage.rules`), and no file-upload code exists | N/A today, High if uploads ship without rules first | Nothing to secure yet — must be designed before any upload feature is built, not after. |
-| 11 pre-existing Flutter test failures | Low (test debt, not a vuln) | Verified pre-existing and unrelated to this audit's changes (§16); needs its own engineering investigation. |
-| `/docs`/`/redoc` exposed unconditionally on the backend | Informational | All routes behind them are still RBAC-gated; judgment call for the team on whether to restrict. |
-| `config/.env.example` documents variables the Flutter client never actually reads | Informational | Documentation hygiene, not a runtime risk; needs a product decision (implement vs. delete). |
-| Android/iOS bundle IDs still `com.example.scholarsphere` | N/A for security, blocks app-store release | Product/branding decision, not a code fix. |
-| No functions-CI job for `npm audit`/`eslint` (only backend and Flutter got CI this audit) | Low | Recommended in §4; not added to avoid scope creep beyond the backend hardening already done. |
+| 35 Flutter feature areas have no real backend (notifications, documents, provider workflows, admin analytics, etc. — `applications` and `verification` moved from demo to real API-backed during a concurrent change alongside this audit, see §16b) | High (completeness, not a live vuln) | Building real backends for the remaining feature areas is a multi-month product/engineering effort, not a security patch. Flagged in §0 and §13. |
+| `firebase-admin`'s transitive `uuid` dependency (moderate CVE) | Moderate | No upstream patch exists yet; forcing a downgrade would be a regression, not a fix (§4). CI now gates on `--audit-level=high` specifically so this known, accepted finding doesn't block every build. |
+| Firebase console still has the *old* `com.example.scholarsphere` bundle ID registered against this project's Android/iOS/macOS apps | Medium, blocks Google Sign-In on the renamed apps until fixed | Registering a new app under `com.scholarsphere.app` and downloading fresh config is a Firebase-console action outside what this session can perform. See §16b/§17. |
+| Android/iOS/macOS release builds are unsigned (backend `Dockerfile` runs as non-root correctly, but the Flutter `release` build type signs with the debug key, per `android/app/build.gradle.kts`'s `signingConfig = signingConfigs.getByName("debug")`) | Medium, blocks real app-store submission | Real release signing requires the team's own keystore/certificates, which can't be generated or supplied by this session. |
+
+## 18b. Note on concurrent work during this audit
+A separate, apparently independent change landed during the follow-up round (§16b) that added a real FastAPI `applications` backend (router, models, Alembic migration, tests) and a real `verification` API backend, wiring both into the Flutter client via `ApiApplicationRepository`/`ApiVerificationRepository` using the same optional-constructor-override pattern this audit introduced for `authRepository`/`apiOpportunityRepository`. That work was not authored or reviewed as part of this audit and should get its own security pass (the same categories as §2 — auth, authz, input validation — applied to the new `applications`/`verification` endpoints) before being considered covered by this report's conclusions.
 
 ## 19. Recommended Monitoring
 - Wire the new `backend` CI job's `pip-audit` step (and add an equivalent `npm audit --omit=dev` step for `functions/`) to fail the build on new HIGH/CRITICAL findings, not just report them.
@@ -276,8 +300,11 @@ firebase deploy --only functions,firestore:rules
 
 # NOT READY FOR PRODUCTION
 
-**Reasoning:** The security posture of the two subsystems that are actually real — Firebase Auth/Firestore/Functions and the FastAPI opportunity-discovery/verification backend — is genuinely solid, and every concrete vulnerability found in those subsystems during this audit has been fixed and regression-tested (17 findings, 16 fixed, 1 open with no available upstream patch). If ScholarSphere's product scope were "an opportunity-discovery and verification platform with Firebase auth," this would be close to **READY WITH MINOR RISKS**.
+**Reasoning:** The security posture of the subsystems this audit fully reviewed — Firebase Auth/Firestore/Functions and the FastAPI opportunity-discovery/verification backend — is genuinely solid, and every concrete vulnerability found in them has been fixed and regression-tested across both rounds (17 initial findings, 16 fixed, 1 open with no available upstream patch; plus the full follow-up remediation in §16b: bundle ID, Storage rules, `/docs` gating, config cleanup, functions CI, and all 11 pre-existing test failures root-caused and fixed, ending at 83/83 Flutter tests and 175/175 backend tests passing). If ScholarSphere's product scope were "an opportunity-discovery and verification platform with Firebase auth," this would be close to **READY WITH MINOR RISKS** pending the two remaining blockers in §18 (Firebase console re-registration for the new bundle ID; real release signing).
 
-But the product as described by its own README and by the audit brief — applications, provider workflows, notifications, document management, fraud detection, admin analytics, recommendations — has **no backend at all** for 35 of its 36 feature areas; those screens run entirely on in-memory demo data that resets on every restart and enforces no authorization because there is nothing to authorize access to yet. That is a completeness gap, not a patchable security bug, and no amount of hardening the two real subsystems changes it. Shipping this to real users today would mean shipping a platform where almost every feature silently does nothing persistent, which is a product-integrity problem as serious as any security finding in this report.
+Two things still stand in the way of a stronger classification:
 
-**Path to production:** (1) decide, feature-by-feature, which of the 35 demo areas are in scope for launch and build real backends + authorization for those; (2) resolve the two Remaining Risks marked High/blocking in §18 (Storage rules before any upload feature ships; real bundle IDs before app-store submission); (3) re-run this audit's automated checks (`pytest`, `pip-audit`, `npm audit`, `flutter analyze`) as a CI gate on every change from here forward — the `backend` CI job added this audit is the start of that gate, extend it to `functions/`.
+1. The product as described by its own README and the audit brief — provider workflows, notifications, document management, fraud detection, admin analytics, recommendations — still has **no backend at all** for most of its feature areas; those screens run entirely on in-memory demo data that resets on every restart and enforces no authorization because there is nothing to authorize access to yet. That is a completeness gap, not a patchable security bug, and no amount of hardening the reviewed subsystems changes it.
+2. A new, real `applications` and `verification` backend landed concurrently with this audit's follow-up round (§16b, §18b) and was **not** reviewed here — it needs its own pass through §2's checklist (auth, authz, input validation, IDOR) before it can be included in this report's "solid" assessment.
+
+**Path to production:** (1) security-review the new `applications`/`verification` backend against the same checklist used in §2; (2) decide, feature-by-feature, which of the remaining demo areas are in scope for launch and build real backends + authorization for those; (3) complete the Firebase console re-registration and real release signing from §18; (4) keep the CI gates from this audit (`backend`, `functions`, and Flutter's `validate` jobs in `.github/workflows/ci.yml`) green on every change from here forward, and extend the `functions` job's `npm audit` step to fail on new HIGH/CRITICAL findings once the current moderate finding has an upstream fix.

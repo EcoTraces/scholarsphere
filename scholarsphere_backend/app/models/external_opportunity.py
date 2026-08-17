@@ -43,6 +43,7 @@ class VerificationStatus(str, enum.Enum):
     suspicious = "suspicious"
     expired = "expired"
     archived = "archived"
+    source_unavailable = "source_unavailable"
 
 
 class PublicationStatus(str, enum.Enum):

@@ -55,6 +55,7 @@ import '../features/support/data/demo_support_repository.dart';
 import '../features/support/presentation/support_agent_screen.dart';
 import '../features/taxonomy/data/demo_taxonomy_repository.dart';
 import '../features/security/domain/access_control.dart';
+import '../features/verification/data/api_verification_repository.dart';
 import '../features/verification/data/demo_verification_repository.dart';
 import '../features/verification/presentation/verification_officer_dashboard_screen.dart';
 import 'theme.dart';
@@ -136,6 +137,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   late final _verificationRepository = DemoVerificationRepository(
     _opportunityRepository,
   );
+  final _apiVerificationRepository = ApiVerificationRepository();
   late final _collectionRepository = DemoOpportunityCollectionRepository(
     _opportunityRepository,
     sourceRegistry: _sourceRegistryRepository,
@@ -346,6 +348,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       return VerificationOfficerDashboardScreen(
         user: user,
         repository: _verificationRepository,
+        liveRepository: _apiVerificationRepository,
         providerRepository: _providerRepository,
         onSignOut: _signOut,
       );

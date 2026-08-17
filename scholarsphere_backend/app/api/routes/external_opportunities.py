@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import date, datetime
 import logging
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.core.auth import AuthenticatedUser
 from app.core.http_client import ExternalAPIError
@@ -21,6 +22,9 @@ from app.models import (
 from app.models.external_opportunity import PublicationStatus, SyncStatus, VerificationStatus
 from app.schemas.external_opportunity import ImportStatistics, NormalizedExternalOpportunity
 from app.schemas.external_source import (
+    OpportunityEditRequest,
+    OpportunityEditResponse,
+    OpportunityNoteRequest,
     PendingOpportunityPage,
     OpportunityState,
     PublicationRequest,
@@ -30,10 +34,17 @@ from app.schemas.external_source import (
     SyncHistoryPage,
     SyncQueued,
     VerificationDecisionRequest,
+    VerificationReviewState,
 )
-from app.schemas.opportunity_public import VerificationHistoryItem, VerificationHistoryPage
+from app.schemas.opportunity_public import (
+    OpportunityEvidence,
+    VerificationHistoryItem,
+    VerificationHistoryPage,
+)
 from app.services.eu_funding import EUFundingSource
 from app.services.audit import append_audit
+from app.services.evidence import build_opportunity_evidence
+from app.services.parsing import sanitize_html
 from app.services.grants_gov import GrantsGovSource
 from app.services.opportunity_import import ImportConflict, import_opportunities
 from app.services.parsing import utc_now
@@ -61,6 +72,28 @@ import_access = require_roles(
     "superAdministrator",
 )
 admin_access = require_roles("administrator", "superAdministrator")
+
+_DECISION_STATUS: dict[str, VerificationStatus] = {
+    "approved": VerificationStatus.verified,
+    "rejected": VerificationStatus.rejected,
+    "reverification_required": VerificationStatus.reverification_required,
+    "expired": VerificationStatus.expired,
+    "source_unavailable": VerificationStatus.source_unavailable,
+    "suspicious": VerificationStatus.suspicious,
+}
+
+_EDITABLE_FIELDS = (
+    "title",
+    "description",
+    "opening_date",
+    "deadline",
+    "funding_type",
+    "award_floor",
+    "award_ceiling",
+    "currency",
+    "official_source_url",
+    "official_application_url",
+)
 
 
 @router.get(
@@ -369,6 +402,30 @@ async def get_verification_history(
     )
 
 
+@router.get(
+    "/opportunities/{opportunity_id}/evidence",
+    response_model=OpportunityEvidence,
+)
+async def get_verification_evidence(
+    opportunity_id: UUID,
+    _: Annotated[AuthenticatedUser, Depends(preview_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> OpportunityEvidence:
+    """Same evidence view as the applicant-facing endpoint, but available to
+    verification staff for any status - not just verified+published records.
+    A verification officer must be able to see where a fact came from
+    *before* deciding whether to publish it.
+    """
+    opportunity = await session.scalar(
+        select(ExternalOpportunity)
+        .options(joinedload(ExternalOpportunity.source))
+        .where(ExternalOpportunity.id == opportunity_id)
+    )
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found.")
+    return await build_opportunity_evidence(session, opportunity)
+
+
 @router.get("/health", response_model=list[SourceHealth])
 async def source_health(
     _: Annotated[AuthenticatedUser, Depends(preview_access)],
@@ -472,11 +529,7 @@ async def decide_verification(
                 detail="All verification checks must pass before approval.",
             )
         previous = opportunity.verification_status.value
-        new_status = (
-            VerificationStatus.verified
-            if payload.decision == "approved"
-            else VerificationStatus.rejected
-        )
+        new_status = _DECISION_STATUS[payload.decision]
         opportunity.verification_status = new_status
         opportunity.publication_status = PublicationStatus.unpublished
         review.verification_officer_id = user.uid
@@ -501,11 +554,7 @@ async def decide_verification(
             opportunity_id=opportunity.id,
             actor_id=user.uid,
             actor_role=user.role,
-            action=(
-                "verification_approved"
-                if payload.decision == "approved"
-                else "verification_rejected"
-            ),
+            action=f"verification_{payload.decision}",
             entity_type="external_opportunity",
             entity_id=opportunity.id,
             previous_value={"verification_status": previous},
@@ -517,6 +566,156 @@ async def decide_verification(
         verification_status=opportunity.verification_status.value,
         publication_status=opportunity.publication_status.value,
     )
+
+
+@router.get(
+    "/opportunities/{opportunity_id}/review",
+    response_model=VerificationReviewState,
+)
+async def get_verification_review(
+    opportunity_id: UUID,
+    _: Annotated[AuthenticatedUser, Depends(preview_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> VerificationReviewState:
+    review = await session.scalar(
+        select(VerificationReview).where(
+            VerificationReview.opportunity_id == opportunity_id
+        )
+    )
+    if review is None:
+        raise HTTPException(
+            status_code=404, detail="No verification review exists for this opportunity."
+        )
+    return VerificationReviewState.model_validate(review)
+
+
+@router.post(
+    "/opportunities/{opportunity_id}/notes",
+    response_model=OpportunityState,
+)
+async def add_verification_note(
+    opportunity_id: UUID,
+    payload: OpportunityNoteRequest,
+    request: Request,
+    user: Annotated[AuthenticatedUser, Depends(import_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> OpportunityState:
+    """Attach a timestamped officer note as evidence without changing status."""
+    async with session.begin():
+        opportunity = await session.get(ExternalOpportunity, opportunity_id)
+        if opportunity is None:
+            raise HTTPException(status_code=404, detail="Opportunity not found.")
+        current_status = opportunity.verification_status.value
+        session.add(
+            VerificationHistory(
+                opportunity_id=opportunity.id,
+                previous_status=current_status,
+                new_status=current_status,
+                reason=payload.note,
+                changed_fields={"note_added": True},
+            )
+        )
+        append_audit(
+            session,
+            opportunity_id=opportunity.id,
+            actor_id=user.uid,
+            actor_role=user.role,
+            action="verification_note_added",
+            entity_type="external_opportunity",
+            entity_id=opportunity.id,
+            new_value={"note": payload.note},
+            correlation_id=request.state.correlation_id,
+        )
+    return OpportunityState(
+        id=opportunity.id,
+        verification_status=opportunity.verification_status.value,
+        publication_status=opportunity.publication_status.value,
+    )
+
+
+@router.patch(
+    "/opportunities/{opportunity_id}",
+    response_model=OpportunityEditResponse,
+)
+async def edit_opportunity(
+    opportunity_id: UUID,
+    payload: OpportunityEditRequest,
+    request: Request,
+    user: Annotated[AuthenticatedUser, Depends(import_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> OpportunityEditResponse:
+    """Let a verification officer correct specific fields, with a mandatory,
+    fully audited reason. Every change is diffed and recorded in both the
+    append-only verification history and the import audit log - nothing is
+    overwritten silently.
+    """
+    updates = payload.model_dump(exclude={"reason"}, exclude_unset=True)
+    async with session.begin():
+        opportunity = await session.get(ExternalOpportunity, opportunity_id)
+        if opportunity is None:
+            raise HTTPException(status_code=404, detail="Opportunity not found.")
+        changed: dict[str, dict[str, Any]] = {}
+        for field in _EDITABLE_FIELDS:
+            if field not in updates or updates[field] is None:
+                continue
+            new_value = updates[field]
+            if field == "description":
+                # Officer-supplied text goes through the same HTML
+                # sanitization as source-collected descriptions
+                # (app/services/eu_funding.py etc.) before it can ever be
+                # served to applicants - an edit reason is not an exemption
+                # from that rule.
+                new_value = sanitize_html(new_value)
+                if new_value is None:
+                    continue
+            if field in ("official_source_url", "official_application_url"):
+                new_value = str(new_value)
+            current_value = getattr(opportunity, field)
+            current_comparable = (
+                str(current_value)
+                if field in ("official_source_url", "official_application_url")
+                else current_value
+            )
+            if current_comparable == new_value:
+                continue
+            changed[field] = {
+                "previous": _jsonable(current_value),
+                "new": _jsonable(new_value),
+            }
+            setattr(opportunity, field, new_value)
+        if not changed:
+            raise HTTPException(
+                status_code=400, detail="No editable fields were changed."
+            )
+        current_status = opportunity.verification_status.value
+        session.add(
+            VerificationHistory(
+                opportunity_id=opportunity.id,
+                previous_status=current_status,
+                new_status=current_status,
+                reason=payload.reason,
+                changed_fields=changed,
+            )
+        )
+        append_audit(
+            session,
+            opportunity_id=opportunity.id,
+            actor_id=user.uid,
+            actor_role=user.role,
+            action="opportunity_edited",
+            entity_type="external_opportunity",
+            entity_id=opportunity.id,
+            previous_value={k: v["previous"] for k, v in changed.items()},
+            new_value={k: v["new"] for k, v in changed.items()},
+            correlation_id=request.state.correlation_id,
+        )
+    return OpportunityEditResponse(id=opportunity.id, changed_fields=list(changed.keys()))
+
+
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    return value
 
 
 @router.post(

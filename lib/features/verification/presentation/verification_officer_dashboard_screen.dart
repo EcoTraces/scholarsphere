@@ -4,20 +4,28 @@ import '../../authentication/domain/user_account.dart';
 import '../../fraud/domain/fraud_detection_service.dart';
 import '../../opportunities/domain/opportunity.dart';
 import '../../providers/domain/provider_repository.dart';
+import '../data/api_verification_repository.dart';
 import '../domain/verification_repository.dart';
 import '../domain/verification_review.dart';
-import 'verification_queue_screen.dart';
+import 'live_verification_queue_screen.dart';
 
 class VerificationOfficerDashboardScreen extends StatefulWidget {
   const VerificationOfficerDashboardScreen({
     super.key,
     required this.user,
     required this.repository,
+    required this.liveRepository,
     required this.providerRepository,
     required this.onSignOut,
   });
   final UserAccount user;
   final VerificationRepository repository;
+
+  /// Backs the real "Open queue" action below. [repository] (demo data)
+  /// still powers this dashboard's analytics panels - see
+  /// [ApiVerificationRepository]'s class doc comment for why those two
+  /// data sources are deliberately different for now.
+  final ApiVerificationRepository liveRepository;
   final ProviderRepository providerRepository;
   final VoidCallback onSignOut;
 
@@ -47,10 +55,9 @@ class _VerificationOfficerDashboardScreenState
     Navigator.of(context)
         .push<void>(
           MaterialPageRoute(
-            builder: (_) => VerificationQueueScreen(
+            builder: (_) => LiveVerificationQueueScreen(
               user: widget.user,
-              repository: widget.repository,
-              providerRepository: widget.providerRepository,
+              repository: widget.liveRepository,
               onSignOut: widget.onSignOut,
             ),
           ),
@@ -663,9 +670,9 @@ class _MetricWrap extends StatelessWidget {
                               ),
                               Text(
                                 '${metric.$2}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
                               ),
                             ],
                           ),

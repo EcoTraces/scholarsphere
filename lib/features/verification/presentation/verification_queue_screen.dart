@@ -124,9 +124,9 @@ class _VerificationQueueScreenState extends State<VerificationQueueScreen> {
                                       message: assessment.levelLabel,
                                       child: Icon(
                                         Icons.warning_amber_outlined,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .error,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
                                       ),
                                     ),
                                   const SizedBox(width: 4),

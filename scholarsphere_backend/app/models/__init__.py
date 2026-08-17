@@ -1,3 +1,4 @@
+from app.models.application import Application, ApplicationStage
 from app.models.external_opportunity import (
     ExternalOpportunity,
     ImportAuditLog,
@@ -9,6 +10,8 @@ from app.models.external_opportunity import (
 )
 
 __all__ = [
+    "Application",
+    "ApplicationStage",
     "ExternalOpportunity",
     "ImportAuditLog",
     "OpportunitySource",
