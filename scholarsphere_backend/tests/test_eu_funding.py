@@ -298,6 +298,59 @@ async def test_html_decoding_sanitization_and_result_url(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {
+            "identifier": "id-1",
+            "reference": "HORIZON-MSCA-2025-PF-01-01",
+            "title": "Postdoctoral Fellowships 2025",
+            "type": "1",
+        },
+        {
+            "identifier": "id-2",
+            "reference": "HORIZON-2025-SOMETHING-01",
+            "title": "Doctoral Network in Quantum Sensing",
+            "type": "1",
+            "typesOfAction": "HORIZON-TMA-MSCA-DN",
+        },
+    ],
+)
+async def test_msca_calls_are_classified_as_fellowships(
+    monkeypatch: pytest.MonkeyPatch,
+    metadata: dict[str, object],
+) -> None:
+    monkeypatch.setattr(eu_funding, "get_settings", source_settings)
+    monkeypatch.setattr(
+        eu_funding,
+        "post_json",
+        AsyncMock(return_value={"results": [record(metadata)]}),
+    )
+    normalized = (await EUFundingSource().collect())[0]
+    assert normalized.opportunity_type == "fellowship"
+
+
+@pytest.mark.asyncio
+async def test_non_msca_grant_calls_stay_classified_as_grants(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(eu_funding, "get_settings", source_settings)
+    metadata = {
+        "identifier": "id-3",
+        "reference": "HORIZON-CL4-2025-DIGITAL-01",
+        "title": "Advanced computing technologies",
+        "type": "1",
+    }
+    monkeypatch.setattr(
+        eu_funding,
+        "post_json",
+        AsyncMock(return_value={"results": [record(metadata)]}),
+    )
+    normalized = (await EUFundingSource().collect())[0]
+    assert normalized.opportunity_type == "grant"
+
+
+@pytest.mark.asyncio
 async def test_fallback_url_uses_reference_then_identifier(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

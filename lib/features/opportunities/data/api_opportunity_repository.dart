@@ -172,6 +172,8 @@ class ApiOpportunityRepository implements OpportunityRepository {
   static OpportunityType _mapType(String rawType) {
     if (rawType.contains('internship')) return OpportunityType.internship;
     if (rawType.contains('training')) return OpportunityType.training;
+    if (rawType.contains('fellowship')) return OpportunityType.fellowship;
+    if (rawType.contains('scholarship')) return OpportunityType.scholarship;
     if (rawType == 'job') return OpportunityType.job;
     return OpportunityType.grant;
   }

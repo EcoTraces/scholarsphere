@@ -229,15 +229,20 @@ class EUFundingSource(OpportunitySource):
             if topic_key
             else None
         )
+        title_text = _text(field("title")) or "Untitled opportunity"
         mapped_type = self.type_codes.get(
             type_code,
             "funding_opportunity",
         )
+        if mapped_type == "grant" and _is_msca_fellowship(
+            reference, external_id, title_text, _text(field("typesOfAction"))
+        ):
+            mapped_type = "fellowship"
         return NormalizedExternalOpportunity(
             source_code=self.source_code,
             external_id=external_id,
             external_reference=reference,
-            title=_text(field("title")) or "Untitled opportunity",
+            title=title_text,
             opportunity_type=mapped_type,
             provider_name=_text(field("caName")) or "European Commission",
             country="European Union",
@@ -256,6 +261,26 @@ class EUFundingSource(OpportunitySource):
             official_application_url=provided_url or fallback_url,
             raw_payload=record,
         )
+
+
+def _is_msca_fellowship(
+    reference: str | None,
+    external_id: str,
+    title: str,
+    types_of_action: str,
+) -> bool:
+    """Marie Sklodowska-Curie Actions calls (Postdoctoral Fellowships,
+    Doctoral Networks, Cofund, Staff Exchanges) are individual-researcher
+    opportunities, but the SEDIA API has no type code for them - they come
+    back as ordinary "1" (grant) calls like any organizational grant. Their
+    reference/identifier and typesOfAction values reliably carry the "MSCA"
+    acronym (e.g. "HORIZON-MSCA-2025-PF-01"), which is used here to
+    reclassify them so applicants can actually find them under "Fellowship".
+    """
+    haystack = " ".join(
+        value for value in (reference, external_id, title, types_of_action) if value
+    ).lower()
+    return "msca" in haystack
 
 
 def _budget_range(value: Any) -> tuple[float | None, float | None]:
