@@ -231,14 +231,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         controlAffinity: ListTileControlAffinity.leading,
                         dense: true,
                         value: _acceptTerms,
-                        title: const Text(
-                          'Accept the terms and conditions',
-                        ),
+                        title: const Text('Accept the terms and conditions'),
                         onChanged: _busy
                             ? null
-                            : (value) => setState(
-                                () => _acceptTerms = value ?? false,
-                              ),
+                            : (value) =>
+                                  setState(() => _acceptTerms = value ?? false),
                       ),
                     ],
                   ],
@@ -301,10 +298,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: wide ? 56 : 24,
-          vertical: 32,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: wide ? 56 : 24, vertical: 32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
           child: content,
@@ -572,12 +566,18 @@ class _AuthScreenState extends State<AuthScreen> {
             Positioned(
               top: -50,
               left: -50,
-              child: _decorativeCircle(140, Colors.white.withValues(alpha: 0.06)),
+              child: _decorativeCircle(
+                140,
+                Colors.white.withValues(alpha: 0.06),
+              ),
             ),
             Positioned(
               bottom: -70,
               right: -40,
-              child: _decorativeCircle(220, Colors.white.withValues(alpha: 0.06)),
+              child: _decorativeCircle(
+                220,
+                Colors.white.withValues(alpha: 0.06),
+              ),
             ),
             Center(
               child: Padding(
@@ -627,7 +627,9 @@ class _AuthScreenState extends State<AuthScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSideFeature('Verified & trusted platform'),
-                          _buildSideFeature('Personalized opportunity matching'),
+                          _buildSideFeature(
+                            'Personalized opportunity matching',
+                          ),
                           _buildSideFeature('A global network of changemakers'),
                         ],
                       ),
@@ -729,9 +731,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 );
               } on AuthFailure catch (failure) {
                 if (!dialogContext.mounted) return;
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  SnackBar(content: Text(failure.message)),
-                );
+                ScaffoldMessenger.of(dialogContext)
+                    .showSnackBar(SnackBar(content: Text(failure.message)));
               }
             },
             child: const Text('Resend email'),
@@ -746,9 +747,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 widget.onAuthenticated(account);
               } on AuthFailure catch (failure) {
                 if (!dialogContext.mounted) return;
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  SnackBar(content: Text(failure.message)),
-                );
+                ScaffoldMessenger.of(dialogContext)
+                    .showSnackBar(SnackBar(content: Text(failure.message)));
               }
             },
             child: const Text('Check verification'),

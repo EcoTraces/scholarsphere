@@ -180,9 +180,8 @@ class ApiOpportunityRepository implements OpportunityRepository {
       value == null ? null : DateTime.tryParse(value as String);
 
   Future<dynamic> _get(String path, Map<String, String> query) async {
-    final uri = Uri.parse(
-      '$baseUrl$path',
-    ).replace(queryParameters: query.isEmpty ? null : query);
+    final uri = Uri.parse('$baseUrl$path')
+        .replace(queryParameters: query.isEmpty ? null : query);
     final headers = await _headers();
     late final http.Response response;
     try {
