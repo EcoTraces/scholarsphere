@@ -146,6 +146,33 @@ class Settings(BaseSettings):
             self.firebase_check_revoked = True
         return self
 
+    @model_validator(mode="after")
+    def reject_placeholder_infrastructure_credentials_in_production(
+        self,
+    ) -> "Settings":
+        # These two defaults only exist so the app can boot without any
+        # infrastructure for local dev/tests. A managed secret store (AWS
+        # Secrets Manager, GCP Secret Manager, Vault, ...) should inject the
+        # real DATABASE_URL/REDIS_URL as environment variables in
+        # production -- refuse to start rather than silently run against a
+        # placeholder credential or an unintended local service.
+        if self.app_env != "production":
+            return self
+        problems: list[str] = []
+        if "change-me" in self.database_url:
+            problems.append(
+                "DATABASE_URL still contains the placeholder 'change-me' credential"
+            )
+        if self.redis_url == "redis://localhost:6379/0":
+            problems.append("REDIS_URL is still the local-development default")
+        if problems:
+            raise ValueError(
+                "Refusing to start with app_env=production and insecure "
+                "defaults: " + "; ".join(problems) + ". Inject real values "
+                "from a managed secret store as environment variables."
+            )
+        return self
+
 
 @lru_cache
 def get_settings() -> Settings:

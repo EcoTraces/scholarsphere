@@ -18,9 +18,23 @@ import sys
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///dev_smoke.db")
 
+from pydantic import ValidationError  # noqa: E402
+
 from app.core.config import get_settings  # noqa: E402
 
-_settings = get_settings()
+try:
+    _settings = get_settings()
+except ValidationError as error:
+    # Settings itself now refuses insecure placeholder infrastructure
+    # credentials under APP_ENV=production (see
+    # Settings.reject_placeholder_infrastructure_credentials_in_production)
+    # before this script's own sqlite-only check below ever runs.
+    sys.exit(
+        "seed_live_demo.py refuses to run: app configuration rejected the "
+        f"current environment ({error}). This script must only ever run "
+        "against the throwaway local dev_smoke.db in a non-production "
+        "environment."
+    )
 if _settings.app_env == "production" or "sqlite" not in _settings.database_url:
     sys.exit(
         "seed_live_demo.py refuses to run: APP_ENV is 'production' or "

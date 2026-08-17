@@ -79,13 +79,51 @@ def test_external_endpoints_must_use_https_and_secrets_are_masked() -> None:
 
 
 def test_production_always_checks_token_revocation_even_if_disabled() -> None:
-    settings = Settings(app_env="production", firebase_check_revoked=False)
+    settings = Settings(
+        app_env="production",
+        firebase_check_revoked=False,
+        database_url="postgresql+asyncpg://scholarsphere:a-real-password@real-db-host:5432/scholarsphere",
+        redis_url="redis://real-redis-host:6379/0",
+    )
     assert settings.firebase_check_revoked is True
 
 
 def test_non_production_can_still_disable_revocation_checking() -> None:
     settings = Settings(app_env="development", firebase_check_revoked=False)
     assert settings.firebase_check_revoked is False
+
+
+def test_production_refuses_placeholder_database_credential() -> None:
+    with pytest.raises(ValidationError, match="DATABASE_URL"):
+        Settings(
+            app_env="production",
+            database_url="postgresql+asyncpg://scholarsphere:change-me@localhost:5432/scholarsphere",
+            redis_url="redis://real-redis-host:6379/0",
+        )
+
+
+def test_production_refuses_default_local_redis_url() -> None:
+    with pytest.raises(ValidationError, match="REDIS_URL"):
+        Settings(
+            app_env="production",
+            database_url="postgresql+asyncpg://scholarsphere:a-real-password@real-db-host:5432/scholarsphere",
+            redis_url="redis://localhost:6379/0",
+        )
+
+
+def test_production_accepts_real_infrastructure_credentials() -> None:
+    settings = Settings(
+        app_env="production",
+        database_url="postgresql+asyncpg://scholarsphere:a-real-password@real-db-host:5432/scholarsphere",
+        redis_url="redis://real-redis-host:6379/0",
+    )
+    assert settings.app_env == "production"
+
+
+def test_development_can_still_use_placeholder_infrastructure_credentials() -> None:
+    settings = Settings(app_env="development")
+    assert "change-me" in settings.database_url
+    assert settings.redis_url == "redis://localhost:6379/0"
 
 
 def test_html_sanitization_removes_all_executable_content() -> None:

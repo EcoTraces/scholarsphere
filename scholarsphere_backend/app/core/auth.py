@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Final
 
 import firebase_admin
 from fastapi import Depends, HTTPException, status
@@ -19,6 +19,76 @@ ROLE_ALIASES = {
     "security_administrator": "securityAdministrator",
     "super_administrator": "superAdministrator",
 }
+
+ALL_PERMISSIONS: Final = frozenset(
+    {
+        "viewOpportunities",
+        "manageOwnProfile",
+        "manageOwnDocuments",
+        "trackApplications",
+        "submitOpportunity",
+        "manageProviderOpportunities",
+        "verifyOpportunity",
+        "moderateContent",
+        "supportUsers",
+        "viewAdministration",
+        "manageUsers",
+        "manageSecurity",
+        "suspendAccounts",
+        "manageSecrets",
+        "exportReports",
+    }
+)
+
+# Mirrors lib/features/security/domain/access_control.dart's
+# AccessControlPolicy exactly. Permissions are derived from role here
+# rather than read from an independently-settable token claim: the
+# Firebase Cloud Function that issues custom claims (functions/index.js)
+# only ever sets `role`, never `permissions`, so trusting a separate claim
+# would mean every permission check silently denies every
+# non-superAdministrator user. Deriving permissions from role instead
+# makes the two structurally impossible to drift out of sync.
+ROLE_PERMISSIONS: Final[dict[str, frozenset[str]]] = {
+    "applicant": frozenset(
+        {
+            "viewOpportunities",
+            "manageOwnProfile",
+            "manageOwnDocuments",
+            "trackApplications",
+        }
+    ),
+    "opportunityProvider": frozenset(
+        {
+            "viewOpportunities",
+            "submitOpportunity",
+            "manageProviderOpportunities",
+        }
+    ),
+    "verificationOfficer": frozenset({"viewOpportunities", "verifyOpportunity"}),
+    "moderator": frozenset({"viewOpportunities", "moderateContent"}),
+    "supportOfficer": frozenset({"viewOpportunities", "supportUsers"}),
+    "administrator": frozenset(
+        {
+            "viewOpportunities",
+            "viewAdministration",
+            "manageUsers",
+            "exportReports",
+        }
+    ),
+    "securityAdministrator": frozenset(
+        {
+            "viewAdministration",
+            "manageSecurity",
+            "suspendAccounts",
+            "manageSecrets",
+        }
+    ),
+    "superAdministrator": ALL_PERMISSIONS,
+}
+
+
+def permissions_for_role(role: str) -> frozenset[str]:
+    return ROLE_PERMISSIONS.get(role, frozenset())
 
 
 @dataclass(frozen=True)
@@ -79,19 +149,14 @@ async def get_current_user(
             detail="Authentication token is for another project.",
         )
 
-    raw_permissions = claims.get("permissions", [])
-    permissions = (
-        frozenset(str(item) for item in raw_permissions)
-        if isinstance(raw_permissions, list)
-        else frozenset()
-    )
     raw_role = str(claims.get("role", "applicant"))
+    role = ROLE_ALIASES.get(raw_role, raw_role)
     return AuthenticatedUser(
         uid=str(claims["uid"]),
         email=claims.get("email"),
         email_verified=bool(claims.get("email_verified")),
-        role=ROLE_ALIASES.get(raw_role, raw_role),
-        permissions=permissions,
+        role=role,
+        permissions=permissions_for_role(role),
     )
 
 
