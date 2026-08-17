@@ -29,7 +29,7 @@ from app.models.external_opportunity import (
 )
 from app.services.eu_funding import EUFundingSource
 from app.services.audit import append_audit
-from app.services.grants_gov import GrantsGovSource
+from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
 from app.services.opportunity_import import import_opportunities
 from app.services.parsing import utc_now
 from app.services.reliefweb import ReliefWebJobsSource, ReliefWebTrainingSource
@@ -57,6 +57,10 @@ celery_app.conf.update(
         "sync-grants-gov": {
             "task": "app.tasks.opportunity_sync.sync_grants_gov",
             "schedule": crontab(minute=0, hour="*/6"),
+        },
+        "sync-grants-gov-individual": {
+            "task": "app.tasks.opportunity_sync.sync_grants_gov_individual",
+            "schedule": crontab(minute=10, hour="*/6"),
         },
         "sync-simpler-grants": {
             "task": "app.tasks.opportunity_sync.sync_simpler_grants",
@@ -101,6 +105,7 @@ T = TypeVar("T")
 TEMPORARY_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
 SOURCE_TASK_NAMES = {
     "grants_gov": "app.tasks.opportunity_sync.sync_grants_gov",
+    "grants_gov_individual": "app.tasks.opportunity_sync.sync_grants_gov_individual",
     "simpler_grants": "app.tasks.opportunity_sync.sync_simpler_grants",
     "eu_funding_tenders": "app.tasks.opportunity_sync.sync_eu_funding",
     "usajobs": "app.tasks.opportunity_sync.sync_usajobs",
@@ -191,6 +196,21 @@ def sync_grants_gov(
     triggered_by: str | None = None,
 ) -> dict[str, Any]:
     return _execute_source_task(self, "grants_gov", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_grants_gov_individual",
+    max_retries=3,
+)
+def sync_grants_gov_individual(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "grants_gov_individual", correlation_id, triggered_by
+    )
 
 
 @celery_app.task(
@@ -459,6 +479,7 @@ async def _mark_failed(task_id: str, source_code: str, error: Exception) -> None
 def _collector(source_code: str) -> Any:
     return {
         "grants_gov": GrantsGovSource,
+        "grants_gov_individual": GrantsGovIndividualSource,
         "simpler_grants": SimplerGrantsSource,
         "eu_funding_tenders": EUFundingSource,
         "usajobs": UsaJobsSource,

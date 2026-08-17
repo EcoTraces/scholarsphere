@@ -12,6 +12,7 @@ Supported sources:
 | Route | Source | Primary coverage |
 |---|---|---|
 | `grants-gov` | Grants.gov Search2 | US federal grants |
+| `grants-gov-individual` | Grants.gov Search2 (eligibility `21`, "Individuals") | US federal scholarships/fellowships a person applies for directly |
 | `simpler-grants` | Simpler.Grants.gov | US federal grants |
 | `eu-funding` | EC Funding & Tenders | European grants, calls, tenders, research and funding opportunities |
 | `usajobs` | USAJOBS | US federal jobs and student/internship postings (Pathways hiring path) |
@@ -296,6 +297,19 @@ opening/closing dates and status map to their normalized equivalents. Type is
 `grant`, country is `United States`, and the official detail URL is built from
 the opportunity number.
 
+### Grants.gov Search2 (Individual Eligibility)
+
+Shares its normalizer with plain Grants.gov above (`_GrantsGovSource` in
+`app/services/grants_gov.py`); the only differences are the source code,
+`opportunity_type` (`scholarship` instead of `grant`), and the `eligibilities`
+search filter, which defaults to `21` ("Individuals" — grants.gov's own
+published eligibility-category code) instead of being left unrestricted. This
+surfaces federal funding opportunities a person applies for directly, such as
+graduate research fellowships, rather than opportunities restricted to
+organizations. Eligibility category `21` is broader than "scholarship" in the
+everyday sense — some results are closer to a fellowship or an individual
+research award — so this is a best-effort classification, not a guarantee.
+
 ### Simpler.Grants.gov
 
 Opportunity ID/number/title, agency, summary/description, post/close dates,
@@ -416,7 +430,7 @@ redis-cli -u "$REDIS_URL" ping
 
 ## Known limitations
 
-- The six feeds cover US/EU government grants, US federal jobs, and UN humanitarian jobs/training - not scholarships, fellowships, conferences, competitions, or exchange programs, which remain a real gap (see "Source research notes" above for what was checked and why it wasn't integrated).
+- The seven feeds cover US/EU government grants, individually-eligible US federal awards (a partial scholarship/fellowship proxy, not a dedicated scholarship database), US federal jobs, and UN humanitarian jobs/training - named scholarship programs (DAAD, Chevening, Fulbright, etc.), conferences, competitions, and exchange programs remain a real gap (see "Source research notes" above for what was checked and why it wasn't integrated).
 - The USAJOBS adapter's response field names are based on established public documentation, not a live-verified response in this development environment; smoke-test with a real key before enabling scheduled sync.
 - Reverification reminders currently produce worker/audit signals; user delivery needs a backend notification provider.
 - Cross-source duplicate matching is conservative and always requires human review.

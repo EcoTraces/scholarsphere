@@ -8,7 +8,7 @@ mappings" sections; this document restates it in the platform
 specification's requested source-registry format and adds the reliability
 classification and verification method for each.
 
-All six are ingested via each provider's own official, documented,
+All seven are ingested via each provider's own official, documented,
 structured API — **there is no web scraping in this codebase.**
 (`docs/PRODUCTION_SECURITY_AUDIT.md` §2.6, confirmed by repository-wide
 search for scraping libraries.)
@@ -31,7 +31,24 @@ search for scraping libraries.)
 - **Field mapping**: `app/services/grants_gov.py` — `id` → `external_id`, `number` → `external_reference`, agency/opening/closing dates and status normalized directly
 - **Notes**: Exercised in this codebase's test suite (`scholarsphere_backend/tests/test_grants_gov.py`)
 
-## 2. Simpler.Grants.gov
+## 2. Grants.gov (Individual Eligibility)
+
+- **Organization**: U.S. federal government (grants.gov)
+- **Route code**: `grants-gov-individual` (`grants_gov_individual` internally)
+- **Official domain / base URL**: `https://api.grants.gov/v1/api` (`GRANTS_GOV_BASE_URL`, same endpoint as source 1)
+- **Opportunity types**: Scholarship — federal funding opportunities filtered to eligibility category `21` ("Individuals"), grants.gov's own published eligibility-category code (alongside e.g. `00` state governments, `12` 501(c)(3) nonprofits). This is funding a person applies for directly, such as graduate research fellowships, rather than an organization.
+- **Country coverage**: United States
+- **Discovery method**: Same `Search2` endpoint as source 1, with the `eligibilities` filter fixed to `21` rather than left unrestricted
+- **API / RSS / Sitemap**: Official REST API
+- **Authentication**: None required
+- **Reliability classification**: Official (Level 1 — primary/authoritative government source)
+- **Verification method**: Same checklist as Grants.gov above
+- **Sync cadence**: Every 6 hours, offset from source 1 to avoid overlapping requests
+- **Field mapping**: `app/services/grants_gov.py` — shares its normalizer with source 1 via `_GrantsGovSource`; only `opportunity_type` and the default `eligibilities` filter differ
+- **Verification caveat, stated plainly rather than hidden**: eligibility category `21` covers any individually-awarded federal opportunity, not exclusively "scholarship" in the everyday sense — some results are closer to a fellowship or an individual research award. Treat this as a best-effort classification, not a guarantee.
+- **Notes**: Exercised in this codebase's test suite (`scholarsphere_backend/tests/test_grants_gov.py`)
+
+## 3. Simpler.Grants.gov
 
 - **Organization**: U.S. federal government (the modernized Grants.gov successor)
 - **Route code**: `simpler-grants` (`simpler_grants` internally)
@@ -47,7 +64,7 @@ search for scraping libraries.)
 - **Field mapping**: `app/services/simpler_grants.py` — includes award floor/ceiling and currency (`USD`)
 - **Notes**: `scholarsphere_backend/tests/test_simpler_grants.py`
 
-## 3. European Commission Funding & Tenders Portal
+## 4. European Commission Funding & Tenders Portal
 
 - **Organization**: European Commission
 - **Route code**: `eu-funding` (`eu_funding_tenders` internally)
@@ -63,7 +80,7 @@ search for scraping libraries.)
 - **Field mapping**: `app/services/eu_funding.py` — configurable metadata field extraction (type, identifier, reference, title, status, contracting authority, dates, programme, budget, keywords); description is HTML-sanitized (`bleach`) before storage
 - **Notes**: `scholarsphere_backend/tests/test_eu_funding.py`
 
-## 4. USAJOBS
+## 5. USAJOBS
 
 - **Organization**: U.S. Office of Personnel Management
 - **Route code**: `usajobs`
@@ -79,7 +96,7 @@ search for scraping libraries.)
 - **Field mapping**: `app/services/usajobs.py`
 - **Verification caveat, stated plainly rather than hidden**: this adapter's field names are based on USAJOBS' long-stable, publicly documented schema but had not been exercised against a live authenticated response as of the last backend README update — smoke-test with a real `USAJOBS_API_KEY` before enabling scheduled sync in a new environment (`scholarsphere_backend/README.md`, "Source mappings" → "USAJOBS")
 
-## 5. ReliefWeb Jobs (UN OCHA)
+## 6. ReliefWeb Jobs (UN OCHA)
 
 - **Organization**: United Nations Office for the Coordination of Humanitarian Affairs (OCHA)
 - **Route code**: `reliefweb-jobs` (`reliefweb_jobs` internally)
@@ -95,7 +112,7 @@ search for scraping libraries.)
 - **Field mapping**: `app/services/reliefweb.py` — field names confirmed directly against ReliefWeb's official parameter/field-table documentation
 - **Notes**: `scholarsphere_backend/tests/test_reliefweb.py`
 
-## 6. ReliefWeb Training (UN OCHA)
+## 7. ReliefWeb Training (UN OCHA)
 
 - **Organization**: United Nations Office for the Coordination of Humanitarian Affairs (OCHA)
 - **Route code**: `reliefweb-training` (`reliefweb_training` internally)
@@ -125,12 +142,14 @@ record of what was checked, not just what was added:
 | UKRI Gateway to Research (`gtr.ukri.org`) | Real, free, official API — but it publishes *already-awarded* grants, not open calls to apply to. Presenting historical awards as live opportunities would conflict with the platform's "never mislead" rule, so it was left out |
 | EURAXESS | No official public API found; only third-party scrapers |
 
-**The biggest real coverage gap**: individual-student scholarships and
-fellowships. Almost none of the well-known providers (DAAD, Chevening,
-Fulbright, Commonwealth Scholarships, university-specific funds) publish a
-public API. Closing this gap needs either a licensed commercial data feed or
-per-provider partnership/manual-entry work — a materially different and
-larger effort than the API integrations above, and not yet undertaken.
+**The remaining real coverage gap**: named, well-known scholarship programs.
+Source 2 above (Grants.gov, filtered to individually-eligible awards) adds
+some individually-awarded US federal funding, but almost none of the
+well-known scholarship providers (DAAD, Chevening, Fulbright, Commonwealth
+Scholarships, university-specific funds) publish a public API. Closing that
+gap needs either a licensed commercial data feed or per-provider
+partnership/manual-entry work — a materially different and larger effort
+than the API integrations above, and not yet undertaken.
 
 ## Source registry data model
 
@@ -138,8 +157,8 @@ Each row above is a real `OpportunitySource` database record
 (`app/models/external_opportunity.py`), seeded idempotently by
 `app/services/source_registry.py`'s `SOURCE_DEFINITIONS` at startup/first
 sync. Administrators can deactivate/reactivate a source via
-`PATCH /external-opportunities/sources/{source}` (audited); adding a
-*seventh* source today requires a code change to `SOURCE_DEFINITIONS`, not a
+`PATCH /external-opportunities/sources/{source}` (audited); adding an
+*eighth* source today requires a code change to `SOURCE_DEFINITIONS`, not a
 UI action — a Super-Administrator-editable source registry UI (as described
 in the platform specification §5/§18) does not exist yet.
 

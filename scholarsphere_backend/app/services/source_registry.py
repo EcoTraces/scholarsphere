@@ -15,6 +15,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "official",
     },
+    "grants_gov_individual": {
+        "source_name": "Grants.gov (Individual Eligibility)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "official",
+    },
     "simpler_grants": {
         "source_name": "Simpler.Grants.gov",
         "source_type": "government",
@@ -53,6 +59,7 @@ def _base_urls() -> dict[str, str]:
     reliefweb_base = settings.reliefweb_base_url.rstrip("/")
     return {
         "grants_gov": settings.grants_gov_base_url,
+        "grants_gov_individual": settings.grants_gov_base_url,
         "simpler_grants": settings.simpler_grants_base_url,
         "eu_funding_tenders": settings.eu_funding_api_url,
         "usajobs": settings.usajobs_base_url,
@@ -79,6 +86,7 @@ async def seed_opportunity_sources(
     now = utc_now()
     next_runs = {
         "grants_gov": now + timedelta(hours=6),
+        "grants_gov_individual": now + timedelta(hours=6),
         "simpler_grants": now + timedelta(hours=6),
         "eu_funding_tenders": now + timedelta(hours=12),
         "usajobs": now + timedelta(hours=6),

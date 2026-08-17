@@ -4,7 +4,7 @@ import pytest
 
 from app.core.http_client import ExternalAPIError
 from app.services import grants_gov
-from app.services.grants_gov import GrantsGovSource
+from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
 
 
 @pytest.mark.asyncio
@@ -48,6 +48,37 @@ async def test_successful_response_is_normalized(
         "aln": "",
         "fundingCategories": "",
     }
+
+
+@pytest.mark.asyncio
+async def test_individual_source_defaults_to_eligibility_code_21(
+    monkeypatch: pytest.MonkeyPatch,
+    grants_hit: dict[str, object],
+) -> None:
+    request = AsyncMock(return_value={"data": {"oppHits": [grants_hit]}})
+    monkeypatch.setattr(grants_gov, "post_json", request)
+
+    result = await GrantsGovIndividualSource().collect()
+
+    assert request.await_args.kwargs["json"]["eligibilities"] == "21"
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.source_code == "grants_gov_individual"
+    assert opportunity.opportunity_type == "scholarship"
+    # The base grants.gov source is unaffected by the subclass's default.
+    assert GrantsGovSource().opportunity_type == "grant"
+
+
+@pytest.mark.asyncio
+async def test_individual_source_eligibility_can_still_be_overridden(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = AsyncMock(return_value={"data": {"oppHits": []}})
+    monkeypatch.setattr(grants_gov, "post_json", request)
+
+    await GrantsGovIndividualSource().search_raw(eligibility_codes=["00"])
+
+    assert request.await_args.kwargs["json"]["eligibilities"] == "00"
 
 
 @pytest.mark.asyncio

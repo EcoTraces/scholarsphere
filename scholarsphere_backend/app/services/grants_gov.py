@@ -10,8 +10,11 @@ from app.services.base_source import OpportunitySource
 from app.services.parsing import parse_date
 
 
-class GrantsGovSource(OpportunitySource):
-    source_code = "grants_gov"
+class _GrantsGovSource(OpportunitySource):
+    """Shared request/normalization logic for the grants.gov search2 API."""
+
+    opportunity_type: str = "grant"
+    default_eligibility_codes: tuple[str, ...] = ()
 
     def __init__(self) -> None:
         self.search_url = f"{get_settings().grants_gov_base_url.rstrip('/')}/search2"
@@ -35,7 +38,11 @@ class GrantsGovSource(OpportunitySource):
             "startRecordNum": (page - 1) * page_size,
             "keyword": keyword or "",
             "oppNum": opportunity_number or "",
-            "eligibilities": "|".join(eligibility_codes or []),
+            "eligibilities": "|".join(
+                eligibility_codes
+                if eligibility_codes is not None
+                else self.default_eligibility_codes
+            ),
             "agencies": "|".join(agencies or []),
             "oppStatuses": "|".join(statuses or ["posted", "forecasted"]),
             "aln": assistance_listing or "",
@@ -103,7 +110,7 @@ class GrantsGovSource(OpportunitySource):
             external_id=external_id,
             external_reference=number,
             title=str(hit.get("title") or "Untitled opportunity").strip(),
-            opportunity_type="grant",
+            opportunity_type=self.opportunity_type,
             provider_name=str(
                 hit.get("agencyName")
                 or hit.get("agencyCode")
@@ -118,6 +125,29 @@ class GrantsGovSource(OpportunitySource):
             official_application_url=official_url,
             raw_payload=hit,
         )
+
+
+class GrantsGovSource(_GrantsGovSource):
+    source_code = "grants_gov"
+
+
+class GrantsGovIndividualSource(_GrantsGovSource):
+    """Grants.gov opportunities restricted to eligibility category "21"
+    (Individuals) - federal funding a person applies for directly, such as
+    graduate research fellowships, rather than an organization. "21" is a
+    stable code from grants.gov's own published eligibility category list
+    (alongside e.g. "00" state governments, "12" 501(c)(3) nonprofits); it
+    is passed as a search filter, not inferred from per-record fields.
+
+    Individually-eligible federal awards vary - some are closer to
+    fellowships than scholarships in the everyday sense - so this is a
+    best-effort classification, not a guarantee every result is a
+    "scholarship" as a student would expect the word to mean.
+    """
+
+    source_code = "grants_gov_individual"
+    opportunity_type = "scholarship"
+    default_eligibility_codes = ("21",)
 
 
 def _validate_pagination(page: int, page_size: int) -> None:
