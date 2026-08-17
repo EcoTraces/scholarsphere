@@ -37,6 +37,23 @@ migrate_working_dir/
 # Firebase / local tooling
 .firebase/
 
+# Node (Cloud Functions)
+node_modules/
+
+# Python (backend)
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files with real secrets (keep .env.example tracked)
+.env
+.env.local
+.env.*.local
+
 # Symbolication related
 app.*.symbols
 

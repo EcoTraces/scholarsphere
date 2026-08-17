@@ -87,15 +87,19 @@ Install locally:
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
+
+`requirements.txt` lists only the production runtime dependencies (installed by
+`Dockerfile`); `requirements-dev.txt` layers testing and dependency-audit tools
+on top of it for local development and CI.
 
 ## Environment variables
 

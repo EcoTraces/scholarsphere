@@ -3,4 +3,12 @@
 __pycache__
 .pytest_cache
 *.pyc
+*.db
+*.sqlite
+*.sqlite3
+*.log
+.git
+tests/
+requirements-dev.txt
+seed_live_demo.py
 

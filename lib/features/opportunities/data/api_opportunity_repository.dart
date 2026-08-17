@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 
+import '../../security/domain/security_backend_contracts.dart';
 import '../domain/opportunity.dart';
 import '../domain/opportunity_repository.dart';
 
@@ -49,7 +51,14 @@ class ApiOpportunityRepository implements OpportunityRepository {
     firebase.FirebaseAuth? auth,
   }) : baseUrl = baseUrl ?? _defaultBaseUrl,
        _client = client ?? http.Client(),
-       _auth = auth ?? firebase.FirebaseAuth.instance;
+       _authOverride = auth {
+    // Release builds must never send a Firebase bearer token to a plaintext
+    // endpoint. A misconfigured/missing --dart-define would otherwise fail
+    // silently against http://localhost in production; fail loudly instead.
+    if (kReleaseMode) {
+      TransportSecurityPolicy.requireHttps(Uri.parse(this.baseUrl));
+    }
+  }
 
   /// Override at build/run time with
   /// `--dart-define=SCHOLARSPHERE_API_BASE_URL=https://api.example.org/api/v1`.
@@ -60,7 +69,16 @@ class ApiOpportunityRepository implements OpportunityRepository {
 
   final String baseUrl;
   final http.Client _client;
-  final firebase.FirebaseAuth _auth;
+  final firebase.FirebaseAuth? _authOverride;
+
+  // Resolved lazily (not in the constructor) so constructing this
+  // repository never requires a live Firebase app -- only actually making a
+  // request does. This keeps it safe to construct unconditionally (e.g. in
+  // ScholarSphereApp's field initializers) in contexts like widget tests
+  // where Firebase.initializeApp() was never called and getPublished() is
+  // never exercised.
+  firebase.FirebaseAuth get _auth =>
+      _authOverride ?? firebase.FirebaseAuth.instance;
 
   @override
   Future<List<Opportunity>> getPublished() async {

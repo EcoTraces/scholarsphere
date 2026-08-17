@@ -78,6 +78,16 @@ def test_external_endpoints_must_use_https_and_secrets_are_masked() -> None:
     assert settings.simpler_grants_api_key.get_secret_value() == "private-provider-key"
 
 
+def test_production_always_checks_token_revocation_even_if_disabled() -> None:
+    settings = Settings(app_env="production", firebase_check_revoked=False)
+    assert settings.firebase_check_revoked is True
+
+
+def test_non_production_can_still_disable_revocation_checking() -> None:
+    settings = Settings(app_env="development", firebase_check_revoked=False)
+    assert settings.firebase_check_revoked is False
+
+
 def test_html_sanitization_removes_all_executable_content() -> None:
     cleaned = sanitize_html(
         '<p onclick="steal()" style="color:red">Hello</p>'

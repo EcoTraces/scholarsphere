@@ -14,16 +14,29 @@ be mistaken for an actual ScholarSphere verification officer's review.
 
 import asyncio
 import os
+import sys
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///dev_smoke.db")
 
-from httpx import ASGITransport, AsyncClient
+from app.core.config import get_settings  # noqa: E402
 
-from app.core.auth import AuthenticatedUser, get_current_user
-from app.db.session import AsyncSessionFactory, get_db
-from app.main import app
-from app.services.grants_gov import GrantsGovSource
-from app.services.opportunity_import import import_opportunities
+_settings = get_settings()
+if _settings.app_env == "production" or "sqlite" not in _settings.database_url:
+    sys.exit(
+        "seed_live_demo.py refuses to run: APP_ENV is 'production' or "
+        "DATABASE_URL does not point at a local sqlite file "
+        f"(app_env={_settings.app_env!r}, database_url does not contain "
+        "'sqlite'). This script auto-approves and publishes records; it "
+        "must only ever run against the throwaway local dev_smoke.db."
+    )
+
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+
+from app.core.auth import AuthenticatedUser, get_current_user  # noqa: E402
+from app.db.session import AsyncSessionFactory, get_db  # noqa: E402
+from app.main import app  # noqa: E402
+from app.services.grants_gov import GrantsGovSource  # noqa: E402
+from app.services.opportunity_import import import_opportunities  # noqa: E402
 
 
 def user(role: str) -> AuthenticatedUser:

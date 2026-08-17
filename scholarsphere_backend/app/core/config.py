@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     http_max_retries: int = Field(default=3, ge=0, le=10)
     http_max_response_bytes: int = Field(default=5_242_880, gt=0, le=52_428_800)
     max_request_bytes: int = Field(default=1_048_576, gt=0, le=10_485_760)
+
+    rate_limit_requests: int = Field(default=300, gt=0)
+    rate_limit_window_seconds: int = Field(default=60, gt=0)
 
     grants_gov_base_url: str = "https://api.grants.gov/v1/api"
     simpler_grants_base_url: str = "https://api.simpler.grants.gov"
@@ -130,6 +133,18 @@ class Settings(BaseSettings):
         if not value.lower().startswith("https://"):
             raise ValueError("External API endpoints must use HTTPS")
         return value.rstrip("/")
+
+    @model_validator(mode="after")
+    def enforce_revocation_checking_in_production(self) -> "Settings":
+        # Token-revocation checking must never be disabled in production,
+        # regardless of what FIREBASE_CHECK_REVOKED is set to in the
+        # environment -- disabling it lets a disabled/suspended Firebase
+        # account keep using an already-issued token until it naturally
+        # expires. The env var only exists so local/demo runs without a
+        # service account can skip the Identity Toolkit call.
+        if self.app_env == "production" and not self.firebase_check_revoked:
+            self.firebase_check_revoked = True
+        return self
 
 
 @lru_cache

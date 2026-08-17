@@ -20,6 +20,16 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   static const _wideBreakpoint = 900.0;
 
+  // Practical email-format check (not a full RFC 5322 grammar): rejects
+  // obvious malformed input like "a@" or "@@" while still accepting real
+  // addresses. Firebase Auth performs the authoritative validation server
+  // side; this only improves the error message shown before that call.
+  static final RegExp _emailPattern = RegExp(
+    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+  );
+
+  static bool _isValidEmail(String email) => _emailPattern.hasMatch(email);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -142,7 +152,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       validator: (value) {
                         final email = value?.trim() ?? '';
-                        return email.contains('@')
+                        return _isValidEmail(email)
                             ? null
                             : 'Enter a valid email address.';
                       },
@@ -779,7 +789,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _resetPassword() async {
     final email = _emailController.text.trim();
-    if (!email.contains('@')) {
+    if (!_isValidEmail(email)) {
       setState(() => _error = 'Enter your email address first.');
       return;
     }
