@@ -40,6 +40,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -61,6 +62,8 @@ flutter:
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
+  assets:
+    - assets/branding/
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
@@ -81,3 +84,26 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  image_path: "assets/branding/icon-1024.png"
+  android: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#12234A"
+  adaptive_icon_foreground: "assets/branding/icon-foreground-1024.png"
+  adaptive_icon_foreground_inset: 20
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#12234A"
+  web:
+    generate: true
+    image_path: "assets/branding/icon-1024.png"
+    background_color: "#12234A"
+    theme_color: "#12234A"
+  windows:
+    generate: true
+    image_path: "assets/branding/icon-1024.png"
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: "assets/branding/icon-1024.png"

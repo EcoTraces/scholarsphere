@@ -1,8 +1,70 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scholarsphere/app/app.dart';
+import 'package:scholarsphere/features/authentication/data/demo_auth_repository.dart';
+import 'package:scholarsphere/features/authentication/domain/user_account.dart';
+import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 
 void main() {
+  // A DemoAuthRepository (in-memory, no live Firebase project required) is
+  // injected into ScholarSphereApp for every test below instead of the real
+  // FirebaseAuthRepository, which needs Firebase.initializeApp() to have
+  // run against a real project -- something a plain `flutter test` run
+  // never does. Seeded once for the whole file since each test performs
+  // its own independent sign-in through the UI.
+  late DemoAuthRepository authRepository;
+
+  setUpAll(() async {
+    authRepository = DemoAuthRepository(
+      bootstrapAdminEmail: 'admin@scholarsphere.test',
+      bootstrapAdminPassword: 'Admin123!',
+    );
+    await authRepository.signIn(
+      email: 'admin@scholarsphere.test',
+      password: 'Admin123!',
+    );
+    await authRepository.createManagedAccount(
+      fullName: 'Support Officer',
+      email: 'support@scholarsphere.test',
+      temporaryPassword: 'Support1234!',
+      role: UserRole.supportOfficer,
+    );
+    await authRepository.createManagedAccount(
+      fullName: 'Security Administrator',
+      email: 'security@scholarsphere.test',
+      temporaryPassword: 'Security123!',
+      role: UserRole.securityAdministrator,
+    );
+    await authRepository.createManagedAccount(
+      fullName: 'Verification Officer',
+      email: 'officer@scholarsphere.test',
+      temporaryPassword: 'Verify12345!',
+      role: UserRole.verificationOfficer,
+    );
+    await authRepository.createManagedAccount(
+      fullName: 'Moderator',
+      email: 'moderator@scholarsphere.test',
+      temporaryPassword: 'Moderate123!',
+      role: UserRole.moderator,
+    );
+    await authRepository.register(
+      fullName: 'Applicant',
+      email: 'scholarsphere@gmail.com',
+      password: 'Scholarsphere2026!',
+      role: UserRole.applicant,
+    );
+    await authRepository.signOut();
+  });
+
+  // The seeded DemoAuthRepository is shared (not recreated) across every
+  // test in this file, so a session left signed-in by one test would
+  // otherwise leak into the next test's fresh ScholarSphereApp instance and
+  // skip its sign-in screen entirely. Force a clean, signed-out session
+  // before each test.
+  setUp(() async {
+    await authRepository.signOut();
+  });
+
   Future<void> signIn(WidgetTester tester) async {
     await tester.enterText(
       find.byKey(const Key('auth-email')),
@@ -10,7 +72,7 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('auth-password')),
-      'Scholarsphere2026',
+      'Scholarsphere2026!',
     );
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
@@ -24,7 +86,12 @@ void main() {
   testWidgets('valid applicant credentials open applicant dashboard', (
     tester,
   ) async {
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(
@@ -46,7 +113,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await signIn(tester);
 
@@ -65,7 +137,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('auth-email')),
@@ -91,7 +168,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('auth-email')),
@@ -99,7 +181,7 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('auth-password')),
-      'Support123!',
+      'Support1234!',
     );
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
@@ -120,7 +202,12 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(const ScholarSphereApp());
+      await tester.pumpWidget(
+        ScholarSphereApp(
+          authRepository: authRepository,
+          apiOpportunityRepository: DemoOpportunityRepository(),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('auth-email')),
@@ -150,7 +237,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('auth-email')),
@@ -158,7 +250,7 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('auth-password')),
-      'Verify123!',
+      'Verify12345!',
     );
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
@@ -182,7 +274,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('auth-email')),
@@ -206,7 +303,12 @@ void main() {
   testWidgets('discovery shows verified opportunities and filters by search', (
     tester,
   ) async {
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await signIn(tester);
     await openDiscovery(tester);
@@ -229,7 +331,12 @@ void main() {
   testWidgets('opportunity details expose verification evidence', (
     tester,
   ) async {
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await signIn(tester);
     await openDiscovery(tester);
@@ -256,7 +363,12 @@ void main() {
   });
 
   testWidgets('applicant can open the private profile editor', (tester) async {
-    await tester.pumpWidget(const ScholarSphereApp());
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: DemoOpportunityRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await signIn(tester);
 

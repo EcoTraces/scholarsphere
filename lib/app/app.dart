@@ -9,6 +9,7 @@ import '../features/background_jobs/domain/background_job.dart';
 import '../features/calendar/data/demo_calendar_repository.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/authentication/data/firebase_auth_repository.dart';
+import '../features/authentication/domain/auth_repository.dart';
 import '../features/authentication/domain/user_account.dart';
 import '../features/authentication/presentation/auth_screen.dart';
 import '../features/authentication/presentation/role_workspace_screen.dart';
@@ -29,6 +30,7 @@ import '../features/moderation/presentation/moderator_dashboard_screen.dart';
 import '../features/opportunities/data/api_opportunity_repository.dart';
 import '../features/opportunities/data/demo_opportunity_repository.dart';
 import '../features/opportunities/domain/opportunity.dart';
+import '../features/opportunities/domain/opportunity_repository.dart';
 import '../features/operations/data/demo_backup_repository.dart';
 import '../features/operations/data/demo_observability_repository.dart';
 import '../features/operations/data/demo_release_repository.dart';
@@ -58,7 +60,23 @@ import '../features/verification/presentation/verification_officer_dashboard_scr
 import 'theme.dart';
 
 class ScholarSphereApp extends StatefulWidget {
-  const ScholarSphereApp({super.key});
+  const ScholarSphereApp({
+    super.key,
+    this.authRepository,
+    this.apiOpportunityRepository,
+  });
+
+  /// Overrides the real Firebase-backed auth repository. Production never
+  /// sets this (it defaults to [FirebaseAuthRepository]); tests pass a
+  /// [DemoAuthRepository] so widget tests never require a live Firebase app.
+  final AuthRepository? authRepository;
+
+  /// Overrides the real backend-backed opportunity repository used on the
+  /// applicant Discover/Dashboard screens. Production never sets this (it
+  /// defaults to [ApiOpportunityRepository]); tests pass a
+  /// [DemoOpportunityRepository] so they never require the FastAPI backend
+  /// to be running.
+  final OpportunityRepository? apiOpportunityRepository;
 
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
@@ -93,9 +111,11 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   late final _releaseRepository = DemoReleaseRepository(
     auditRepository: _auditRepository,
   );
-  final _authRepository = FirebaseAuthRepository();
+  late final _authRepository =
+      widget.authRepository ?? FirebaseAuthRepository();
   final _opportunityRepository = DemoOpportunityRepository();
-  final _apiOpportunityRepository = ApiOpportunityRepository();
+  late final _apiOpportunityRepository =
+      widget.apiOpportunityRepository ?? ApiOpportunityRepository();
   final _profileRepository = DemoApplicantProfileRepository();
   final _notificationRepository = DemoNotificationRepository();
   final _applicationRepository = DemoApplicationRepository();

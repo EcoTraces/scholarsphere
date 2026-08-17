@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// No file/image upload feature exists in this app yet (see docs/PRODUCTION_SECURITY_AUDIT.md).
+// This file exists so Firebase Storage defaults to deny-all rather than the
+// classic Firebase pitfall of an unconfigured bucket falling back to
+// permissive test-mode rules. Replace the relevant `match` block with a
+// real, owner-scoped rule (auth + size + content-type checks) before any
+// upload feature ships -- never widen this to `allow read, write: if true;`.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

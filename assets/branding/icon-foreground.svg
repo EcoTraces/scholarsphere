@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>ScholarSphere adaptive icon foreground</title>
+  <defs>
+    <radialGradient id="globeGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#5B9CF6"/>
+      <stop offset="55%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#153A8B"/>
+    </radialGradient>
+    <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#EAA624"/>
+    </linearGradient>
+    <clipPath id="globeClip">
+      <circle cx="256" cy="292" r="140"/>
+    </clipPath>
+  </defs>
+
+  <!-- Globe -->
+  <g>
+    <circle cx="256" cy="292" r="140" fill="url(#globeGrad)"/>
+    <g clip-path="url(#globeClip)" stroke="#EAF2FF" stroke-opacity="0.45" stroke-width="3" fill="none">
+      <ellipse cx="256" cy="292" rx="46.7" ry="140"/>
+      <ellipse cx="256" cy="292" rx="93.3" ry="140"/>
+      <line x1="134.8" y1="222" x2="377.2" y2="222"/>
+      <line x1="116" y1="292" x2="396" y2="292"/>
+      <line x1="134.8" y1="362" x2="377.2" y2="362"/>
+    </g>
+    <circle cx="256" cy="292" r="140" fill="none" stroke="#EAF2FF" stroke-opacity="0.55" stroke-width="3"/>
+  </g>
+
+  <!-- Graduation cap -->
+  <g>
+    <ellipse cx="256" cy="207" rx="38" ry="17" fill="#0E1B38"/>
+    <path d="M256,172 C300,182 312,206 306,238" fill="none" stroke="#EAA624" stroke-width="4" stroke-linecap="round"/>
+    <g stroke="#EAA624" stroke-width="4" stroke-linecap="round">
+      <line x1="306" y1="238" x2="298" y2="256"/>
+      <line x1="306" y1="238" x2="308" y2="257"/>
+      <line x1="306" y1="238" x2="316" y2="254"/>
+    </g>
+    <polygon points="256,131 366,172 256,213 146,172" fill="url(#capGrad)" stroke="#B4780E" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="256" cy="172" r="8" fill="#B4780E"/>
+  </g>
+
+  <!-- Verification badge -->
+  <g>
+    <circle cx="368" cy="398" r="38" fill="#FFFFFF"/>
+    <circle cx="368" cy="398" r="38" fill="none" stroke="#12234A" stroke-width="4"/>
+    <path d="M350,398 L362,411 L388,383" fill="none" stroke="#16A34A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

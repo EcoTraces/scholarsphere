@@ -1,11 +1,11 @@
 {
-    "name": "scholarsphere",
-    "short_name": "scholarsphere",
+    "name": "ScholarSphere",
+    "short_name": "ScholarSphere",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#12234A",
+    "theme_color": "#12234A",
+    "description": "Find and get notified about verified scholarships, fellowships, internships, and grants from recognized institutions worldwide.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

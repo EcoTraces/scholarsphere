@@ -1,19 +1,21 @@
 # ScholarSphere
 
-ScholarSphere is a global opportunity discovery and notification platform
-designed to help students, graduates, researchers, entrepreneurs, and young
-professionals find verified scholarships, fellowships, internships, webinars,
-summits, conferences, grants, and training opportunities.
+ScholarSphere is a global platform for finding and getting notified about
+opportunities. It's built for students, graduates, researchers,
+entrepreneurs, and young professionals looking for verified scholarships,
+fellowships, internships, webinars, summits, conferences, grants, and
+training programs.
 
-The platform collects opportunities from recognized universities,
-governments, international organizations, foundations, and sponsors. It
-verifies each listing against its official source, evaluates likely applicant
-eligibility, recommends relevant opportunities, tracks application progress,
+The platform pulls opportunities from recognized universities, governments,
+international organizations, foundations, and sponsors, then checks each
+listing against its official source. From there it evaluates who's likely
+eligible, recommends opportunities that fit, tracks application progress,
 and sends personalized deadline notifications.
 
-ScholarSphere provides guidance and verified information but does not
-guarantee admission, funding, selection, visas, or travel approval. Applicants
-must always confirm current requirements on the official application website.
+ScholarSphere gives guidance and verified information, but it doesn't
+guarantee admission, funding, selection, visas, or travel approval.
+Applicants should always confirm current requirements on the official
+application website.
 
 ## Implemented modules
 
@@ -27,8 +29,8 @@ must always confirm current requirements on the official application website.
 - Server-issued custom role claims and account suspension with token revocation
 - Role-aware session routing and sign-out
 
-Firestore is deployed for account persistence. Deploying the managed-account
-Cloud Functions requires the Firebase project to use the Blaze plan. See
+Firestore handles account persistence. Deploying the managed-account Cloud
+Functions requires the Firebase project to be on the Blaze plan. See
 `docs/firebase_authentication.md` for deployment and bootstrap instructions.
 
 ### Opportunity discovery
@@ -78,7 +80,7 @@ The first vertical slice includes:
 
 - Structured filtering across every opportunity requirement
 - Country and geographic-region classification
-- Canada maps to North America and also has a dedicated popular filter
+- Canada maps to North America, and also gets its own popular filter
 - Deadline, open/closed, fee, verification, age, experience, and language rules
 
 ### Recommendations
@@ -96,7 +98,8 @@ The first vertical slice includes:
 - 30, 14, 7, 3, and 1-day deadline schedules
 - Event entry points for matches, changes, verification, and saved expiry
 
-External delivery channels require backend workers and configured providers.
+External delivery channels need backend workers and configured providers to
+actually send anything.
 
 ### Application tracking
 
@@ -158,10 +161,10 @@ External delivery channels require backend workers and configured providers.
   blocking, HTTPS enforcement, and managed secret storage
 
 The in-memory demo credentials are development fixtures, not production
-password storage. Production authentication must implement the password
+password storage. Production authentication needs to implement the password
 security gateway using Argon2id or bcrypt on the backend. API rate limits,
-CAPTCHA verification, TLS termination, and secret rotation must also execute
-server-side. Security-question recovery is intentionally omitted because it is
+CAPTCHA verification, TLS termination, and secret rotation also need to run
+server-side. Security-question recovery was left out on purpose — it's
 weaker than verified-email recovery and MFA.
 
 ### Privacy and data protection
@@ -202,10 +205,10 @@ flutter test
 8. Notifications and deadline jobs
 9. Collection, fraud signals, reporting, and analytics
 
-The production system will also require a backend API and PostgreSQL. Firebase
-Authentication and Cloud Messaging can remain focused on identity and push
-delivery; verification, matching, scheduled work, and authorization belong on
-the backend.
+The production system will also need a backend API and PostgreSQL. Firebase
+Authentication and Cloud Messaging can stay focused on identity and push
+delivery. Verification, matching, scheduled work, and authorization belong
+on the backend.
 
 ## External opportunity backend
 

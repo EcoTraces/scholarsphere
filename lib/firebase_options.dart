@@ -64,8 +64,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '715902501201',
     projectId: 'scholarsphere-d44f5',
     storageBucket: 'scholarsphere-d44f5.firebasestorage.app',
-    iosClientId: '715902501201-33n6grmt1d48ljsp434osaasolo05dku.apps.googleusercontent.com',
-    iosBundleId: 'com.example.scholarsphere',
+    iosClientId:
+        '715902501201-33n6grmt1d48ljsp434osaasolo05dku.apps.googleusercontent.com',
+    iosBundleId: 'com.scholarsphere.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -74,8 +75,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '715902501201',
     projectId: 'scholarsphere-d44f5',
     storageBucket: 'scholarsphere-d44f5.firebasestorage.app',
-    iosClientId: '715902501201-33n6grmt1d48ljsp434osaasolo05dku.apps.googleusercontent.com',
-    iosBundleId: 'com.example.scholarsphere',
+    iosClientId:
+        '715902501201-33n6grmt1d48ljsp434osaasolo05dku.apps.googleusercontent.com',
+    iosBundleId: 'com.scholarsphere.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

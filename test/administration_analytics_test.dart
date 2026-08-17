@@ -4,6 +4,7 @@ import 'package:scholarsphere/features/analytics/data/demo_analytics_repository.
 import 'package:scholarsphere/features/applications/data/demo_application_repository.dart';
 import 'package:scholarsphere/features/applications/domain/application_record.dart';
 import 'package:scholarsphere/features/authentication/data/demo_auth_repository.dart';
+import 'package:scholarsphere/features/authentication/domain/user_account.dart';
 import 'package:scholarsphere/features/notifications/data/demo_notification_repository.dart';
 import 'package:scholarsphere/features/notifications/domain/notification.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
@@ -14,7 +15,23 @@ import 'package:scholarsphere/features/verification/data/demo_verification_repos
 void main() {
   test('administration snapshots aggregate repository activity', () async {
     final now = DateTime(2026, 7, 29);
-    final auth = DemoAuthRepository();
+    final auth = DemoAuthRepository(
+      bootstrapAdminEmail: 'admin@example.test',
+      bootstrapAdminPassword: 'AdminPass123!',
+    );
+    await auth.signIn(email: 'admin@example.test', password: 'AdminPass123!');
+    await auth.createManagedAccount(
+      fullName: 'Demo Provider',
+      email: 'provider@example.test',
+      temporaryPassword: 'ProviderPass123!',
+      role: UserRole.opportunityProvider,
+    );
+    await auth.register(
+      fullName: 'Demo Applicant',
+      email: 'applicant@example.test',
+      password: 'ApplicantPass123!',
+      role: UserRole.applicant,
+    );
     final opportunities = DemoOpportunityRepository();
     final applications = DemoApplicationRepository(clock: () => now);
     final profiles = DemoApplicantProfileRepository();
