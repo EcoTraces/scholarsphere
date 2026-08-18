@@ -19,11 +19,15 @@ class ApplicantProfileScreen extends StatefulWidget {
 }
 
 class _ApplicantProfileScreenState extends State<ApplicantProfileScreen> {
-  late final Future<ApplicantProfile> _profile;
+  late Future<ApplicantProfile> _profile;
 
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  void _load() {
     _profile = widget.repository
         .getForUser(widget.user.id)
         .then((value) => value ?? ApplicantProfile.empty(widget.user));
@@ -36,6 +40,31 @@ class _ApplicantProfileScreenState extends State<ApplicantProfileScreen> {
       body: FutureBuilder<ApplicantProfile>(
         future: _profile,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text("We couldn't load your profile."),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => setState(_load),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -66,6 +95,7 @@ class _ProfileFormState extends State<_ProfileForm> {
   late EmploymentStatus _employment;
   late List<ProfileDocument> _documents;
   bool _saving = false;
+  bool _dirty = false;
 
   @override
   void initState() {
@@ -110,6 +140,9 @@ class _ProfileFormState extends State<_ProfileForm> {
         text: profile.specialEligibilityCategories.join(', '),
       ),
     };
+    for (final controller in _controllers.values) {
+      controller.addListener(() => _dirty = true);
+    }
     _englishTest = profile.englishTestStatus;
     _passport = profile.passportStatus;
     _employment = profile.employmentStatus;
@@ -126,7 +159,34 @@ class _ProfileFormState extends State<_ProfileForm> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final discard = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard changes?'),
+            content: const Text(
+              'You have unsaved profile changes. Discard them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Keep editing'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        );
+        if (discard == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 48),
       children: [
         Center(
@@ -195,19 +255,28 @@ class _ProfileFormState extends State<_ProfileForm> {
                     label: 'English-language test status',
                     value: _englishTest,
                     values: EnglishTestStatus.values,
-                    onChanged: (value) => setState(() => _englishTest = value),
+                    onChanged: (value) => setState(() {
+                      _englishTest = value;
+                      _dirty = true;
+                    }),
                   ),
                   _enumField<PassportStatus>(
                     label: 'Passport status',
                     value: _passport,
                     values: PassportStatus.values,
-                    onChanged: (value) => setState(() => _passport = value),
+                    onChanged: (value) => setState(() {
+                      _passport = value;
+                      _dirty = true;
+                    }),
                   ),
                   _enumField<EmploymentStatus>(
                     label: 'Employment status',
                     value: _employment,
                     values: EmploymentStatus.values,
-                    onChanged: (value) => setState(() => _employment = value),
+                    onChanged: (value) => setState(() {
+                      _employment = value;
+                      _dirty = true;
+                    }),
                   ),
                   const SizedBox(height: 24),
                   _heading(context, 'Uploaded documents'),
@@ -222,8 +291,10 @@ class _ProfileFormState extends State<_ProfileForm> {
                         subtitle: Text(document.type),
                         trailing: IconButton(
                           tooltip: 'Remove document',
-                          onPressed: () =>
-                              setState(() => _documents.remove(document)),
+                          onPressed: () => setState(() {
+                            _documents.remove(document);
+                            _dirty = true;
+                          }),
                           icon: const Icon(Icons.delete_outline),
                         ),
                       ),
@@ -249,6 +320,7 @@ class _ProfileFormState extends State<_ProfileForm> {
           ),
         ),
       ],
+      ),
     );
   }
 
@@ -328,16 +400,17 @@ class _ProfileFormState extends State<_ProfileForm> {
 
   void _addDemoDocument() {
     final number = _documents.length + 1;
-    setState(
-      () => _documents.add(
+    setState(() {
+      _documents.add(
         ProfileDocument(
           id: 'document-$number',
           name: 'Document $number',
           type: 'Supporting document',
           uploadedAt: DateTime.now(),
         ),
-      ),
-    );
+      );
+      _dirty = true;
+    });
   }
 
   Future<void> _save() async {
@@ -369,7 +442,10 @@ class _ProfileFormState extends State<_ProfileForm> {
       ),
     );
     if (!mounted) return;
-    setState(() => _saving = false);
+    setState(() {
+      _saving = false;
+      _dirty = false;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Profile saved privately.')));

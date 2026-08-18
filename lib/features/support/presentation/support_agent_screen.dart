@@ -71,8 +71,30 @@ class _SupportAgentScreenState extends State<SupportAgentScreen> {
                       future: _data,
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const Center(
-                            child: Text('Support data could not be loaded.'),
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 40,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Support data could not be loaded.',
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FilledButton.icon(
+                                    onPressed: () => setState(_reload),
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         }
                         if (!snapshot.hasData) {
@@ -223,7 +245,7 @@ class _SupportHeader extends StatelessWidget {
           icon: const Icon(Icons.notifications_none),
         ),
         const Chip(
-          avatar: Icon(Icons.circle, size: 10, color: Color(0xFF16B76A)),
+          avatar: Icon(Icons.circle, size: 10, color: Color(0xFF007C72)),
           label: Text('Available'),
         ),
         PopupMenuButton<String>(
@@ -262,7 +284,7 @@ class _SupportNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFF06244A),
+    color: const Color(0xFF14213D), // brand ink
     child: SafeArea(
       child: Column(
         children: [
@@ -338,7 +360,9 @@ class _SupportNavigation extends StatelessWidget {
             margin: const EdgeInsets.all(14),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF123762),
+              // Frosted panel on the ink sidebar, same technique as the
+              // login screen's decorative side panel.
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -391,7 +415,7 @@ class _SupportNavigation extends StatelessWidget {
     child: ListTile(
       dense: true,
       selected: selected,
-      selectedTileColor: const Color(0xFF263A96),
+      selectedTileColor: const Color(0xFF007C72), // brand teal
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       leading: Icon(icon, color: Colors.white, size: 19),
       title: Text(
@@ -560,35 +584,35 @@ class _SupportMetrics extends StatelessWidget {
             label: 'Open Tickets',
             value: '$open',
             icon: Icons.confirmation_number_outlined,
-            color: const Color(0xFF5A3EF0),
+            color: const Color(0xFF14213D), // brand ink
           ),
           _SupportMetric(
             width: width,
             label: 'My Assigned',
             value: '$assigned',
             icon: Icons.person_outline,
-            color: const Color(0xFF2878F0),
+            color: const Color(0xFF007C72), // brand teal
           ),
           _SupportMetric(
             width: width,
             label: 'Resolved Today',
             value: '$resolved',
             icon: Icons.check_circle_outline,
-            color: const Color(0xFF16B76A),
+            color: const Color(0xFF007C72), // brand teal
           ),
           _SupportMetric(
             width: width,
             label: 'Avg. Response Time',
             value: _duration(responseMinutes),
             icon: Icons.schedule,
-            color: const Color(0xFFFF7A21),
+            color: const Color(0xFFE09F3E), // brand amber
           ),
           _SupportMetric(
             width: width,
             label: 'Customer Satisfaction',
             value: '${satisfaction.toStringAsFixed(0)}%',
             icon: Icons.workspace_premium_outlined,
-            color: const Color(0xFFF2B91D),
+            color: const Color(0xFFE09F3E), // brand amber
           ),
         ],
       );
@@ -757,7 +781,7 @@ class _ActiveChats extends StatelessWidget {
                     trailing: const Icon(
                       Icons.circle,
                       size: 9,
-                      color: Color(0xFF16B76A),
+                      color: Color(0xFF007C72), // brand teal
                     ),
                   ),
                 )
@@ -935,17 +959,10 @@ class _SupportPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton(onPressed: () {}, child: const Text('View all')),
-            ],
-          ),
+          // No "View all" action: no caller has a real destination for it,
+          // and a button that looks tappable but does nothing is worse than
+          // no button at all.
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
           child,
         ],
@@ -1006,8 +1023,8 @@ String _status(SupportTicketStatus status) => status.name
     );
 
 Color _priorityColor(SupportTicketPriority priority) => switch (priority) {
-  SupportTicketPriority.low => const Color(0xFF16B76A),
-  SupportTicketPriority.normal => const Color(0xFF2878F0),
-  SupportTicketPriority.high => const Color(0xFFFF7A21),
-  SupportTicketPriority.urgent => const Color(0xFFE83B55),
+  SupportTicketPriority.low => const Color(0xFF007C72), // brand teal
+  SupportTicketPriority.normal => const Color(0xFF14213D), // brand ink
+  SupportTicketPriority.high => const Color(0xFFE09F3E), // brand amber
+  SupportTicketPriority.urgent => const Color(0xFFE83B55), // danger red
 };

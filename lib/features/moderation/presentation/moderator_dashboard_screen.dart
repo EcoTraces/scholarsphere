@@ -75,6 +75,33 @@ class _ModeratorDashboardScreenState extends State<ModeratorDashboardScreen> {
                     child: FutureBuilder<_ModeratorData>(
                       future: _data,
                       builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 40,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    "We couldn't load your dashboard.",
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FilledButton.icon(
+                                    onPressed: () => setState(_reload),
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
                         if (!snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
@@ -195,7 +222,7 @@ class _ModeratorNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFF17133F),
+    color: const Color(0xFF14213D), // brand ink
     child: SafeArea(
       child: Column(
         children: [
@@ -205,7 +232,7 @@ class _ModeratorNavigation extends StatelessWidget {
               children: [
                 Icon(
                   Icons.admin_panel_settings_outlined,
-                  color: Color(0xFFB58CFF),
+                  color: Color(0xFFE09F3E), // brand amber
                   size: 36,
                 ),
                 SizedBox(width: 10),
@@ -224,7 +251,7 @@ class _ModeratorNavigation extends StatelessWidget {
                       Text(
                         'Moderator Portal',
                         style: TextStyle(
-                          color: Color(0xFFC8BDE8),
+                          color: Color(0xFFB8C7DC),
                           fontSize: 10,
                         ),
                       ),
@@ -274,7 +301,9 @@ class _ModeratorNavigation extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF292455),
+                    // Frosted panel on the ink sidebar, same technique as
+                    // the login screen's decorative side panel.
+                    color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Column(
@@ -287,11 +316,11 @@ class _ModeratorNavigation extends StatelessWidget {
                       SizedBox(height: 10),
                       Text(
                         'Community Standards',
-                        style: TextStyle(color: Color(0xFFC8BDE8)),
+                        style: TextStyle(color: Color(0xFFB8C7DC)),
                       ),
                       Text(
                         'Moderation Guidelines',
-                        style: TextStyle(color: Color(0xFFC8BDE8)),
+                        style: TextStyle(color: Color(0xFFB8C7DC)),
                       ),
                     ],
                   ),
@@ -319,7 +348,7 @@ class _ModeratorNavigation extends StatelessWidget {
                       const Text(
                         'Moderator • Online',
                         style: TextStyle(
-                          color: Color(0xFFC8BDE8),
+                          color: Color(0xFFB8C7DC),
                           fontSize: 10,
                         ),
                       ),
@@ -432,24 +461,29 @@ class _ModeratorMetrics extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _ModeratorMetricWrap(
     metrics: [
-      ('New Reports', total, Icons.flag_outlined, const Color(0xFF7047EB)),
+      (
+        'New Reports',
+        total,
+        Icons.flag_outlined,
+        const Color(0xFF14213D), // brand ink
+      ),
       (
         'Pending Review',
         pending,
         Icons.pending_actions,
-        const Color(0xFFFF7A21),
+        const Color(0xFFE09F3E), // brand amber
       ),
       (
         'Under Investigation',
         investigating,
         Icons.shield_outlined,
-        const Color(0xFFE83B55),
+        const Color(0xFFE83B55), // danger red, genuine severity signal
       ),
       (
         'Resolved This Week',
         resolved,
         Icons.check_circle_outline,
-        const Color(0xFF16B76A),
+        const Color(0xFF007C72), // brand teal
       ),
     ],
   );
@@ -511,7 +545,7 @@ class _ReportsTrend extends StatelessWidget {
               child: Container(
                 height: 24 + count * 20,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF7047EB),
+                  color: Color(0xFF007C72),
                   borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
                 ),
               ),
@@ -620,14 +654,6 @@ class _CommunityReminders extends StatelessWidget {
         _reminder('Treat everyone with respect.'),
         _reminder('Escalate serious issues.'),
         _reminder('Keep the community safe.'),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () {},
-            child: const Text('View Community Standards'),
-          ),
-        ),
       ],
     ),
   );
@@ -699,17 +725,10 @@ class _ModeratorPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton(onPressed: () {}, child: const Text('View all')),
-            ],
-          ),
+          // No "View all" action: no caller has a real destination for it,
+          // and a button that looks tappable but does nothing is worse than
+          // no button at all.
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
           child,
         ],
@@ -734,7 +753,7 @@ class _ModeratorRing extends StatelessWidget {
           value: 0.72,
           strokeWidth: 14,
           backgroundColor: Color(0xFFE7EBF1),
-          color: Color(0xFF7047EB),
+          color: Color(0xFF007C72),
         ),
         Text('$value\n$label', textAlign: TextAlign.center),
       ],
@@ -752,7 +771,7 @@ Widget _moderatorNav(
   child: ListTile(
     dense: true,
     selected: selected,
-    selectedTileColor: const Color(0xFF6338B8),
+    selectedTileColor: const Color(0xFF007C72),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
     leading: Icon(icon, color: Colors.white, size: 19),
     title: Text(
@@ -776,7 +795,7 @@ Widget _moderatorValueRow(String label, int value) => Padding(
 Widget _reminder(String text) => ListTile(
   dense: true,
   contentPadding: EdgeInsets.zero,
-  leading: const Icon(Icons.shield_outlined, color: Color(0xFF7047EB)),
+  leading: const Icon(Icons.shield_outlined, color: Color(0xFF007C72)),
   title: Text(text),
 );
 

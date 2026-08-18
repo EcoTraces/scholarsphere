@@ -111,9 +111,29 @@ class _AdministrationDashboardScreenState
                       future: _data,
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const Center(
-                            child: Text(
-                              'Administration data could not be loaded.',
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 40,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Administration data could not be loaded.',
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FilledButton.icon(
+                                    onPressed: () => setState(_reload),
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }
@@ -387,7 +407,7 @@ class _AdminNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFF06244A),
+    color: const Color(0xFF14213D), // brand ink
     child: SafeArea(
       child: Column(
         children: [
@@ -486,7 +506,9 @@ class _AdminNavigation extends StatelessWidget {
             margin: const EdgeInsets.all(14),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF123762),
+              // Frosted panel on the ink sidebar, same technique as the
+              // login screen's decorative side panel.
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -539,7 +561,7 @@ class _AdminNavigation extends StatelessWidget {
     child: ListTile(
       dense: true,
       selected: selected,
-      selectedTileColor: const Color(0xFF5238E8),
+      selectedTileColor: const Color(0xFF007C72), // brand teal
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       leading: Icon(icon, color: Colors.white, size: 19),
       title: Text(
@@ -686,17 +708,10 @@ class _AdminPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton(onPressed: () {}, child: const Text('View all')),
-            ],
-          ),
+          // No "View all" action: no caller has a real destination for it,
+          // and a button that looks tappable but does nothing is worse than
+          // no button at all.
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
           child,
         ],
@@ -711,14 +726,15 @@ class _StatusOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final total = snapshot.totalOpportunities == 0
         ? 1
         : snapshot.totalOpportunities;
     final segments = [
-      ('Verified', snapshot.verifiedOpportunities, const Color(0xFF16B76A)),
-      ('Pending', snapshot.pendingVerification, const Color(0xFF2878F0)),
-      ('Expired', snapshot.expiredOpportunities, const Color(0xFF7653E8)),
-      ('Suspicious', snapshot.suspiciousSubmissions, const Color(0xFFFF7A21)),
+      ('Verified', snapshot.verifiedOpportunities, const Color(0xFF007C72)),
+      ('Pending', snapshot.pendingVerification, const Color(0xFF14213D)),
+      ('Expired', snapshot.expiredOpportunities, const Color(0xFFE09F3E)),
+      ('Suspicious', snapshot.suspiciousSubmissions, scheme.error),
     ];
     return Row(
       children: [
@@ -732,7 +748,7 @@ class _StatusOverview extends StatelessWidget {
                 value: snapshot.verifiedOpportunities / total,
                 strokeWidth: 16,
                 backgroundColor: const Color(0xFFE8EEF6),
-                color: const Color(0xFF16B76A),
+                color: const Color(0xFF007C72), // brand teal
               ),
               Text(
                 '${snapshot.totalOpportunities}\nTotal',
@@ -793,28 +809,28 @@ class _UserOverview extends StatelessWidget {
             label: 'Applicants',
             value: snapshot.registeredApplicants,
             icon: Icons.groups_outlined,
-            color: const Color(0xFF5A3EF0),
+            color: const Color(0xFF14213D), // brand ink
           ),
           _UserMetric(
             width: width,
             label: 'Providers',
             value: snapshot.registeredProviders,
             icon: Icons.business_outlined,
-            color: const Color(0xFF16B76A),
+            color: const Color(0xFF007C72), // brand teal
           ),
           _UserMetric(
             width: width,
             label: 'Pending reviews',
             value: snapshot.pendingVerification,
             icon: Icons.verified_user_outlined,
-            color: const Color(0xFFFF7A21),
+            color: const Color(0xFFE09F3E), // brand amber
           ),
           _UserMetric(
             width: width,
             label: 'Administrators',
             value: 1,
             icon: Icons.admin_panel_settings_outlined,
-            color: const Color(0xFF2878F0),
+            color: const Color(0xFF007C72), // brand teal
           ),
         ],
       );
@@ -899,7 +915,7 @@ class _HealthItem extends StatelessWidget {
     width: 190,
     child: ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.check_circle_outline, color: Color(0xFF16B76A)),
+      leading: const Icon(Icons.check_circle_outline, color: Color(0xFF007C72)),
       title: Text(label),
       subtitle: Text(value),
     ),

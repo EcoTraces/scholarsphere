@@ -69,6 +69,33 @@ class _SecurityAdministratorDashboardScreenState
                     child: FutureBuilder<_SecurityData>(
                       future: _data,
                       builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 40,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    "We couldn't load the security dashboard.",
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FilledButton.icon(
+                                    onPressed: () => setState(_reload),
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
                         if (!snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
@@ -236,7 +263,7 @@ class _SecurityNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFF06244A),
+    color: const Color(0xFF14213D), // brand ink
     child: SafeArea(
       child: Column(
         children: [
@@ -244,7 +271,11 @@ class _SecurityNavigation extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
             child: Row(
               children: [
-                Icon(Icons.shield_outlined, color: Color(0xFF19BFF3), size: 36),
+                Icon(
+                  Icons.shield_outlined,
+                  color: Color(0xFFE09F3E), // brand amber
+                  size: 36,
+                ),
                 SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -352,7 +383,9 @@ class _SecurityNavigation extends StatelessWidget {
             margin: const EdgeInsets.all(14),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF123762),
+              // Frosted panel on the ink sidebar, same technique as the
+              // login screen's decorative side panel.
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -405,7 +438,7 @@ class _SecurityNavigation extends StatelessWidget {
     child: ListTile(
       dense: true,
       selected: selected,
-      selectedTileColor: const Color(0xFF313BEA),
+      selectedTileColor: const Color(0xFF007C72), // brand teal
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       leading: Icon(icon, color: Colors.white, size: 19),
       title: Text(
@@ -517,21 +550,21 @@ class _SecurityMetrics extends StatelessWidget {
             label: 'Login Attempts',
             value: data.history.length,
             icon: Icons.login,
-            color: const Color(0xFF2878F0),
+            color: const Color(0xFF14213D), // brand ink (neutral count)
           ),
           _SecurityMetric(
             width: width,
             label: 'Failed Attempts',
             value: data.failed,
             icon: Icons.person_off_outlined,
-            color: const Color(0xFF7047EB),
+            color: const Color(0xFFE09F3E), // brand amber (attention)
           ),
           _SecurityMetric(
             width: width,
             label: 'Blocked Attempts',
             value: data.blocked,
             icon: Icons.gpp_bad_outlined,
-            color: const Color(0xFFFF6338),
+            color: const Color(0xFFE83B55), // danger, matches the rest of file
           ),
           _SecurityMetric(
             width: width,
@@ -546,7 +579,7 @@ class _SecurityMetrics extends StatelessWidget {
             value: data.securityScore,
             suffix: '/100',
             icon: Icons.shield_outlined,
-            color: const Color(0xFF16B76A),
+            color: const Color(0xFF007C72), // brand teal (positive gauge)
           ),
         ],
       );
@@ -625,7 +658,7 @@ class _LoginOverview extends StatelessWidget {
                     child: Container(
                       height: success ? 120 : 65,
                       color: success
-                          ? const Color(0xFF16B76A)
+                          ? const Color(0xFF007C72)
                           : const Color(0xFFE83B55),
                     ),
                   ),
@@ -711,7 +744,7 @@ class _LoginHistory extends StatelessWidget {
                           ? Icons.check_circle_outline
                           : Icons.error_outline,
                       color: entry.outcome == LoginOutcome.success
-                          ? const Color(0xFF16B76A)
+                          ? const Color(0xFF007C72)
                           : const Color(0xFFE83B55),
                     ),
                     title: Text(entry.outcome.name),
@@ -749,7 +782,7 @@ class _MfaAdoption extends StatelessWidget {
                 value: ratio,
                 strokeWidth: 13,
                 backgroundColor: const Color(0xFFE7EBF1),
-                color: const Color(0xFF16B76A),
+                color: const Color(0xFF007C72),
               ),
               Text(
                 '${(ratio * 100).round()}%\nEnabled',
@@ -829,17 +862,10 @@ class _SecurityPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton(onPressed: () {}, child: const Text('View all')),
-            ],
-          ),
+          // No "View all" action: no caller has a real destination for it,
+          // and a button that looks tappable but does nothing is worse than
+          // no button at all.
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
           child,
         ],
@@ -863,7 +889,7 @@ Widget _health(String label, bool healthy) => ListTile(
   contentPadding: EdgeInsets.zero,
   leading: Icon(
     healthy ? Icons.check_circle_outline : Icons.error_outline,
-    color: healthy ? const Color(0xFF16B76A) : const Color(0xFFE83B55),
+    color: healthy ? const Color(0xFF007C72) : const Color(0xFFE83B55),
   ),
   title: Text(label),
   trailing: Text(healthy ? 'Healthy' : 'Attention'),

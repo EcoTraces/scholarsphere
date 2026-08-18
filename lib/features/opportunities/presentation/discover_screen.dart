@@ -288,8 +288,28 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             future: _data,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const Center(
-                  child: Text('Opportunities could not be loaded.'),
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 40,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text('Opportunities could not be loaded.'),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () => setState(() => _data = _loadData()),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }
               if (!snapshot.hasData) {
@@ -653,8 +673,9 @@ class _OpportunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final date = opportunity.deadline;
-    final deadline = '${date.day}/${date.month}/${date.year}';
+    final deadline = _formatDeadline(opportunity.deadline);
+    final closingSoon =
+        opportunity.deadline.difference(DateTime.now()).inDays <= 14;
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
@@ -702,9 +723,23 @@ class _OpportunityCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.event_outlined, size: 18),
+                  Icon(
+                    closingSoon ? Icons.schedule : Icons.event_outlined,
+                    size: 18,
+                    color: closingSoon
+                        ? Theme.of(context).colorScheme.error
+                        : null,
+                  ),
                   const SizedBox(width: 6),
-                  Text('Deadline $deadline'),
+                  Text(
+                    closingSoon ? 'Closing soon · $deadline' : 'Deadline $deadline',
+                    style: closingSoon
+                        ? TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w700,
+                          )
+                        : null,
+                  ),
                   const Spacer(),
                   const Icon(Icons.arrow_forward, size: 20),
                 ],
@@ -716,6 +751,18 @@ class _OpportunityCard extends StatelessWidget {
     );
   }
 }
+
+const _months = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+// A day/month/year slash format (e.g. "3/7/2027") is ambiguous across
+// locales — this reads unambiguously regardless of the viewer's country.
+String _formatDeadline(DateTime date) =>
+    '${date.day.toString().padLeft(2, '0')} '
+    '${_months[date.month - 1]} '
+    '${date.year}';
 
 class _EmptyResults extends StatelessWidget {
   const _EmptyResults();

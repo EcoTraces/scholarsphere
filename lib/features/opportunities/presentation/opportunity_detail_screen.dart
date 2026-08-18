@@ -114,6 +114,8 @@ class OpportunityDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text('Hosted by ${opportunity.hostInstitution}'),
+                  const SizedBox(height: 12),
+                  _DeadlineBanner(deadline: opportunity.deadline),
                   const SizedBox(height: 16),
                   Wrap(
                     spacing: 8,
@@ -262,6 +264,52 @@ class OpportunityDetailScreen extends StatelessWidget {
     'November',
     'December',
   ][month - 1];
+}
+
+class _DeadlineBanner extends StatelessWidget {
+  const _DeadlineBanner({required this.deadline});
+  final DateTime deadline;
+
+  @override
+  Widget build(BuildContext context) {
+    final daysLeft = deadline.difference(DateTime.now()).inDays;
+    final closingSoon = daysLeft <= 14;
+    final passed = daysLeft < 0;
+    final scheme = Theme.of(context).colorScheme;
+    final tone = passed || closingSoon ? scheme.error : scheme.primary;
+    final formatted =
+        '${deadline.day.toString().padLeft(2, '0')} '
+        '${OpportunityDetailScreen._monthName(deadline.month)} '
+        '${deadline.year}';
+    final label = passed
+        ? 'Deadline passed · $formatted'
+        : closingSoon
+        ? 'Closing soon · $daysLeft day${daysLeft == 1 ? '' : 's'} left · $formatted'
+        : 'Deadline: $formatted';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: tone.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            passed || closingSoon ? Icons.schedule : Icons.event_outlined,
+            size: 18,
+            color: tone,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(color: tone, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DetailSection extends StatelessWidget {

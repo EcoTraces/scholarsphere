@@ -78,6 +78,11 @@ class _ProviderOpportunityScreenState extends State<ProviderOpportunityScreen> {
                         >(
                           future: _data,
                           builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return _ProviderDashboardError(
+                                onRetry: () => setState(_reload),
+                              );
+                            }
                             if (!snapshot.hasData) {
                               return const Center(
                                 child: CircularProgressIndicator(),
@@ -131,6 +136,36 @@ class _ProviderOpportunityScreenState extends State<ProviderOpportunityScreen> {
       setState(_reload);
     }
   }
+}
+
+class _ProviderDashboardError extends StatelessWidget {
+  const _ProviderDashboardError({required this.onRetry});
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 40,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 12),
+          const Text("We couldn't load your dashboard."),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ProviderHeader extends StatelessWidget {
@@ -240,7 +275,7 @@ class _ProviderNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFF06244A),
+    color: const Color(0xFF14213D), // brand ink
     child: SafeArea(
       child: Column(
         children: [
@@ -342,7 +377,9 @@ class _ProviderNavigation extends StatelessWidget {
             margin: const EdgeInsets.all(14),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF123762),
+              // Frosted panel on the ink sidebar, same technique as the
+              // login screen's decorative side panel.
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -496,32 +533,25 @@ class _ProviderMetrics extends StatelessWidget {
           ? 3
           : 2;
       final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
+      const ink = Color(0xFF14213D);
+      const teal = Color(0xFF007C72);
+      const amber = Color(0xFFE09F3E);
       final values = [
-        (
-          'Total Opportunities',
-          total,
-          Icons.inventory_2_outlined,
-          const Color(0xFF7047EB),
-        ),
+        ('Total Opportunities', total, Icons.inventory_2_outlined, ink),
         (
           'Published Opportunities',
           published,
           Icons.verified_outlined,
-          const Color(0xFF16B76A),
+          teal,
         ),
         (
           'Application Clicks',
           applications,
           Icons.groups_outlined,
-          const Color(0xFF2878F0),
+          amber,
         ),
-        (
-          'Opportunity Views',
-          views,
-          Icons.visibility_outlined,
-          const Color(0xFFFF7A21),
-        ),
-        ('Saved', saves, Icons.star_outline, const Color(0xFFF2B91D)),
+        ('Opportunity Views', views, Icons.visibility_outlined, teal),
+        ('Saved', saves, Icons.star_outline, amber),
       ];
       return Wrap(
         spacing: 12,
@@ -580,9 +610,13 @@ class _EngagementOverview extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _bar('Views', analytics.views, const Color(0xFF2878F0)),
-          _bar('Saves', analytics.saves, const Color(0xFF16B76A)),
-          _bar('Clicks', analytics.applicationClicks, const Color(0xFF7047EB)),
+          _bar('Views', analytics.views, const Color(0xFF14213D)),
+          _bar('Saves', analytics.saves, const Color(0xFF007C72)),
+          _bar(
+            'Clicks',
+            analytics.applicationClicks,
+            const Color(0xFFE09F3E),
+          ),
         ],
       ),
     ),
@@ -614,7 +648,7 @@ class _OpportunityStatus extends StatelessWidget {
                             opportunities.length,
                   strokeWidth: 14,
                   backgroundColor: const Color(0xFFE7EBF1),
-                  color: const Color(0xFF16B76A),
+                  color: const Color(0xFF007C72), // brand teal (primary)
                 ),
                 Text(
                   '${opportunities.length}\nTotal',
@@ -728,7 +762,7 @@ class _ProviderTips extends StatelessWidget {
     title: 'Tips for Providers',
     child: ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(Icons.star_outline, color: Color(0xFF7047EB)),
+      leading: Icon(Icons.star_outline, color: Color(0xFFE09F3E)),
       title: Text('Keep organization and source information current.'),
       subtitle: Text(
         'Complete every opportunity field to improve applicant trust.',
@@ -780,17 +814,10 @@ class _ProviderPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton(onPressed: () {}, child: const Text('View all')),
-            ],
-          ),
+          // No "View all" action here: none of this panel's callers have a
+          // real destination for it yet, and a button that looks tappable
+          // but silently does nothing is worse than no button at all.
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
           child,
         ],
@@ -809,7 +836,7 @@ Widget _providerNav(
   child: ListTile(
     dense: true,
     selected: selected,
-    selectedTileColor: const Color(0xFF5238E8),
+    selectedTileColor: const Color(0xFF007C72), // brand teal (primary)
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
     leading: Icon(icon, color: Colors.white, size: 19),
     title: Text(
@@ -953,18 +980,21 @@ class _OpportunitySubmissionScreenState
                       'minimumAge',
                       'Minimum age (optional)',
                       isRequired: false,
+                      numeric: true,
                       keyboardType: TextInputType.number,
                     ),
                     _requiredField(
                       'maximumAge',
                       'Maximum age (optional)',
                       isRequired: false,
+                      numeric: true,
                       keyboardType: TextInputType.number,
                     ),
                     _requiredField(
                       'experience',
                       'Required work experience in years (optional)',
                       isRequired: false,
+                      numeric: true,
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 20),
@@ -979,12 +1009,15 @@ class _OpportunitySubmissionScreenState
                     _requiredField(
                       'fee',
                       'Application fee',
+                      helperText: 'Enter 0 if there is no application fee',
+                      numeric: true,
                       keyboardType: TextInputType.number,
                     ),
                     _requiredField(
                       'positions',
                       'Available positions (optional)',
                       isRequired: false,
+                      numeric: true,
                       keyboardType: TextInputType.number,
                     ),
                     _listField('procedure', 'Application procedure'),
@@ -1024,22 +1057,33 @@ class _OpportunitySubmissionScreenState
     bool isRequired = true,
     int maxLines = 1,
     TextInputType? keyboardType,
+    String? helperText,
+    bool numeric = false,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: TextFormField(
       controller: _controller(key),
       maxLines: maxLines,
       keyboardType: keyboardType,
-      decoration: InputDecoration(labelText: label),
-      validator: isRequired
-          ? (value) => value == null || value.trim().isEmpty
-                ? '$label is required.'
-                : null
-          : null,
+      decoration: InputDecoration(labelText: label, helperText: helperText),
+      validator: (value) {
+        final trimmed = value?.trim() ?? '';
+        if (trimmed.isEmpty) {
+          return isRequired ? '$label is required.' : null;
+        }
+        if (numeric && num.tryParse(trimmed) == null) {
+          return '$label must be a number.';
+        }
+        return null;
+      },
     ),
   );
 
-  Widget _listField(String key, String label) => _requiredField(key, label);
+  Widget _listField(String key, String label) => _requiredField(
+    key,
+    label,
+    helperText: 'Separate multiple entries with commas',
+  );
 
   Widget _dateField(String key, String label) => Padding(
     padding: const EdgeInsets.only(bottom: 12),

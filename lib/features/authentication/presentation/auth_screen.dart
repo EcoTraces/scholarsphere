@@ -145,19 +145,28 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
                 ),
-          child: Column(
+          // The Container's white background (mobile card style) sits
+          // between the form's CheckboxListTiles and the Scaffold's
+          // Material ancestor, which hides their ink/ripple effects.
+          // MaterialType.transparency re-establishes a Material here
+          // without repainting a background of its own.
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildModeToggle(theme),
               const SizedBox(height: 24),
               Form(
                 key: _formKey,
-                child: Column(
+                child: AutofillGroup(
+                  child: Column(
                   children: [
                     if (_registering) ...[
                       TextFormField(
                         controller: _nameController,
                         textInputAction: TextInputAction.next,
+                        autofillHints: const [AutofillHints.name],
                         decoration: const InputDecoration(
                           labelText: 'Full name',
                           prefixIcon: Icon(Icons.person_outline),
@@ -174,6 +183,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
                       decoration: const InputDecoration(
                         labelText: 'Email address',
                         prefixIcon: Icon(Icons.mail_outline),
@@ -191,6 +201,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       onFieldSubmitted: (_) => _submit(),
+                      autofillHints: [
+                        _registering
+                            ? AutofillHints.newPassword
+                            : AutofillHints.password,
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline),
@@ -281,6 +296,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ],
+                  ),
                 ),
               ),
               if (_error != null) ...[
@@ -331,6 +347,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ],
@@ -366,19 +383,28 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('ScholarSphere', style: theme.textTheme.titleLarge),
-            Text(
-              'Opportunities Without Borders',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 12,
-                color: const Color(0xFF98A2B3),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'ScholarSphere',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge,
               ),
-            ),
-          ],
+              Text(
+                'Opportunities Without Borders',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  color: const Color(0xFF98A2B3),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -465,26 +491,35 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildErrorBanner(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: theme.colorScheme.error.withValues(alpha: 0.25),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: theme.colorScheme.error, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              _error!,
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
+    // liveRegion so screen readers announce the error as soon as it appears,
+    // instead of requiring the user to discover it by navigating focus.
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: theme.colorScheme.error.withValues(alpha: 0.25),
           ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: theme.colorScheme.error,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _error!,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

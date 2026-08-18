@@ -57,6 +57,31 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       body: FutureBuilder<List<ScholarSphereNotification>>(
         future: _notifications,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text("We couldn't load your notifications."),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => setState(_load),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -75,36 +100,56 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                         style: Theme.of(context).textTheme.headlineLarge,
                       ),
                       const SizedBox(height: 16),
-                      for (final item in records)
-                        Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(14),
-                            leading: Icon(
-                              item.type ==
-                                      NotificationEventType.deadlineReminder
-                                  ? Icons.event_outlined
-                                  : Icons.notifications_outlined,
+                      if (records.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 56),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.notifications_none, size: 42),
+                                SizedBox(height: 12),
+                                Text('You are all caught up.'),
+                              ],
                             ),
-                            title: Text(item.title),
-                            subtitle: Text(
-                              '${item.message}\n'
-                              '${_label(item.status.name)}: '
-                              '${_date(item.scheduledFor)}',
-                            ),
-                            isThreeLine: true,
-                            trailing: item.isRead
-                                ? null
-                                : const Icon(Icons.circle, size: 10),
-                            onTap: () async {
-                              await widget.repository.markRead(
-                                widget.userId,
-                                item.id,
-                              );
-                              setState(_load);
-                            },
                           ),
-                        ),
+                        )
+                      else
+                        for (final item in records)
+                          Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(14),
+                              leading: Icon(
+                                item.type ==
+                                        NotificationEventType.deadlineReminder
+                                    ? Icons.event_outlined
+                                    : Icons.notifications_outlined,
+                              ),
+                              title: Text(item.title),
+                              subtitle: Text(
+                                '${item.message}\n'
+                                '${_label(item.status.name)}: '
+                                '${_date(item.scheduledFor)}',
+                              ),
+                              isThreeLine: true,
+                              trailing: item.isRead
+                                  ? null
+                                  : Semantics(
+                                      label: 'Unread',
+                                      child: const Icon(
+                                        Icons.circle,
+                                        size: 10,
+                                      ),
+                                    ),
+                              onTap: () async {
+                                await widget.repository.markRead(
+                                  widget.userId,
+                                  item.id,
+                                );
+                                setState(_load);
+                              },
+                            ),
+                          ),
                     ],
                   ),
                 ),
@@ -128,8 +173,17 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     setState(_load);
   }
 
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  // A day/month/year slash format (e.g. "3/7/2027") is ambiguous across
+  // locales -- this reads unambiguously regardless of the viewer's country.
   static String _date(DateTime date) =>
-      '${date.day}/${date.month}/${date.year}';
+      '${date.day.toString().padLeft(2, '0')} '
+      '${_months[date.month - 1]} '
+      '${date.year}';
 
   static String _label(String value) => value.replaceAllMapped(
     RegExp(r'([A-Z])'),
@@ -159,6 +213,10 @@ class _NotificationSettingsScreenState
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  void _load() {
     _preferences = widget.repository.getPreferences(widget.userId);
   }
 
@@ -169,6 +227,31 @@ class _NotificationSettingsScreenState
       body: FutureBuilder<NotificationPreferences>(
         future: _preferences,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text("We couldn't load your settings."),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => setState(_load),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -200,6 +283,7 @@ class _SettingsForm extends StatefulWidget {
 
 class _SettingsFormState extends State<_SettingsForm> {
   late NotificationPreferences _value;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -322,9 +406,16 @@ class _SettingsFormState extends State<_SettingsForm> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: _save,
-                    icon: const Icon(Icons.save_outlined),
-                    label: const Text('Save notification settings'),
+                    onPressed: _saving ? null : _save,
+                    icon: _saving
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save_outlined),
+                    label: Text(
+                      _saving ? 'Saving...' : 'Save notification settings',
+                    ),
                   ),
                 ),
               ],
@@ -336,6 +427,7 @@ class _SettingsFormState extends State<_SettingsForm> {
   }
 
   Future<void> _save() async {
+    setState(() => _saving = true);
     await widget.repository.savePreferences(widget.userId, _value);
     if (!mounted) return;
     Navigator.of(context).pop();

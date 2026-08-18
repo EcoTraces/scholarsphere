@@ -51,11 +51,19 @@ class ApplicantDashboardScreen extends StatefulWidget {
 
 class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
   late Future<_DashboardData> _data;
+  int _unreadNotifications = 0;
 
   @override
   void initState() {
     super.initState();
+    _startLoad();
+  }
+
+  void _startLoad() {
     _data = _load();
+    _data.then((data) {
+      if (mounted) setState(() => _unreadNotifications = data.unreadNotifications);
+    });
   }
 
   Future<_DashboardData> _load() async {
@@ -90,6 +98,7 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
                   _TopBar(
                     showMenu: !desktop,
                     user: widget.user,
+                    unreadNotifications: _unreadNotifications,
                     onSearch: _openOpportunities,
                     onNotifications: widget.openNotifications,
                     onProfile: widget.openProfile,
@@ -99,9 +108,21 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
                     child: FutureBuilder<_DashboardData>(
                       future: _data,
                       builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return _DashboardError(
+                            onRetry: () => setState(_startLoad),
+                          );
+                        }
                         if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          return Center(
+                            child: Semantics(
+                              label: 'Loading dashboard',
+                              child: const SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
                           );
                         }
                         return _DashboardBody(
@@ -148,6 +169,41 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => widget.opportunityScreen));
   }
+}
+
+class _DashboardError extends StatelessWidget {
+  const _DashboardError({required this.onRetry});
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 40,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "We couldn't load your dashboard.",
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          const Text('Check your connection and try again.'),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _DashboardData {
@@ -208,6 +264,7 @@ class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.showMenu,
     required this.user,
+    required this.unreadNotifications,
     required this.onSearch,
     required this.onNotifications,
     required this.onProfile,
@@ -215,13 +272,16 @@ class _TopBar extends StatelessWidget {
   });
   final bool showMenu;
   final UserAccount user;
+  final int unreadNotifications;
   final VoidCallback onSearch;
   final VoidCallback onNotifications;
   final VoidCallback onProfile;
   final VoidCallback onSignOut;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
     height: 72,
     padding: const EdgeInsets.symmetric(horizontal: 20),
     decoration: const BoxDecoration(
@@ -255,10 +315,20 @@ class _TopBar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        IconButton(
-          tooltip: 'Notifications',
-          onPressed: onNotifications,
-          icon: const Icon(Icons.notifications_none),
+        // The tooltip string doubles as the accessible name for IconButton,
+        // so making it contextual ("3 unread notifications") satisfies the
+        // "announce a meaningful phrase, not a bare number" a11y guidance
+        // without a second, competing Semantics node around the badge.
+        Badge.count(
+          count: unreadNotifications,
+          isLabelVisible: unreadNotifications > 0,
+          child: IconButton(
+            tooltip: unreadNotifications > 0
+                ? '$unreadNotifications unread notifications'
+                : 'Notifications',
+            onPressed: onNotifications,
+            icon: const Icon(Icons.notifications_none),
+          ),
         ),
         PopupMenuButton<String>(
           tooltip: 'Account',
@@ -276,7 +346,8 @@ class _TopBar extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: const Color(0xFFDDF5EC),
+                  backgroundColor: primary.withValues(alpha: 0.14),
+                  foregroundColor: primary,
                   child: Text(user.fullName.substring(0, 1)),
                 ),
                 const SizedBox(width: 9),
@@ -289,7 +360,8 @@ class _TopBar extends StatelessWidget {
         ),
       ],
     ),
-  );
+    );
+  }
 }
 
 class _SideNavigation extends StatelessWidget {
@@ -322,7 +394,7 @@ class _SideNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFF06244A),
+    color: const Color(0xFF14213D), // brand ink, matches the login side panel
     child: SafeArea(
       child: Column(
         children: [
@@ -432,7 +504,7 @@ class _SideNavigation extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 3),
     child: ListTile(
       selected: selected,
-      selectedTileColor: const Color(0xFF1769FF),
+      selectedTileColor: const Color(0xFF007C72), // brand teal (primary)
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       leading: Icon(icon, color: Colors.white, size: 21),
       title: Text(
@@ -542,14 +614,14 @@ class _Welcome extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: const Color(0xFFEAF1FF),
+      color: const Color(0xFFE6F4F2) /* brand teal tint */,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(
       children: [
         CircleAvatar(
           radius: 42,
-          backgroundColor: const Color(0xFF0B6E61),
+          backgroundColor: const Color(0xFF007C72), // brand teal (primary)
           child: Text(
             user.fullName.split(' ').take(2).map((part) => part[0]).join(),
             style: const TextStyle(color: Colors.white, fontSize: 24),
@@ -600,6 +672,7 @@ class _Metrics extends StatelessWidget {
           final width = constraints.maxWidth >= 620
               ? (constraints.maxWidth - 36) / 4
               : (constraints.maxWidth - 12) / 2;
+          final scheme = Theme.of(context).colorScheme;
           return Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -607,7 +680,7 @@ class _Metrics extends StatelessWidget {
               _Metric(
                 width: width,
                 icon: Icons.school_outlined,
-                color: const Color(0xFF1769FF),
+                color: scheme.primary,
                 value: data.opportunities.length,
                 label: 'Matches',
                 onTap: openOpportunities,
@@ -615,7 +688,7 @@ class _Metrics extends StatelessWidget {
               _Metric(
                 width: width,
                 icon: Icons.bookmark_outline,
-                color: const Color(0xFF00A86B),
+                color: scheme.secondary,
                 value: data.saved.length,
                 label: 'Saved',
                 onTap: openSaved,
@@ -623,7 +696,7 @@ class _Metrics extends StatelessWidget {
               _Metric(
                 width: width,
                 icon: Icons.send_outlined,
-                color: const Color(0xFF7047EB),
+                color: const Color(0xFF14213D), // brand ink
                 value: data.activeApplications,
                 label: 'Applications',
                 onTap: openApplications,
@@ -631,7 +704,7 @@ class _Metrics extends StatelessWidget {
               _Metric(
                 width: width,
                 icon: Icons.schedule,
-                color: const Color(0xFFFF7A21),
+                color: scheme.error, // urgency — matches the "deadline" semantic
                 value: data.closingSoon,
                 label: 'Closing soon',
                 onTap: openOpportunities,
@@ -789,7 +862,7 @@ class _Deadlines extends StatelessWidget {
                 (item) => ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFEAF1FF),
+                    backgroundColor: Color(0xFFE6F4F2) /* brand teal tint */,
                     child: Icon(Icons.school_outlined, size: 19),
                   ),
                   title: Text(
@@ -842,7 +915,7 @@ class _ApplicationSummary extends StatelessWidget {
                       value: records.isEmpty ? 0 : submitted / records.length,
                       strokeWidth: 13,
                       backgroundColor: const Color(0xFFE7EBF1),
-                      color: const Color(0xFF1769FF),
+                      color: const Color(0xFF007C72), // brand teal (primary)
                     ),
                     Text(
                       '${records.length}\nTotal',
@@ -948,7 +1021,7 @@ class _Notifications extends StatelessWidget {
                   (item) => ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFEAF1FF),
+                      backgroundColor: const Color(0xFFE6F4F2) /* brand teal tint */,
                       child: Icon(
                         item.type == NotificationEventType.deadlineReminder
                             ? Icons.calendar_today_outlined
