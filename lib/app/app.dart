@@ -28,6 +28,7 @@ import '../features/guidance/data/demo_application_guidance_repository.dart';
 import '../features/moderation/data/demo_moderation_repository.dart';
 import '../features/moderation/presentation/moderator_dashboard_screen.dart';
 import '../features/opportunities/data/api_opportunity_repository.dart';
+import '../features/opportunities/data/api_provider_opportunity_repository.dart';
 import '../features/opportunities/data/demo_opportunity_repository.dart';
 import '../features/opportunities/domain/opportunity.dart';
 import '../features/opportunities/domain/opportunity_repository.dart';
@@ -36,7 +37,7 @@ import '../features/operations/data/demo_observability_repository.dart';
 import '../features/operations/data/demo_release_repository.dart';
 import '../features/operations/data/demo_system_configuration_repository.dart';
 import '../features/opportunities/presentation/discover_screen.dart';
-import '../features/providers/data/demo_provider_repository.dart';
+import '../features/providers/data/api_provider_repository.dart';
 import '../features/providers/presentation/provider_account_screen.dart';
 import '../features/provider_analytics/data/demo_provider_analytics_repository.dart';
 import '../features/sources/data/demo_source_registry_repository.dart';
@@ -127,7 +128,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   final _analyticsRepository = DemoAnalyticsRepository();
   final _recommendationGovernanceRepository =
       DemoRecommendationGovernanceRepository();
-  final _providerRepository = DemoProviderRepository();
+  final _providerRepository = ApiProviderRepository();
+  final _apiProviderOpportunityRepository = ApiProviderOpportunityRepository();
   final _providerAnalyticsRepository = DemoProviderAnalyticsRepository();
   final _sourceRegistryRepository = DemoSourceRegistryRepository();
   late final _moderationRepository = DemoModerationRepository(
@@ -339,7 +341,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       return ProviderAccountScreen(
         user: user,
         providerRepository: _providerRepository,
-        opportunityRepository: _opportunityRepository,
+        opportunityRepository: _apiProviderOpportunityRepository,
         analyticsRepository: _providerAnalyticsRepository,
         onSignOut: _signOut,
       );

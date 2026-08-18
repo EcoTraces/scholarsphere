@@ -4,6 +4,7 @@ import '../../authentication/domain/user_account.dart';
 import '../../opportunities/domain/opportunity_repository.dart';
 import '../../opportunities/presentation/provider_opportunity_screen.dart';
 import '../../provider_analytics/domain/provider_analytics.dart';
+import '../data/provider_document_upload.dart';
 import '../domain/provider_profile.dart';
 import '../domain/provider_repository.dart';
 
@@ -139,11 +140,23 @@ class _RegistrationFormState extends State<_RegistrationForm> {
       'address',
       'contact',
       'phone',
-      'document',
       'social',
     ])
       name: TextEditingController(),
   };
+  final _documentPath = TextEditingController();
+  final _upload = ProviderDocumentUpload();
+  bool _uploading = false;
+  String? _uploadError;
+
+  @override
+  void dispose() {
+    for (final controller in _fields.values) {
+      controller.dispose();
+    }
+    _documentPath.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Form(
@@ -167,12 +180,20 @@ class _RegistrationFormState extends State<_RegistrationForm> {
           ),
           const SizedBox(height: 12),
         ],
+        _documentField(),
+        const SizedBox(height: 20),
         FilledButton.icon(
           onPressed: () {
             if (!_key.currentState!.validate()) return;
-            widget.onSubmit(
-              _fields.map((key, value) => MapEntry(key, value.text.trim())),
+            if (_documentPath.text.trim().isEmpty) {
+              setState(() => _uploadError = 'Upload a supporting document.');
+              return;
+            }
+            final values = _fields.map(
+              (key, value) => MapEntry(key, value.text.trim()),
             );
+            values['document'] = _documentPath.text.trim();
+            widget.onSubmit(values);
           },
           icon: const Icon(Icons.verified_user_outlined),
           label: const Text('Submit for verification'),
@@ -180,6 +201,73 @@ class _RegistrationFormState extends State<_RegistrationForm> {
       ],
     ),
   );
+
+  Widget _documentField() {
+    final uploaded = _documentPath.text.trim().isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Supporting document',
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Icon(
+              uploaded ? Icons.check_circle_outline : Icons.upload_file_outlined,
+              color: uploaded ? Colors.green : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                uploaded
+                    ? _documentPath.text.split('/').last
+                    : 'No document uploaded yet',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            OutlinedButton(
+              onPressed: _uploading ? null : _pickAndUpload,
+              child: Text(
+                _uploading
+                    ? 'Uploading...'
+                    : uploaded
+                    ? 'Replace'
+                    : 'Upload',
+              ),
+            ),
+          ],
+        ),
+        Text(
+          'PDF, JPEG, or PNG, up to 10 MB (e.g. registration certificate).',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        if (_uploadError != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            _uploadError!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _pickAndUpload() async {
+    setState(() {
+      _uploading = true;
+      _uploadError = null;
+    });
+    try {
+      final path = await _upload.pickAndUpload();
+      if (path != null) _documentPath.text = path;
+    } on ProviderDocumentUploadFailure catch (error) {
+      _uploadError = error.message;
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
 
   String _label(String key) => {
     'name': 'Organization name',
@@ -191,7 +279,6 @@ class _RegistrationFormState extends State<_RegistrationForm> {
     'address': 'Physical address',
     'contact': 'Contact person',
     'phone': 'Contact phone number',
-    'document': 'Supporting document reference',
     'social': 'Social media link (optional)',
   }[key]!;
 }

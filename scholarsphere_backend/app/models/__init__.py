@@ -16,6 +16,15 @@ from app.models.provider import (
     ProviderPermission,
     ProviderStatus,
 )
+from app.models.provider_opportunity import (
+    ProviderOpportunity,
+    ProviderOpportunityDeliveryFormat,
+    ProviderOpportunityFundingType,
+    ProviderOpportunityType,
+    ProviderOpportunityVerificationHistory,
+    ProviderOpportunityVerificationReview,
+    ProviderOpportunityVerificationStatus,
+)
 
 __all__ = [
     "Application",
@@ -28,6 +37,13 @@ __all__ = [
     "ProviderActivity",
     "ProviderAdministrator",
     "ProviderAppeal",
+    "ProviderOpportunity",
+    "ProviderOpportunityDeliveryFormat",
+    "ProviderOpportunityFundingType",
+    "ProviderOpportunityType",
+    "ProviderOpportunityVerificationHistory",
+    "ProviderOpportunityVerificationReview",
+    "ProviderOpportunityVerificationStatus",
     "ProviderPermission",
     "ProviderStatus",
     "RawExternalOpportunity",

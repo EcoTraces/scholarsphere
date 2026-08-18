@@ -9,6 +9,7 @@ from typing import Sequence
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 revision: str = "20260818_05"
 down_revision: str | None = "20260817_04"
@@ -36,11 +37,11 @@ def upgrade() -> None:
         sa.Column("physical_address", sa.Text(), nullable=False),
         sa.Column("contact_person", sa.String(255), nullable=False),
         sa.Column("contact_phone", sa.String(64), nullable=False),
-        sa.Column("supporting_documents", sa.JSON(), nullable=False),
-        sa.Column("social_media_links", sa.JSON(), nullable=False),
+        sa.Column("supporting_documents", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("social_media_links", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("status", provider_status, nullable=False),
         sa.Column("risk_score", sa.Integer(), nullable=False),
-        sa.Column("permissions", sa.JSON(), nullable=False),
+        sa.Column("permissions", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("verification_date", sa.DateTime(timezone=True)),
         sa.Column("verified_by", sa.String(255)),
         sa.Column("reverification_date", sa.DateTime(timezone=True)),
@@ -60,7 +61,7 @@ def upgrade() -> None:
         sa.Column("provider_id", sa.Uuid(), nullable=False),
         sa.Column("user_id", sa.String(255), nullable=False),
         sa.Column("email", sa.String(320), nullable=False),
-        sa.Column("permissions", sa.JSON(), nullable=False),
+        sa.Column("permissions", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("added_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(["provider_id"], ["providers.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
