@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from app.api.routes.applications import router as applications_router
 from app.api.routes.external_opportunities import router as external_router
+from app.api.routes.providers import router as providers_router
 from app.api.routes.public_opportunities import router as public_opportunities_router
 from app.core.config import get_settings
 from app.core.errors import install_error_handling
@@ -51,6 +52,7 @@ install_rate_limiting(
 app.include_router(external_router, prefix=settings.api_v1_prefix)
 app.include_router(public_opportunities_router, prefix=settings.api_v1_prefix)
 app.include_router(applications_router, prefix=settings.api_v1_prefix)
+app.include_router(providers_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["health"])

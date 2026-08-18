@@ -8,6 +8,14 @@ from app.models.external_opportunity import (
     VerificationHistory,
     VerificationReview,
 )
+from app.models.provider import (
+    Provider,
+    ProviderActivity,
+    ProviderAdministrator,
+    ProviderAppeal,
+    ProviderPermission,
+    ProviderStatus,
+)
 
 __all__ = [
     "Application",
@@ -16,6 +24,12 @@ __all__ = [
     "ImportAuditLog",
     "OpportunitySource",
     "OpportunitySyncHistory",
+    "Provider",
+    "ProviderActivity",
+    "ProviderAdministrator",
+    "ProviderAppeal",
+    "ProviderPermission",
+    "ProviderStatus",
     "RawExternalOpportunity",
     "VerificationHistory",
     "VerificationReview",
