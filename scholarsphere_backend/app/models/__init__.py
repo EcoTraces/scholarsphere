@@ -8,6 +8,15 @@ from app.models.external_opportunity import (
     VerificationHistory,
     VerificationReview,
 )
+from app.models.notification import (
+    NotificationChannel,
+    NotificationDeliveryStatus,
+    NotificationEventType,
+    NotificationFrequency,
+    NotificationPreferences,
+    NotificationTemplate,
+    ScholarSphereNotification,
+)
 from app.models.provider import (
     Provider,
     ProviderActivity,
@@ -31,6 +40,12 @@ __all__ = [
     "ApplicationStage",
     "ExternalOpportunity",
     "ImportAuditLog",
+    "NotificationChannel",
+    "NotificationDeliveryStatus",
+    "NotificationEventType",
+    "NotificationFrequency",
+    "NotificationPreferences",
+    "NotificationTemplate",
     "OpportunitySource",
     "OpportunitySyncHistory",
     "Provider",
@@ -47,6 +62,7 @@ __all__ = [
     "ProviderPermission",
     "ProviderStatus",
     "RawExternalOpportunity",
+    "ScholarSphereNotification",
     "VerificationHistory",
     "VerificationReview",
 ]

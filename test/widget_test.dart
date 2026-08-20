@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:scholarsphere/app/app.dart';
 import 'package:scholarsphere/features/authentication/data/demo_auth_repository.dart';
 import 'package:scholarsphere/features/authentication/domain/user_account.dart';
+import 'package:scholarsphere/features/applications/data/demo_application_repository.dart';
+import 'package:scholarsphere/features/notifications/data/demo_notification_repository.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 
 void main() {
@@ -80,6 +82,9 @@ void main() {
       find.byKey(const Key('auth-password')),
       'Scholarsphere2026!',
     );
+    // The submit button stays disabled until the form is valid, so a frame
+    // must be pumped for that state to reach the button before tapping it.
+    await tester.pump();
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
   }
@@ -96,6 +101,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -123,6 +130,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -147,6 +156,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -155,6 +166,7 @@ void main() {
       'admin@scholarsphere.test',
     );
     await tester.enterText(find.byKey(const Key('auth-password')), 'Admin123!');
+    await tester.pump();
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
 
@@ -178,6 +190,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -189,6 +203,7 @@ void main() {
       find.byKey(const Key('auth-password')),
       'Support1234!',
     );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
 
@@ -212,6 +227,8 @@ void main() {
         ScholarSphereApp(
           authRepository: authRepository,
           apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
         ),
       );
       await tester.pumpAndSettle();
@@ -223,6 +240,7 @@ void main() {
         find.byKey(const Key('auth-password')),
         'Security123!',
       );
+      await tester.pump();
       await tester.tap(find.byKey(const Key('auth-submit')));
       await tester.pumpAndSettle();
 
@@ -247,6 +265,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -258,6 +278,7 @@ void main() {
       find.byKey(const Key('auth-password')),
       'Verify12345!',
     );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
 
@@ -284,6 +305,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -295,6 +318,7 @@ void main() {
       find.byKey(const Key('auth-password')),
       'Moderate123!',
     );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
 
@@ -313,6 +337,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -341,6 +367,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -373,6 +401,8 @@ void main() {
       ScholarSphereApp(
         authRepository: authRepository,
         apiOpportunityRepository: DemoOpportunityRepository(),
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
       ),
     );
     await tester.pumpAndSettle();

@@ -43,7 +43,7 @@ celery_app = Celery(
     "scholarsphere",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks.opportunity_sync"],
+    include=["app.tasks.opportunity_sync", "app.tasks.notifications"],
 )
 celery_app.conf.update(
     task_serializer="json",
@@ -97,6 +97,14 @@ celery_app.conf.update(
         "send-reverification-reminders": {
             "task": "app.tasks.opportunity_sync.send_reverification_reminders",
             "schedule": crontab(minute=30, hour=8, day_of_week="1-5"),
+        },
+        "process-due-notifications": {
+            "task": "app.tasks.notifications.process_due_notifications",
+            "schedule": crontab(minute="*/5"),
+        },
+        "retry-failed-notifications": {
+            "task": "app.tasks.notifications.retry_failed_notifications",
+            "schedule": crontab(minute=20, hour="*/2"),
         },
     },
 )

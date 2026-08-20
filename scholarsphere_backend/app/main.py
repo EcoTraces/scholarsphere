@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from app.api.routes.applications import router as applications_router
 from app.api.routes.external_opportunities import router as external_router
+from app.api.routes.notifications import router as notifications_router
 from app.api.routes.provider_opportunities import router as provider_opportunities_router
 from app.api.routes.providers import router as providers_router
 from app.api.routes.public_opportunities import router as public_opportunities_router
@@ -55,6 +56,7 @@ app.include_router(public_opportunities_router, prefix=settings.api_v1_prefix)
 app.include_router(applications_router, prefix=settings.api_v1_prefix)
 app.include_router(providers_router, prefix=settings.api_v1_prefix)
 app.include_router(provider_opportunities_router, prefix=settings.api_v1_prefix)
+app.include_router(notifications_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["health"])

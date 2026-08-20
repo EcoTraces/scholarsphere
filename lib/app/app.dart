@@ -13,7 +13,8 @@ import '../features/authentication/domain/auth_repository.dart';
 import '../features/authentication/domain/user_account.dart';
 import '../features/authentication/presentation/auth_screen.dart';
 import '../features/authentication/presentation/role_workspace_screen.dart';
-import '../features/applications/data/demo_application_repository.dart';
+import '../features/applications/data/api_application_repository.dart';
+import '../features/applications/domain/application_repository.dart';
 import '../features/applications/presentation/application_tracker_screen.dart';
 import '../features/collection/data/demo_opportunity_collection_repository.dart';
 import '../features/dashboard/presentation/applicant_dashboard_screen.dart';
@@ -41,7 +42,8 @@ import '../features/providers/data/api_provider_repository.dart';
 import '../features/providers/presentation/provider_account_screen.dart';
 import '../features/provider_analytics/data/demo_provider_analytics_repository.dart';
 import '../features/sources/data/demo_source_registry_repository.dart';
-import '../features/notifications/data/demo_notification_repository.dart';
+import '../features/notifications/data/api_notification_repository.dart';
+import '../features/notifications/domain/notification_repository.dart';
 import '../features/notifications/presentation/notification_center_screen.dart';
 import '../features/profiles/data/demo_applicant_profile_repository.dart';
 import '../features/profiles/presentation/applicant_profile_screen.dart';
@@ -66,6 +68,8 @@ class ScholarSphereApp extends StatefulWidget {
     super.key,
     this.authRepository,
     this.apiOpportunityRepository,
+    this.applicationRepository,
+    this.notificationRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -79,6 +83,20 @@ class ScholarSphereApp extends StatefulWidget {
   /// [DemoOpportunityRepository] so they never require the FastAPI backend
   /// to be running.
   final OpportunityRepository? apiOpportunityRepository;
+
+  /// Overrides the real backend-backed application repository used on the
+  /// applicant Discover/Dashboard screens. Production never sets this (it
+  /// defaults to [ApiApplicationRepository]); tests pass a
+  /// [DemoApplicationRepository] so they never require the FastAPI backend
+  /// to be running.
+  final ApplicationRepository? applicationRepository;
+
+  /// Overrides the real backend-backed notification repository used on the
+  /// applicant Discover/Dashboard screens. Production never sets this (it
+  /// defaults to [ApiNotificationRepository]); tests pass a
+  /// [DemoNotificationRepository] so they never require the FastAPI backend
+  /// to be running.
+  final NotificationRepository? notificationRepository;
 
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
@@ -119,8 +137,10 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   late final _apiOpportunityRepository =
       widget.apiOpportunityRepository ?? ApiOpportunityRepository();
   final _profileRepository = DemoApplicantProfileRepository();
-  final _notificationRepository = DemoNotificationRepository();
-  final _applicationRepository = DemoApplicationRepository();
+  late final _notificationRepository =
+      widget.notificationRepository ?? ApiNotificationRepository();
+  late final _applicationRepository =
+      widget.applicationRepository ?? ApiApplicationRepository();
   final _privacyRepository = DemoPrivacyRepository();
   late final _documentRepository = DemoDocumentRepository(
     privacyRepository: _privacyRepository,
@@ -178,10 +198,6 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       (_) async => _searchIndexRepository.rebuild(
         await _opportunityRepository.getAllForAdministration(),
       ),
-    );
-    _jobQueueRepository.registerHandler(
-      BackgroundJobType.notificationScheduling,
-      (_) => _notificationRepository.processDueNotifications(),
     );
     _jobQueueRepository.registerHandler(
       BackgroundJobType.expiredOpportunityDetection,
