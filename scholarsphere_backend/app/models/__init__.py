@@ -1,3 +1,9 @@
+from app.models.applicant_profile import (
+    ApplicantProfile,
+    EmploymentStatus,
+    EnglishTestStatus,
+    PassportStatus,
+)
 from app.models.application import Application, ApplicationStage
 from app.models.external_opportunity import (
     ExternalOpportunity,
@@ -36,8 +42,11 @@ from app.models.provider_opportunity import (
 )
 
 __all__ = [
+    "ApplicantProfile",
     "Application",
     "ApplicationStage",
+    "EmploymentStatus",
+    "EnglishTestStatus",
     "ExternalOpportunity",
     "ImportAuditLog",
     "NotificationChannel",
@@ -48,6 +57,7 @@ __all__ = [
     "NotificationTemplate",
     "OpportunitySource",
     "OpportunitySyncHistory",
+    "PassportStatus",
     "Provider",
     "ProviderActivity",
     "ProviderAdministrator",

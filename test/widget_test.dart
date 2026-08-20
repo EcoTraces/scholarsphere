@@ -6,6 +6,7 @@ import 'package:scholarsphere/features/authentication/domain/user_account.dart';
 import 'package:scholarsphere/features/applications/data/demo_application_repository.dart';
 import 'package:scholarsphere/features/notifications/data/demo_notification_repository.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
+import 'package:scholarsphere/features/profiles/data/demo_applicant_profile_repository.dart';
 
 void main() {
   // A DemoAuthRepository (in-memory, no live Firebase project required) is
@@ -103,6 +104,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -132,6 +134,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -158,6 +161,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -192,6 +196,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -229,6 +234,7 @@ void main() {
           apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
         ),
       );
       await tester.pumpAndSettle();
@@ -267,6 +273,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -307,6 +314,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -339,6 +347,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -369,6 +378,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -403,6 +413,7 @@ void main() {
         apiOpportunityRepository: DemoOpportunityRepository(),
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
       ),
     );
     await tester.pumpAndSettle();

@@ -89,13 +89,37 @@ class _ProfileForm extends StatefulWidget {
 }
 
 class _ProfileFormState extends State<_ProfileForm> {
+  // Every field below is required except 'gender' and 'special', which are
+  // labeled "(optional)" in the UI.
+  static const _requiredKeys = {
+    'name',
+    'nationality',
+    'residence',
+    'birth',
+    'qualification',
+    'field',
+    'classification',
+    'graduation',
+    'experience',
+    'levels',
+    'countries',
+    'interests',
+    'funding',
+  };
+
   late final Map<String, TextEditingController> _controllers;
+  late final Map<String, FocusNode> _focusNodes;
+  final _touched = <String>{};
   late EnglishTestStatus _englishTest;
   late PassportStatus _passport;
   late EmploymentStatus _employment;
   late List<ProfileDocument> _documents;
   bool _saving = false;
   bool _dirty = false;
+
+  bool get _requiredFieldsFilled => _requiredKeys.every(
+    (key) => _controllers[key]!.text.trim().isNotEmpty,
+  );
 
   @override
   void initState() {
@@ -141,7 +165,13 @@ class _ProfileFormState extends State<_ProfileForm> {
       ),
     };
     for (final controller in _controllers.values) {
-      controller.addListener(() => _dirty = true);
+      controller.addListener(() => setState(() => _dirty = true));
+    }
+    _focusNodes = {for (final key in _controllers.keys) key: FocusNode()};
+    for (final entry in _focusNodes.entries) {
+      entry.value.addListener(() {
+        if (!entry.value.hasFocus) setState(() => _touched.add(entry.key));
+      });
     }
     _englishTest = profile.englishTestStatus;
     _passport = profile.passportStatus;
@@ -153,6 +183,9 @@ class _ProfileFormState extends State<_ProfileForm> {
   void dispose() {
     for (final controller in _controllers.values) {
       controller.dispose();
+    }
+    for (final node in _focusNodes.values) {
+      node.dispose();
     }
     super.dispose();
   }
@@ -217,13 +250,20 @@ class _ProfileFormState extends State<_ProfileForm> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Fields marked * are required.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                  ),
                   const SizedBox(height: 24),
                   _heading(context, 'Personal information'),
                   _field('name', 'Full name'),
                   _field('nationality', 'Nationality'),
                   _field('residence', 'Country of residence'),
                   _dateField(context),
-                  _field('gender', 'Gender (optional)'),
+                  _field('gender', 'Gender (optional)', required: false),
                   const SizedBox(height: 24),
                   _heading(context, 'Education and experience'),
                   _field('qualification', 'Highest qualification'),
@@ -248,6 +288,7 @@ class _ProfileFormState extends State<_ProfileForm> {
                   _field(
                     'special',
                     'Disability or special eligibility categories (optional)',
+                    required: false,
                   ),
                   const SizedBox(height: 24),
                   _heading(context, 'Readiness'),
@@ -309,7 +350,9 @@ class _ProfileFormState extends State<_ProfileForm> {
                     width: double.infinity,
                     child: FilledButton.icon(
                       key: const Key('save-profile'),
-                      onPressed: _saving ? null : _save,
+                      onPressed: _saving || !_requiredFieldsFilled
+                          ? null
+                          : _save,
                       icon: const Icon(Icons.save_outlined),
                       label: Text(_saving ? 'Saving...' : 'Save profile'),
                     ),
@@ -329,38 +372,56 @@ class _ProfileFormState extends State<_ProfileForm> {
     child: Text(text, style: Theme.of(context).textTheme.headlineSmall),
   );
 
-  Widget _field(String key, String label, {TextInputType? keyboardType}) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: TextFormField(
-          controller: _controllers[key],
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            labelText: label,
-            helperText:
-                const {
-                  'levels',
-                  'countries',
-                  'interests',
-                  'funding',
-                  'special',
-                }.contains(key)
-                ? 'Separate multiple values with commas'
-                : null,
-          ),
-        ),
-      );
+  Widget _field(
+    String key,
+    String label, {
+    TextInputType? keyboardType,
+    bool required = true,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: TextFormField(
+      controller: _controllers[key],
+      focusNode: _focusNodes[key],
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: required ? '$label *' : label,
+        errorText:
+            required &&
+                _touched.contains(key) &&
+                _controllers[key]!.text.trim().isEmpty
+            ? 'Required'
+            : null,
+        helperText:
+            const {
+              'levels',
+              'countries',
+              'interests',
+              'funding',
+              'special',
+            }.contains(key)
+            ? 'Separate multiple values with commas'
+            : null,
+      ),
+    ),
+  );
 
   Widget _dateField(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: TextFormField(
       controller: _controllers['birth'],
+      focusNode: _focusNodes['birth'],
       readOnly: true,
-      decoration: const InputDecoration(
-        labelText: 'Date of birth',
-        suffixIcon: Icon(Icons.calendar_today_outlined),
+      decoration: InputDecoration(
+        labelText: 'Date of birth *',
+        errorText:
+            _touched.contains('birth') &&
+                _controllers['birth']!.text.trim().isEmpty
+            ? 'Required'
+            : null,
+        suffixIcon: const Icon(Icons.calendar_today_outlined),
       ),
       onTap: () async {
+        setState(() => _touched.add('birth'));
         final date = await showDatePicker(
           context: context,
           firstDate: DateTime(1940),

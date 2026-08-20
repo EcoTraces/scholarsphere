@@ -45,7 +45,8 @@ import '../features/sources/data/demo_source_registry_repository.dart';
 import '../features/notifications/data/api_notification_repository.dart';
 import '../features/notifications/domain/notification_repository.dart';
 import '../features/notifications/presentation/notification_center_screen.dart';
-import '../features/profiles/data/demo_applicant_profile_repository.dart';
+import '../features/profiles/data/api_applicant_profile_repository.dart';
+import '../features/profiles/domain/applicant_profile_repository.dart';
 import '../features/profiles/presentation/applicant_profile_screen.dart';
 import '../features/privacy/data/demo_privacy_repository.dart';
 import '../features/privacy/domain/privacy_models.dart';
@@ -70,6 +71,7 @@ class ScholarSphereApp extends StatefulWidget {
     this.apiOpportunityRepository,
     this.applicationRepository,
     this.notificationRepository,
+    this.applicantProfileRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -97,6 +99,13 @@ class ScholarSphereApp extends StatefulWidget {
   /// [DemoNotificationRepository] so they never require the FastAPI backend
   /// to be running.
   final NotificationRepository? notificationRepository;
+
+  /// Overrides the real backend-backed applicant profile repository.
+  /// Production never sets this (it defaults to
+  /// [ApiApplicantProfileRepository]); tests pass a
+  /// [DemoApplicantProfileRepository] so they never require the FastAPI
+  /// backend to be running.
+  final ApplicantProfileRepository? applicantProfileRepository;
 
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
@@ -136,7 +145,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   final _opportunityRepository = DemoOpportunityRepository();
   late final _apiOpportunityRepository =
       widget.apiOpportunityRepository ?? ApiOpportunityRepository();
-  final _profileRepository = DemoApplicantProfileRepository();
+  late final _profileRepository =
+      widget.applicantProfileRepository ?? ApiApplicantProfileRepository();
   late final _notificationRepository =
       widget.notificationRepository ?? ApiNotificationRepository();
   late final _applicationRepository =

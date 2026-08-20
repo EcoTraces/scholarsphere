@@ -28,24 +28,73 @@ class _AuthScreenState extends State<AuthScreen> {
 
   static bool _isValidEmail(String email) => _emailPattern.hasMatch(email);
 
+  static const _nameMaxLength = 100;
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocus = FocusNode();
   bool _registering = false;
   bool _obscurePassword = true;
   bool _busy = false;
   bool _acceptPrivacy = false;
   bool _acceptTerms = false;
+  bool _emailTouched = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    // Rebuild as the user types so the submit button, character counts, and
+    // password checklist stay in sync without waiting for a submit attempt.
+    _nameController.addListener(_refresh);
+    _emailController.addListener(_refresh);
+    _passwordController.addListener(_refresh);
+    _emailFocus.addListener(() {
+      if (!_emailFocus.hasFocus) setState(() => _emailTouched = true);
+    });
+  }
+
+  void _refresh() => setState(() {});
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
     super.dispose();
   }
+
+  bool get _nameValid =>
+      !_registering || _nameController.text.trim().length >= 2;
+
+  bool get _emailValid => _isValidEmail(_emailController.text.trim());
+
+  List<({String label, bool met})> get _passwordRequirements {
+    final password = _passwordController.text;
+    return [
+      (label: 'At least 12 characters', met: password.length >= 12),
+      (label: 'An uppercase letter', met: RegExp('[A-Z]').hasMatch(password)),
+      (label: 'A lowercase letter', met: RegExp('[a-z]').hasMatch(password)),
+      (label: 'A number', met: RegExp('[0-9]').hasMatch(password)),
+      (
+        label: 'A symbol',
+        met: RegExp(r'[^A-Za-z0-9]').hasMatch(password),
+      ),
+    ];
+  }
+
+  bool get _passwordValid => _registering
+      ? _passwordRequirements.every((requirement) => requirement.met)
+      : _passwordController.text.isNotEmpty;
+
+  bool get _formValid =>
+      _nameValid &&
+      _emailValid &&
+      _passwordValid &&
+      (!_registering || (_acceptPrivacy && _acceptTerms));
 
   void _setMode(bool registering) {
     if (_busy) return;
@@ -162,13 +211,37 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: AutofillGroup(
                   child: Column(
                   children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Fields marked * are required.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 12,
+                          color: const Color(0xFF98A2B3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                     if (_registering) ...[
                       TextFormField(
                         controller: _nameController,
                         textInputAction: TextInputAction.next,
                         autofillHints: const [AutofillHints.name],
+                        maxLength: _nameMaxLength,
+                        buildCounter:
+                            (
+                              context, {
+                              required currentLength,
+                              required isFocused,
+                              maxLength,
+                            }) => Text(
+                              '${maxLength! - currentLength} characters left',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: const Color(0xFF98A2B3),
+                              ),
+                            ),
                         decoration: const InputDecoration(
-                          labelText: 'Full name',
+                          labelText: 'Full name *',
                           prefixIcon: Icon(Icons.person_outline),
                         ),
                         validator: (value) =>
@@ -181,12 +254,16 @@ class _AuthScreenState extends State<AuthScreen> {
                     TextFormField(
                       key: const Key('auth-email'),
                       controller: _emailController,
+                      focusNode: _emailFocus,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
-                      decoration: const InputDecoration(
-                        labelText: 'Email address',
-                        prefixIcon: Icon(Icons.mail_outline),
+                      decoration: InputDecoration(
+                        labelText: 'Email address *',
+                        prefixIcon: const Icon(Icons.mail_outline),
+                        errorText: _emailTouched && !_emailValid
+                            ? 'Enter a valid email address.'
+                            : null,
                       ),
                       validator: (value) {
                         final email = value?.trim() ?? '';
@@ -207,7 +284,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             : AutofillHints.password,
                       ],
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: 'Password *',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           tooltip: _obscurePassword
@@ -245,31 +322,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     if (_registering) ...[
                       const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.info_outline,
-                              size: 14,
-                              color: Color(0xFF98A2B3),
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                'At least 12 characters with upper/lowercase, '
-                                'a number, and a symbol.',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontSize: 12,
-                                  color: const Color(0xFF98A2B3),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildPasswordChecklist(theme),
                       const SizedBox(height: 12),
                       CheckboxListTile(
                         contentPadding: EdgeInsets.zero,
@@ -316,7 +369,7 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 4),
               FilledButton(
                 key: const Key('auth-submit'),
-                onPressed: _busy ? null : _submit,
+                onPressed: _busy || !_formValid ? null : _submit,
                 child: _busy
                     ? const SizedBox.square(
                         dimension: 20,
@@ -487,6 +540,42 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPasswordChecklist(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final requirement in _passwordRequirements)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  requirement.met
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                  size: 14,
+                  color: requirement.met
+                      ? Colors.green
+                      : const Color(0xFF98A2B3),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  requirement.label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: 12,
+                    color: requirement.met
+                        ? Colors.green
+                        : const Color(0xFF98A2B3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 

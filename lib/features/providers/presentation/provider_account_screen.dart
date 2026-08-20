@@ -74,7 +74,7 @@ class _ProviderAccountScreenState extends State<ProviderAccountScreen> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: profile == null
-                  ? [_RegistrationForm(onSubmit: _register)]
+                  ? [_RegistrationForm(user: widget.user, onSubmit: _register)]
                   : [_StatusPanel(profile: profile, onAppeal: _appeal)],
             ),
           ),
@@ -120,7 +120,8 @@ class _ProviderAccountScreenState extends State<ProviderAccountScreen> {
 }
 
 class _RegistrationForm extends StatefulWidget {
-  const _RegistrationForm({required this.onSubmit});
+  const _RegistrationForm({required this.user, required this.onSubmit});
+  final UserAccount user;
   final Future<void> Function(Map<String, String>) onSubmit;
 
   @override
@@ -128,34 +129,118 @@ class _RegistrationForm extends StatefulWidget {
 }
 
 class _RegistrationFormState extends State<_RegistrationForm> {
-  final _key = GlobalKey<FormState>();
-  final _fields = <String, TextEditingController>{
-    for (final name in [
-      'name',
-      'type',
-      'registration',
-      'country',
-      'website',
-      'domain',
-      'address',
-      'contact',
-      'phone',
-      'social',
-    ])
-      name: TextEditingController(),
+  static const _fieldNames = [
+    'name',
+    'type',
+    'registration',
+    'country',
+    'website',
+    'domain',
+    'address',
+    'contact',
+    'phone',
+    'social',
+  ];
+
+  // Mirrors the backend's Field(max_length=...) constraints in
+  // app/schemas/provider.py so the character count shown here matches what
+  // the server will actually accept. Fields without a backend limit (address)
+  // are left out on purpose.
+  static const _maxLengths = <String, int>{
+    'name': 512,
+    'type': 128,
+    'registration': 255,
+    'country': 255,
+    'website': 2048,
+    'domain': 255,
+    'contact': 255,
+    'phone': 64,
   };
+
+  static final RegExp _domainPattern = RegExp(
+    r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?'
+    r'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$',
+  );
+
+  static bool _isValidDomain(String value) => _domainPattern.hasMatch(value);
+
+  // Forgiving on the way in (dashes, parentheses, spaces all accepted);
+  // normalized to a plain digit string (keeping a leading "+" for country
+  // codes) once the user leaves the field, so the backend always receives a
+  // consistent format regardless of how it was typed.
+  static String _normalizePhone(String input) {
+    final trimmed = input.trim();
+    if (trimmed.isEmpty) return trimmed;
+    final hasPlus = trimmed.startsWith('+');
+    final digits = trimmed.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return trimmed;
+    return hasPlus ? '+$digits' : digits;
+  }
+
+  final _key = GlobalKey<FormState>();
+  late final Map<String, TextEditingController> _fields;
+  late final Map<String, FocusNode> _focusNodes;
+  final _touched = <String>{};
   final _documentPath = TextEditingController();
   final _upload = ProviderDocumentUpload();
   bool _uploading = false;
   String? _uploadError;
 
   @override
+  void initState() {
+    super.initState();
+    _fields = {for (final name in _fieldNames) name: TextEditingController()};
+    // The organization contact is filling this out while signed in, so we
+    // already know their name — no reason to make them retype it.
+    _fields['contact']!.text = widget.user.fullName;
+    _focusNodes = {for (final name in _fieldNames) name: FocusNode()};
+    for (final controller in _fields.values) {
+      controller.addListener(() => setState(() {}));
+    }
+    for (final entry in _focusNodes.entries) {
+      entry.value.addListener(() {
+        if (entry.value.hasFocus) return;
+        setState(() {
+          _touched.add(entry.key);
+          if (entry.key == 'phone') {
+            _fields['phone']!.text = _normalizePhone(_fields['phone']!.text);
+          }
+        });
+      });
+    }
+  }
+
+  @override
   void dispose() {
     for (final controller in _fields.values) {
       controller.dispose();
     }
+    for (final node in _focusNodes.values) {
+      node.dispose();
+    }
     _documentPath.dispose();
     super.dispose();
+  }
+
+  bool get _requiredFieldsFilled => _fields.entries
+      .where((entry) => entry.key != 'social')
+      .every((entry) => entry.value.text.trim().isNotEmpty);
+
+  bool get _domainValid => _isValidDomain(_fields['domain']!.text.trim());
+
+  bool get _formValid =>
+      _requiredFieldsFilled &&
+      _domainValid &&
+      _documentPath.text.trim().isNotEmpty;
+
+  String? _errorFor(String key) {
+    if (!_touched.contains(key)) return null;
+    final value = _fields[key]!.text.trim();
+    if (key != 'social' && value.isEmpty) return 'Required';
+    if (key == 'domain' && value.isNotEmpty && !_isValidDomain(value)) {
+      return 'Enter a valid domain, e.g. university.edu';
+    }
+    return null;
   }
 
   @override
@@ -168,11 +253,32 @@ class _RegistrationFormState extends State<_RegistrationForm> {
           'Register your organization',
           style: Theme.of(context).textTheme.headlineLarge,
         ),
+        const SizedBox(height: 4),
+        Text(
+          'Fields marked * are required.',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+        ),
         const SizedBox(height: 20),
         for (final entry in _fields.entries) ...[
           TextFormField(
             controller: entry.value,
-            decoration: InputDecoration(labelText: _label(entry.key)),
+            focusNode: _focusNodes[entry.key],
+            maxLength: _maxLengths[entry.key],
+            decoration: InputDecoration(
+              labelText: entry.key == 'social'
+                  ? _label(entry.key)
+                  : '${_label(entry.key)} *',
+              errorText: _errorFor(entry.key),
+              helperText: entry.key == 'phone'
+                  ? "Any format works — we'll format it consistently."
+                  : null,
+              counterText: _maxLengths.containsKey(entry.key)
+                  ? '${_maxLengths[entry.key]! - entry.value.text.length} '
+                        'characters left'
+                  : null,
+            ),
             validator: (value) =>
                 entry.key != 'social' && (value == null || value.trim().isEmpty)
                 ? 'Required'
@@ -183,24 +289,31 @@ class _RegistrationFormState extends State<_RegistrationForm> {
         _documentField(),
         const SizedBox(height: 20),
         FilledButton.icon(
-          onPressed: () {
-            if (!_key.currentState!.validate()) return;
-            if (_documentPath.text.trim().isEmpty) {
-              setState(() => _uploadError = 'Upload a supporting document.');
-              return;
-            }
-            final values = _fields.map(
-              (key, value) => MapEntry(key, value.text.trim()),
-            );
-            values['document'] = _documentPath.text.trim();
-            widget.onSubmit(values);
-          },
+          onPressed: !_formValid || _uploading ? null : _submit,
           icon: const Icon(Icons.verified_user_outlined),
           label: const Text('Submit for verification'),
         ),
       ],
     ),
   );
+
+  void _submit() {
+    if (!_key.currentState!.validate()) return;
+    if (_documentPath.text.trim().isEmpty) {
+      setState(() => _uploadError = 'Upload a supporting document.');
+      return;
+    }
+    final values = _fields.map(
+      (key, value) => MapEntry(
+        key,
+        key == 'phone'
+            ? _normalizePhone(value.text.trim())
+            : value.text.trim(),
+      ),
+    );
+    values['document'] = _documentPath.text.trim();
+    widget.onSubmit(values);
+  }
 
   Widget _documentField() {
     final uploaded = _documentPath.text.trim().isNotEmpty;
