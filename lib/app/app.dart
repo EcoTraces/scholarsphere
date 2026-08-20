@@ -18,7 +18,8 @@ import '../features/applications/domain/application_repository.dart';
 import '../features/applications/presentation/application_tracker_screen.dart';
 import '../features/collection/data/demo_opportunity_collection_repository.dart';
 import '../features/dashboard/presentation/applicant_dashboard_screen.dart';
-import '../features/documents/data/demo_document_repository.dart';
+import '../features/documents/data/api_document_repository.dart';
+import '../features/documents/domain/document_repository.dart';
 import '../features/experience/data/demo_experience_repository.dart';
 import '../features/experience/domain/experience_preferences.dart';
 import '../features/fraud_investigation/data/demo_fraud_investigation_repository.dart';
@@ -72,6 +73,7 @@ class ScholarSphereApp extends StatefulWidget {
     this.applicationRepository,
     this.notificationRepository,
     this.applicantProfileRepository,
+    this.documentRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -106,6 +108,12 @@ class ScholarSphereApp extends StatefulWidget {
   /// [DemoApplicantProfileRepository] so they never require the FastAPI
   /// backend to be running.
   final ApplicantProfileRepository? applicantProfileRepository;
+
+  /// Overrides the real backend-backed document repository. Production
+  /// never sets this (it defaults to [ApiDocumentRepository]); tests pass
+  /// a [DemoDocumentRepository] so they never require the FastAPI backend
+  /// to be running.
+  final DocumentRepository? documentRepository;
 
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
@@ -152,9 +160,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   late final _applicationRepository =
       widget.applicationRepository ?? ApiApplicationRepository();
   final _privacyRepository = DemoPrivacyRepository();
-  late final _documentRepository = DemoDocumentRepository(
-    privacyRepository: _privacyRepository,
-  );
+  late final _documentRepository =
+      widget.documentRepository ?? ApiDocumentRepository();
   final _analyticsRepository = DemoAnalyticsRepository();
   final _recommendationGovernanceRepository =
       DemoRecommendationGovernanceRepository();

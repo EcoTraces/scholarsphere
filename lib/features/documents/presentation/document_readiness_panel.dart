@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../opportunities/domain/opportunity.dart';
+import '../data/applicant_document_upload.dart';
 import '../domain/document_readiness.dart';
 import '../domain/document_readiness_service.dart';
 import '../domain/document_repository.dart';
@@ -118,7 +119,10 @@ class DocumentVaultScreen extends StatefulWidget {
 }
 
 class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
+  final _upload = ApplicantDocumentUpload();
   late Future<List<UserDocument>> _documents;
+  DocumentType? _busyType;
+  String? _error;
 
   @override
   void initState() {
@@ -171,17 +175,38 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                           ],
                         ),
                       ),
+                      Text(
+                        'PDF, JPEG, or PNG, up to 10 MB.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _error!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       for (final type in DocumentType.values)
                         CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           value: documents.any((item) => item.type == type),
                           title: Text(DocumentTypes.label(type)),
-                          subtitle: documents.any((item) => item.type == type)
-                              ? const Text('Encrypted and private')
+                          subtitle: _subtitle(type, documents),
+                          secondary: _busyType == type
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : null,
-                          onChanged: (available) =>
-                              _toggle(type, available ?? false, documents),
+                          onChanged: _busyType != null
+                              ? null
+                              : (available) =>
+                                    _toggle(type, available ?? false, documents),
                         ),
                     ],
                   ),
@@ -192,6 +217,18 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         },
       ),
     );
+  }
+
+  Widget? _subtitle(DocumentType type, List<UserDocument> documents) {
+    UserDocument? existing;
+    for (final document in documents) {
+      if (document.type == type) {
+        existing = document;
+        break;
+      }
+    }
+    if (existing == null) return null;
+    return Text('Encrypted and private • ${existing.fileName}');
   }
 
   Future<void> _toggle(
@@ -206,20 +243,41 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         break;
       }
     }
-    if (available && existing == null) {
-      await widget.repository.add(
-        UserDocument(
-          id: '${widget.userId}-${type.name}',
-          ownerUserId: widget.userId,
-          type: type,
-          fileName: '${type.name}.encrypted',
-          uploadedAt: DateTime.now(),
-          encryptedAtRest: true,
-        ),
-      );
-    } else if (!available && existing != null) {
-      await widget.repository.remove(widget.userId, existing.id);
+    setState(() {
+      _busyType = type;
+      _error = null;
+    });
+    try {
+      if (available && existing == null) {
+        final picked = await _upload.pickAndUpload();
+        if (picked == null) return;
+        await widget.repository.add(
+          UserDocument(
+            id: '${widget.userId}-${type.name}',
+            ownerUserId: widget.userId,
+            type: type,
+            fileName: picked.fileName,
+            uploadedAt: DateTime.now(),
+            encryptedAtRest: true,
+            storagePath: picked.storagePath,
+          ),
+        );
+      } else if (!available && existing != null) {
+        await widget.repository.remove(widget.userId, existing.id);
+        final storagePath = existing.storagePath;
+        if (storagePath != null) await _upload.delete(storagePath);
+      }
+    } on ApplicantDocumentUploadFailure catch (error) {
+      _error = error.message;
+    } on Exception catch (error) {
+      _error = 'Could not update this document: $error';
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busyType = null;
+          _reload();
+        });
+      }
     }
-    if (mounted) setState(_reload);
   }
 }

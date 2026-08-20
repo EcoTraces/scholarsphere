@@ -1,3 +1,4 @@
+from app.models.applicant_document import ApplicantDocument, DocumentType
 from app.models.applicant_profile import (
     ApplicantProfile,
     EmploymentStatus,
@@ -42,9 +43,11 @@ from app.models.provider_opportunity import (
 )
 
 __all__ = [
+    "ApplicantDocument",
     "ApplicantProfile",
     "Application",
     "ApplicationStage",
+    "DocumentType",
     "EmploymentStatus",
     "EnglishTestStatus",
     "ExternalOpportunity",

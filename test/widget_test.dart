@@ -5,6 +5,7 @@ import 'package:scholarsphere/features/authentication/data/demo_auth_repository.
 import 'package:scholarsphere/features/authentication/domain/user_account.dart';
 import 'package:scholarsphere/features/applications/data/demo_application_repository.dart';
 import 'package:scholarsphere/features/notifications/data/demo_notification_repository.dart';
+import 'package:scholarsphere/features/documents/data/demo_document_repository.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 import 'package:scholarsphere/features/profiles/data/demo_applicant_profile_repository.dart';
 
@@ -105,6 +106,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -135,6 +137,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -162,6 +165,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -197,6 +201,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -235,6 +240,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
         ),
       );
       await tester.pumpAndSettle();
@@ -274,6 +280,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -315,6 +322,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -348,6 +356,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -379,6 +388,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -414,6 +424,7 @@ void main() {
         applicationRepository: DemoApplicationRepository(),
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
       ),
     );
     await tester.pumpAndSettle();

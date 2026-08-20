@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from app.api.routes.applicant_documents import router as applicant_documents_router
 from app.api.routes.applicant_profiles import router as applicant_profiles_router
 from app.api.routes.applications import router as applications_router
 from app.api.routes.external_opportunities import router as external_router
@@ -59,6 +60,7 @@ app.include_router(providers_router, prefix=settings.api_v1_prefix)
 app.include_router(provider_opportunities_router, prefix=settings.api_v1_prefix)
 app.include_router(notifications_router, prefix=settings.api_v1_prefix)
 app.include_router(applicant_profiles_router, prefix=settings.api_v1_prefix)
+app.include_router(applicant_documents_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["health"])

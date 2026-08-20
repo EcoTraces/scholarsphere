@@ -23,6 +23,7 @@ class UserDocument {
     required this.uploadedAt,
     required this.encryptedAtRest,
     this.sharedWithProviderIds = const {},
+    this.storagePath,
   });
 
   final String id;
@@ -32,6 +33,12 @@ class UserDocument {
   final DateTime uploadedAt;
   final bool encryptedAtRest;
   final Set<String> sharedWithProviderIds;
+
+  /// The real Firebase Storage location for this file
+  /// (`applicant-documents/{uid}/{fileName}`), set only when this record
+  /// backs an actual uploaded file. Null for records with no real file
+  /// behind them (e.g. constructed by a demo/in-memory repository).
+  final String? storagePath;
 
   bool canProviderAccess(String providerId) =>
       sharedWithProviderIds.contains(providerId);
@@ -44,6 +51,7 @@ class UserDocument {
     uploadedAt: uploadedAt,
     encryptedAtRest: encryptedAtRest,
     sharedWithProviderIds: {...sharedWithProviderIds, providerId},
+    storagePath: storagePath,
   );
 }
 

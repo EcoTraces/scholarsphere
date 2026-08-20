@@ -4,6 +4,18 @@ rules_version = '2';
 // owning user (path uid segment) may read/write their own folder; staff
 // roles that review providers may read but never write. Everything else
 // stays denied - never widen the fallback match below to `if true`.
+//
+// Applicant personal documents (passport, transcripts, financial documents,
+// etc.) are far more sensitive than provider registration paperwork, so
+// they stay strictly owner-only for both read and write - no staff role
+// gets blanket read access here, unlike provider-documents above. Sharing
+// a document with a specific provider (ApplicantDocument.grantProviderAccess
+// in the backend) is recorded in Postgres, not enforced by these Storage
+// rules; there is no per-provider read path through Storage today - see
+// the backend's Documents implementation notes for the accepted follow-up.
+// Deletion is allowed here (unlike provider-documents' append-only
+// evidence) because DocumentRepository.remove() is a real, owner-driven
+// action.
 service firebase.storage {
   match /b/{bucket}/o {
     match /provider-documents/{uid}/{fileName} {
@@ -15,6 +27,13 @@ service firebase.storage {
         request.resource.size <= 10 * 1024 * 1024 &&
         request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
       allow delete: if false;
+    }
+    match /applicant-documents/{uid}/{fileName} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null &&
+        request.auth.uid == uid &&
+        request.resource.size <= 10 * 1024 * 1024 &&
+        request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
     }
     match /{allPaths=**} {
       allow read, write: if false;
