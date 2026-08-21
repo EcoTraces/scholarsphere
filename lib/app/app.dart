@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../features/administration/domain/administration_analytics_service.dart';
 import '../features/administration/presentation/administration_dashboard_screen.dart';
-import '../features/analytics/data/demo_analytics_repository.dart';
+import '../features/analytics/data/api_analytics_repository.dart';
+import '../features/analytics/domain/analytics_repository.dart';
 import '../features/audit/data/demo_audit_repository.dart';
 import '../features/background_jobs/data/demo_job_queue_repository.dart';
 import '../features/background_jobs/domain/background_job.dart';
@@ -26,7 +27,8 @@ import '../features/experience/domain/experience_repository.dart';
 import '../features/experience/domain/experience_preferences.dart';
 import '../features/fraud_investigation/data/demo_fraud_investigation_repository.dart';
 import '../features/governance/data/demo_data_lifecycle_repository.dart';
-import '../features/governance/data/demo_legal_compliance_repository.dart';
+import '../features/governance/data/api_legal_compliance_repository.dart';
+import '../features/governance/domain/legal_compliance_repository.dart';
 import '../features/governance/domain/data_lifecycle.dart';
 import '../features/guidance/data/api_application_guidance_repository.dart';
 import '../features/guidance/domain/application_guidance_repository.dart';
@@ -45,7 +47,8 @@ import '../features/operations/data/demo_system_configuration_repository.dart';
 import '../features/opportunities/presentation/discover_screen.dart';
 import '../features/providers/data/api_provider_repository.dart';
 import '../features/providers/presentation/provider_account_screen.dart';
-import '../features/provider_analytics/data/demo_provider_analytics_repository.dart';
+import '../features/provider_analytics/data/api_provider_analytics_repository.dart';
+import '../features/provider_analytics/domain/provider_analytics.dart';
 import '../features/sources/data/api_source_registry_repository.dart';
 import '../features/sources/domain/source_registry_repository.dart';
 import '../features/notifications/data/api_notification_repository.dart';
@@ -57,11 +60,14 @@ import '../features/profiles/presentation/applicant_profile_screen.dart';
 import '../features/privacy/data/api_privacy_repository.dart';
 import '../features/privacy/domain/privacy_repository.dart';
 import '../features/privacy/domain/privacy_models.dart';
-import '../features/recommendations/data/demo_recommendation_governance_repository.dart';
-import '../features/security/data/demo_security_repository.dart';
+import '../features/recommendations/data/api_recommendation_governance_repository.dart';
+import '../features/recommendations/domain/recommendation_governance_repository.dart';
+import '../features/security/data/api_security_repository.dart';
+import '../features/security/domain/security_repository.dart';
 import '../features/security/presentation/security_privacy_center_screen.dart';
 import '../features/security/presentation/security_administrator_dashboard_screen.dart';
-import '../features/search_index/data/demo_search_index_repository.dart';
+import '../features/search_index/data/api_search_index_repository.dart';
+import '../features/search_index/domain/search_index_repository.dart';
 import '../features/support/data/api_support_repository.dart';
 import '../features/support/domain/support_repository.dart';
 import '../features/support/presentation/support_agent_screen.dart';
@@ -90,6 +96,12 @@ class ScholarSphereApp extends StatefulWidget {
     this.calendarRepository,
     this.guidanceRepository,
     this.experienceRepository,
+    this.searchIndexRepository,
+    this.legalRepository,
+    this.analyticsRepository,
+    this.recommendationGovernanceRepository,
+    this.providerAnalyticsRepository,
+    this.securityRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -181,17 +193,58 @@ class ScholarSphereApp extends StatefulWidget {
   /// so they never require the FastAPI backend to be running.
   final ExperienceRepository? experienceRepository;
 
+  /// Overrides the real backend-backed search index repository.
+  /// Production never sets this (it defaults to
+  /// [ApiSearchIndexRepository]); tests pass a [DemoSearchIndexRepository]
+  /// so they never require the FastAPI backend to be running.
+  final SearchIndexRepository? searchIndexRepository;
+
+  /// Overrides the real backend-backed legal compliance repository.
+  /// Production never sets this (it defaults to
+  /// [ApiLegalComplianceRepository]); tests pass a
+  /// [DemoLegalComplianceRepository] so they never require the FastAPI
+  /// backend to be running.
+  final LegalComplianceRepository? legalRepository;
+
+  /// Overrides the real backend-backed analytics repository. Production
+  /// never sets this (it defaults to [ApiAnalyticsRepository]); tests pass
+  /// a [DemoAnalyticsRepository] so they never require the FastAPI backend
+  /// to be running.
+  final AnalyticsRepository? analyticsRepository;
+
+  /// Overrides the real backend-backed recommendation governance
+  /// repository. Production never sets this (it defaults to
+  /// [ApiRecommendationGovernanceRepository]); tests pass a
+  /// [DemoRecommendationGovernanceRepository] so they never require the
+  /// FastAPI backend to be running.
+  final RecommendationGovernanceRepository? recommendationGovernanceRepository;
+
+  /// Overrides the real backend-backed provider analytics repository.
+  /// Production never sets this (it defaults to
+  /// [ApiProviderAnalyticsRepository]); tests pass a
+  /// [DemoProviderAnalyticsRepository] so they never require the FastAPI
+  /// backend to be running.
+  final ProviderAnalyticsRepository? providerAnalyticsRepository;
+
+  /// Overrides the real backend-backed security repository (sessions,
+  /// login history, alerts). Production never sets this (it defaults to
+  /// [ApiSecurityRepository]); tests pass a [DemoSecurityRepository] so
+  /// they never require the FastAPI backend to be running.
+  final SecurityRepository? securityRepository;
+
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
 }
 
 class _ScholarSphereAppState extends State<ScholarSphereApp> {
   final _navigatorKey = GlobalKey<NavigatorState>();
-  final _securityRepository = DemoSecurityRepository();
+  late final _securityRepository =
+      widget.securityRepository ?? ApiSecurityRepository();
   late final _experienceRepository =
       widget.experienceRepository ?? ApiExperienceRepository();
   final _jobQueueRepository = DemoJobQueueRepository();
-  final _searchIndexRepository = DemoSearchIndexRepository();
+  late final _searchIndexRepository =
+      widget.searchIndexRepository ?? ApiSearchIndexRepository();
   late final _supportRepository =
       widget.supportRepository ?? ApiSupportRepository();
   late final _calendarRepository =
@@ -201,7 +254,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   late final _lifecycleRepository = DemoDataLifecycleRepository(
     auditRepository: _auditRepository,
   );
-  final _legalRepository = DemoLegalComplianceRepository();
+  late final _legalRepository =
+      widget.legalRepository ?? ApiLegalComplianceRepository();
   late final _fraudInvestigationRepository = DemoFraudInvestigationRepository(
     _opportunityRepository,
     _providerRepository,
@@ -234,12 +288,15 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       widget.privacyRepository ?? ApiPrivacyRepository();
   late final _documentRepository =
       widget.documentRepository ?? ApiDocumentRepository();
-  final _analyticsRepository = DemoAnalyticsRepository();
-  final _recommendationGovernanceRepository =
-      DemoRecommendationGovernanceRepository();
+  late final _analyticsRepository =
+      widget.analyticsRepository ?? ApiAnalyticsRepository();
+  late final _recommendationGovernanceRepository =
+      widget.recommendationGovernanceRepository ??
+      ApiRecommendationGovernanceRepository();
   final _providerRepository = ApiProviderRepository();
   final _apiProviderOpportunityRepository = ApiProviderOpportunityRepository();
-  final _providerAnalyticsRepository = DemoProviderAnalyticsRepository();
+  late final _providerAnalyticsRepository =
+      widget.providerAnalyticsRepository ?? ApiProviderAnalyticsRepository();
   late final _sourceRegistryRepository =
       widget.sourceRegistryRepository ?? ApiSourceRegistryRepository();
   late final _moderationRepository =

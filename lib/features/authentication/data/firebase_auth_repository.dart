@@ -4,6 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../security/data/api_security_repository.dart';
+import '../../security/domain/access_control.dart';
+import '../../security/domain/security_models.dart';
+import '../../security/domain/security_repository.dart';
 import '../domain/auth_repository.dart';
 import '../domain/user_account.dart';
 
@@ -12,15 +16,28 @@ class FirebaseAuthRepository implements AuthRepository {
     firebase.FirebaseAuth? authentication,
     FirebaseFirestore? firestore,
     FirebaseFunctions? functions,
+    SecurityRepository? securityRepository,
   }) : _authentication = authentication ?? firebase.FirebaseAuth.instance,
        _firestore = firestore ?? FirebaseFirestore.instance,
-       _functions = functions ?? FirebaseFunctions.instance;
+       _functions = functions ?? FirebaseFunctions.instance,
+       _securityRepository = securityRepository ?? ApiSecurityRepository();
 
   final firebase.FirebaseAuth _authentication;
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
+  final SecurityRepository _securityRepository;
   UserAccount? _currentUser;
+  String? _currentSessionId;
   bool _googleInitialized = false;
+
+  static final _device = DeviceIdentity(
+    id: '${defaultTargetPlatform.name}-client',
+    browser: kIsWeb ? 'Web browser' : 'Native app',
+    operatingSystem: defaultTargetPlatform.name,
+    // Ignored server-side: the backend derives the real client IP from the
+    // request itself rather than trusting a client-supplied value.
+    ipAddress: '',
+  );
 
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('users');
@@ -61,7 +78,9 @@ class FirebaseAuthRepository implements AuthRepository {
       final user = credential.user;
       if (user == null) throw const AuthFailure('Sign-in did not complete.');
       await user.reload();
-      return _loadAccount(_authentication.currentUser!);
+      final account = await _loadAccount(_authentication.currentUser!);
+      await _trackSuccessfulLogin(account);
+      return account;
     } on firebase.FirebaseAuthException catch (error) {
       throw AuthFailure(_authMessage(error));
     }
@@ -177,7 +196,9 @@ class FirebaseAuthRepository implements AuthRepository {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       }
-      return _loadAccount(user);
+      final account = await _loadAccount(user);
+      await _trackSuccessfulLogin(account);
+      return account;
     } on firebase.FirebaseAuthException catch (error) {
       throw AuthFailure(_authMessage(error));
     } on GoogleSignInException catch (error) {
@@ -232,6 +253,18 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    if (_currentSessionId != null) {
+      // Best-effort: revoke before the Firebase token that authenticates
+      // the call is invalidated below. A transient backend outage should
+      // never block sign-out itself.
+      try {
+        await _securityRepository.revokeSession(_currentSessionId!);
+      } on Exception {
+        // Ignored - session-tracking is defense-in-depth, not a
+        // correctness guarantee for sign-out.
+      }
+      _currentSessionId = null;
+    }
     if (!kIsWeb && _googleInitialized) {
       await GoogleSignIn.instance.signOut();
     }
@@ -259,6 +292,44 @@ class FirebaseAuthRepository implements AuthRepository {
       });
     } on FirebaseFunctionsException catch (error) {
       throw AuthFailure(error.message ?? 'The account could not be suspended.');
+    }
+    try {
+      await _securityRepository.revokeAllSessions(userId);
+    } on Exception {
+      // Best-effort: the account is already suspended via the Cloud
+      // Function above regardless of whether this side channel succeeds.
+    }
+    if (_currentUser?.id == userId) {
+      _currentUser = null;
+      _currentSessionId = null;
+    }
+  }
+
+  /// Records the login and opens a tracked session for a user who has just
+  /// completed Firebase sign-in. Best-effort: a transient security-backend
+  /// outage must never block a successful sign-in from completing. Skips
+  /// unverified applicants, matching [DemoAuthRepository.signIn], which
+  /// only creates a session once the account can actually be used.
+  Future<void> _trackSuccessfulLogin(UserAccount account) async {
+    if (!account.emailVerified) return;
+    try {
+      await _securityRepository.recordLogin(
+        email: account.email,
+        outcome: LoginOutcome.success,
+        device: _device,
+        userId: account.id,
+      );
+      final session = await _securityRepository.createSession(
+        userId: account.id,
+        device: _device,
+        strongAuthentication: account.twoFactorEnabled,
+        privileged: AccessControlPolicy.requiresStrongAuthentication(
+          account.role,
+        ),
+      );
+      _currentSessionId = session.id;
+    } on Exception {
+      // Ignored - see method doc.
     }
   }
 

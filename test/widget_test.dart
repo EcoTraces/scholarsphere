@@ -14,6 +14,12 @@ import 'package:scholarsphere/features/taxonomy/data/demo_taxonomy_repository.da
 import 'package:scholarsphere/features/calendar/data/demo_calendar_repository.dart';
 import 'package:scholarsphere/features/guidance/data/demo_application_guidance_repository.dart';
 import 'package:scholarsphere/features/experience/data/demo_experience_repository.dart';
+import 'package:scholarsphere/features/search_index/data/demo_search_index_repository.dart';
+import 'package:scholarsphere/features/governance/data/demo_legal_compliance_repository.dart';
+import 'package:scholarsphere/features/analytics/data/demo_analytics_repository.dart';
+import 'package:scholarsphere/features/recommendations/data/demo_recommendation_governance_repository.dart';
+import 'package:scholarsphere/features/provider_analytics/data/demo_provider_analytics_repository.dart';
+import 'package:scholarsphere/features/security/data/demo_security_repository.dart';
 import 'package:scholarsphere/features/providers/data/demo_provider_repository.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 import 'package:scholarsphere/features/profiles/data/demo_applicant_profile_repository.dart';
@@ -127,6 +133,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -169,6 +182,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -208,6 +228,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -255,6 +282,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -305,6 +339,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
         ),
       );
       await tester.pumpAndSettle();
@@ -356,6 +397,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -409,6 +457,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -454,6 +509,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -497,6 +559,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -544,6 +613,13 @@ void main() {
         calendarRepository: DemoCalendarRepository(),
         guidanceRepository: DemoApplicationGuidanceRepository(),
         experienceRepository: DemoExperienceRepository(),
+        searchIndexRepository: DemoSearchIndexRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
       ),
     );
     await tester.pumpAndSettle();

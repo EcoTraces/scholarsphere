@@ -1,3 +1,4 @@
+from app.models.analytics import OpportunityViewEvent
 from app.models.applicant_document import ApplicantDocument, DocumentType
 from app.models.applicant_profile import (
     ApplicantProfile,
@@ -18,6 +19,15 @@ from app.models.external_opportunity import (
 )
 from app.models.calendar import CalendarEvent, CalendarEventType, CalendarProvider, DeadlineState
 from app.models.guidance import ApplicationGuidancePlan, GuidanceItemStatus, GuidanceItemType
+from app.models.legal_compliance import (
+    ComplianceRecord,
+    LegalPolicy,
+    LegalPolicyType,
+    LegalRequest,
+    LegalRequestStatus,
+    LegalRequestType,
+    PolicyAcceptance,
+)
 from app.models.moderation import (
     CLOSED_STATUSES,
     ModerationCase,
@@ -53,6 +63,7 @@ from app.models.provider import (
     ProviderPermission,
     ProviderStatus,
 )
+from app.models.provider_analytics import EngagementEvent
 from app.models.provider_opportunity import (
     ProviderOpportunity,
     ProviderOpportunityDeliveryFormat,
@@ -61,6 +72,20 @@ from app.models.provider_opportunity import (
     ProviderOpportunityVerificationHistory,
     ProviderOpportunityVerificationReview,
     ProviderOpportunityVerificationStatus,
+)
+from app.models.recommendation_governance import (
+    PersonalizationControls,
+    RecommendationFeedback,
+    RecommendationFeedbackType,
+    RecommendationHistoryEntry,
+)
+from app.models.search_index import SearchHistoryEntry, SearchIndexEntry
+from app.models.security import (
+    LoginHistoryEntry,
+    LoginOutcome,
+    SecurityAlert,
+    SecurityAlertType,
+    SecuritySession,
 )
 from app.models.source_registry import (
     OpportunitySourceType as RegistrySourceType,
@@ -93,11 +118,13 @@ __all__ = [
     "CalendarEvent",
     "CalendarEventType",
     "CalendarProvider",
+    "ComplianceRecord",
     "ConsentRecord",
     "ConsentType",
     "DeadlineState",
     "DocumentType",
     "EmploymentStatus",
+    "EngagementEvent",
     "EnglishTestStatus",
     "ExperiencePreferences",
     "ExternalOpportunity",
@@ -106,6 +133,13 @@ __all__ = [
     "ImportAuditLog",
     "KnowledgeArticle",
     "KnowledgeContentType",
+    "LegalPolicy",
+    "LegalPolicyType",
+    "LegalRequest",
+    "LegalRequestStatus",
+    "LegalRequestType",
+    "LoginHistoryEntry",
+    "LoginOutcome",
     "ModerationCase",
     "ModerationHistoryEntry",
     "ModerationReportType",
@@ -119,8 +153,11 @@ __all__ = [
     "NotificationTemplate",
     "OpportunitySource",
     "OpportunitySyncHistory",
+    "OpportunityViewEvent",
     "OrganizationAccessRecord",
     "PassportStatus",
+    "PersonalizationControls",
+    "PolicyAcceptance",
     "PrivacyIncident",
     "PrivacyRequest",
     "PrivacyRequestStatus",
@@ -139,12 +176,20 @@ __all__ = [
     "ProviderPermission",
     "ProviderStatus",
     "RawExternalOpportunity",
+    "RecommendationFeedback",
+    "RecommendationFeedbackType",
+    "RecommendationHistoryEntry",
     "RegistrySourceType",
     "RegistrySourceVerificationStatus",
     "ReliabilityLevel",
     "ReportedEntityType",
     "SatisfactionSurvey",
     "ScholarSphereNotification",
+    "SearchHistoryEntry",
+    "SearchIndexEntry",
+    "SecurityAlert",
+    "SecurityAlertType",
+    "SecuritySession",
     "SourceRegistryEntry",
     "SupportInternalNote",
     "SupportMessage",
