@@ -6,6 +6,7 @@ from app.models.applicant_profile import (
     PassportStatus,
 )
 from app.models.application import Application, ApplicationStage
+from app.models.experience import ExperiencePreferences, SupportedLanguage, TranslationEntry
 from app.models.external_opportunity import (
     ExternalOpportunity,
     ImportAuditLog,
@@ -15,6 +16,17 @@ from app.models.external_opportunity import (
     VerificationHistory,
     VerificationReview,
 )
+from app.models.calendar import CalendarEvent, CalendarEventType, CalendarProvider, DeadlineState
+from app.models.guidance import ApplicationGuidancePlan, GuidanceItemStatus, GuidanceItemType
+from app.models.moderation import (
+    CLOSED_STATUSES,
+    ModerationCase,
+    ModerationHistoryEntry,
+    ModerationReportType,
+    ModerationStatus,
+    ModerationWarning,
+    ReportedEntityType,
+)
 from app.models.notification import (
     NotificationChannel,
     NotificationDeliveryStatus,
@@ -23,6 +35,15 @@ from app.models.notification import (
     NotificationPreferences,
     NotificationTemplate,
     ScholarSphereNotification,
+)
+from app.models.privacy import (
+    ConsentRecord,
+    ConsentType,
+    OrganizationAccessRecord,
+    PrivacyIncident,
+    PrivacyRequest,
+    PrivacyRequestStatus,
+    PrivacyRequestType,
 )
 from app.models.provider import (
     Provider,
@@ -41,17 +62,55 @@ from app.models.provider_opportunity import (
     ProviderOpportunityVerificationReview,
     ProviderOpportunityVerificationStatus,
 )
+from app.models.source_registry import (
+    OpportunitySourceType as RegistrySourceType,
+    ReliabilityLevel,
+    SourceRegistryEntry,
+    SourceVerificationStatus as RegistrySourceVerificationStatus,
+)
+from app.models.support import (
+    KnowledgeArticle,
+    KnowledgeContentType,
+    SatisfactionSurvey,
+    SupportInternalNote,
+    SupportMessage,
+    SupportResponseTemplate,
+    SupportTicket,
+    SupportTicketCategory,
+    SupportTicketEvent,
+    SupportTicketPriority,
+    SupportTicketStatus,
+)
+from app.models.taxonomy import TaxonomyTerm, TaxonomyType, TaxonomyVersion
 
 __all__ = [
     "ApplicantDocument",
     "ApplicantProfile",
     "Application",
+    "ApplicationGuidancePlan",
     "ApplicationStage",
+    "CLOSED_STATUSES",
+    "CalendarEvent",
+    "CalendarEventType",
+    "CalendarProvider",
+    "ConsentRecord",
+    "ConsentType",
+    "DeadlineState",
     "DocumentType",
     "EmploymentStatus",
     "EnglishTestStatus",
+    "ExperiencePreferences",
     "ExternalOpportunity",
+    "GuidanceItemStatus",
+    "GuidanceItemType",
     "ImportAuditLog",
+    "KnowledgeArticle",
+    "KnowledgeContentType",
+    "ModerationCase",
+    "ModerationHistoryEntry",
+    "ModerationReportType",
+    "ModerationStatus",
+    "ModerationWarning",
     "NotificationChannel",
     "NotificationDeliveryStatus",
     "NotificationEventType",
@@ -60,7 +119,12 @@ __all__ = [
     "NotificationTemplate",
     "OpportunitySource",
     "OpportunitySyncHistory",
+    "OrganizationAccessRecord",
     "PassportStatus",
+    "PrivacyIncident",
+    "PrivacyRequest",
+    "PrivacyRequestStatus",
+    "PrivacyRequestType",
     "Provider",
     "ProviderActivity",
     "ProviderAdministrator",
@@ -75,7 +139,26 @@ __all__ = [
     "ProviderPermission",
     "ProviderStatus",
     "RawExternalOpportunity",
+    "RegistrySourceType",
+    "RegistrySourceVerificationStatus",
+    "ReliabilityLevel",
+    "ReportedEntityType",
+    "SatisfactionSurvey",
     "ScholarSphereNotification",
+    "SourceRegistryEntry",
+    "SupportInternalNote",
+    "SupportMessage",
+    "SupportResponseTemplate",
+    "SupportTicket",
+    "SupportTicketCategory",
+    "SupportTicketEvent",
+    "SupportTicketPriority",
+    "SupportTicketStatus",
+    "SupportedLanguage",
+    "TaxonomyTerm",
+    "TaxonomyType",
+    "TaxonomyVersion",
+    "TranslationEntry",
     "VerificationHistory",
     "VerificationReview",
 ]

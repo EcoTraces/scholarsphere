@@ -6,6 +6,15 @@ import 'package:scholarsphere/features/authentication/domain/user_account.dart';
 import 'package:scholarsphere/features/applications/data/demo_application_repository.dart';
 import 'package:scholarsphere/features/notifications/data/demo_notification_repository.dart';
 import 'package:scholarsphere/features/documents/data/demo_document_repository.dart';
+import 'package:scholarsphere/features/moderation/data/demo_moderation_repository.dart';
+import 'package:scholarsphere/features/privacy/data/demo_privacy_repository.dart';
+import 'package:scholarsphere/features/support/data/demo_support_repository.dart';
+import 'package:scholarsphere/features/sources/data/demo_source_registry_repository.dart';
+import 'package:scholarsphere/features/taxonomy/data/demo_taxonomy_repository.dart';
+import 'package:scholarsphere/features/calendar/data/demo_calendar_repository.dart';
+import 'package:scholarsphere/features/guidance/data/demo_application_guidance_repository.dart';
+import 'package:scholarsphere/features/experience/data/demo_experience_repository.dart';
+import 'package:scholarsphere/features/providers/data/demo_provider_repository.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 import 'package:scholarsphere/features/profiles/data/demo_applicant_profile_repository.dart';
 
@@ -107,6 +116,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -138,6 +158,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -166,6 +197,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -202,6 +244,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -241,6 +294,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
         ),
       );
       await tester.pumpAndSettle();
@@ -281,6 +345,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -323,6 +398,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -357,6 +443,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -389,6 +486,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -425,6 +533,17 @@ void main() {
         notificationRepository: DemoNotificationRepository(),
         applicantProfileRepository: DemoApplicantProfileRepository(),
         documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
       ),
     );
     await tester.pumpAndSettle();
