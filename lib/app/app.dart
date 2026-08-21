@@ -4,7 +4,8 @@ import '../features/administration/domain/administration_analytics_service.dart'
 import '../features/administration/presentation/administration_dashboard_screen.dart';
 import '../features/analytics/data/api_analytics_repository.dart';
 import '../features/analytics/domain/analytics_repository.dart';
-import '../features/audit/data/demo_audit_repository.dart';
+import '../features/audit/data/api_audit_repository.dart';
+import '../features/audit/domain/audit_repository.dart';
 import '../features/background_jobs/data/demo_job_queue_repository.dart';
 import '../features/background_jobs/domain/background_job.dart';
 import '../features/calendar/data/api_calendar_repository.dart';
@@ -18,16 +19,19 @@ import '../features/authentication/presentation/role_workspace_screen.dart';
 import '../features/applications/data/api_application_repository.dart';
 import '../features/applications/domain/application_repository.dart';
 import '../features/applications/presentation/application_tracker_screen.dart';
-import '../features/collection/data/demo_opportunity_collection_repository.dart';
+import '../features/collection/data/api_opportunity_collection_repository.dart';
+import '../features/collection/domain/opportunity_collection_repository.dart';
 import '../features/dashboard/presentation/applicant_dashboard_screen.dart';
 import '../features/documents/data/api_document_repository.dart';
 import '../features/documents/domain/document_repository.dart';
 import '../features/experience/data/api_experience_repository.dart';
 import '../features/experience/domain/experience_repository.dart';
 import '../features/experience/domain/experience_preferences.dart';
-import '../features/fraud_investigation/data/demo_fraud_investigation_repository.dart';
-import '../features/governance/data/demo_data_lifecycle_repository.dart';
+import '../features/fraud_investigation/data/api_fraud_investigation_repository.dart';
+import '../features/fraud_investigation/domain/fraud_investigation_repository.dart';
+import '../features/governance/data/api_data_lifecycle_repository.dart';
 import '../features/governance/data/api_legal_compliance_repository.dart';
+import '../features/governance/domain/data_lifecycle_repository.dart';
 import '../features/governance/domain/legal_compliance_repository.dart';
 import '../features/governance/domain/data_lifecycle.dart';
 import '../features/guidance/data/api_application_guidance_repository.dart';
@@ -40,10 +44,14 @@ import '../features/opportunities/data/api_provider_opportunity_repository.dart'
 import '../features/opportunities/data/demo_opportunity_repository.dart';
 import '../features/opportunities/domain/opportunity.dart';
 import '../features/opportunities/domain/opportunity_repository.dart';
-import '../features/operations/data/demo_backup_repository.dart';
-import '../features/operations/data/demo_observability_repository.dart';
-import '../features/operations/data/demo_release_repository.dart';
-import '../features/operations/data/demo_system_configuration_repository.dart';
+import '../features/operations/data/api_backup_repository.dart';
+import '../features/operations/data/api_observability_repository.dart';
+import '../features/operations/data/api_release_repository.dart';
+import '../features/operations/data/api_system_configuration_repository.dart';
+import '../features/operations/domain/backup_repository.dart';
+import '../features/operations/domain/observability_repository.dart';
+import '../features/operations/domain/release_repository.dart';
+import '../features/operations/domain/system_configuration_repository.dart';
 import '../features/opportunities/presentation/discover_screen.dart';
 import '../features/providers/data/api_provider_repository.dart';
 import '../features/providers/presentation/provider_account_screen.dart';
@@ -102,6 +110,14 @@ class ScholarSphereApp extends StatefulWidget {
     this.recommendationGovernanceRepository,
     this.providerAnalyticsRepository,
     this.securityRepository,
+    this.auditRepository,
+    this.systemConfigurationRepository,
+    this.backupRepository,
+    this.releaseRepository,
+    this.dataLifecycleRepository,
+    this.observabilityRepository,
+    this.fraudInvestigationRepository,
+    this.collectionRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -232,6 +248,59 @@ class ScholarSphereApp extends StatefulWidget {
   /// they never require the FastAPI backend to be running.
   final SecurityRepository? securityRepository;
 
+  /// Overrides the real backend-backed audit repository. Production never
+  /// sets this (it defaults to [ApiAuditRepository]); tests pass a
+  /// [DemoAuditRepository] so they never require the FastAPI backend to be
+  /// running.
+  final AuditRepository? auditRepository;
+
+  /// Overrides the real backend-backed system configuration repository.
+  /// Production never sets this (it defaults to
+  /// [ApiSystemConfigurationRepository]); tests pass a
+  /// [DemoSystemConfigurationRepository] so they never require the FastAPI
+  /// backend to be running.
+  final SystemConfigurationRepository? systemConfigurationRepository;
+
+  /// Overrides the real backend-backed backup repository. Production
+  /// never sets this (it defaults to [ApiBackupRepository]); tests pass a
+  /// [DemoBackupRepository] so they never require the FastAPI backend to
+  /// be running.
+  final BackupRepository? backupRepository;
+
+  /// Overrides the real backend-backed release repository. Production
+  /// never sets this (it defaults to [ApiReleaseRepository]); tests pass a
+  /// [DemoReleaseRepository] so they never require the FastAPI backend to
+  /// be running.
+  final ReleaseRepository? releaseRepository;
+
+  /// Overrides the real backend-backed data lifecycle repository.
+  /// Production never sets this (it defaults to
+  /// [ApiDataLifecycleRepository]); tests pass a
+  /// [DemoDataLifecycleRepository] so they never require the FastAPI
+  /// backend to be running.
+  final DataLifecycleRepository? dataLifecycleRepository;
+
+  /// Overrides the real backend-backed observability repository.
+  /// Production never sets this (it defaults to
+  /// [ApiObservabilityRepository]); tests pass a
+  /// [DemoObservabilityRepository] so they never require the FastAPI
+  /// backend to be running.
+  final ObservabilityRepository? observabilityRepository;
+
+  /// Overrides the real backend-backed fraud investigation repository.
+  /// Production never sets this (it defaults to
+  /// [ApiFraudInvestigationRepository]); tests pass a
+  /// [DemoFraudInvestigationRepository] so they never require the FastAPI
+  /// backend to be running.
+  final FraudInvestigationRepository? fraudInvestigationRepository;
+
+  /// Overrides the real backend-backed opportunity collection repository.
+  /// Production never sets this (it defaults to
+  /// [ApiOpportunityCollectionRepository]); tests pass a
+  /// [DemoOpportunityCollectionRepository] so they never require the
+  /// FastAPI backend to be running.
+  final OpportunityCollectionRepository? collectionRepository;
+
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
 }
@@ -251,28 +320,26 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       widget.calendarRepository ?? ApiCalendarRepository();
   late final _guidanceRepository =
       widget.guidanceRepository ?? ApiApplicationGuidanceRepository();
-  late final _lifecycleRepository = DemoDataLifecycleRepository(
-    auditRepository: _auditRepository,
-  );
+  late final _lifecycleRepository =
+      widget.dataLifecycleRepository ?? ApiDataLifecycleRepository();
   late final _legalRepository =
       widget.legalRepository ?? ApiLegalComplianceRepository();
-  late final _fraudInvestigationRepository = DemoFraudInvestigationRepository(
-    _opportunityRepository,
-    _providerRepository,
-  );
+  late final _fraudInvestigationRepository =
+      widget.fraudInvestigationRepository ??
+      ApiFraudInvestigationRepository();
   late final _taxonomyRepository =
       widget.taxonomyRepository ?? ApiTaxonomyRepository();
-  final _auditRepository = DemoAuditRepository();
-  late final _configurationRepository = DemoSystemConfigurationRepository(
-    auditRepository: _auditRepository,
-  );
-  final _observabilityRepository = DemoObservabilityRepository();
-  late final _backupRepository = DemoBackupRepository(
-    auditRepository: _auditRepository,
-  );
-  late final _releaseRepository = DemoReleaseRepository(
-    auditRepository: _auditRepository,
-  );
+  late final _auditRepository =
+      widget.auditRepository ?? ApiAuditRepository();
+  late final _configurationRepository =
+      widget.systemConfigurationRepository ??
+      ApiSystemConfigurationRepository();
+  late final _observabilityRepository =
+      widget.observabilityRepository ?? ApiObservabilityRepository();
+  late final _backupRepository =
+      widget.backupRepository ?? ApiBackupRepository();
+  late final _releaseRepository =
+      widget.releaseRepository ?? ApiReleaseRepository();
   late final _authRepository =
       widget.authRepository ?? FirebaseAuthRepository();
   final _opportunityRepository = DemoOpportunityRepository();
@@ -305,10 +372,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
     _opportunityRepository,
   );
   final _apiVerificationRepository = ApiVerificationRepository();
-  late final _collectionRepository = DemoOpportunityCollectionRepository(
-    _opportunityRepository,
-    sourceRegistry: _sourceRegistryRepository,
-  );
+  late final _collectionRepository =
+      widget.collectionRepository ?? ApiOpportunityCollectionRepository();
   late final _administrationAnalytics = AdministrationAnalyticsService(
     authRepository: _authRepository,
     opportunityRepository: _opportunityRepository,

@@ -7,6 +7,28 @@ from app.models.applicant_profile import (
     PassportStatus,
 )
 from app.models.application import Application, ApplicationStage
+from app.models.audit_log import (
+    AuditAction,
+    AuditChainState,
+    AuditRecord,
+    AuditResult,
+    AuditRetentionPolicy,
+)
+from app.models.backup import (
+    BackupPolicy,
+    BackupRecord,
+    BackupStatus,
+    BackupType,
+    RecoveryStatus,
+    RecoveryTest,
+)
+from app.models.data_lifecycle import (
+    LegalHold,
+    LifecycleRecord,
+    LifecycleStatus,
+    RetainedEntityType,
+    RetentionRule,
+)
 from app.models.experience import ExperiencePreferences, SupportedLanguage, TranslationEntry
 from app.models.external_opportunity import (
     ExternalOpportunity,
@@ -18,6 +40,15 @@ from app.models.external_opportunity import (
     VerificationReview,
 )
 from app.models.calendar import CalendarEvent, CalendarEventType, CalendarProvider, DeadlineState
+from app.models.collection import CollectionLedgerEntry, CollectionSourceType
+from app.models.fraud_investigation import (
+    CLOSED_CASE_STATUSES,
+    FraudCase,
+    FraudCaseStatus,
+    FraudSubjectType,
+    InvestigationRiskLevel,
+    WatchlistEntry,
+)
 from app.models.guidance import ApplicationGuidancePlan, GuidanceItemStatus, GuidanceItemType
 from app.models.legal_compliance import (
     ComplianceRecord,
@@ -45,6 +76,16 @@ from app.models.notification import (
     NotificationPreferences,
     NotificationTemplate,
     ScholarSphereNotification,
+)
+from app.models.observability import (
+    AlertRule,
+    ApplicationLog,
+    HealthStatus,
+    IncidentStatus,
+    LogLevel,
+    MetricPoint,
+    OperationalIncident,
+    TraceSpan,
 )
 from app.models.privacy import (
     ConsentRecord,
@@ -79,6 +120,13 @@ from app.models.recommendation_governance import (
     RecommendationFeedbackType,
     RecommendationHistoryEntry,
 )
+from app.models.release import (
+    DeploymentEnvironment,
+    DeploymentRecord,
+    DeploymentStatus,
+    DeploymentStrategy,
+    QualityReport,
+)
 from app.models.search_index import SearchHistoryEntry, SearchIndexEntry
 from app.models.security import (
     LoginHistoryEntry,
@@ -106,40 +154,70 @@ from app.models.support import (
     SupportTicketPriority,
     SupportTicketStatus,
 )
+from app.models.system_configuration import PlatformConfiguration
 from app.models.taxonomy import TaxonomyTerm, TaxonomyType, TaxonomyVersion
 
 __all__ = [
+    "AlertRule",
     "ApplicantDocument",
     "ApplicantProfile",
     "Application",
     "ApplicationGuidancePlan",
+    "ApplicationLog",
     "ApplicationStage",
+    "AuditAction",
+    "AuditChainState",
+    "AuditRecord",
+    "AuditResult",
+    "AuditRetentionPolicy",
+    "BackupPolicy",
+    "BackupRecord",
+    "BackupStatus",
+    "BackupType",
+    "CLOSED_CASE_STATUSES",
     "CLOSED_STATUSES",
     "CalendarEvent",
     "CalendarEventType",
     "CalendarProvider",
+    "CollectionLedgerEntry",
+    "CollectionSourceType",
     "ComplianceRecord",
     "ConsentRecord",
     "ConsentType",
     "DeadlineState",
+    "DeploymentEnvironment",
+    "DeploymentRecord",
+    "DeploymentStatus",
+    "DeploymentStrategy",
     "DocumentType",
     "EmploymentStatus",
     "EngagementEvent",
     "EnglishTestStatus",
     "ExperiencePreferences",
     "ExternalOpportunity",
+    "FraudCase",
+    "FraudCaseStatus",
+    "FraudSubjectType",
     "GuidanceItemStatus",
     "GuidanceItemType",
+    "HealthStatus",
     "ImportAuditLog",
+    "IncidentStatus",
+    "InvestigationRiskLevel",
     "KnowledgeArticle",
     "KnowledgeContentType",
+    "LegalHold",
     "LegalPolicy",
     "LegalPolicyType",
     "LegalRequest",
     "LegalRequestStatus",
     "LegalRequestType",
+    "LifecycleRecord",
+    "LifecycleStatus",
+    "LogLevel",
     "LoginHistoryEntry",
     "LoginOutcome",
+    "MetricPoint",
     "ModerationCase",
     "ModerationHistoryEntry",
     "ModerationReportType",
@@ -151,12 +229,14 @@ __all__ = [
     "NotificationFrequency",
     "NotificationPreferences",
     "NotificationTemplate",
+    "OperationalIncident",
     "OpportunitySource",
     "OpportunitySyncHistory",
     "OpportunityViewEvent",
     "OrganizationAccessRecord",
     "PassportStatus",
     "PersonalizationControls",
+    "PlatformConfiguration",
     "PolicyAcceptance",
     "PrivacyIncident",
     "PrivacyRequest",
@@ -175,14 +255,19 @@ __all__ = [
     "ProviderOpportunityVerificationStatus",
     "ProviderPermission",
     "ProviderStatus",
+    "QualityReport",
     "RawExternalOpportunity",
     "RecommendationFeedback",
     "RecommendationFeedbackType",
     "RecommendationHistoryEntry",
+    "RecoveryStatus",
+    "RecoveryTest",
     "RegistrySourceType",
     "RegistrySourceVerificationStatus",
     "ReliabilityLevel",
     "ReportedEntityType",
+    "RetainedEntityType",
+    "RetentionRule",
     "SatisfactionSurvey",
     "ScholarSphereNotification",
     "SearchHistoryEntry",
@@ -203,7 +288,9 @@ __all__ = [
     "TaxonomyTerm",
     "TaxonomyType",
     "TaxonomyVersion",
+    "TraceSpan",
     "TranslationEntry",
     "VerificationHistory",
     "VerificationReview",
+    "WatchlistEntry",
 ]

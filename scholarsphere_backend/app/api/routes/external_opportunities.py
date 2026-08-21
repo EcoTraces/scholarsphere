@@ -22,6 +22,7 @@ from app.models import (
 from app.models.external_opportunity import PublicationStatus, SyncStatus, VerificationStatus
 from app.schemas.external_opportunity import ImportStatistics, NormalizedExternalOpportunity
 from app.schemas.external_source import (
+    AdminOpportunityPage,
     OpportunityEditRequest,
     OpportunityEditResponse,
     OpportunityNoteRequest,
@@ -373,6 +374,33 @@ async def list_pending_verification(
         )
     ).all()
     return PendingOpportunityPage(
+        items=list(items), total=total or 0, page=page, page_size=page_size
+    )
+
+
+@router.get("/opportunities", response_model=AdminOpportunityPage)
+async def list_all_opportunities(
+    _: Annotated[AuthenticatedUser, Depends(admin_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=200)] = 100,
+) -> AdminOpportunityPage:
+    """Admin-wide listing across every verification/publication status,
+
+    for administration reporting - distinct from `/pending-verification`
+    (pending queue only) and `/opportunities` on the public router
+    (published+verified only).
+    """
+    total = await session.scalar(select(func.count(ExternalOpportunity.id)))
+    items = (
+        await session.scalars(
+            select(ExternalOpportunity)
+            .order_by(ExternalOpportunity.collected_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+    ).all()
+    return AdminOpportunityPage(
         items=list(items), total=total or 0, page=page, page_size=page_size
     )
 

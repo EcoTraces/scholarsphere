@@ -90,6 +90,50 @@ class PendingOpportunityPage(BaseModel):
     page_size: int
 
 
+class AdminOpportunityItem(BaseModel):
+    """Same shape as [PendingOpportunityItem] plus the status fields the
+    pending-only queue omits (since that endpoint's status is implied by
+    its filters) - used for admin-wide reporting across every
+    verification/publication status, not just the pending queue."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    source_id: UUID
+    external_id: str
+    external_reference: str | None
+    title: str
+    provider_name: str
+    opportunity_type: str
+    country: str | None
+    description: str | None
+    opening_date: date | None = None
+    deadline: date | None = None
+    opportunity_status: str
+    funding_type: str | None
+    award_floor: float | None
+    award_ceiling: float | None
+    currency: str | None
+    official_source_url: str | None
+    official_application_url: str | None
+    duplicate_review_required: bool
+    verification_status: str
+    publication_status: str
+    collected_at: datetime
+
+    @field_validator("verification_status", "publication_status", mode="before")
+    @classmethod
+    def _unwrap_enum(cls, value: object) -> str:
+        return value.value if hasattr(value, "value") else str(value)
+
+
+class AdminOpportunityPage(BaseModel):
+    items: list[AdminOpportunityItem]
+    total: int
+    page: int
+    page_size: int
+
+
 class SourceHealth(BaseModel):
     source_code: str
     active_status: bool

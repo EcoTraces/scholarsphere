@@ -16,7 +16,12 @@ from app.schemas.source_registry import (
     source_type_from_wire,
 )
 from app.services.parsing import utc_now
-from app.services.source_scoring import compute_trust_score, normalize_domain, score_for_entry
+from app.services.source_scoring import (
+    compute_trust_score,
+    find_approved_source,
+    normalize_domain,
+    score_for_entry,
+)
 
 router = APIRouter(prefix="/source-registry", tags=["source-registry"])
 
@@ -116,20 +121,8 @@ async def approved_source_for(
     _: Annotated[AuthenticatedUser, staff_access],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> SourceRegistryEntryRead | None:
-    host = normalize_domain(location)
-    now = utc_now()
-    rows = (await session.scalars(select(SourceRegistryEntry))).all()
-    for entry in rows:
-        domain = entry.normalized_domain
-        matches_host = host == domain or host.endswith(f".{domain}")
-        is_approved = (
-            entry.verification_status == SourceVerificationStatus.approved
-            and not entry.is_blocked
-            and (entry.expires_at is None or entry.expires_at > now)
-        )
-        if matches_host and is_approved:
-            return SourceRegistryEntryRead.model_validate(entry)
-    return None
+    entry = await find_approved_source(session, location)
+    return SourceRegistryEntryRead.model_validate(entry) if entry is not None else None
 
 
 @router.post("/{source_id}/access", response_model=SourceRegistryEntryRead)

@@ -51,6 +51,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "app_identifier",
         "trust_level": "official",
     },
+    "manual_collection": {
+        "source_name": "Manual/ad hoc collection",
+        "source_type": "manual",
+        "authentication_type": "none",
+        "trust_level": "community",
+    },
 }
 
 
@@ -65,6 +71,7 @@ def _base_urls() -> dict[str, str]:
         "usajobs": settings.usajobs_base_url,
         "reliefweb_jobs": f"{reliefweb_base}/jobs",
         "reliefweb_training": f"{reliefweb_base}/training",
+        "manual_collection": "",
     }
 
 

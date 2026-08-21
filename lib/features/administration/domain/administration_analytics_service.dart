@@ -8,7 +8,6 @@ import '../../opportunities/domain/opportunity.dart';
 import '../../opportunities/domain/opportunity_repository.dart';
 import '../../profiles/domain/applicant_profile_repository.dart';
 import '../../search/domain/opportunity_search.dart';
-import '../../verification/domain/verification_repository.dart';
 import 'administration_snapshot.dart';
 
 class AdministrationAnalyticsService {
@@ -18,7 +17,6 @@ class AdministrationAnalyticsService {
     required this.applicationRepository,
     required this.profileRepository,
     required this.notificationRepository,
-    required this.verificationRepository,
     required this.analyticsRepository,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
@@ -28,7 +26,6 @@ class AdministrationAnalyticsService {
   final ApplicationRepository applicationRepository;
   final ApplicantProfileRepository profileRepository;
   final NotificationRepository notificationRepository;
-  final VerificationRepository verificationRepository;
   final AnalyticsRepository analyticsRepository;
   final DateTime Function() _clock;
 
@@ -39,7 +36,6 @@ class AdministrationAnalyticsService {
     final profiles = await profileRepository.getAllForAdministration();
     final notifications = await notificationRepository
         .getAllForAdministration();
-    final reviews = await verificationRepository.getAllForAdministration();
     final views = await analyticsRepository.getOpportunityViewCounts();
     final now = _clock();
 

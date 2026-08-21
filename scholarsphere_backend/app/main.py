@@ -8,24 +8,32 @@ from app.api.routes.analytics import router as analytics_router
 from app.api.routes.applicant_documents import router as applicant_documents_router
 from app.api.routes.applicant_profiles import router as applicant_profiles_router
 from app.api.routes.applications import router as applications_router
+from app.api.routes.audit import router as audit_router
+from app.api.routes.backup import router as backup_router
 from app.api.routes.calendar import router as calendar_router
+from app.api.routes.collection import router as collection_router
+from app.api.routes.data_lifecycle import router as data_lifecycle_router
 from app.api.routes.experience import router as experience_router
 from app.api.routes.external_opportunities import router as external_router
+from app.api.routes.fraud_investigation import router as fraud_investigation_router
 from app.api.routes.guidance import router as guidance_router
 from app.api.routes.legal_compliance import router as legal_compliance_router
 from app.api.routes.moderation import router as moderation_router
 from app.api.routes.moderation import warnings_router as moderation_warnings_router
 from app.api.routes.notifications import router as notifications_router
+from app.api.routes.observability import router as observability_router
 from app.api.routes.privacy import router as privacy_router
 from app.api.routes.provider_analytics import router as provider_analytics_router
 from app.api.routes.provider_opportunities import router as provider_opportunities_router
 from app.api.routes.providers import router as providers_router
 from app.api.routes.public_opportunities import router as public_opportunities_router
 from app.api.routes.recommendation_governance import router as recommendation_governance_router
+from app.api.routes.release import router as release_router
 from app.api.routes.search_index import router as search_index_router
 from app.api.routes.security import router as security_router
 from app.api.routes.source_registry import router as source_registry_router
 from app.api.routes.support import router as support_router
+from app.api.routes.system_configuration import router as system_configuration_router
 from app.api.routes.taxonomy import router as taxonomy_router
 from app.core.config import get_settings
 from app.core.errors import install_error_handling
@@ -91,6 +99,14 @@ app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(recommendation_governance_router, prefix=settings.api_v1_prefix)
 app.include_router(provider_analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(security_router, prefix=settings.api_v1_prefix)
+app.include_router(audit_router, prefix=settings.api_v1_prefix)
+app.include_router(system_configuration_router, prefix=settings.api_v1_prefix)
+app.include_router(backup_router, prefix=settings.api_v1_prefix)
+app.include_router(release_router, prefix=settings.api_v1_prefix)
+app.include_router(data_lifecycle_router, prefix=settings.api_v1_prefix)
+app.include_router(observability_router, prefix=settings.api_v1_prefix)
+app.include_router(fraud_investigation_router, prefix=settings.api_v1_prefix)
+app.include_router(collection_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["health"])

@@ -27,14 +27,14 @@ const _notSpecified = 'Not specified by source';
 ///
 /// This is the live replacement for [DemoOpportunityRepository] on
 /// applicant-facing screens (Discover, the applicant dashboard,
-/// notifications, calendar). Only [getPublished] is real - provider
-/// self-submission ([submit]/[getForProvider]) and admin-wide listing
-/// ([getAllForAdministration]) are unrelated backend features that don't
-/// exist yet, so they fail loudly rather than silently returning demo
-/// data. Admin/provider/moderation/verification screens are unaffected -
-/// they still use [DemoOpportunityRepository], deliberately, since the
-/// live backend's leaner data and single-reviewer model don't match those
-/// screens' richer assumptions (see the engineering report).
+/// notifications, calendar) and for [AdministrationAnalyticsService]'s
+/// reporting (via [getAllForAdministration]). Provider self-submission
+/// ([submit]/[getForProvider]) is a separate, unrelated backend feature
+/// that doesn't exist yet, so it fails loudly rather than silently
+/// returning demo data. Provider/moderation/verification screens are
+/// unaffected - they still use [DemoOpportunityRepository], deliberately,
+/// since the live backend's leaner data and single-reviewer model don't
+/// match those screens' richer assumptions (see the engineering report).
 ///
 /// Field mapping honesty: the backend's real sources (government grant
 /// portals, USAJOBS, ReliefWeb) don't publish most of [Opportunity]'s
@@ -109,14 +109,62 @@ class ApiOpportunityRepository implements OpportunityRepository {
   }
 
   @override
-  Future<List<Opportunity>> getAllForAdministration() {
-    throw UnsupportedError(
-      'Use the live backend verification-queue endpoints directly for '
-      'administration views; this repository only exposes published data.',
-    );
+  Future<List<Opportunity>> getAllForAdministration() async {
+    const pageSize = 200;
+    final opportunities = <Opportunity>[];
+    var page = 1;
+    while (true) {
+      final body =
+          await _get('/external-opportunities/opportunities', {
+                'page': '$page',
+                'page_size': '$pageSize',
+              })
+              as Map<String, dynamic>;
+      final items = body['items'] as List<dynamic>;
+      opportunities.addAll(
+        items
+            .map(
+              (item) => _toOpportunity(
+                item as Map<String, dynamic>,
+                verificationStatus: _verificationStatusFromWire(
+                  item['verification_status'] as String,
+                ),
+              ),
+            )
+            .whereType<Opportunity>(),
+      );
+      if (items.length < pageSize) break;
+      page += 1;
+    }
+    return opportunities;
   }
 
-  Opportunity? _toOpportunity(Map<String, dynamic> json) {
+  // The live backend's VerificationStatus (pending, verified, rejected,
+  // suspicious, expired, archived, reverification_required,
+  // source_unavailable) doesn't map 1:1 onto Opportunity's (which has
+  // verificationExpired/incomplete instead of those last two) - the two
+  // reasoned equivalents used here: a record whose prior verification
+  // lapsed and needs a fresh look ("reverification_required") is closest
+  // to [VerificationStatus.verificationExpired]; one whose source can no
+  // longer be reached to confirm anything ("source_unavailable") is
+  // closest to [VerificationStatus.incomplete].
+  static VerificationStatus _verificationStatusFromWire(String value) =>
+      switch (value) {
+        'pending' => VerificationStatus.pending,
+        'verified' => VerificationStatus.verified,
+        'rejected' => VerificationStatus.rejected,
+        'suspicious' => VerificationStatus.suspicious,
+        'expired' => VerificationStatus.expired,
+        'archived' => VerificationStatus.archived,
+        'reverification_required' => VerificationStatus.verificationExpired,
+        'source_unavailable' => VerificationStatus.incomplete,
+        _ => throw LiveBackendException('Unknown verification status: $value'),
+      };
+
+  Opportunity? _toOpportunity(
+    Map<String, dynamic> json, {
+    VerificationStatus verificationStatus = VerificationStatus.verified,
+  }) {
     final deadline = _date(json['deadline']);
     final opening = _date(json['opening_date']) ?? _date(json['collected_at']);
     if (deadline == null || opening == null) {
@@ -140,7 +188,7 @@ class ApiOpportunityRepository implements OpportunityRepository {
       funding: FundingType.partiallyFunded,
       deadline: deadline,
       applicationOpenDate: opening,
-      verificationStatus: VerificationStatus.verified,
+      verificationStatus: verificationStatus,
       lastVerifiedAt: _date(json['verified_at']),
       officialSourceUrl: json['official_source_url'] as String? ?? '',
       applicationUrl:

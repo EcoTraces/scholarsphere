@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/design/form_validation_styles.dart';
 import '../../authentication/domain/user_account.dart';
 import '../../opportunities/domain/opportunity_repository.dart';
 import '../../opportunities/presentation/provider_opportunity_screen.dart';
@@ -243,6 +244,15 @@ class _RegistrationFormState extends State<_RegistrationForm> {
     return null;
   }
 
+  // Grouping the ten fields under three headings (rather than one long flat
+  // list) lets someone scan "what section am I in" at a glance, matching the
+  // section rhythm already used on the applicant profile form.
+  static const _sections = <(String, List<String>)>[
+    ('Organization details', ['name', 'type', 'registration', 'country']),
+    ('Online presence', ['website', 'domain', 'social']),
+    ('Contact', ['address', 'contact', 'phone']),
+  ];
+
   @override
   Widget build(BuildContext context) => Form(
     key: _key,
@@ -253,48 +263,55 @@ class _RegistrationFormState extends State<_RegistrationForm> {
           'Register your organization',
           style: Theme.of(context).textTheme.headlineLarge,
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Fields marked * are required.',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 20),
-        for (final entry in _fields.entries) ...[
-          TextFormField(
-            controller: entry.value,
-            focusNode: _focusNodes[entry.key],
-            maxLength: _maxLengths[entry.key],
-            decoration: InputDecoration(
-              labelText: entry.key == 'social'
-                  ? _label(entry.key)
-                  : '${_label(entry.key)} *',
-              errorText: _errorFor(entry.key),
-              helperText: entry.key == 'phone'
-                  ? "Any format works — we'll format it consistently."
-                  : null,
-              counterText: _maxLengths.containsKey(entry.key)
-                  ? '${_maxLengths[entry.key]! - entry.value.text.length} '
-                        'characters left'
-                  : null,
-            ),
-            validator: (value) =>
-                entry.key != 'social' && (value == null || value.trim().isEmpty)
-                ? 'Required'
-                : null,
-          ),
-          const SizedBox(height: 12),
+        const SizedBox(height: 6),
+        const RequiredFieldsLegend(),
+        for (final section in _sections) ...[
+          const SizedBox(height: 24),
+          _heading(context, section.$1),
+          for (final key in section.$2) ...[
+            _field(key),
+            const SizedBox(height: 12),
+          ],
         ],
+        const SizedBox(height: 24),
+        _heading(context, 'Supporting document'),
         _documentField(),
-        const SizedBox(height: 20),
+        const SizedBox(height: 28),
         FilledButton.icon(
           onPressed: !_formValid || _uploading ? null : _submit,
           icon: const Icon(Icons.verified_user_outlined),
           label: const Text('Submit for verification'),
         ),
+        SubmitBlockedHint(
+          visible: !_formValid && !_uploading,
+          message: 'Complete the required fields and upload a supporting '
+              'document to submit.',
+        ),
       ],
     ),
+  );
+
+  Widget _heading(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(text, style: Theme.of(context).textTheme.headlineSmall),
+  );
+
+  Widget _field(String key) => TextFormField(
+    controller: _fields[key],
+    focusNode: _focusNodes[key],
+    maxLength: _maxLengths[key],
+    buildCounter: _maxLengths.containsKey(key) ? characterCounterBuilder : null,
+    decoration: InputDecoration(
+      labelText: key == 'social' ? _label(key) : '${_label(key)} *',
+      errorText: _errorFor(key),
+      helperText: key == 'phone'
+          ? "Any format works — we'll format it consistently."
+          : null,
+    ),
+    validator: (value) =>
+        key != 'social' && (value == null || value.trim().isEmpty)
+        ? 'Required'
+        : null,
   );
 
   void _submit() {
@@ -316,54 +333,90 @@ class _RegistrationFormState extends State<_RegistrationForm> {
   }
 
   Widget _documentField() {
+    final theme = Theme.of(context);
     final uploaded = _documentPath.text.trim().isNotEmpty;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Supporting document',
-          style: Theme.of(context).textTheme.labelLarge,
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: uploaded
+              ? ValidationPalette.success.withValues(alpha: 0.4)
+              : const Color(0xFFE7EAF0),
         ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            Icon(
-              uploaded ? Icons.check_circle_outline : Icons.upload_file_outlined,
-              color: uploaded ? Colors.green : null,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                uploaded
-                    ? _documentPath.text.split('/').last
-                    : 'No document uploaded yet',
-                overflow: TextOverflow.ellipsis,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: Icon(
+                  uploaded
+                      ? Icons.check_circle
+                      : Icons.upload_file_outlined,
+                  key: ValueKey(uploaded),
+                  color: uploaded ? ValidationPalette.success : null,
+                ),
               ),
-            ),
-            OutlinedButton(
-              onPressed: _uploading ? null : _pickAndUpload,
-              child: Text(
-                _uploading
-                    ? 'Uploading...'
-                    : uploaded
-                    ? 'Replace'
-                    : 'Upload',
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  uploaded
+                      ? _documentPath.text.split('/').last
+                      : 'No document uploaded yet',
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: uploaded ? ValidationPalette.success : null,
+                    fontWeight: uploaded ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
               ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: _uploading ? null : _pickAndUpload,
+                child: Text(
+                  _uploading
+                      ? 'Uploading...'
+                      : uploaded
+                      ? 'Replace'
+                      : 'Upload',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'PDF, JPEG, or PNG, up to 10 MB (e.g. registration certificate).',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: ValidationPalette.muted,
+            ),
+          ),
+          if (_uploadError != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 14,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _uploadError!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-        Text(
-          'PDF, JPEG, or PNG, up to 10 MB (e.g. registration certificate).',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        if (_uploadError != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            _uploadError!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
         ],
-      ],
+      ),
     );
   }
 

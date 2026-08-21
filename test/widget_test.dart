@@ -23,6 +23,14 @@ import 'package:scholarsphere/features/security/data/demo_security_repository.da
 import 'package:scholarsphere/features/providers/data/demo_provider_repository.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 import 'package:scholarsphere/features/profiles/data/demo_applicant_profile_repository.dart';
+import 'package:scholarsphere/features/audit/data/demo_audit_repository.dart';
+import 'package:scholarsphere/features/operations/data/demo_system_configuration_repository.dart';
+import 'package:scholarsphere/features/operations/data/demo_backup_repository.dart';
+import 'package:scholarsphere/features/operations/data/demo_release_repository.dart';
+import 'package:scholarsphere/features/governance/data/demo_data_lifecycle_repository.dart';
+import 'package:scholarsphere/features/operations/data/demo_observability_repository.dart';
+import 'package:scholarsphere/features/fraud_investigation/data/demo_fraud_investigation_repository.dart';
+import 'package:scholarsphere/features/collection/data/demo_opportunity_collection_repository.dart';
 
 void main() {
   // A DemoAuthRepository (in-memory, no live Firebase project required) is
@@ -140,6 +148,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -189,6 +211,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -235,6 +271,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -289,6 +339,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -346,6 +410,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
         ),
       );
       await tester.pumpAndSettle();
@@ -404,6 +482,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -464,6 +556,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -516,6 +622,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -566,6 +686,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -620,6 +754,20 @@ void main() {
             DemoRecommendationGovernanceRepository(),
         providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
         securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/design/form_validation_styles.dart';
 import '../domain/auth_repository.dart';
 import '../domain/user_account.dart';
 
@@ -211,15 +212,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: AutofillGroup(
                   child: Column(
                   children: [
-                    Align(
+                    const Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Fields marked * are required.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: 12,
-                          color: const Color(0xFF98A2B3),
-                        ),
-                      ),
+                      child: RequiredFieldsLegend(),
                     ),
                     const SizedBox(height: 10),
                     if (_registering) ...[
@@ -228,18 +223,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         textInputAction: TextInputAction.next,
                         autofillHints: const [AutofillHints.name],
                         maxLength: _nameMaxLength,
-                        buildCounter:
-                            (
-                              context, {
-                              required currentLength,
-                              required isFocused,
-                              maxLength,
-                            }) => Text(
-                              '${maxLength! - currentLength} characters left',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: const Color(0xFF98A2B3),
-                              ),
-                            ),
+                        buildCounter: characterCounterBuilder,
                         decoration: const InputDecoration(
                           labelText: 'Full name *',
                           prefixIcon: Icon(Icons.person_outline),
@@ -379,6 +363,15 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       )
                     : Text(_registering ? 'Create account' : 'Sign in'),
+              ),
+              Center(
+                child: SubmitBlockedHint(
+                  visible: !_busy && !_formValid,
+                  message: _registering
+                      ? 'Complete the highlighted fields above to '
+                            'create your account.'
+                      : 'Enter your email and password to sign in.',
+                ),
               ),
               const SizedBox(height: 20),
               _buildOrDivider(theme),
@@ -544,38 +537,30 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildPasswordChecklist(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final requirement in _passwordRequirements)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  requirement.met
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  size: 14,
-                  color: requirement.met
-                      ? Colors.green
-                      : const Color(0xFF98A2B3),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  requirement.label,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontSize: 12,
-                    color: requirement.met
-                        ? Colors.green
-                        : const Color(0xFF98A2B3),
-                  ),
-                ),
-              ],
+    final requirements = _passwordRequirements;
+    final metCount = requirements.where((r) => r.met).length;
+    // Grouped in its own filled panel (same fill as the inputs above it) so
+    // it reads as "requirements for the field you're in," not a loose list
+    // of captions floating below the form.
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE7EAF0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RequirementProgress(met: metCount, total: requirements.length),
+          const SizedBox(height: 10),
+          for (final requirement in requirements)
+            AnimatedRequirementRow(
+              label: requirement.label,
+              met: requirement.met,
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 

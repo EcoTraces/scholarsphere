@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/design/form_validation_styles.dart';
 import '../../authentication/domain/user_account.dart';
 import '../domain/applicant_profile.dart';
 import '../domain/applicant_profile_repository.dart';
@@ -250,13 +251,8 @@ class _ProfileFormState extends State<_ProfileForm> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Fields marked * are required.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
-                  ),
+                  const SizedBox(height: 10),
+                  const RequiredFieldsLegend(),
                   const SizedBox(height: 24),
                   _heading(context, 'Personal information'),
                   _field('name', 'Full name'),
@@ -355,6 +351,13 @@ class _ProfileFormState extends State<_ProfileForm> {
                           : _save,
                       icon: const Icon(Icons.save_outlined),
                       label: Text(_saving ? 'Saving...' : 'Save profile'),
+                    ),
+                  ),
+                  Center(
+                    child: SubmitBlockedHint(
+                      visible: !_saving && !_requiredFieldsFilled,
+                      message: 'Complete the highlighted required fields '
+                          'above to save.',
                     ),
                   ),
                 ],
