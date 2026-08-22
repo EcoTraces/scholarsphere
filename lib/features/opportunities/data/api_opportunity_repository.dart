@@ -113,7 +113,8 @@ class ApiOpportunityRepository implements OpportunityRepository {
     const pageSize = 200;
     final opportunities = <Opportunity>[];
     var page = 1;
-    while (true) {
+    var total = 0;
+    do {
       final body =
           await _get('/external-opportunities/opportunities', {
                 'page': '$page',
@@ -121,6 +122,7 @@ class ApiOpportunityRepository implements OpportunityRepository {
               })
               as Map<String, dynamic>;
       final items = body['items'] as List<dynamic>;
+      total = body['total'] as int? ?? items.length;
       opportunities.addAll(
         items
             .map(
@@ -133,9 +135,9 @@ class ApiOpportunityRepository implements OpportunityRepository {
             )
             .whereType<Opportunity>(),
       );
-      if (items.length < pageSize) break;
+      if (items.isEmpty) break;
       page += 1;
-    }
+    } while ((page - 1) * pageSize < total);
     return opportunities;
   }
 

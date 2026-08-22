@@ -10,7 +10,6 @@ import 'package:scholarsphere/features/notifications/domain/notification.dart';
 import 'package:scholarsphere/features/opportunities/data/demo_opportunity_repository.dart';
 import 'package:scholarsphere/features/profiles/data/demo_applicant_profile_repository.dart';
 import 'package:scholarsphere/features/profiles/domain/applicant_profile.dart';
-import 'package:scholarsphere/features/verification/data/demo_verification_repository.dart';
 
 void main() {
   test('administration snapshots aggregate repository activity', () async {
@@ -36,7 +35,6 @@ void main() {
     final applications = DemoApplicationRepository(clock: () => now);
     final profiles = DemoApplicantProfileRepository();
     final notifications = DemoNotificationRepository(clock: () => now);
-    final verification = DemoVerificationRepository(opportunities);
     final analytics = DemoAnalyticsRepository();
     final published = await opportunities.getPublished();
 
@@ -92,7 +90,6 @@ void main() {
       applicationRepository: applications,
       profileRepository: profiles,
       notificationRepository: notifications,
-      verificationRepository: verification,
       analyticsRepository: analytics,
       clock: () => now,
     );

@@ -5,26 +5,23 @@ import '../../fraud/domain/fraud_detection_service.dart';
 import '../../opportunities/domain/opportunity.dart';
 import '../../providers/domain/provider_repository.dart';
 import '../data/api_verification_repository.dart';
-import '../domain/verification_repository.dart';
-import '../domain/verification_review.dart';
 import 'live_verification_queue_screen.dart';
 
 class VerificationOfficerDashboardScreen extends StatefulWidget {
   const VerificationOfficerDashboardScreen({
     super.key,
     required this.user,
-    required this.repository,
     required this.liveRepository,
     required this.providerRepository,
     required this.onSignOut,
   });
   final UserAccount user;
-  final VerificationRepository repository;
 
-  /// Backs the real "Open queue" action below. [repository] (demo data)
-  /// still powers this dashboard's analytics panels - see
-  /// [ApiVerificationRepository]'s class doc comment for why those two
-  /// data sources are deliberately different for now.
+  /// Backs both the real "Open queue" action and every metric on this
+  /// dashboard. The live backend has no per-officer assignment or
+  /// two-person-workflow concept (unlike the demo verification
+  /// repository), so every number shown here is a genuine aggregate over
+  /// what the real schema tracks - see [ApiVerificationRepository.getSummary].
   final ApiVerificationRepository liveRepository;
   final ProviderRepository providerRepository;
   final VoidCallback onSignOut;
@@ -47,8 +44,8 @@ class _VerificationOfficerDashboardScreenState
   void _reload() => _data = _load();
 
   Future<_VerificationData> _load() async => _VerificationData(
-    queue: await widget.repository.getQueue(),
-    reviews: await widget.repository.getAllForAdministration(),
+    queue: await widget.liveRepository.getQueue(),
+    summary: await widget.liveRepository.getSummary(),
   );
 
   void _openQueue() {
@@ -124,9 +121,9 @@ class _VerificationOfficerDashboardScreenState
 }
 
 class _VerificationData {
-  const _VerificationData({required this.queue, required this.reviews});
+  const _VerificationData({required this.queue, required this.summary});
   final List<Opportunity> queue;
-  final List<VerificationReview> reviews;
+  final LiveVerificationSummary summary;
 }
 
 class _RoleDashboardError extends StatelessWidget {
@@ -312,24 +309,7 @@ class _VerificationDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final assigned = data.reviews
-        .where((review) => review.assignedToUserId == officerId)
-        .length;
-    final verified = data.reviews
-        .where(
-          (review) =>
-              review.workflowStatus == VerificationWorkflowStatus.verified,
-        )
-        .length;
-    final due = data.reviews
-        .where(
-          (review) =>
-              review.nextReviewAt != null &&
-              review.nextReviewAt!.isBefore(
-                DateTime.now().add(const Duration(days: 7)),
-              ),
-        )
-        .length;
+    final summary = data.summary;
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -339,10 +319,10 @@ class _VerificationDashboard extends StatelessWidget {
             child: Column(
               children: [
                 _OfficerMetrics(
-                  pending: data.queue.length,
-                  assigned: assigned,
-                  verified: verified,
-                  due: due,
+                  pending: summary.pending,
+                  approvedByYou: summary.approvedByYou,
+                  verifiedToday: summary.verifiedToday,
+                  due: summary.reverificationDueSoon,
                 ),
                 const SizedBox(height: 16),
                 LayoutBuilder(
@@ -356,14 +336,11 @@ class _VerificationDashboard extends StatelessWidget {
                       children: [
                         SizedBox(
                           width: width,
-                          child: _QueueOverview(
-                            queue: data.queue,
-                            reviews: data.reviews,
-                          ),
+                          child: _QueueOverview(summary: summary),
                         ),
                         SizedBox(
                           width: width,
-                          child: _VerificationActivity(reviews: data.reviews),
+                          child: _VerificationActivity(summary: summary),
                         ),
                       ],
                     );
@@ -386,11 +363,11 @@ class _VerificationDashboard extends StatelessWidget {
                       children: [
                         SizedBox(
                           width: width,
-                          child: _SourceReliability(reviews: data.reviews),
+                          child: _SourceReliability(summary: summary),
                         ),
                         SizedBox(
                           width: width,
-                          child: _StatusTrend(reviews: data.reviews),
+                          child: _StatusTrend(summary: summary),
                         ),
                         SizedBox(
                           width: width,
@@ -412,13 +389,13 @@ class _VerificationDashboard extends StatelessWidget {
 class _OfficerMetrics extends StatelessWidget {
   const _OfficerMetrics({
     required this.pending,
-    required this.assigned,
-    required this.verified,
+    required this.approvedByYou,
+    required this.verifiedToday,
     required this.due,
   });
   final int pending;
-  final int assigned;
-  final int verified;
+  final int approvedByYou;
+  final int verifiedToday;
   final int due;
 
   @override
@@ -431,14 +408,14 @@ class _OfficerMetrics extends StatelessWidget {
         const Color(0xFF14213D), // brand ink
       ),
       (
-        'My Assignments',
-        assigned,
+        'Approved by You',
+        approvedByYou,
         Icons.assignment_ind_outlined,
         const Color(0xFF007C72), // brand teal
       ),
       (
         'Verified Today',
-        verified,
+        verifiedToday,
         Icons.verified_outlined,
         const Color(0xFF007C72), // brand teal
       ),
@@ -453,87 +430,79 @@ class _OfficerMetrics extends StatelessWidget {
 }
 
 class _QueueOverview extends StatelessWidget {
-  const _QueueOverview({required this.queue, required this.reviews});
-  final List<Opportunity> queue;
-  final List<VerificationReview> reviews;
+  const _QueueOverview({required this.summary});
+  final LiveVerificationSummary summary;
 
   @override
-  Widget build(BuildContext context) => _RolePanel(
-    title: 'Verification Queue Overview',
-    child: Row(
-      children: [
-        _Ring(value: queue.length, label: 'Total', progress: 0.7),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            children: [
-              _valueRow('Pending', queue.length),
-              _valueRow(
-                'Under Review',
-                reviews
-                    .where(
-                      (item) =>
-                          item.workflowStatus ==
-                          VerificationWorkflowStatus.underReview,
-                    )
-                    .length,
-              ),
-              _valueRow(
-                'Awaiting Evidence',
-                reviews
-                    .where(
-                      (item) =>
-                          item.workflowStatus ==
-                          VerificationWorkflowStatus.additionalEvidenceRequired,
-                    )
-                    .length,
-              ),
-              _valueRow(
-                'Verified',
-                reviews
-                    .where(
-                      (item) =>
-                          item.workflowStatus ==
-                          VerificationWorkflowStatus.verified,
-                    )
-                    .length,
-              ),
-            ],
+  Widget build(BuildContext context) {
+    final byStatus = summary.byStatus;
+    final reviewed =
+        byStatus.values.fold<int>(0, (total, count) => total + count) -
+        summary.pending;
+    return _RolePanel(
+      title: 'Verification Queue Overview',
+      child: Row(
+        children: [
+          _Ring(
+            value: summary.pending,
+            label: 'Pending',
+            progress: reviewed + summary.pending == 0
+                ? 0
+                : summary.pending / (reviewed + summary.pending),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              children: [
+                _valueRow('Pending', summary.pending),
+                _valueRow('Verified', byStatus['verified'] ?? 0),
+                _valueRow('Rejected', byStatus['rejected'] ?? 0),
+                _valueRow(
+                  'Reverification Required',
+                  byStatus['reverification_required'] ?? 0,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _VerificationActivity extends StatelessWidget {
-  const _VerificationActivity({required this.reviews});
-  final List<VerificationReview> reviews;
+  const _VerificationActivity({required this.summary});
+  final LiveVerificationSummary summary;
 
   @override
   Widget build(BuildContext context) => _RolePanel(
-    title: 'Verification Activity',
+    title: 'Verification Activity (last 7 days)',
     child: SizedBox(
       height: 145,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(7, (index) {
-          final count = reviews
-              .where((review) => review.reviewedAt.weekday == index + 1)
-              .length;
+        children: summary.decisionsLast7Days.map((day) {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Container(
-                height: 24 + count * 18,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF007C72), // brand teal
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+              child: Tooltip(
+                message:
+                    '${day.decisions} decision'
+                    '${day.decisions == 1 ? '' : 's'} on '
+                    '${day.date.month}/${day.date.day}',
+                child: Container(
+                  height: 24 + day.decisions * 18,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF007C72), // brand teal
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(4),
+                    ),
+                  ),
                 ),
               ),
             ),
           );
-        }),
+        }).toList(),
       ),
     ),
   );
@@ -546,7 +515,7 @@ class _AssignmentTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _RolePanel(
-    title: 'My Recent Assignments',
+    title: 'Pending Queue',
     child: opportunities.isEmpty
         ? const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
@@ -579,43 +548,51 @@ class _AssignmentTable extends StatelessWidget {
 }
 
 class _SourceReliability extends StatelessWidget {
-  const _SourceReliability({required this.reviews});
-  final List<VerificationReview> reviews;
-
-  @override
-  Widget build(BuildContext context) {
-    final official = reviews
-        .where((review) => review.hasOfficialAuthority)
-        .length;
-    final ratio = reviews.isEmpty ? 1.0 : official / reviews.length;
-    return _RolePanel(
-      title: 'Source Reliability',
-      child: Center(
-        child: _Ring(
-          value: (ratio * 100).round(),
-          label: 'Average score',
-          progress: ratio,
-          suffix: '%',
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusTrend extends StatelessWidget {
-  const _StatusTrend({required this.reviews});
-  final List<VerificationReview> reviews;
+  const _SourceReliability({required this.summary});
+  final LiveVerificationSummary summary;
 
   @override
   Widget build(BuildContext context) => _RolePanel(
-    title: 'Verification Status Trend',
+    title: 'Source Reliability',
+    child: Center(
+      child: _Ring(
+        value: (summary.officialSourceRatio * 100).round(),
+        label: 'Official sources',
+        progress: summary.officialSourceRatio,
+        suffix: '%',
+      ),
+    ),
+  );
+}
+
+class _StatusTrend extends StatelessWidget {
+  const _StatusTrend({required this.summary});
+  final LiveVerificationSummary summary;
+
+  // Statuses already surfaced by _QueueOverview (pending, verified,
+  // rejected, reverification_required) are intentionally left out here so
+  // the two panels don't just repeat each other.
+  static const _otherStatuses = [
+    'suspicious',
+    'source_unavailable',
+    'expired',
+    'archived',
+  ];
+
+  @override
+  Widget build(BuildContext context) => _RolePanel(
+    title: 'Other Statuses',
     child: Column(
-      children: VerificationWorkflowStatus.values
-          .take(5)
+      children: _otherStatuses
           .map(
             (status) => _valueRow(
-              _enumLabel(status.name),
-              reviews.where((review) => review.workflowStatus == status).length,
+              _enumLabel(
+                status.replaceAllMapped(
+                  RegExp('_(.)'),
+                  (match) => match.group(1)!.toUpperCase(),
+                ),
+              ),
+              summary.byStatus[status] ?? 0,
             ),
           )
           .toList(),

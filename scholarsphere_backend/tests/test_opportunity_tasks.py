@@ -202,3 +202,157 @@ def test_all_scheduled_task_names_resolve() -> None:
     registered = opportunity_sync.celery_app.tasks
     assert schedule
     assert all(entry["task"] in registered for entry in schedule.values())
+
+
+async def _seed_reverification_due_opportunity(
+    factory: async_sessionmaker[AsyncSession], *, external_id: str = "reverify-1"
+) -> str:
+    from app.models import ExternalOpportunity, OpportunitySource
+    from app.models.external_opportunity import PublicationStatus, VerificationStatus
+    from app.services.parsing import utc_now
+
+    async with factory() as session:
+        async with session.begin():
+            source = OpportunitySource(
+                source_code="grants_gov",
+                source_name="Grants.gov",
+                source_type="api",
+                base_url="https://api.grants.gov/v1/api",
+                authentication_type="none",
+                trust_level="official",
+            )
+            session.add(source)
+            await session.flush()
+            now = utc_now()
+            opportunity = ExternalOpportunity(
+                source_id=source.id,
+                external_id=external_id,
+                title="Community Resilience Grant",
+                opportunity_type="grant",
+                provider_name="Department of Resilience",
+                opportunity_status="posted",
+                payload_hash="hash",
+                external_fingerprint="fingerprint",
+                verification_status=VerificationStatus.reverification_required,
+                publication_status=PublicationStatus.unpublished,
+                collected_at=now,
+                last_external_update_at=now,
+            )
+            session.add(opportunity)
+            await session.flush()
+            return str(opportunity.id)
+
+
+async def _seed_officer_history(
+    factory: async_sessionmaker[AsyncSession], *, actor_id: str = "officer-1"
+) -> None:
+    from app.models import ImportAuditLog
+    from app.services.parsing import utc_now
+
+    async with factory() as session:
+        async with session.begin():
+            session.add(
+                ImportAuditLog(
+                    actor_id=actor_id,
+                    actor_role="verificationOfficer",
+                    action="verification_approved",
+                    entity_type="external_opportunity",
+                    entity_id="some-other-opportunity",
+                    correlation_id="seed-correlation",
+                )
+            )
+
+
+@pytest.mark.asyncio
+async def test_reverification_reminders_creates_a_real_in_app_notification(
+    task_database: async_sessionmaker[AsyncSession],
+) -> None:
+    from app.models.notification import ScholarSphereNotification
+
+    await _seed_reverification_due_opportunity(task_database)
+    await _seed_officer_history(task_database, actor_id="officer-1")
+
+    result = await opportunity_sync._send_reverification_reminders()
+
+    assert result == {
+        "opportunities_due": 1,
+        "recipients": 1,
+        "reminders_created": 1,
+    }
+    async with task_database() as session:
+        rows = (await session.scalars(select(ScholarSphereNotification))).all()
+    assert len(rows) == 1
+    notification = rows[0]
+    assert notification.user_id == "officer-1"
+    assert notification.type == "reverification_due"
+    assert notification.channels == ["in_app"]
+    assert notification.status.value == "scheduled"
+    assert "Community Resilience Grant" in notification.message
+
+
+@pytest.mark.asyncio
+async def test_reverification_reminders_are_not_duplicated_on_rerun(
+    task_database: async_sessionmaker[AsyncSession],
+) -> None:
+    from app.models.notification import ScholarSphereNotification
+
+    await _seed_reverification_due_opportunity(task_database)
+    await _seed_officer_history(task_database, actor_id="officer-1")
+
+    first = await opportunity_sync._send_reverification_reminders()
+    second = await opportunity_sync._send_reverification_reminders()
+
+    assert first["reminders_created"] == 1
+    assert second["reminders_created"] == 0
+    async with task_database() as session:
+        rows = (await session.scalars(select(ScholarSphereNotification))).all()
+    assert len(rows) == 1
+
+
+@pytest.mark.asyncio
+async def test_reverification_reminders_respect_disabled_preferences(
+    task_database: async_sessionmaker[AsyncSession],
+) -> None:
+    from app.models.notification import (
+        NotificationFrequency,
+        NotificationPreferences,
+        ScholarSphereNotification,
+    )
+
+    await _seed_reverification_due_opportunity(task_database)
+    await _seed_officer_history(task_database, actor_id="officer-1")
+    async with task_database() as session:
+        async with session.begin():
+            session.add(
+                NotificationPreferences(
+                    user_id="officer-1",
+                    channels=["in_app", "email"],
+                    frequency=NotificationFrequency.disabled,
+                    reminder_days=[30, 14, 7, 3, 1],
+                )
+            )
+
+    result = await opportunity_sync._send_reverification_reminders()
+
+    assert result["reminders_created"] == 0
+    async with task_database() as session:
+        rows = (await session.scalars(select(ScholarSphereNotification))).all()
+    assert rows == []
+
+
+@pytest.mark.asyncio
+async def test_reverification_reminders_report_zero_recipients_honestly(
+    task_database: async_sessionmaker[AsyncSession],
+) -> None:
+    # No officer has ever taken a real verification action in this
+    # database - the task must not fabricate a recipient list, it should
+    # report the real due count with zero reminders sent.
+    await _seed_reverification_due_opportunity(task_database)
+
+    result = await opportunity_sync._send_reverification_reminders()
+
+    assert result == {
+        "opportunities_due": 1,
+        "recipients": 0,
+        "reminders_created": 0,
+    }

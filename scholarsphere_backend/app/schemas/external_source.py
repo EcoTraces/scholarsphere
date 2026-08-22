@@ -216,3 +216,29 @@ class OpportunityEditRequest(BaseModel):
 class OpportunityEditResponse(BaseModel):
     id: UUID
     changed_fields: list[str]
+
+
+class VerificationActivityDay(BaseModel):
+    """One day's decision count, for a simple recent-activity chart."""
+
+    date: date
+    decisions: int
+
+
+class VerificationSummary(BaseModel):
+    """Real, server-computed counts for the Verification Officer dashboard.
+
+    Every field is a genuine aggregate query result - nothing here is
+    fabricated or carried over from the demo verification workflow's
+    richer (two-person, 13-item-checklist) data model, which the live
+    backend does not implement. See VerificationOfficerDashboardScreen and
+    ApiVerificationRepository.getSummary().
+    """
+
+    pending: int
+    verified_today: int
+    reverification_due_soon: int
+    by_status: dict[str, int]
+    official_source_ratio: float
+    decisions_last_7_days: list[VerificationActivityDay]
+    approved_by_you: int

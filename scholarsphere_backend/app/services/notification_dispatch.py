@@ -31,11 +31,31 @@ _EVENT_TITLES: dict[NotificationEventType, str] = {
     NotificationEventType.application_progress: "Application status updated",
     NotificationEventType.provider_announcement: "Provider announcement",
     NotificationEventType.emergency_system_message: "Important system message",
+    NotificationEventType.reverification_due: "Reverification due",
 }
 
 
 def event_title(event_type: NotificationEventType) -> str:
     return _EVENT_TITLES[event_type]
+
+
+def wants_in_app_notification(
+    preferences: NotificationPreferences, event_type: NotificationEventType
+) -> bool:
+    """Whether a notification should actually be created for this recipient,
+
+    given their real saved preferences - a global opt-out
+    (frequency=disabled), removing the in_app channel, or unsubscribing
+    from this specific type all suppress creation, exactly like an
+    applicant's preferences would for any other notification type.
+    """
+    if preferences.frequency == NotificationFrequency.disabled:
+        return False
+    if NotificationChannel.in_app.value not in preferences.channels:
+        return False
+    if event_type.value in preferences.unsubscribed_types:
+        return False
+    return True
 
 
 def event_enabled(preferences: NotificationPreferences, event_type: NotificationEventType) -> bool:

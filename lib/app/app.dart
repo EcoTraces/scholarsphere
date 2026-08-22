@@ -42,7 +42,6 @@ import '../features/moderation/presentation/moderator_dashboard_screen.dart';
 import '../features/opportunities/data/api_opportunity_repository.dart';
 import '../features/opportunities/data/api_provider_opportunity_repository.dart';
 import '../features/opportunities/data/demo_opportunity_repository.dart';
-import '../features/opportunities/domain/opportunity.dart';
 import '../features/opportunities/domain/opportunity_repository.dart';
 import '../features/operations/data/api_backup_repository.dart';
 import '../features/operations/data/api_observability_repository.dart';
@@ -83,7 +82,6 @@ import '../features/taxonomy/data/api_taxonomy_repository.dart';
 import '../features/taxonomy/domain/taxonomy_repository.dart';
 import '../features/security/domain/access_control.dart';
 import '../features/verification/data/api_verification_repository.dart';
-import '../features/verification/data/demo_verification_repository.dart';
 import '../features/verification/presentation/verification_officer_dashboard_screen.dart';
 import 'theme.dart';
 
@@ -118,6 +116,7 @@ class ScholarSphereApp extends StatefulWidget {
     this.observabilityRepository,
     this.fraudInvestigationRepository,
     this.collectionRepository,
+    this.verificationRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -301,6 +300,13 @@ class ScholarSphereApp extends StatefulWidget {
   /// FastAPI backend to be running.
   final OpportunityCollectionRepository? collectionRepository;
 
+  /// Overrides the real backend-backed verification repository used by the
+  /// Verification Officer dashboard and live queue. Production never sets
+  /// this (it defaults to [ApiVerificationRepository]); tests pass one
+  /// constructed with a fake `http.Client` so they never require the
+  /// FastAPI backend to be running.
+  final ApiVerificationRepository? verificationRepository;
+
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
 }
@@ -325,12 +331,10 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   late final _legalRepository =
       widget.legalRepository ?? ApiLegalComplianceRepository();
   late final _fraudInvestigationRepository =
-      widget.fraudInvestigationRepository ??
-      ApiFraudInvestigationRepository();
+      widget.fraudInvestigationRepository ?? ApiFraudInvestigationRepository();
   late final _taxonomyRepository =
       widget.taxonomyRepository ?? ApiTaxonomyRepository();
-  late final _auditRepository =
-      widget.auditRepository ?? ApiAuditRepository();
+  late final _auditRepository = widget.auditRepository ?? ApiAuditRepository();
   late final _configurationRepository =
       widget.systemConfigurationRepository ??
       ApiSystemConfigurationRepository();
@@ -342,7 +346,6 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       widget.releaseRepository ?? ApiReleaseRepository();
   late final _authRepository =
       widget.authRepository ?? FirebaseAuthRepository();
-  final _opportunityRepository = DemoOpportunityRepository();
   late final _apiOpportunityRepository =
       widget.apiOpportunityRepository ?? ApiOpportunityRepository();
   late final _profileRepository =
@@ -368,19 +371,16 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       widget.sourceRegistryRepository ?? ApiSourceRegistryRepository();
   late final _moderationRepository =
       widget.moderationRepository ?? ApiModerationRepository();
-  late final _verificationRepository = DemoVerificationRepository(
-    _opportunityRepository,
-  );
-  final _apiVerificationRepository = ApiVerificationRepository();
+  late final _apiVerificationRepository =
+      widget.verificationRepository ?? ApiVerificationRepository();
   late final _collectionRepository =
       widget.collectionRepository ?? ApiOpportunityCollectionRepository();
   late final _administrationAnalytics = AdministrationAnalyticsService(
     authRepository: _authRepository,
-    opportunityRepository: _opportunityRepository,
+    opportunityRepository: _apiOpportunityRepository,
     applicationRepository: _applicationRepository,
     profileRepository: _profileRepository,
     notificationRepository: _notificationRepository,
-    verificationRepository: _verificationRepository,
     analyticsRepository: _analyticsRepository,
   );
   UserAccount? _user;
@@ -403,29 +403,34 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
   }
 
   void _registerBackgroundJobs() {
+    // Feeds the real, shared search index (ApiSearchIndexRepository) from
+    // the real opportunity backend. This used to read from
+    // DemoOpportunityRepository, which meant every rebuild deleted the
+    // entire live search index (POST /search-index/rebuild always prunes
+    // first) and then re-populated it with demo IDs the server's own
+    // re-validation (_is_real_public_opportunity) rejects, since they never
+    // match a real external_opportunities row -- the net effect was a
+    // rebuild silently leaving the real index empty. Fixed by reading from
+    // _apiOpportunityRepository, the same source every other real screen
+    // uses.
     _jobQueueRepository.registerHandler(
       BackgroundJobType.searchIndexUpdate,
       (_) async => _searchIndexRepository.rebuild(
-        await _opportunityRepository.getAllForAdministration(),
+        await _apiOpportunityRepository.getAllForAdministration(),
       ),
     );
-    _jobQueueRepository.registerHandler(
-      BackgroundJobType.expiredOpportunityDetection,
-      (_) async {
-        final now = DateTime.now();
-        for (final opportunity
-            in await _opportunityRepository.getAllForAdministration()) {
-          if (opportunity.deadline.isBefore(now) &&
-              opportunity.verificationStatus != VerificationStatus.archived) {
-            await _opportunityRepository.replace(
-              opportunity.copyWith(
-                verificationStatus: VerificationStatus.expired,
-              ),
-            );
-          }
-        }
-      },
-    );
+    // Deliberately not registering a client-side
+    // BackgroundJobType.expiredOpportunityDetection handler against the
+    // real backend: scholarsphere_backend already runs this server-side,
+    // authoritatively, once a day (Celery beat ->
+    // app.tasks.opportunity_sync.detect_expired_opportunities, 01:05 UTC),
+    // and ApiOpportunityRepository has no replace()/mutate capability by
+    // design -- verification-status transitions are meant to be
+    // server-enforced, not set from the client (see Architecture.md,
+    // "Architecture Decisions" #7). Re-implementing the same check here
+    // against real data would either require inventing a new backend
+    // endpoint that duplicates the Celery task, or silently doing nothing
+    // useful. See docs/OPPORTUNITY_VERIFICATION_SYSTEM.md SS3.
     _jobQueueRepository.registerHandler(BackgroundJobType.dataCleanup, (
       _,
     ) async {
@@ -472,11 +477,6 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       payload: const {},
       priority: JobPriority.high,
       deduplicationKey: 'startup-search-index',
-    );
-    _jobQueueRepository.enqueue(
-      type: BackgroundJobType.expiredOpportunityDetection,
-      payload: const {},
-      deduplicationKey: 'startup-expiry-check',
     );
     _jobQueueRepository.enqueue(
       type: BackgroundJobType.dataCleanup,
@@ -575,7 +575,6 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
     if (user.role == UserRole.verificationOfficer) {
       return VerificationOfficerDashboardScreen(
         user: user,
-        repository: _verificationRepository,
         liveRepository: _apiVerificationRepository,
         providerRepository: _providerRepository,
         onSignOut: _signOut,

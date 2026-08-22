@@ -9,12 +9,14 @@ from uuid import uuid4
 from celery import Celery
 from celery.schedules import crontab
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.http_client import ExternalAPIError
 from app.db.session import AsyncSessionFactory
 from app.models import (
     ExternalOpportunity,
+    ImportAuditLog,
     OpportunitySource,
     OpportunitySyncHistory,
     RawExternalOpportunity,
@@ -27,9 +29,20 @@ from app.models.external_opportunity import (
     SyncStatus,
     VerificationStatus,
 )
+from app.models.notification import (
+    NotificationDeliveryStatus,
+    NotificationEventType,
+    NotificationPreferences,
+    ScholarSphereNotification,
+)
 from app.services.eu_funding import EUFundingSource
 from app.services.audit import append_audit
 from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
+from app.services.notification_dispatch import (
+    default_preferences,
+    event_title,
+    wants_in_app_notification,
+)
 from app.services.opportunity_import import import_opportunities
 from app.services.parsing import utc_now
 from app.services.reliefweb import ReliefWebJobsSource, ReliefWebTrainingSource
@@ -611,17 +624,116 @@ def send_reverification_reminders() -> dict[str, int]:
     return run_async_safely(_send_reverification_reminders())
 
 
+async def _reverification_recipients(session: AsyncSession) -> list[str]:
+    """Verification officers/admins to notify, drawn from real activity.
+
+    There is no local user directory in this backend (identity lives
+    entirely in Firebase - see Database.md SS1) and no per-officer
+    assignment concept for opportunities (any officer can act on any
+    queued item - see docs/OPPORTUNITY_VERIFICATION_SYSTEM.md SS10), so
+    there is no authoritative "list every verification officer" query
+    available here. Instead this targets everyone who has actually made a
+    real verification decision before, via the same append-only audit
+    trail every other verification action is already recorded in
+    (ImportAuditLog.action starting with "verification_") - a real, honest
+    signal, not a fabricated roster. A brand-new officer who has never yet
+    made a decision will not receive reminders until their first one; a
+    Firebase Admin SDK "list users by custom claim" integration would close
+    that gap but requires a live Firebase project to build and test against
+    that this environment does not have - see Task.md.
+    """
+    actor_ids = (
+        await session.scalars(
+            select(ImportAuditLog.actor_id)
+            .where(
+                ImportAuditLog.actor_id.is_not(None),
+                ImportAuditLog.action.like("verification_%"),
+            )
+            .distinct()
+        )
+    ).all()
+    return [actor_id for actor_id in actor_ids if actor_id]
+
+
 async def _send_reverification_reminders() -> dict[str, int]:
     async with AsyncSessionFactory() as session:
-        reminders = len(
-            (
-                await session.scalars(
-                    select(ExternalOpportunity.id).where(
-                        ExternalOpportunity.verification_status
-                        == VerificationStatus.reverification_required
-                    )
+        opportunities = (
+            await session.scalars(
+                select(ExternalOpportunity).where(
+                    ExternalOpportunity.verification_status
+                    == VerificationStatus.reverification_required
                 )
-            ).all()
-        )
-    logger.info("reverification_reminders record_count=%s", reminders)
-    return {"reminders": reminders}
+            )
+        ).all()
+        recipients = await _reverification_recipients(session)
+        created = 0
+        if opportunities and recipients:
+            # The reads above already autobegan a transaction on this
+            # session; close it out before opening the explicit one below
+            # (session.begin() raises if a transaction is already open).
+            await session.commit()
+            async with session.begin():
+                for opportunity in opportunities:
+                    for officer_id in recipients:
+                        notification_id = (
+                            f"{opportunity.id}-reverification-officer-{officer_id}"
+                        )
+                        existing = await session.get(
+                            ScholarSphereNotification, notification_id
+                        )
+                        if existing is not None:
+                            # Already reminded this officer about this
+                            # opportunity's current reverification cycle -
+                            # never re-create it, so re-running this task
+                            # (daily, per beat_schedule) can't spam.
+                            continue
+                        preferences = await session.get(
+                            NotificationPreferences, officer_id
+                        ) or default_preferences(officer_id)
+                        if not wants_in_app_notification(
+                            preferences, NotificationEventType.reverification_due
+                        ):
+                            continue
+                        now = utc_now()
+                        session.add(
+                            ScholarSphereNotification(
+                                id=notification_id,
+                                user_id=officer_id,
+                                type=NotificationEventType.reverification_due,
+                                title=event_title(
+                                    NotificationEventType.reverification_due
+                                ),
+                                message=(
+                                    f'"{opportunity.title}" is due for '
+                                    "reverification. Review it in the "
+                                    "verification queue."
+                                ),
+                                # Only in_app is wired to real delivery today
+                                # (appearing in GET /notifications is the
+                                # actual delivery mechanism for that
+                                # channel). email/push/sms have no configured
+                                # provider in this backend yet - see
+                                # Task.md/PRD.md for what's still required.
+                                channels=["in_app"],
+                                scheduled_for=now,
+                                opportunity_id=opportunity.id,
+                                related_entity_type="external_opportunity",
+                                related_entity_id=str(opportunity.id),
+                                status=NotificationDeliveryStatus.scheduled,
+                                retry_count=0,
+                                timezone="UTC",
+                            )
+                        )
+                        created += 1
+    logger.info(
+        "reverification_reminders opportunities_due=%s recipients=%s "
+        "reminders_created=%s",
+        len(opportunities),
+        len(recipients),
+        created,
+    )
+    return {
+        "opportunities_due": len(opportunities),
+        "recipients": len(recipients),
+        "reminders_created": created,
+    }

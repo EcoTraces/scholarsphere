@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import AuthenticatedUser, get_current_user
 from app.core.rbac import STAFF_ROLES, require_roles
 from app.db.session import get_db
+from app.models.applicant_document import ApplicantDocument
 from app.models.applicant_profile import ApplicantProfile
 from app.models.privacy import (
     ConsentRecord,
@@ -111,6 +112,22 @@ async def withdraw_consent(
         )
         if record is not None:
             record.withdrawn_at = utc_now()
+        if parsed_type == ConsentType.third_party_sharing:
+            # Withdrawing sharing consent must revoke every existing
+            # provider grant, not just block new ones - otherwise a
+            # provider a user shared a document with before withdrawing
+            # would keep whatever access applicant_documents.py's
+            # grant_provider_access already recorded for them.
+            documents = (
+                await session.scalars(
+                    select(ApplicantDocument).where(
+                        ApplicantDocument.user_id == user.uid
+                    )
+                )
+            ).all()
+            for document in documents:
+                if document.shared_with_provider_ids:
+                    document.shared_with_provider_ids = []
 
 
 @router.post("/requests", response_model=PrivacyRequestRead)

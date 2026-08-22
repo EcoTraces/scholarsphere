@@ -30,7 +30,17 @@ class _JobMonitorScreenState extends State<JobMonitorScreen> {
         IconButton(
           onPressed: () async {
             await widget.repository.processDue('admin-worker');
-            if (mounted) setState(_reload);
+            // _reload is a void arrow function whose body is itself an
+            // assignment expression (`_jobs = ...`) -- at runtime that
+            // still evaluates to the assigned Future, so passing the
+            // tear-off directly to setState() trips its "callback
+            // returned a Future" guard. Wrapping it in a block body
+            // discards that value before setState ever sees it.
+            if (mounted) {
+              setState(() {
+                _reload();
+              });
+            }
           },
           tooltip: 'Process queued jobs',
           icon: const Icon(Icons.play_arrow),
@@ -61,7 +71,9 @@ class _JobMonitorScreenState extends State<JobMonitorScreen> {
               ],
               onChanged: (status) {
                 _status = status;
-                setState(_reload);
+                setState(() {
+                  _reload();
+                });
               },
             ),
             const SizedBox(height: 20),
@@ -108,7 +120,11 @@ class _JobMonitorScreenState extends State<JobMonitorScreen> {
     action == 'cancel'
         ? await widget.repository.cancel(job.id)
         : await widget.repository.retry(job.id);
-    if (mounted) setState(_reload);
+    if (mounted) {
+      setState(() {
+        _reload();
+      });
+    }
   }
 
   IconData _icon(JobStatus status) => switch (status) {

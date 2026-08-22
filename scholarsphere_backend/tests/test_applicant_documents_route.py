@@ -144,36 +144,168 @@ async def test_remove_is_owner_scoped(session: AsyncSession) -> None:
     assert listing.json() == []
 
 
+async def _seed_provider(session: AsyncSession, *, name: str = "Example University") -> str:
+    from app.models.provider import Provider, ProviderStatus
+
+    async with session.begin():
+        provider = Provider(
+            user_id="provider-owner",
+            organization_name=name,
+            organization_type="university",
+            registration_number="REG-1",
+            country="United States",
+            official_website="https://example.test",
+            official_email_domain="example.test",
+            physical_address="1 Example Way",
+            contact_person="Jordan Rivers",
+            contact_phone="+15555550100",
+            status=ProviderStatus.verified,
+            risk_score=0,
+        )
+        session.add(provider)
+        await session.flush()
+        provider_id = str(provider.id)
+    return provider_id
+
+
+async def _grant_third_party_sharing_consent(client: AsyncClient) -> None:
+    response = await client.post(
+        "/api/v1/privacy/consents",
+        json={"type": "thirdPartySharing", "policy_version": "2026-01"},
+    )
+    assert response.status_code == 200, response.text
+
+
 @pytest.mark.asyncio
 async def test_grant_provider_access_is_owner_scoped(session: AsyncSession) -> None:
+    provider_id = await _seed_provider(session)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         overrides(session, "applicant", uid="doc-f")
         created = await _add(
             client, uid="doc-f", doc_type="passport", file_name="passport.pdf"
         )
+        await _grant_third_party_sharing_consent(client)
 
         overrides(session, "applicant", uid="doc-g")
+        await _grant_third_party_sharing_consent(client)
         denied = await client.post(
             f"/api/v1/applicant-documents/{created['id']}/share",
-            json={"provider_id": "provider-1"},
+            json={"provider_id": provider_id},
         )
 
         overrides(session, "applicant", uid="doc-f")
         allowed = await client.post(
             f"/api/v1/applicant-documents/{created['id']}/share",
-            json={"provider_id": "provider-1"},
+            json={"provider_id": provider_id},
         )
         # sharing with the same provider twice is idempotent, not duplicated
         again = await client.post(
             f"/api/v1/applicant-documents/{created['id']}/share",
-            json={"provider_id": "provider-1"},
+            json={"provider_id": provider_id},
         )
     app.dependency_overrides.clear()
 
     assert denied.status_code == 404
     assert allowed.status_code == 200
-    assert allowed.json()["shared_with_provider_ids"] == ["provider-1"]
-    assert again.json()["shared_with_provider_ids"] == ["provider-1"]
+    assert allowed.json()["shared_with_provider_ids"] == [provider_id]
+    assert again.json()["shared_with_provider_ids"] == [provider_id]
+
+
+@pytest.mark.asyncio
+async def test_grant_provider_access_blocked_without_consent(
+    session: AsyncSession,
+) -> None:
+    provider_id = await _seed_provider(session)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-no-consent")
+        created = await _add(
+            client, uid="doc-no-consent", doc_type="passport", file_name="passport.pdf"
+        )
+        response = await client.post(
+            f"/api/v1/applicant-documents/{created['id']}/share",
+            json={"provider_id": provider_id},
+        )
+        listing = await client.get("/api/v1/applicant-documents/me")
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 409
+    assert "consent" in response.json()["error"]["message"].lower()
+    assert listing.json()[0]["shared_with_provider_ids"] == []
+
+
+@pytest.mark.asyncio
+async def test_grant_provider_access_blocked_after_consent_withdrawn(
+    session: AsyncSession,
+) -> None:
+    provider_id = await _seed_provider(session)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-withdrawn")
+        created = await _add(
+            client, uid="doc-withdrawn", doc_type="passport", file_name="passport.pdf"
+        )
+        await _grant_third_party_sharing_consent(client)
+        withdraw = await client.post("/api/v1/privacy/consents/thirdPartySharing/withdraw")
+        assert withdraw.status_code == 204
+        response = await client.post(
+            f"/api/v1/applicant-documents/{created['id']}/share",
+            json={"provider_id": provider_id},
+        )
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_withdrawing_consent_revokes_existing_provider_shares(
+    session: AsyncSession,
+) -> None:
+    provider_id = await _seed_provider(session)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-revoke")
+        created = await _add(
+            client, uid="doc-revoke", doc_type="passport", file_name="passport.pdf"
+        )
+        await _grant_third_party_sharing_consent(client)
+        shared = await client.post(
+            f"/api/v1/applicant-documents/{created['id']}/share",
+            json={"provider_id": provider_id},
+        )
+        assert shared.json()["shared_with_provider_ids"] == [provider_id]
+
+        withdraw = await client.post("/api/v1/privacy/consents/thirdPartySharing/withdraw")
+        assert withdraw.status_code == 204
+
+        listing = await client.get("/api/v1/applicant-documents/me")
+    app.dependency_overrides.clear()
+
+    assert listing.json()[0]["shared_with_provider_ids"] == []
+
+
+@pytest.mark.asyncio
+async def test_grant_provider_access_rejects_unknown_provider(
+    session: AsyncSession,
+) -> None:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-unknown-provider")
+        created = await _add(
+            client,
+            uid="doc-unknown-provider",
+            doc_type="passport",
+            file_name="passport.pdf",
+        )
+        await _grant_third_party_sharing_consent(client)
+        response = await client.post(
+            f"/api/v1/applicant-documents/{created['id']}/share",
+            json={"provider_id": "00000000-0000-0000-0000-000000000000"},
+        )
+        malformed = await client.post(
+            f"/api/v1/applicant-documents/{created['id']}/share",
+            json={"provider_id": "not-a-uuid"},
+        )
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 404
+    assert malformed.status_code == 404
 
 
 @pytest.mark.asyncio

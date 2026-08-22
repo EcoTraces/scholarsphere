@@ -1,6 +1,16 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:scholarsphere/app/app.dart';
+import 'package:scholarsphere/features/opportunities/data/api_opportunity_repository.dart';
+import 'package:scholarsphere/features/opportunities/domain/opportunity.dart';
+import 'package:scholarsphere/features/search_index/domain/search_index_repository.dart';
+import 'package:scholarsphere/features/verification/data/api_verification_repository.dart';
 import 'package:scholarsphere/features/authentication/data/demo_auth_repository.dart';
 import 'package:scholarsphere/features/authentication/domain/user_account.dart';
 import 'package:scholarsphere/features/applications/data/demo_application_repository.dart';
@@ -31,6 +41,48 @@ import 'package:scholarsphere/features/governance/data/demo_data_lifecycle_repos
 import 'package:scholarsphere/features/operations/data/demo_observability_repository.dart';
 import 'package:scholarsphere/features/fraud_investigation/data/demo_fraud_investigation_repository.dart';
 import 'package:scholarsphere/features/collection/data/demo_opportunity_collection_repository.dart';
+
+class _MockFirebaseAuth extends Mock implements firebase.FirebaseAuth {}
+
+class _MockFirebaseUser extends Mock implements firebase.User {}
+
+class _MockSearchIndexRepository extends Mock
+    implements SearchIndexRepository {}
+
+/// A fake [ApiVerificationRepository] for tests: reachable without a live
+/// FastAPI backend, so the Verification Officer dashboard (which now reads
+/// exclusively from this repository, not demo data -- see app.dart) can
+/// still render in a widget test.
+ApiVerificationRepository _fakeVerificationRepository() {
+  final auth = _MockFirebaseAuth();
+  final user = _MockFirebaseUser();
+  when(() => auth.currentUser).thenReturn(user);
+  when(() => user.getIdToken()).thenAnswer((_) async => 'test-token');
+  return ApiVerificationRepository(
+    baseUrl: 'https://backend.test/api/v1',
+    auth: auth,
+    client: MockClient((request) async {
+      if (request.url.path.endsWith('/pending-verification')) {
+        return http.Response(jsonEncode({'items': <dynamic>[]}), 200);
+      }
+      if (request.url.path.endsWith('/verification-summary')) {
+        return http.Response(
+          jsonEncode({
+            'pending': 0,
+            'verified_today': 0,
+            'reverification_due_soon': 0,
+            'by_status': <String, int>{},
+            'official_source_ratio': 1.0,
+            'decisions_last_7_days': <dynamic>[],
+            'approved_by_you': 0,
+          }),
+          200,
+        );
+      }
+      return http.Response('Not found', 404);
+    }),
+  );
+}
 
 void main() {
   // A DemoAuthRepository (in-memory, no live Firebase project required) is
@@ -305,6 +357,133 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('search-index background job rebuilds from the real opportunity '
+      'repository, not demo data', (tester) async {
+    tester.view.physicalSize = const Size(1440, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final mockSearchIndex = _MockSearchIndexRepository();
+    registerFallbackValue(const <Opportunity>[]);
+    when(() => mockSearchIndex.rebuild(any())).thenAnswer((invocation) async {
+      final opportunities =
+          (invocation.positionalArguments.first as Iterable<Opportunity>)
+              .toList();
+      return opportunities.length;
+    });
+
+    final auth = _MockFirebaseAuth();
+    final user = _MockFirebaseUser();
+    when(() => auth.currentUser).thenReturn(user);
+    when(() => user.getIdToken()).thenAnswer((_) async => 'test-token');
+    final apiOpportunityRepository = ApiOpportunityRepository(
+      baseUrl: 'https://backend.test/api/v1',
+      auth: auth,
+      client: MockClient((request) async {
+        if (request.url.path.endsWith(
+          '/external-opportunities/opportunities',
+        )) {
+          return http.Response(
+            jsonEncode({
+              'items': [
+                {
+                  'id': 'real-backend-opportunity-1',
+                  'title': 'Real backend opportunity',
+                  'provider_name': 'Example Institution',
+                  'opportunity_type': 'grant',
+                  'country': 'Germany',
+                  'description': 'A real opportunity from the backend.',
+                  'opening_date': '2026-01-01',
+                  'deadline': '2026-12-31',
+                  'official_source_url': 'https://example.test/real-opp-1',
+                  'verification_status': 'verified',
+                },
+              ],
+              'total': 1,
+            }),
+            200,
+          );
+        }
+        return http.Response('{}', 200);
+      }),
+    );
+
+    await tester.pumpWidget(
+      ScholarSphereApp(
+        authRepository: authRepository,
+        apiOpportunityRepository: apiOpportunityRepository,
+        searchIndexRepository: mockSearchIndex,
+        applicationRepository: DemoApplicationRepository(),
+        notificationRepository: DemoNotificationRepository(),
+        applicantProfileRepository: DemoApplicantProfileRepository(),
+        documentRepository: DemoDocumentRepository(),
+        moderationRepository: DemoModerationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        privacyRepository: DemoPrivacyRepository(),
+        supportRepository: DemoSupportRepository(),
+        sourceRegistryRepository: DemoSourceRegistryRepository(),
+        taxonomyRepository: DemoTaxonomyRepository(),
+        calendarRepository: DemoCalendarRepository(),
+        guidanceRepository: DemoApplicationGuidanceRepository(),
+        experienceRepository: DemoExperienceRepository(),
+        legalRepository: DemoLegalComplianceRepository(),
+        analyticsRepository: DemoAnalyticsRepository(),
+        recommendationGovernanceRepository:
+            DemoRecommendationGovernanceRepository(),
+        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+        securityRepository: DemoSecurityRepository(),
+        auditRepository: DemoAuditRepository(),
+        systemConfigurationRepository: DemoSystemConfigurationRepository(),
+        backupRepository: DemoBackupRepository(),
+        releaseRepository: DemoReleaseRepository(),
+        dataLifecycleRepository: DemoDataLifecycleRepository(),
+        observabilityRepository: DemoObservabilityRepository(),
+        fraudInvestigationRepository: DemoFraudInvestigationRepository(
+          DemoOpportunityRepository(),
+          DemoProviderRepository(),
+        ),
+        collectionRepository: DemoOpportunityCollectionRepository(
+          DemoOpportunityRepository(),
+          sourceRegistry: DemoSourceRegistryRepository(),
+        ),
+        verificationRepository: _fakeVerificationRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('auth-email')),
+      'admin@scholarsphere.test',
+    );
+    await tester.enterText(find.byKey(const Key('auth-password')), 'Admin123!');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('auth-submit')));
+    await tester.pumpAndSettle();
+
+    // Mirrors what an administrator actually does to run the job: open
+    // Background Jobs from the admin dashboard and process the queue.
+    final backgroundJobsNav = find.text('Background Jobs');
+    await tester.ensureVisible(backgroundJobsNav);
+    await tester.pumpAndSettle();
+    await tester.tap(backgroundJobsNav);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Process queued jobs'));
+    await tester.pumpAndSettle();
+
+    final captured = verify(
+      () => mockSearchIndex.rebuild(captureAny()),
+    ).captured;
+    expect(captured, isNotEmpty);
+    final rebuiltWith = (captured.first as Iterable<Opportunity>).toList();
+    expect(
+      rebuiltWith.map((opportunity) => opportunity.id),
+      contains('real-backend-opportunity-1'),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('support officer dashboard renders its desktop workspace', (
     tester,
   ) async {
@@ -388,42 +567,42 @@ void main() {
         ScholarSphereApp(
           authRepository: authRepository,
           apiOpportunityRepository: DemoOpportunityRepository(),
-        applicationRepository: DemoApplicationRepository(),
-        notificationRepository: DemoNotificationRepository(),
-        applicantProfileRepository: DemoApplicantProfileRepository(),
-        documentRepository: DemoDocumentRepository(),
-        moderationRepository: DemoModerationRepository(
-          DemoOpportunityRepository(),
-          DemoProviderRepository(),
-        ),
-        privacyRepository: DemoPrivacyRepository(),
-        supportRepository: DemoSupportRepository(),
-        sourceRegistryRepository: DemoSourceRegistryRepository(),
-        taxonomyRepository: DemoTaxonomyRepository(),
-        calendarRepository: DemoCalendarRepository(),
-        guidanceRepository: DemoApplicationGuidanceRepository(),
-        experienceRepository: DemoExperienceRepository(),
-        searchIndexRepository: DemoSearchIndexRepository(),
-        legalRepository: DemoLegalComplianceRepository(),
-        analyticsRepository: DemoAnalyticsRepository(),
-        recommendationGovernanceRepository:
-            DemoRecommendationGovernanceRepository(),
-        providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
-        securityRepository: DemoSecurityRepository(),
-        auditRepository: DemoAuditRepository(),
-        systemConfigurationRepository: DemoSystemConfigurationRepository(),
-        backupRepository: DemoBackupRepository(),
-        releaseRepository: DemoReleaseRepository(),
-        dataLifecycleRepository: DemoDataLifecycleRepository(),
-        observabilityRepository: DemoObservabilityRepository(),
-        fraudInvestigationRepository: DemoFraudInvestigationRepository(
-          DemoOpportunityRepository(),
-          DemoProviderRepository(),
-        ),
-        collectionRepository: DemoOpportunityCollectionRepository(
-          DemoOpportunityRepository(),
-          sourceRegistry: DemoSourceRegistryRepository(),
-        ),
+          applicationRepository: DemoApplicationRepository(),
+          notificationRepository: DemoNotificationRepository(),
+          applicantProfileRepository: DemoApplicantProfileRepository(),
+          documentRepository: DemoDocumentRepository(),
+          moderationRepository: DemoModerationRepository(
+            DemoOpportunityRepository(),
+            DemoProviderRepository(),
+          ),
+          privacyRepository: DemoPrivacyRepository(),
+          supportRepository: DemoSupportRepository(),
+          sourceRegistryRepository: DemoSourceRegistryRepository(),
+          taxonomyRepository: DemoTaxonomyRepository(),
+          calendarRepository: DemoCalendarRepository(),
+          guidanceRepository: DemoApplicationGuidanceRepository(),
+          experienceRepository: DemoExperienceRepository(),
+          searchIndexRepository: DemoSearchIndexRepository(),
+          legalRepository: DemoLegalComplianceRepository(),
+          analyticsRepository: DemoAnalyticsRepository(),
+          recommendationGovernanceRepository:
+              DemoRecommendationGovernanceRepository(),
+          providerAnalyticsRepository: DemoProviderAnalyticsRepository(),
+          securityRepository: DemoSecurityRepository(),
+          auditRepository: DemoAuditRepository(),
+          systemConfigurationRepository: DemoSystemConfigurationRepository(),
+          backupRepository: DemoBackupRepository(),
+          releaseRepository: DemoReleaseRepository(),
+          dataLifecycleRepository: DemoDataLifecycleRepository(),
+          observabilityRepository: DemoObservabilityRepository(),
+          fraudInvestigationRepository: DemoFraudInvestigationRepository(
+            DemoOpportunityRepository(),
+            DemoProviderRepository(),
+          ),
+          collectionRepository: DemoOpportunityCollectionRepository(
+            DemoOpportunityRepository(),
+            sourceRegistry: DemoSourceRegistryRepository(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -496,6 +675,7 @@ void main() {
           DemoOpportunityRepository(),
           sourceRegistry: DemoSourceRegistryRepository(),
         ),
+        verificationRepository: _fakeVerificationRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -516,8 +696,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Pending Verification'), findsOneWidget);
+    expect(find.text('Approved by You'), findsOneWidget);
     expect(find.text('Verification Queue Overview'), findsOneWidget);
-    expect(find.text('My Recent Assignments'), findsOneWidget);
+    expect(find.text('Verification Activity (last 7 days)'), findsOneWidget);
+    expect(find.text('Pending Queue'), findsOneWidget);
     expect(find.text('Source Reliability'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
   });

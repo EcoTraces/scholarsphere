@@ -169,6 +169,65 @@ class LiveOpportunityEvidence {
 DateTime? _dateTime(dynamic value) =>
     value == null ? null : DateTime.tryParse(value as String);
 
+/// One day's real decision count, for the dashboard's recent-activity chart.
+class VerificationActivityDay {
+  const VerificationActivityDay({required this.date, required this.decisions});
+
+  factory VerificationActivityDay.fromJson(Map<String, dynamic> json) =>
+      VerificationActivityDay(
+        date: DateTime.parse(json['date'] as String),
+        decisions: json['decisions'] as int,
+      );
+
+  final DateTime date;
+  final int decisions;
+}
+
+/// Real, server-computed counts backing the Verification Officer dashboard.
+/// Every field here is a genuine aggregate over the live backend's schema -
+/// there is no per-officer assignment or richer demo workflow-status
+/// concept to report on, so this deliberately differs in shape from
+/// [VerificationReview]'s two-person-workflow fields. See
+/// [ApiVerificationRepository.getSummary].
+class LiveVerificationSummary {
+  const LiveVerificationSummary({
+    required this.pending,
+    required this.verifiedToday,
+    required this.reverificationDueSoon,
+    required this.byStatus,
+    required this.officialSourceRatio,
+    required this.decisionsLast7Days,
+    required this.approvedByYou,
+  });
+
+  factory LiveVerificationSummary.fromJson(Map<String, dynamic> json) =>
+      LiveVerificationSummary(
+        pending: json['pending'] as int,
+        verifiedToday: json['verified_today'] as int,
+        reverificationDueSoon: json['reverification_due_soon'] as int,
+        byStatus: (json['by_status'] as Map<String, dynamic>).map(
+          (key, value) => MapEntry(key, value as int),
+        ),
+        officialSourceRatio: (json['official_source_ratio'] as num).toDouble(),
+        decisionsLast7Days: (json['decisions_last_7_days'] as List<dynamic>)
+            .map(
+              (item) => VerificationActivityDay.fromJson(
+                item as Map<String, dynamic>,
+              ),
+            )
+            .toList(),
+        approvedByYou: json['approved_by_you'] as int,
+      );
+
+  final int pending;
+  final int verifiedToday;
+  final int reverificationDueSoon;
+  final Map<String, int> byStatus;
+  final double officialSourceRatio;
+  final List<VerificationActivityDay> decisionsLast7Days;
+  final int approvedByYou;
+}
+
 /// Reads and acts on the real verification queue from the ScholarSphere
 /// Python backend (scholarsphere_backend/).
 ///
@@ -337,6 +396,15 @@ class ApiVerificationRepository implements VerificationRepository {
           ),
         )
         .toList();
+  }
+
+  /// Real, aggregate dashboard counts - see [LiveVerificationSummary].
+  Future<LiveVerificationSummary> getSummary() async {
+    final body = await _get(
+      '/external-opportunities/verification-summary',
+      const {},
+    );
+    return LiveVerificationSummary.fromJson(body as Map<String, dynamic>);
   }
 
   /// The official source's raw record behind one opportunity, available to

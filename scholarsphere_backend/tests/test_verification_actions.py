@@ -375,3 +375,152 @@ async def test_pending_verification_list_includes_full_review_fields(
     assert item["official_application_url"] == "https://example.test/action-grant-1/apply"
     assert item["opportunity_type"] == "grant"
     assert item["country"] == "United States"
+
+
+def _overrides_as(session: AsyncSession, uid: str, role: str) -> None:
+    """Like overrides(), but with a caller-chosen uid instead of the shared
+
+    f"{role}-user" default - needed to test that per-officer counts are
+    genuinely scoped to the calling officer, not just to their role.
+    """
+
+    async def current_user() -> AuthenticatedUser:
+        return AuthenticatedUser(
+            uid=uid, email=f"{uid}@example.test", email_verified=True, role=role,
+            permissions=frozenset(),
+        )
+
+    async def database() -> AsyncIterator[AsyncSession]:
+        yield session
+
+    app.dependency_overrides[get_current_user] = current_user
+    app.dependency_overrides[get_db] = database
+
+
+async def _decide(
+    client: AsyncClient, opportunity_id: str, decision: str, **checks: bool
+) -> None:
+    response = await client.post(
+        f"/api/v1/external-opportunities/opportunities/{opportunity_id}/verification",
+        json={"decision": decision, "notes": "Reviewed.", **checks},
+    )
+    assert response.status_code == 200, response.text
+
+
+@pytest.mark.asyncio
+async def test_verification_summary_reports_real_pending_count(
+    session: AsyncSession,
+) -> None:
+    await _import_one(session, external_id="summary-pending-1")
+    await _import_one(session, external_id="summary-pending-2")
+    overrides(session, "verificationOfficer")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(
+                "/api/v1/external-opportunities/verification-summary"
+            )
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 200
+    body = response.json()
+    assert body["pending"] == 2
+    assert body["by_status"]["pending"] == 2
+    assert body["verified_today"] == 0
+    assert body["approved_by_you"] == 0
+    assert len(body["decisions_last_7_days"]) == 7
+    # Every seeded source in this suite is "official" trust level - a real,
+    # honest fact, not a fabricated 100%.
+    assert body["official_source_ratio"] == 1.0
+
+
+@pytest.mark.asyncio
+async def test_verification_summary_counts_todays_approval_and_attributes_it(
+    session: AsyncSession,
+) -> None:
+    opportunity_id = await _import_one(session, external_id="summary-approved-1")
+    _overrides_as(session, "officer-alpha", "verificationOfficer")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            await _decide(
+                client,
+                opportunity_id,
+                "approved",
+                source_checked=True,
+                application_link_checked=True,
+                deadline_checked=True,
+                duplicate_checked=True,
+            )
+            response = await client.get(
+                "/api/v1/external-opportunities/verification-summary"
+            )
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 200
+    body = response.json()
+    assert body["pending"] == 0
+    assert body["verified_today"] == 1
+    assert body["approved_by_you"] == 1
+    assert body["by_status"]["verified"] == 1
+    assert body["decisions_last_7_days"][-1]["decisions"] == 1
+
+
+@pytest.mark.asyncio
+async def test_verification_summary_approved_by_you_is_scoped_per_officer(
+    session: AsyncSession,
+) -> None:
+    opportunity_id = await _import_one(session, external_id="summary-approved-2")
+    _overrides_as(session, "officer-alpha", "verificationOfficer")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            await _decide(
+                client,
+                opportunity_id,
+                "approved",
+                source_checked=True,
+                application_link_checked=True,
+                deadline_checked=True,
+                duplicate_checked=True,
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    # A *different* officer should see the same global counts (verified
+    # today, by-status) but not be credited with an approval they didn't
+    # make.
+    _overrides_as(session, "officer-beta", "verificationOfficer")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(
+                "/api/v1/external-opportunities/verification-summary"
+            )
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verified_today"] == 1
+    assert body["approved_by_you"] == 0
+
+
+@pytest.mark.asyncio
+async def test_verification_summary_denied_for_applicant(
+    session: AsyncSession,
+) -> None:
+    overrides(session, "applicant")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(
+                "/api/v1/external-opportunities/verification-summary"
+            )
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 403

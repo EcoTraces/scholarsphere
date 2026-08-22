@@ -22,10 +22,14 @@ import '../domain/document_repository.dart';
 /// caller's own Firebase UID from the bearer token, never a client-supplied
 /// `userId` parameter.
 ///
-/// [grantProviderAccess] is owner-only self-service here - it does not
-/// enforce the Privacy feature's third-party-sharing consent precondition,
-/// because Privacy has no real backend to check it against yet. See the
-/// backend route's docstring for the full rationale.
+/// [grantProviderAccess] is owner-only self-service here. The backend
+/// enforces a real precondition before recording the grant: the caller
+/// must have an active (granted, not withdrawn) third-party-sharing
+/// consent on file (see the Privacy feature), and the target provider
+/// must exist - otherwise the request fails with a 409/404 surfaced as a
+/// [LiveBackendException] with the backend's real error message. See the
+/// backend route's docstring (app/api/routes/applicant_documents.py) for
+/// the full rationale.
 class ApiDocumentRepository implements DocumentRepository {
   ApiDocumentRepository({
     String? baseUrl,
@@ -177,12 +181,31 @@ class ApiDocumentRepository implements DocumentRepository {
     }
     if (response.statusCode >= 400) {
       throw LiveBackendException(
-        'The ScholarSphere backend returned an error.',
+        _errorDetail(response.body) ??
+            'The ScholarSphere backend returned an error.',
         statusCode: response.statusCode,
       );
     }
     if (response.body.isEmpty) return null;
     return jsonDecode(response.body);
+  }
+
+  // Matches the envelope app/core/errors.py wraps every HTTPException in:
+  // {"error": {"message": "..."}}. Consent-blocked shares (409) and
+  // unknown-provider shares (404) both carry a real, specific message here
+  // - e.g. "Third-party access requires explicit active user consent." -
+  // that's worth surfacing to the caller instead of a generic fallback.
+  static String? _errorDetail(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        final detail = decoded['detail'] ?? decoded['error']?['message'];
+        if (detail is String) return detail;
+      }
+    } on FormatException {
+      // Fall through to the generic message.
+    }
+    return null;
   }
 
   Future<Map<String, String>> _headers() async {

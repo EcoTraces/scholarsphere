@@ -66,4 +66,91 @@ void main() {
     ).getPublished();
     expect(opportunities.single.type, OpportunityType.grant);
   });
+
+  Map<String, dynamic> _adminItem(String id, String verificationStatus) => {
+    'id': id,
+    'title': 'Example opportunity $id',
+    'provider_name': 'Example Institution',
+    'opportunity_type': 'grant',
+    'country': 'Germany',
+    'description': 'An opportunity.',
+    'opening_date': '2026-01-01',
+    'deadline': '2026-12-31',
+    'official_source_url': 'https://example.test/$id',
+    'verification_status': verificationStatus,
+  };
+
+  test(
+    'getAllForAdministration maps every verification status and stops '
+    'once every page has been fetched',
+    () async {
+      var requestCount = 0;
+      final repository = ApiOpportunityRepository(
+        baseUrl: 'https://backend.test/api/v1',
+        auth: auth,
+        client: MockClient((request) async {
+          requestCount += 1;
+          expect(
+            request.url.path,
+            '/api/v1/external-opportunities/opportunities',
+          );
+          expect(request.url.queryParameters['page'], '1');
+          return http.Response(
+            jsonEncode({
+              'items': [
+                _adminItem('opp-pending', 'pending'),
+                _adminItem('opp-verified', 'verified'),
+                _adminItem('opp-rejected', 'rejected'),
+                _adminItem('opp-suspicious', 'suspicious'),
+                _adminItem('opp-expired', 'expired'),
+                _adminItem('opp-archived', 'archived'),
+                _adminItem('opp-reverify', 'reverification_required'),
+                _adminItem('opp-unavailable', 'source_unavailable'),
+              ],
+              'total': 8,
+            }),
+            200,
+          );
+        }),
+      );
+
+      final opportunities = await repository.getAllForAdministration();
+
+      expect(requestCount, 1);
+      expect(opportunities, hasLength(8));
+      final byId = {for (final item in opportunities) item.id: item};
+      expect(
+        byId['opp-pending']!.verificationStatus,
+        VerificationStatus.pending,
+      );
+      expect(
+        byId['opp-verified']!.verificationStatus,
+        VerificationStatus.verified,
+      );
+      expect(
+        byId['opp-rejected']!.verificationStatus,
+        VerificationStatus.rejected,
+      );
+      expect(
+        byId['opp-suspicious']!.verificationStatus,
+        VerificationStatus.suspicious,
+      );
+      expect(
+        byId['opp-expired']!.verificationStatus,
+        VerificationStatus.expired,
+      );
+      expect(
+        byId['opp-archived']!.verificationStatus,
+        VerificationStatus.archived,
+      );
+      expect(
+        byId['opp-reverify']!.verificationStatus,
+        VerificationStatus.verificationExpired,
+      );
+      expect(
+        byId['opp-unavailable']!.verificationStatus,
+        VerificationStatus.incomplete,
+      );
+    },
+  );
 }

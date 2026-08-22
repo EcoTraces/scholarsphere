@@ -1,4 +1,5 @@
-from datetime import date, datetime
+from collections import Counter
+from datetime import date, datetime, timedelta
 import logging
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
@@ -14,6 +15,7 @@ from app.core.rbac import require_roles
 from app.db.session import get_db
 from app.models import (
     ExternalOpportunity,
+    ImportAuditLog,
     OpportunitySource,
     OpportunitySyncHistory,
     VerificationHistory,
@@ -34,8 +36,10 @@ from app.schemas.external_source import (
     SourceSummary,
     SyncHistoryPage,
     SyncQueued,
+    VerificationActivityDay,
     VerificationDecisionRequest,
     VerificationReviewState,
+    VerificationSummary,
 )
 from app.schemas.opportunity_public import (
     OpportunityEvidence,
@@ -402,6 +406,113 @@ async def list_all_opportunities(
     ).all()
     return AdminOpportunityPage(
         items=list(items), total=total or 0, page=page, page_size=page_size
+    )
+
+
+@router.get("/verification-summary", response_model=VerificationSummary)
+async def verification_summary(
+    user: Annotated[AuthenticatedUser, Depends(preview_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> VerificationSummary:
+    """Real, aggregate counts for the Verification Officer dashboard.
+
+    Every number here is computed from the actual external_opportunities /
+    verification_review / verification_history / import_audit_log tables -
+    there is no per-officer assignment or richer workflow-status concept in
+    this backend (unlike the demo verification repository), so this
+    deliberately reports what the live schema actually tracks rather than
+    fabricating the demo's two-person-workflow fields. See
+    docs/OPPORTUNITY_VERIFICATION_SYSTEM.md SS4.
+    """
+    now = utc_now()
+    today_start = datetime(now.year, now.month, now.day, tzinfo=now.tzinfo)
+
+    pending = await session.scalar(
+        select(func.count(ExternalOpportunity.id)).where(
+            ExternalOpportunity.verification_status == VerificationStatus.pending
+        )
+    )
+
+    verified_today = await session.scalar(
+        select(func.count(VerificationReview.id)).where(
+            VerificationReview.decision == VerificationStatus.verified.value,
+            VerificationReview.verified_at >= today_start,
+        )
+    )
+
+    # Mirrors app.tasks.opportunity_sync._schedule_reverification's own
+    # 90-day cutoff: a review is "due soon" once it's within 7 days of that
+    # cutoff and the opportunity is still verified (hasn't already been
+    # flipped to reverification_required by an earlier run of that task).
+    due_soon_start = now - timedelta(days=90)
+    due_soon_end = now - timedelta(days=83)
+    reverification_due_soon = await session.scalar(
+        select(func.count(VerificationReview.id))
+        .join(
+            ExternalOpportunity,
+            ExternalOpportunity.id == VerificationReview.opportunity_id,
+        )
+        .where(
+            ExternalOpportunity.verification_status == VerificationStatus.verified,
+            VerificationReview.verified_at.is_not(None),
+            VerificationReview.verified_at <= due_soon_end,
+            VerificationReview.verified_at > due_soon_start,
+        )
+    )
+
+    status_rows = (
+        await session.execute(
+            select(
+                ExternalOpportunity.verification_status, func.count(ExternalOpportunity.id)
+            ).group_by(ExternalOpportunity.verification_status)
+        )
+    ).all()
+    by_status = {status_value.value: count for status_value, count in status_rows}
+
+    total_opportunities = await session.scalar(select(func.count(ExternalOpportunity.id)))
+    official_count = await session.scalar(
+        select(func.count(ExternalOpportunity.id))
+        .join(OpportunitySource, OpportunitySource.id == ExternalOpportunity.source_id)
+        .where(OpportunitySource.trust_level == "official")
+    )
+    official_source_ratio = (
+        (official_count or 0) / total_opportunities if total_opportunities else 1.0
+    )
+
+    # Decision-producing history rows carry a "verification_checks" key
+    # (see decide_verification above); notes and field edits don't, so this
+    # naturally excludes them without a dialect-specific JSON query.
+    recent_history = (
+        await session.scalars(
+            select(VerificationHistory).where(
+                VerificationHistory.changed_at >= now - timedelta(days=7)
+            )
+        )
+    ).all()
+    decision_counts: Counter[date] = Counter()
+    for entry in recent_history:
+        if entry.changed_fields and "verification_checks" in entry.changed_fields:
+            decision_counts[entry.changed_at.date()] += 1
+    decisions_last_7_days = [
+        VerificationActivityDay(date=day, decisions=decision_counts.get(day, 0))
+        for day in (now.date() - timedelta(days=offset) for offset in range(6, -1, -1))
+    ]
+
+    approved_by_you = await session.scalar(
+        select(func.count(ImportAuditLog.id)).where(
+            ImportAuditLog.actor_id == user.uid,
+            ImportAuditLog.action == "verification_approved",
+        )
+    )
+
+    return VerificationSummary(
+        pending=pending or 0,
+        verified_today=verified_today or 0,
+        reverification_due_soon=reverification_due_soon or 0,
+        by_status=by_status,
+        official_source_ratio=official_source_ratio,
+        decisions_last_7_days=decisions_last_7_days,
+        approved_by_you=approved_by_you or 0,
     )
 
 

@@ -171,7 +171,7 @@ class AdministrationAnalyticsService {
             .map((item) => item.provider),
       ),
       verificationActivity: _rankCounts(
-        reviews.map((review) => review.status.name),
+        opportunities.map((item) => item.verificationStatus.name),
       ),
       expiredOpportunityReport: expired
           .map(

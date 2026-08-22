@@ -34,6 +34,10 @@ class NotificationEventType(str, enum.Enum):
     application_progress = "application_progress"
     provider_announcement = "provider_announcement"
     emergency_system_message = "emergency_system_message"
+    # Staff-facing: an opportunity has crossed the 90-day reverification
+    # threshold (app.tasks.opportunity_sync._schedule_reverification) and
+    # is waiting for a verification officer to look at it again.
+    reverification_due = "reverification_due"
 
 
 class NotificationDeliveryStatus(str, enum.Enum):
