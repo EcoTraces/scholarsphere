@@ -1,30 +1,50 @@
 # ScholarSphere external-opportunity backend
 
-This FastAPI service collects official funding opportunities, retains the exact
-provider payload, normalizes it, detects possible duplicates, and places every
-record into human verification. External records are never published
-automatically.
+This FastAPI service collects funding and scholarship opportunities from
+official APIs and, for a small set of named organizations with no API, their
+own public web pages. Every collector retains the exact source payload,
+normalizes it, detects possible duplicates, and places every record into
+human verification. **No external record is ever published automatically**,
+regardless of source or how complete it looks - see
+`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md`.
 
 ## Integration overview and coverage
 
 Supported sources:
 
-| Route | Source | Primary coverage |
-|---|---|---|
-| `grants-gov` | Grants.gov Search2 | US federal grants |
-| `grants-gov-individual` | Grants.gov Search2 (eligibility `21`, "Individuals") | US federal scholarships/fellowships a person applies for directly |
-| `simpler-grants` | Simpler.Grants.gov | US federal grants |
-| `eu-funding` | EC Funding & Tenders | European grants, calls, tenders, research and funding opportunities |
-| `usajobs` | USAJOBS | US federal jobs and student/internship postings (Pathways hiring path) |
-| `reliefweb-jobs` | ReliefWeb Jobs (UN OCHA) | Global humanitarian/development jobs and internships |
-| `reliefweb-training` | ReliefWeb Training (UN OCHA) | Global humanitarian/development training courses and workshops |
+| Route | Source | Method | Primary coverage |
+|---|---|---|---|
+| `grants-gov` | Grants.gov Search2 | Official API | US federal grants |
+| `grants-gov-individual` | Grants.gov Search2 (eligibility `21`, "Individuals") | Official API | US federal scholarships/fellowships a person applies for directly |
+| `simpler-grants` | Simpler.Grants.gov | Official API | US federal grants |
+| `eu-funding` | EC Funding & Tenders | Official API | European grants, calls, tenders, research and funding opportunities |
+| `usajobs` | USAJOBS | Official API | US federal jobs and student/internship postings (Pathways hiring path) |
+| `reliefweb-jobs` | ReliefWeb Jobs (UN OCHA) | Official API | Global humanitarian/development jobs and internships |
+| `reliefweb-training` | ReliefWeb Training (UN OCHA) | Official API | Global humanitarian/development training courses and workshops |
+| `cscuk-scholarships` | Commonwealth Scholarships (CSC UK) | Web scraper | UK government scholarships for Commonwealth countries |
+| `chevening` | Chevening Scholarships | Web scraper | UK government global master's scholarship |
+| `daad-scholarships` | DAAD Scholarship Database | Web scraper (curated seed list) | German study/research scholarships |
+| `china-embassy-sl` | Chinese Embassy in Sierra Leone | Web scraper (announcements) | Chinese Government / MOFCOM scholarships for Sierra Leonean students |
+| `mthe-sierra-leone` | Sierra Leone Ministry of Technical and Higher Education | Web scraper (announcements) | Government-announced scholarships for Sierra Leonean students (including partner-government offers, e.g. Russia) |
 
-These APIs do not contain every scholarship, internship, webinar, conference,
-summit, exchange, fellowship, or course. ScholarSphere will continue to need
-verified provider submissions, manual entry, official feeds, partner APIs, and
-collection from official sources where permission and terms allow it.
+The web-scraper sources exist only because no official API, RSS feed, or
+dataset is published for these organizations - see
+`docs/AUTHORITATIVE_SOURCES.md` for the per-source research (domain
+confirmation, robots.txt/terms check, page-structure verification) performed
+before each was added, and `app/services/web_scraper_base.py` for the shared
+fetch/rate-limit/never-invent-data discipline every scraper follows. They
+carry a lower `trust_level` (`web_scraped` vs `official`) that feeds into
+`app/services/verification_confidence.py`, but they go through the exact same
+mandatory human verification queue as every API source - a lower trust level
+changes queue priority, never whether approval is required.
 
-### Source research notes (what was checked and rejected)
+These sources do not contain every scholarship, internship, webinar,
+conference, summit, exchange, fellowship, or course. ScholarSphere will
+continue to need verified provider submissions, manual entry, official feeds,
+partner APIs, and collection from official sources where permission and terms
+allow it.
+
+### Source research notes (what was checked, and what was checked and rejected)
 
 Before adding `usajobs` and `reliefweb-jobs`/`reliefweb-training`, the
 following candidates were researched for broader coverage (scholarships,
@@ -53,12 +73,28 @@ suitable for a direct API integration at this time:
 - **EURAXESS** (European researcher jobs/fellowships) - no official public
   API found, only third-party scrapers.
 
-Scholarships and fellowships aimed at individual students remain the
-biggest real gap: almost none of the well-known providers (DAAD, Chevening,
-Fulbright, Commonwealth Scholarships, university-specific funds) publish a
-public API. Closing that gap needs either a licensed commercial data feed
-or per-provider scraping/partnership work, both a substantially different
-and larger effort than the other integrations here.
+Four of those coverage gaps (DAAD, Chevening, Commonwealth Scholarships, and
+two Sierra-Leone-specific government-announcement channels) were later closed
+by adding a small, explicitly-scoped web-scraper tier
+(`app/services/web_scraper_base.py` and its subclasses) rather than an API
+integration, since none of these organizations publish one - see
+`docs/AUTHORITATIVE_SOURCES.md` #8-#12 for the per-source research and
+robots.txt/terms check. **Fulbright was researched and deliberately not
+integrated**: the US-student-facing site (`us.fulbrightonline.org`) is the
+wrong audience for this platform, the foreign-student program
+(`foreign.fulbrightonline.org`) is administered per-country through ~160
+individual US embassy pages with no single list of open calls, and the one
+Sierra-Leone-specific page checked
+(`sl.usembassy.gov/educational-professional-exchanges/`) returned a generic
+"Technical Difficulties" error page when fetched (2026-08-22) rather than
+real content - there is no single stable page to scrape reliably.
+
+The remaining real gap is everything not covered above: most named
+university-specific and foundation scholarship funds still publish no
+public API and were not evaluated for scraping. Closing that gap further
+needs either a licensed commercial data feed, per-provider partnership, or
+evaluating specific additional named sites for scraping the same way the
+five above were - not a generic crawler.
 
 The production flow is enforced as:
 
@@ -79,6 +115,8 @@ unpublished; an administrator must publish it separately.
 - Redis 7
 - FastAPI, SQLAlchemy asyncio, asyncpg, Alembic and Pydantic
 - HTTPX, Bleach and python-dateutil
+- BeautifulSoup4 (`html.parser` backend, no extra C-extension parser
+  dependency) for the web-scraper sources
 - Celery worker and Celery Beat
 - Pytest, pytest-asyncio, RESPX and aiosqlite for tests
 

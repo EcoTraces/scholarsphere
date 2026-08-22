@@ -81,6 +81,8 @@ class PendingOpportunityItem(BaseModel):
     official_application_url: str | None
     duplicate_review_required: bool
     collected_at: datetime
+    confidence_level: str = "medium"
+    confidence_reasons: list[str] = Field(default_factory=list)
 
 
 class PendingOpportunityPage(BaseModel):

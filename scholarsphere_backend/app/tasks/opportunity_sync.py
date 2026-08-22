@@ -35,8 +35,19 @@ from app.models.notification import (
     NotificationPreferences,
     ScholarSphereNotification,
 )
+from app.services.cscuk_scholarships import CscukScholarshipsSource
+from app.services.chevening import CheveningSource
+from app.services.daad_scholarships import DaadScholarshipsSource
+from app.services.embassy_announcements import (
+    ChinaEmbassySierraLeoneSource,
+    SierraLeoneMTHESource,
+)
 from app.services.eu_funding import EUFundingSource
 from app.services.audit import append_audit
+from app.services.firebase_users import (
+    FirebaseRosterError,
+    list_reverification_recipient_uids,
+)
 from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
 from app.services.notification_dispatch import (
     default_preferences,
@@ -95,6 +106,26 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_reliefweb_training",
             "schedule": crontab(minute=50, hour="*/12"),
         },
+        "sync-cscuk-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_cscuk_scholarships",
+            "schedule": crontab(minute=0, hour=3),
+        },
+        "sync-chevening": {
+            "task": "app.tasks.opportunity_sync.sync_chevening",
+            "schedule": crontab(minute=15, hour=3),
+        },
+        "sync-daad-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_daad_scholarships",
+            "schedule": crontab(minute=30, hour=3),
+        },
+        "sync-china-embassy-sl": {
+            "task": "app.tasks.opportunity_sync.sync_china_embassy_sl",
+            "schedule": crontab(minute=45, hour=3),
+        },
+        "sync-mthe-sierra-leone": {
+            "task": "app.tasks.opportunity_sync.sync_mthe_sierra_leone",
+            "schedule": crontab(minute=0, hour=4),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -132,6 +163,11 @@ SOURCE_TASK_NAMES = {
     "usajobs": "app.tasks.opportunity_sync.sync_usajobs",
     "reliefweb_jobs": "app.tasks.opportunity_sync.sync_reliefweb_jobs",
     "reliefweb_training": "app.tasks.opportunity_sync.sync_reliefweb_training",
+    "cscuk_scholarships": "app.tasks.opportunity_sync.sync_cscuk_scholarships",
+    "chevening": "app.tasks.opportunity_sync.sync_chevening",
+    "daad_scholarships": "app.tasks.opportunity_sync.sync_daad_scholarships",
+    "china_embassy_sl": "app.tasks.opportunity_sync.sync_china_embassy_sl",
+    "mthe_sierra_leone": "app.tasks.opportunity_sync.sync_mthe_sierra_leone",
 }
 
 
@@ -297,6 +333,71 @@ def sync_reliefweb_training(
     triggered_by: str | None = None,
 ) -> dict[str, Any]:
     return _execute_source_task(self, "reliefweb_training", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_cscuk_scholarships",
+    max_retries=3,
+)
+def sync_cscuk_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "cscuk_scholarships", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_chevening",
+    max_retries=3,
+)
+def sync_chevening(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "chevening", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_daad_scholarships",
+    max_retries=3,
+)
+def sync_daad_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "daad_scholarships", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_china_embassy_sl",
+    max_retries=3,
+)
+def sync_china_embassy_sl(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "china_embassy_sl", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_mthe_sierra_leone",
+    max_retries=3,
+)
+def sync_mthe_sierra_leone(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "mthe_sierra_leone", correlation_id, triggered_by)
 
 
 async def _run_source_sync(
@@ -506,6 +607,11 @@ def _collector(source_code: str) -> Any:
         "usajobs": UsaJobsSource,
         "reliefweb_jobs": ReliefWebJobsSource,
         "reliefweb_training": ReliefWebTrainingSource,
+        "cscuk_scholarships": CscukScholarshipsSource,
+        "chevening": CheveningSource,
+        "daad_scholarships": DaadScholarshipsSource,
+        "china_embassy_sl": ChinaEmbassySierraLeoneSource,
+        "mthe_sierra_leone": SierraLeoneMTHESource,
     }[source_code]()
 
 
@@ -624,23 +730,15 @@ def send_reverification_reminders() -> dict[str, int]:
     return run_async_safely(_send_reverification_reminders())
 
 
-async def _reverification_recipients(session: AsyncSession) -> list[str]:
-    """Verification officers/admins to notify, drawn from real activity.
+async def _reverification_recipients_from_audit_log(session: AsyncSession) -> list[str]:
+    """Fallback recipient source: officers with real prior decision history.
 
-    There is no local user directory in this backend (identity lives
-    entirely in Firebase - see Database.md SS1) and no per-officer
-    assignment concept for opportunities (any officer can act on any
-    queued item - see docs/OPPORTUNITY_VERIFICATION_SYSTEM.md SS10), so
-    there is no authoritative "list every verification officer" query
-    available here. Instead this targets everyone who has actually made a
-    real verification decision before, via the same append-only audit
-    trail every other verification action is already recorded in
-    (ImportAuditLog.action starting with "verification_") - a real, honest
-    signal, not a fabricated roster. A brand-new officer who has never yet
-    made a decision will not receive reminders until their first one; a
-    Firebase Admin SDK "list users by custom claim" integration would close
-    that gap but requires a live Firebase project to build and test against
-    that this environment does not have - see Task.md.
+    Used only when the real Firebase roster (see
+    _reverification_recipients below) cannot be retrieved - e.g. no
+    Firebase credentials configured in this environment. Every id here is
+    real activity (ImportAuditLog.action starting with "verification_"),
+    not a fabricated roster, but it necessarily excludes any officer who
+    has never yet made a decision.
     """
     actor_ids = (
         await session.scalars(
@@ -653,6 +751,41 @@ async def _reverification_recipients(session: AsyncSession) -> list[str]:
         )
     ).all()
     return [actor_id for actor_id in actor_ids if actor_id]
+
+
+async def _reverification_recipients(session: AsyncSession) -> list[str]:
+    """Verification officers/admins to notify.
+
+    Primary source: the real Firebase user roster
+    (app.services.firebase_users.list_reverification_recipient_uids),
+    enumerated via the Admin SDK's supported list_users pagination and
+    filtered by the verificationOfficer/administrator/superAdministrator
+    custom claim - this reaches every current officer, including ones who
+    have never made a decision, unlike the previous audit-log-only
+    heuristic.
+
+    Falls back to the audit-log heuristic (real prior decisions only) if
+    Firebase enumeration fails for any reason (e.g. no credentials
+    configured) - this keeps reminders flowing in a degraded but still
+    honest form rather than silently sending zero, and is logged clearly
+    so the degradation is visible in operations.
+    """
+    try:
+        uids = list_reverification_recipient_uids()
+        logger.info("reverification_recipients_source=firebase count=%s", len(uids))
+        return uids
+    except FirebaseRosterError as error:
+        logger.warning(
+            "reverification_recipients_firebase_unavailable error=%s "
+            "falling_back_to=audit_log",
+            error,
+        )
+        fallback = await _reverification_recipients_from_audit_log(session)
+        logger.info(
+            "reverification_recipients_source=audit_log_fallback count=%s",
+            len(fallback),
+        )
+        return fallback
 
 
 async def _send_reverification_reminders() -> dict[str, int]:

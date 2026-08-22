@@ -64,6 +64,94 @@ async def get_json(
     )
 
 
+async def get_html(
+    url: str,
+    *,
+    params: Mapping[str, Any] | None = None,
+    headers: Mapping[str, str] | None = None,
+) -> str:
+    """GET an HTML/text resource with the same HTTPS-only, timeout, retry,
+    and response-size protections as get_json/post_json - used by the web
+    scraper adapters (app/services/web_scraper_base.py), which fetch HTML
+    pages rather than JSON API responses.
+    """
+    _validate_url(url)
+    settings = get_settings()
+    correlation_id = str(uuid4())
+    safe_headers = {
+        **dict(headers or {}),
+        "Accept": "text/html,application/xhtml+xml",
+        "X-Correlation-ID": correlation_id,
+        "User-Agent": "ScholarSphere/1.0 (+scholarship discovery; opportunities@scholarsphere.app)",
+    }
+    timeout = httpx.Timeout(settings.http_timeout_seconds)
+
+    async with httpx.AsyncClient(
+        timeout=timeout,
+        follow_redirects=True,
+        max_redirects=5,
+    ) as client:
+        for attempt in range(settings.http_max_retries + 1):
+            try:
+                async with client.stream(
+                    "GET", url, params=params, headers=safe_headers
+                ) as response:
+                    body = await response.aread()
+                    if len(body) > settings.http_max_response_bytes:
+                        raise ExternalAPIError("External page response is too large.")
+                    if response.status_code in RETRYABLE_STATUS_CODES:
+                        if attempt < settings.http_max_retries:
+                            retry_after = response.headers.get("Retry-After")
+                            delay = (
+                                min(float(retry_after), 30.0)
+                                if retry_after and retry_after.isdigit()
+                                else min(2**attempt, 10)
+                            )
+                            await asyncio.sleep(delay)
+                            continue
+                        logger.warning(
+                            "External page retry exhausted "
+                            "correlation_id=%s host=%s status_code=%s",
+                            correlation_id,
+                            urlsplit(url).hostname,
+                            response.status_code,
+                        )
+                        raise ExternalAPIError(
+                            "External page is temporarily unavailable.",
+                            status_code=response.status_code,
+                        )
+                    if response.is_error:
+                        logger.info(
+                            "External page rejected request "
+                            "correlation_id=%s host=%s status_code=%s",
+                            correlation_id,
+                            urlsplit(url).hostname,
+                            response.status_code,
+                        )
+                        raise ExternalAPIError(
+                            "External page rejected the request.",
+                            status_code=response.status_code,
+                        )
+                    return response.text
+            except (
+                httpx.ConnectError,
+                httpx.ReadTimeout,
+                httpx.RemoteProtocolError,
+            ) as exc:
+                if attempt >= settings.http_max_retries:
+                    logger.warning(
+                        "External page request failed correlation_id=%s host=%s",
+                        correlation_id,
+                        urlsplit(url).hostname,
+                    )
+                    raise ExternalAPIError(
+                        "External page is temporarily unavailable."
+                    ) from exc
+                await asyncio.sleep(min(2**attempt, 10))
+
+    raise ExternalAPIError("External page request failed.")
+
+
 async def _request_json(
     method: str,
     url: str,

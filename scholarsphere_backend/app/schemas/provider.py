@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
@@ -46,6 +46,13 @@ def status_to_wire(value: ProviderStatus) -> str:
 
 def permission_to_wire(value: str) -> str:
     return _PERMISSION_MODEL_TO_WIRE.get(value, value)
+
+
+def permission_from_wire(value: str) -> ProviderPermission:
+    try:
+        return _PERMISSION_WIRE_TO_MODEL[value]
+    except KeyError as error:
+        raise ValueError(f"Unknown provider permission: {value!r}") from error
 
 
 def document_owner_uid(path: str) -> str | None:
@@ -144,7 +151,14 @@ class ProviderRead(BaseModel):
 
 
 class ProviderReviewRequest(BaseModel):
-    decision: str
+    # Restricted to the 3 real review outcomes, not the full 8-value
+    # ProviderStatus vocabulary - draft/suspended/archived/verificationExpired
+    # are set by other, more specific flows (registration, /suspend, the
+    # reverification scheduler) and have no coherent meaning as a "review
+    # decision" here. A verificationOfficer (review_access includes that
+    # role) reverting an already-reviewed provider to "draft" via this
+    # endpoint was previously accepted input, not a designed transition.
+    decision: Literal["verified", "rejected", "additionalInformationRequired"]
     official_email_verified: bool
     domain_verified: bool
     contact_verified: bool
@@ -183,6 +197,19 @@ class ProviderAdministratorCreate(BaseModel):
     user_id: str = Field(min_length=1, max_length=255)
     email: str = Field(min_length=1, max_length=320)
     permissions: list[str] = Field(default_factory=list, max_length=10)
+
+    @field_validator("permissions")
+    @classmethod
+    def _validate_permissions(cls, value: list[str]) -> list[str]:
+        # Previously accepted any string, silently storing garbage that
+        # would never match a real ProviderPermission check anywhere else
+        # in the codebase - not an escalation risk by itself (unknown
+        # values match nothing), but a real input-validation gap and a
+        # precondition for enforcing per-administrator scoping (see
+        # provider_opportunities.py::_relationship).
+        for item in value:
+            permission_from_wire(item)
+        return value
 
 
 class CanPublishResponse(BaseModel):

@@ -157,7 +157,9 @@ async def test_submission_with_unrelated_provider_id_is_403(session: AsyncSessio
 
 
 @pytest.mark.asyncio
-async def test_submission_by_registered_administrator_succeeds(session: AsyncSession) -> None:
+async def test_submission_by_administrator_with_publish_permission_succeeds(
+    session: AsyncSession,
+) -> None:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         provider_id = await _register_and_verify(
             client, session, uid="owner-c", domain="verified-c.example"
@@ -166,7 +168,11 @@ async def test_submission_by_registered_administrator_succeeds(session: AsyncSes
         overrides(session, "applicant", uid="owner-c")
         await client.post(
             f"/api/v1/providers/{provider_id}/administrators",
-            json={"user_id": "admin-c", "email": "admin-c@example.test", "permissions": []},
+            json={
+                "user_id": "admin-c",
+                "email": "admin-c@example.test",
+                "permissions": ["publishOpportunities"],
+            },
         )
 
         overrides(session, "applicant", uid="admin-c")
@@ -181,6 +187,62 @@ async def test_submission_by_registered_administrator_succeeds(session: AsyncSes
     assert body["verification_status"] == "pending"
     assert body["opportunity_type"] == "scholarship"
     assert body["funding_type"] == "fullyFunded"
+
+
+@pytest.mark.asyncio
+async def test_submission_by_administrator_without_publish_permission_is_403(
+    session: AsyncSession,
+) -> None:
+    """Regression test for a real gap found during security review: an
+
+    administrator's individually-granted permissions were stored but never
+    enforced, so any linked administrator of a verified provider could
+    submit opportunities regardless of their assigned permission subset.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        provider_id = await _register_and_verify(
+            client, session, uid="owner-e", domain="verified-e.example"
+        )
+
+        overrides(session, "applicant", uid="owner-e")
+        await client.post(
+            f"/api/v1/providers/{provider_id}/administrators",
+            json={
+                "user_id": "admin-e",
+                "email": "admin-e@example.test",
+                "permissions": ["manageOrganization"],
+            },
+        )
+
+        overrides(session, "applicant", uid="admin-e")
+        response = await client.post(
+            "/api/v1/provider-opportunities", json=_submission_payload(provider_id=provider_id)
+        )
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_owner_can_always_submit_regardless_of_administrator_records(
+    session: AsyncSession,
+) -> None:
+    """The organization owner is never subject to the per-administrator
+
+    permission check - only delegated ProviderAdministrator rows are.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        provider_id = await _register_and_verify(
+            client, session, uid="owner-f", domain="verified-f.example"
+        )
+
+        overrides(session, "applicant", uid="owner-f")
+        response = await client.post(
+            "/api/v1/provider-opportunities", json=_submission_payload(provider_id=provider_id)
+        )
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200, response.text
 
 
 @pytest.mark.asyncio

@@ -183,10 +183,13 @@ partial · `[ ]` Not started · `[!]` Blocked
       access outside any coding session
 - [ ] Real release signing (Android/iOS/macOS currently sign with the debug
       key) — **blocked**, requires the team's own signing keystore
-- [ ] Independent security review of the `applications`/`verification`
+- [x] Independent security review of the `applications`/`verification`
       backend and the `providers`/`provider_opportunities` backend against
-      the audit's own §2 checklist — these were built consistent with
-      reviewed patterns but have not themselves been independently reviewed
+      the audit's own §2 checklist — completed 2026-08-22, 4 real gaps
+      found and fixed (missing audit trail, a permission-storage format
+      bug, a per-administrator permission-enforcement gap, an
+      unconstrained decision field), 0 IDOR/auth-bypass found; see
+      Task.md/Changelog.md
 - [ ] Live smoke test of `storage.rules` against a real Firebase Storage
       bucket (reasoned about, never deployed and exercised in this
       environment)

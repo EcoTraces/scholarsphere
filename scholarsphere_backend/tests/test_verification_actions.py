@@ -374,6 +374,43 @@ async def test_pending_verification_list_includes_full_review_fields(
     assert item["official_source_url"] == "https://example.test/action-grant-1"
     assert item["official_application_url"] == "https://example.test/action-grant-1/apply"
     assert item["opportunity_type"] == "grant"
+
+
+@pytest.mark.asyncio
+async def test_pending_verification_exposes_explainable_confidence(
+    session: AsyncSession,
+) -> None:
+    """The queue never auto-approves anything (see
+    docs/OPPORTUNITY_VERIFICATION_SYSTEM.md) - confidence is a triage
+    hint only. This asserts the hint is present, explained, and that
+    `sort=confidence` doesn't error and still returns the same items.
+    """
+    await _import_one(session)
+    overrides(session, "verificationOfficer")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            default_order = await client.get(
+                "/api/v1/external-opportunities/pending-verification"
+            )
+            by_confidence = await client.get(
+                "/api/v1/external-opportunities/pending-verification",
+                params={"sort": "confidence"},
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert default_order.status_code == 200
+    item = default_order.json()["items"][0]
+    assert item["confidence_level"] in {"high", "medium", "low"}
+    assert isinstance(item["confidence_reasons"], list)
+    assert item["confidence_reasons"]
+
+    assert by_confidence.status_code == 200
+    assert {i["id"] for i in by_confidence.json()["items"]} == {
+        i["id"] for i in default_order.json()["items"]
+    }
     assert item["country"] == "United States"
 
 

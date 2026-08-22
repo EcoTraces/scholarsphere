@@ -85,6 +85,32 @@ class Settings(BaseSettings):
     reliefweb_base_url: str = "https://api.reliefweb.int/v2"
     reliefweb_appname: str = ""
 
+    # Web-scraper sources (app/services/web_scraper_base.py and its
+    # subclasses) - no official API/RSS/dataset exists for these
+    # organizations (see docs/AUTHORITATIVE_SOURCES.md), so this backend
+    # fetches their own public HTML pages directly. Every base URL below was
+    # confirmed reachable and its robots.txt checked for a scraping
+    # restriction before being added; see the source registry doc for the
+    # per-site notes.
+    cscuk_base_url: str = "https://cscuk.fcdo.gov.uk"
+    chevening_base_url: str = "https://www.chevening.org"
+    daad_base_url: str = "https://www2.daad.de"
+    # DAAD's scholarship database has no public sitemap or documented API
+    # covering its individual listings (its search UI loads results via an
+    # undocumented AJAX endpoint) - these are the detail-page IDs identified
+    # during source research (see docs/AUTHORITATIVE_SOURCES.md #9), fetched
+    # directly. Not a full-catalog crawl; a curated, monitored seed list.
+    daad_scholarship_detail_ids: Annotated[list[str], NoDecode] = [
+        "50026200",
+        "50076777",
+        "57742121",
+        "57742130",
+        "57135739",
+        "10000486",
+    ]
+    china_embassy_sl_base_url: str = "https://sl.china-embassy.gov.cn"
+    mthe_sl_base_url: str = "https://www.mthe.gov.sl"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -97,6 +123,7 @@ class Settings(BaseSettings):
         "eu_funding_type_codes",
         "eu_funding_status_codes",
         "eu_funding_display_fields",
+        "daad_scholarship_detail_ids",
         mode="before",
     )
     @classmethod
@@ -127,6 +154,11 @@ class Settings(BaseSettings):
         "eu_funding_api_url",
         "usajobs_base_url",
         "reliefweb_base_url",
+        "cscuk_base_url",
+        "chevening_base_url",
+        "daad_base_url",
+        "china_embassy_sl_base_url",
+        "mthe_sl_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

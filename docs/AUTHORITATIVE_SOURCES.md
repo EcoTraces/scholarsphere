@@ -8,10 +8,21 @@ mappings" sections; this document restates it in the platform
 specification's requested source-registry format and adds the reliability
 classification and verification method for each.
 
-All seven are ingested via each provider's own official, documented,
-structured API — **there is no web scraping in this codebase.**
-(`docs/PRODUCTION_SECURITY_AUDIT.md` §2.6, confirmed by repository-wide
-search for scraping libraries.)
+Sources 1–7 are ingested via each provider's own official, documented,
+structured API. **As of 2026-08-22 this is no longer the only ingestion
+method** (superseding `docs/PRODUCTION_SECURITY_AUDIT.md` §2.6's earlier
+"there is no web scraping in this codebase" statement, which was accurate at
+the time it was written): sources 8–12 below are collected by scraping each
+organization's own public HTML pages, because none of them publish an
+official API, RSS feed, or dataset — see each entry's "Discovery method" for
+the specific reasoning and the robots.txt/terms check performed before it
+was added. Every scraper still lands its output in the exact same mandatory
+human-verification queue as an API source (see
+`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md`) — scraping changes *how the data
+is retrieved*, never *whether a human approves it*. All twelve sources are
+governed by the shared source-adapter architecture in `app/services/` —
+either a thin API client (sources 1–7) or a subclass of `WebScraperSource`
+(`app/services/web_scraper_base.py`, sources 8–12).
 
 ---
 
@@ -125,6 +136,197 @@ search for scraping libraries.)
 - **Sync cadence**: Every 12 hours
 - **Field mapping**: `app/services/reliefweb.py`
 
+## 8. Commonwealth Scholarships (Commonwealth Scholarship Commission in the UK)
+
+- **Organization**: Commonwealth Scholarship Commission in the UK (CSC),
+  sponsored by the UK Foreign, Commonwealth & Development Office (FCDO)
+- **Route code**: `cscuk-scholarships` (`cscuk_scholarships` internally)
+- **Official domain / base URL**: `https://cscuk.fcdo.gov.uk`
+  (`CSCUK_BASE_URL`)
+- **Opportunity types**: Scholarships and fellowships (UK master's/PhD study,
+  professional fellowships)
+- **Country coverage**: Commonwealth countries (award applies in the UK)
+- **Discovery method**: **Web scraper** — no official API, RSS feed, or
+  dataset exists. `robots.txt` (checked 2026-08-22) has no `Disallow` rules
+  and no `Crawl-delay`; a 2-second minimum interval between requests is
+  applied anyway as a courtesy default
+  (`app/services/web_scraper_base.py::WebScraperSource.min_request_interval_seconds`).
+  The archive page (`/scholarships/`) is scraped for links to individual
+  programme pages, each scraped for its own content.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped (`trust_level="web_scraped"`,
+  below Level 1 "official" — see `app/services/verification_confidence.py`)
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours (lighter than the API sources; no
+  published rate limit of its own to calibrate against)
+- **Field mapping**: `app/services/cscuk_scholarships.py` — programme name
+  from `<h1 class="entry-title">`; description/eligibility/funding assembled
+  from named content sections ("Overview", "Applicant eligibility",
+  "Eligible countries", "Financial assistance"); deadline extracted only
+  when an explicit day+month+year date literal appears near "closing date"
+  or "deadline" text — left `null` otherwise (verified 2026-08-22: the
+  fetched Master's Scholarships page states its closing date without an
+  adjacent year in the same sentence, so this is a real, expected case, not
+  a hypothetical one)
+- **Notes**: `scholarsphere_backend/tests/test_cscuk_scholarships.py`,
+  tested against real HTML fetched from the live site on 2026-08-22 (see
+  `tests/fixtures/cscuk_list.html`, `cscuk_detail.html`)
+
+## 9. Chevening Scholarships
+
+- **Organization**: UK Foreign, Commonwealth & Development Office (FCDO) and
+  partner organisations
+- **Route code**: `chevening` internally
+- **Official domain / base URL**: `https://www.chevening.org`
+  (`CHEVENING_BASE_URL`)
+- **Opportunity types**: Scholarship (one global, fully-funded UK master's
+  programme — not a catalogue of separate named awards)
+- **Country coverage**: Global (160+ countries)
+- **Discovery method**: **Web scraper** — no official API, RSS feed, or
+  dataset exists. `robots.txt` could not be fetched from the development
+  environment this adapter was built in (network timeout, checked
+  2026-08-22) — the site's own pages are fetched at the same conservative
+  courtesy rate as every other scraper regardless. Because Chevening runs
+  one recurring annual programme rather than a catalogue, this adapter
+  produces exactly one opportunity record per sync, keyed by a fixed
+  external id, so a changed deadline updates that one record in place
+  (correctly triggering `reverification_required` if it was previously
+  verified) instead of creating a new opportunity every cycle.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Field mapping**: `app/services/chevening.py` — title and description
+  from `/scholarships/`; deadline from the `<span class="open">Open for
+  applications until <date>, at <time> (UTC)</span>` element on `/apply/`
+  (verified 2026-08-22: real fetched text read "Open for applications until
+  6 October 2026, at 11:00 (UTC)")
+- **Notes**: `scholarsphere_backend/tests/test_chevening.py`, tested against
+  real HTML fetched from the live site on 2026-08-22 (see
+  `tests/fixtures/chevening_list.html`, `chevening_apply.html`)
+
+## 10. DAAD Scholarship Database
+
+- **Organization**: DAAD (Deutscher Akademischer Austauschdienst / German
+  Academic Exchange Service)
+- **Route code**: `daad-scholarships` (`daad_scholarships` internally)
+- **Official domain / base URL**: `https://www2.daad.de`
+  (`DAAD_BASE_URL`)
+- **Opportunity types**: Scholarships (study/research in Germany)
+- **Country coverage**: Global (DAAD funds international students to study
+  in Germany)
+- **Discovery method**: **Web scraper, deliberately scoped to a curated seed
+  list, not a full-catalogue crawl.** No official API, RSS feed, or dataset
+  exists. `https://www.daad.de/robots.txt` (checked 2026-08-22) sets
+  `Crawl-delay: 2` and does not disallow the scholarship-database paths —
+  this adapter's minimum request interval matches that exactly. The site's
+  own search widget loads results through an undocumented internal AJAX
+  endpoint (`/ajax/`, found in the page's own script), and
+  `https://www.daad.de/sitemap.xml` (confirmed reachable, 28 entries) does
+  **not** include the database's individual `?detail=<id>` listing pages —
+  there is no ToS-respecting way found so far to discover the full
+  catalogue automatically. `Settings.daad_scholarship_detail_ids` lists the
+  ids identified by name during source research; each is fetched directly
+  by URL. Extending coverage means adding more ids to that setting, not
+  writing more scraping code — or replacing this adapter if DAAD ever
+  documents its search endpoint.
+- **API / RSS / Sitemap**: A general sitemap exists but does not cover this
+  database (see above)
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Field mapping**: `app/services/daad_scholarships.py` — title from
+  `<title>` (site-name suffix stripped); content from
+  `#ifa-stipendien-detail`; deadline extracted only when an explicit date
+  literal appears near "application deadline" text
+- **Coverage caveat, stated plainly rather than hidden**: this monitors a
+  small, explicitly-configured set of programmes, not DAAD's full database
+  (which likely has hundreds of active listings) — see "Discovery method"
+  above for exactly why, and Task.md for the follow-up item to broaden
+  coverage if DAAD ever publishes a documented way to do so
+- **Notes**: `scholarsphere_backend/tests/test_daad_scholarships.py`, tested
+  against real HTML fetched from the live site on 2026-08-22 (see
+  `tests/fixtures/daad_detail.html`)
+
+## 11. Chinese Embassy in Sierra Leone (Scholarship Announcements)
+
+- **Organization**: Embassy of the People's Republic of China in Sierra
+  Leone (Economic and Commercial Counsellor's Office / MOFCOM)
+- **Route code**: `china-embassy-sl` (`china_embassy_sl` internally)
+- **Official domain / base URL**: `https://sl.china-embassy.gov.cn`
+  (`CHINA_EMBASSY_SL_BASE_URL`)
+- **Opportunity types**: Scholarship (Chinese Government Scholarship /
+  MOFCOM Scholarship for Sierra Leonean students)
+- **Country coverage**: Sierra Leone (applicants), China (destination)
+- **Discovery method**: **Web scraper, conservative announcement pattern**
+  (`app/services/embassy_announcements.py`) — this embassy publishes
+  scholarship notices as ordinary news articles, not a structured
+  opportunities database, so only a headline, the article's own URL, and its
+  body text are extracted; a deadline is set only when an explicit date
+  literal appears in the article body, never inferred. No robots.txt
+  restriction was found (checked 2026-08-22 — unknown paths redirect to the
+  homepage rather than serving a robots.txt with `Disallow` rules). The news
+  index (`/eng/xwdt/`) is scraped for links whose own text mentions
+  "scholarship" or "mofcom"; matching articles are fetched individually.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7 — **particularly important here**, since this adapter deliberately
+  under-extracts (no application URL, deadline often absent) and an officer
+  must read the source article directly
+- **Sync cadence**: Every 24 hours
+- **Field mapping**: `app/services/embassy_announcements.py` — confirmed
+  2026-08-22 against a real fetched article
+  ("Notice of 2026 Ministry of Commerce (MOFCOM) Scholarship Recruitment",
+  `/eng/xwdt/202604/t20260403_11886183.htm`): title from `<title>`, body
+  from `<div class="News_Body_Text" id="article">`
+- **Notes**: `scholarsphere_backend/tests/test_embassy_announcements.py`,
+  tested against real HTML fetched from the live site on 2026-08-22 (see
+  `tests/fixtures/china_embassy_news.html`, `china_article.html`)
+
+## 12. Sierra Leone Ministry of Technical and Higher Education (MTHE)
+
+- **Organization**: Government of Sierra Leone, Ministry of Technical and
+  Higher Education
+- **Route code**: `mthe-sierra-leone` (`mthe_sierra_leone` internally)
+- **Official domain / base URL**: `https://www.mthe.gov.sl`
+  (`MTHE_SL_BASE_URL`)
+- **Opportunity types**: Scholarship — both domestically-administered
+  scholarships and scholarships MTHE announces on behalf of partner
+  governments (e.g. the Russian Federation's annual offer to Sierra
+  Leonean students, confirmed via web search 2026-08-22 to be announced
+  through MTHE, not a Russian embassy channel)
+- **Country coverage**: Sierra Leone (applicants); destination varies by
+  announcement
+- **Discovery method**: Same conservative announcement pattern as source 11
+  above (shared base class, `app/services/embassy_announcements.py`)
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **LIVE SOURCE TEST: NOT PERFORMED.** `https://www.mthe.gov.sl` and
+  `http://www.mthe.gov.sl` both refused every connection attempted from the
+  development environment this adapter was built in (2026-08-22, multiple
+  attempts, both protocols) — this looks like a network/hosting issue
+  outside this codebase's control, not a deliberate access restriction, but
+  it could not be confirmed either way, and this adapter's selectors have
+  never been checked against the site's real markup. It is implemented
+  against the same pattern as the confirmed-working source 11 and
+  unit-tested against a clearly-labeled **synthetic** fixture (see
+  `scholarsphere_backend/tests/test_embassy_announcements.py`), not real
+  captured HTML. **Smoke-test this adapter against the live site, and
+  correct its selectors if needed, before relying on its scheduled sync** —
+  tracked in Task.md.
+
 ---
 
 ## Sources evaluated and deliberately not integrated
@@ -141,15 +343,20 @@ record of what was checked, not just what was added:
 | Eventbrite | Removed its public Event Search API in 2019; remaining endpoints don't support open-ended discovery |
 | UKRI Gateway to Research (`gtr.ukri.org`) | Real, free, official API — but it publishes *already-awarded* grants, not open calls to apply to. Presenting historical awards as live opportunities would conflict with the platform's "never mislead" rule, so it was left out |
 | EURAXESS | No official public API found; only third-party scrapers |
+| Fulbright Program | Researched 2026-08-22. The US-student-facing site (`us.fulbrightonline.org`) is the wrong audience for this platform; the foreign-student program is administered per-country through ~160 individual US embassy pages with no single list of open calls; the one Sierra-Leone-specific page checked (`sl.usembassy.gov/educational-professional-exchanges/`) returned a generic "Technical Difficulties" error page rather than real content — no single stable page to scrape reliably |
 
-**The remaining real coverage gap**: named, well-known scholarship programs.
-Source 2 above (Grants.gov, filtered to individually-eligible awards) adds
-some individually-awarded US federal funding, but almost none of the
-well-known scholarship providers (DAAD, Chevening, Fulbright, Commonwealth
-Scholarships, university-specific funds) publish a public API. Closing that
-gap needs either a licensed commercial data feed or per-provider
-partnership/manual-entry work — a materially different and larger effort
-than the API integrations above, and not yet undertaken.
+DAAD, Chevening, and Commonwealth Scholarships were in this table until
+2026-08-22 for the same reason as the rows above (no public API) — they are
+now sources 8–10, added via the web-scraper tier once that became an
+explicitly approved ingestion method (see the top of this document).
+
+**The remaining real coverage gap**: most other named, well-known
+scholarship programs — university-specific funds and smaller foundations —
+still publish no public API and have not been evaluated for scraping.
+Closing that gap further needs either a licensed commercial data feed,
+per-provider partnership/manual-entry work, or evaluating specific
+additional named sites for scraping the same way sources 8–12 were (see
+`app/services/web_scraper_base.py`) — not a generic crawler.
 
 ## Source registry data model
 
@@ -157,10 +364,11 @@ Each row above is a real `OpportunitySource` database record
 (`app/models/external_opportunity.py`), seeded idempotently by
 `app/services/source_registry.py`'s `SOURCE_DEFINITIONS` at startup/first
 sync. Administrators can deactivate/reactivate a source via
-`PATCH /external-opportunities/sources/{source}` (audited); adding an
-*eighth* source today requires a code change to `SOURCE_DEFINITIONS`, not a
-UI action — a Super-Administrator-editable source registry UI (as described
-in the platform specification §5/§18) does not exist yet.
+`PATCH /external-opportunities/sources/{source}` (audited); adding a new
+source still requires a code change to `SOURCE_DEFINITIONS` (and, for a
+scraper, a new `WebScraperSource` subclass), not a UI action — a
+Super-Administrator-editable source registry UI (as described in the
+platform specification §5/§18) does not exist yet.
 
 Live per-source health (last successful/failed sync, most recent error,
 next scheduled run) is available to verification staff at

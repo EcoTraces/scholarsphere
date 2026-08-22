@@ -14,7 +14,17 @@ from app.models.notification import (
 )
 from app.services.parsing import utc_now
 
-_CONFIGURED_CHANNELS = frozenset({"in_app", "email", "push"})
+_CONFIGURED_CHANNELS = frozenset({"in_app"})
+"""Channels with a real delivery mechanism today.
+
+``in_app`` genuinely delivers: the row's existence in this table *is* the
+delivery surface the applicant reads. There is no SMTP/ESP or FCM/APNs
+integration anywhere in this backend, so ``email`` and ``push`` must not be
+listed here - doing so previously made ``process_due_notifications`` mark
+those channels "delivered" when nothing was ever sent. A notification whose
+only channels are undeliverable now correctly reports ``failed`` instead of
+a fabricated success.
+"""
 _DUE_STATUSES = (
     NotificationDeliveryStatus.scheduled,
     NotificationDeliveryStatus.queued,

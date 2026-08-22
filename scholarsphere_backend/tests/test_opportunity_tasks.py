@@ -263,12 +263,31 @@ async def _seed_officer_history(
             )
 
 
+def _force_firebase_roster_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Deterministically exercise the audit-log fallback path.
+
+    A real (unmocked) Firebase call would try to reach a live project this
+    test environment does not have - forcing the error directly keeps
+    these tests fast and deterministic instead of depending on a real
+    network failure. This is exactly the real condition this environment
+    is in today (no Firebase credentials configured), so it is an honest
+    simulation, not an artificial one.
+    """
+
+    def _raise() -> list[str]:
+        raise opportunity_sync.FirebaseRosterError("no Firebase credentials in test environment")
+
+    monkeypatch.setattr(opportunity_sync, "list_reverification_recipient_uids", _raise)
+
+
 @pytest.mark.asyncio
 async def test_reverification_reminders_creates_a_real_in_app_notification(
     task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from app.models.notification import ScholarSphereNotification
 
+    _force_firebase_roster_unavailable(monkeypatch)
     await _seed_reverification_due_opportunity(task_database)
     await _seed_officer_history(task_database, actor_id="officer-1")
 
@@ -293,9 +312,11 @@ async def test_reverification_reminders_creates_a_real_in_app_notification(
 @pytest.mark.asyncio
 async def test_reverification_reminders_are_not_duplicated_on_rerun(
     task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from app.models.notification import ScholarSphereNotification
 
+    _force_firebase_roster_unavailable(monkeypatch)
     await _seed_reverification_due_opportunity(task_database)
     await _seed_officer_history(task_database, actor_id="officer-1")
 
@@ -312,6 +333,7 @@ async def test_reverification_reminders_are_not_duplicated_on_rerun(
 @pytest.mark.asyncio
 async def test_reverification_reminders_respect_disabled_preferences(
     task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from app.models.notification import (
         NotificationFrequency,
@@ -319,6 +341,7 @@ async def test_reverification_reminders_respect_disabled_preferences(
         ScholarSphereNotification,
     )
 
+    _force_firebase_roster_unavailable(monkeypatch)
     await _seed_reverification_due_opportunity(task_database)
     await _seed_officer_history(task_database, actor_id="officer-1")
     async with task_database() as session:
@@ -343,10 +366,12 @@ async def test_reverification_reminders_respect_disabled_preferences(
 @pytest.mark.asyncio
 async def test_reverification_reminders_report_zero_recipients_honestly(
     task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # No officer has ever taken a real verification action in this
     # database - the task must not fabricate a recipient list, it should
     # report the real due count with zero reminders sent.
+    _force_firebase_roster_unavailable(monkeypatch)
     await _seed_reverification_due_opportunity(task_database)
 
     result = await opportunity_sync._send_reverification_reminders()
@@ -356,3 +381,59 @@ async def test_reverification_reminders_report_zero_recipients_honestly(
         "recipients": 0,
         "reminders_created": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_reverification_reminders_use_real_firebase_roster_when_available(
+    task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The primary path: an officer who has NEVER made a verification
+
+    decision (no ImportAuditLog activity at all) still receives a
+    reminder, because the real Firebase roster - not decision history -
+    is now the primary recipient source. This is exactly the gap the
+    audit-log-only heuristic could not close.
+    """
+    from app.models.notification import ScholarSphereNotification
+
+    monkeypatch.setattr(
+        opportunity_sync,
+        "list_reverification_recipient_uids",
+        lambda: ["brand-new-officer"],
+    )
+    await _seed_reverification_due_opportunity(task_database)
+    # Deliberately no _seed_officer_history() call - this officer has zero
+    # decision history and would have been invisible to the old heuristic.
+
+    result = await opportunity_sync._send_reverification_reminders()
+
+    assert result == {
+        "opportunities_due": 1,
+        "recipients": 1,
+        "reminders_created": 1,
+    }
+    async with task_database() as session:
+        rows = (await session.scalars(select(ScholarSphereNotification))).all()
+    assert len(rows) == 1
+    assert rows[0].user_id == "brand-new-officer"
+
+
+@pytest.mark.asyncio
+async def test_reverification_reminders_fall_back_to_audit_log_on_firebase_error(
+    task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Explicit test of the degraded-but-honest fallback: when Firebase
+
+    enumeration fails, real prior-decision history is used instead of
+    silently sending zero reminders.
+    """
+    _force_firebase_roster_unavailable(monkeypatch)
+    await _seed_reverification_due_opportunity(task_database)
+    await _seed_officer_history(task_database, actor_id="fallback-officer")
+
+    result = await opportunity_sync._send_reverification_reminders()
+
+    assert result["recipients"] == 1
+    assert result["reminders_created"] == 1

@@ -28,6 +28,7 @@ from app.schemas.external_source import (
     OpportunityEditRequest,
     OpportunityEditResponse,
     OpportunityNoteRequest,
+    PendingOpportunityItem,
     PendingOpportunityPage,
     OpportunityState,
     PublicationRequest,
@@ -48,6 +49,7 @@ from app.schemas.opportunity_public import (
 )
 from app.services.eu_funding import EUFundingSource
 from app.services.audit import append_audit
+from app.services.verification_confidence import ConfidenceAssessment, assess_confidence
 from app.services.evidence import build_opportunity_evidence
 from app.services.parsing import sanitize_html
 from app.services.grants_gov import GrantsGovSource
@@ -340,6 +342,15 @@ async def list_sync_history(
     )
 
 
+def _pending_item(
+    opportunity: ExternalOpportunity, assessment: ConfidenceAssessment
+) -> PendingOpportunityItem:
+    item = PendingOpportunityItem.model_validate(opportunity)
+    item.confidence_level = assessment.level
+    item.confidence_reasons = assessment.reasons
+    return item
+
+
 @router.get("/pending-verification", response_model=PendingOpportunityPage)
 async def list_pending_verification(
     _: Annotated[AuthenticatedUser, Depends(preview_access)],
@@ -347,9 +358,17 @@ async def list_pending_verification(
     source: str | None = None,
     keyword: Annotated[str | None, Query(max_length=200)] = None,
     duplicate_only: bool = False,
+    sort: Literal["collected_at", "confidence"] = "collected_at",
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> PendingOpportunityPage:
+    """`sort=confidence` surfaces the most trustworthy-looking pending
+    records first (see app/services/verification_confidence.py) so an
+    officer working through a growing queue can triage - this is a
+    priority hint only. It never changes what requires approval: every
+    record here, regardless of confidence, still needs an officer's
+    explicit `approved` decision before it can be published.
+    """
     filters = [
         ExternalOpportunity.verification_status == VerificationStatus.pending,
         ExternalOpportunity.publication_status == PublicationStatus.unpublished,
@@ -368,17 +387,48 @@ async def list_pending_verification(
     total = await session.scalar(
         select(func.count(ExternalOpportunity.id)).where(*filters)
     )
-    items = (
-        await session.scalars(
-            select(ExternalOpportunity)
-            .where(*filters)
-            .order_by(ExternalOpportunity.collected_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
-        )
-    ).all()
+
+    if sort == "confidence":
+        # Confidence has no SQL column to order by - assess a bounded
+        # window of the queue (an officer's realistic daily workload, not
+        # an unbounded scan) and sort/paginate in Python.
+        candidates = (
+            await session.scalars(
+                select(ExternalOpportunity)
+                .options(joinedload(ExternalOpportunity.source))
+                .where(*filters)
+                .order_by(ExternalOpportunity.collected_at.desc())
+                .limit(1000)
+            )
+        ).all()
+        assessed = [
+            (opportunity, assess_confidence(opportunity, opportunity.source))
+            for opportunity in candidates
+        ]
+        assessed.sort(key=lambda pair: pair[1].score, reverse=True)
+        start = (page - 1) * page_size
+        items = [
+            _pending_item(opportunity, assessment)
+            for opportunity, assessment in assessed[start : start + page_size]
+        ]
+    else:
+        rows = (
+            await session.scalars(
+                select(ExternalOpportunity)
+                .options(joinedload(ExternalOpportunity.source))
+                .where(*filters)
+                .order_by(ExternalOpportunity.collected_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        ).all()
+        items = [
+            _pending_item(opportunity, assess_confidence(opportunity, opportunity.source))
+            for opportunity in rows
+        ]
+
     return PendingOpportunityPage(
-        items=list(items), total=total or 0, page=page, page_size=page_size
+        items=items, total=total or 0, page=page, page_size=page_size
     )
 
 

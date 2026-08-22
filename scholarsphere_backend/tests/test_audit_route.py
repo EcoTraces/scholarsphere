@@ -263,3 +263,96 @@ async def test_enforce_retention_removes_expired_and_keeps_chain_continuous(
 
         intact = await client.get("/api/v1/audit/integrity")
         assert intact.json() is True
+
+
+@pytest.mark.asyncio
+async def test_import_records_requires_audit_access(session: AsyncSession) -> None:
+    overrides(session, "applicant")
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/api/v1/audit/import-records")
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_import_records_readable_by_security_administrator(
+    session: AsyncSession,
+) -> None:
+    """The gap this route closes: a Security Administrator previously had
+
+    no way to read ImportAuditLog (the pipeline covering opportunity
+    verification and provider lifecycle actions) even though the role
+    already had read access to the separate AuditRecord trail.
+    """
+    from app.models import ImportAuditLog
+
+    async with session.begin():
+        session.add(
+            ImportAuditLog(
+                actor_id="officer-1",
+                actor_role="verificationOfficer",
+                action="verification_approved",
+                entity_type="external_opportunity",
+                entity_id="00000000-0000-0000-0000-000000000001",
+                result="success",
+                correlation_id="corr-import-1",
+            )
+        )
+        session.add(
+            ImportAuditLog(
+                actor_id="owner-1",
+                actor_role="opportunityProvider",
+                action="provider_registered",
+                entity_type="provider",
+                entity_id="00000000-0000-0000-0000-000000000002",
+                result="success",
+                correlation_id="corr-import-2",
+            )
+        )
+
+    overrides(session, "securityAdministrator")
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/api/v1/audit/import-records")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 2
+    actions = {item["action"] for item in body["items"]}
+    assert actions == {"verification_approved", "provider_registered"}
+
+
+@pytest.mark.asyncio
+async def test_import_records_filter_by_actor_and_paginate(session: AsyncSession) -> None:
+    from app.models import ImportAuditLog
+
+    async with session.begin():
+        for index in range(3):
+            session.add(
+                ImportAuditLog(
+                    actor_id="officer-1" if index < 2 else "officer-2",
+                    actor_role="verificationOfficer",
+                    action="verification_approved",
+                    entity_type="external_opportunity",
+                    entity_id=f"00000000-0000-0000-0000-00000000000{index}",
+                    result="success",
+                    correlation_id=f"corr-{index}",
+                )
+            )
+
+    overrides(session, "administrator")
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        filtered = await client.get(
+            "/api/v1/audit/import-records", params={"actor_id": "officer-1"}
+        )
+        paged = await client.get(
+            "/api/v1/audit/import-records", params={"page": 1, "page_size": 2}
+        )
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] == 2
+    assert paged.status_code == 200
+    assert paged.json()["total"] == 3
+    assert len(paged.json()["items"]) == 2

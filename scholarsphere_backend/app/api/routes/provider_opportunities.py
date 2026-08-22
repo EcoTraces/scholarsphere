@@ -52,6 +52,35 @@ async def _relationship(
     return provider if admin is not None else None
 
 
+async def _submitter_permission_check(
+    session: AsyncSession, provider: Provider, uid: str
+) -> None:
+    """Enforce the *specific* administrator's own granted permissions, not
+
+    just the organization's aggregate ones. The owner (provider.user_id)
+    always has full control of their own organization; a delegate
+    ProviderAdministrator only gets publish_opportunities capability if
+    that permission was actually granted to them individually via
+    POST /providers/{id}/administrators - previously this was stored but
+    never checked, so any linked administrator of a verified provider
+    could submit opportunities regardless of the permission subset they
+    were assigned.
+    """
+    if provider.user_id == uid:
+        return
+    admin = await session.scalar(
+        select(ProviderAdministrator).where(
+            ProviderAdministrator.provider_id == provider.id,
+            ProviderAdministrator.user_id == uid,
+        )
+    )
+    if admin is None or ProviderPermission.publish_opportunities.value not in admin.permissions:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to submit opportunities for this organization.",
+        )
+
+
 @router.post("", response_model=ProviderOpportunityRead)
 async def submit_opportunity(
     payload: ProviderOpportunityCreate,
@@ -75,6 +104,7 @@ async def submit_opportunity(
                 status_code=409,
                 detail="Only verified providers with publish permission can submit opportunities.",
             )
+        await _submitter_permission_check(session, provider, user.uid)
         opportunity = ProviderOpportunity(
             provider_id=provider.id,
             submitted_by=user.uid,

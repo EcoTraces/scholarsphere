@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import AuthenticatedUser, get_current_user
 from app.core.rbac import require_roles
 from app.db.session import get_db
+from app.models import ImportAuditLog
 from app.models.audit_log import AuditAction, AuditRecord, AuditResult, AuditRetentionPolicy
 from app.schemas.audit_log import (
     AuditExportRead,
@@ -15,6 +16,8 @@ from app.schemas.audit_log import (
     AuditRetentionPolicyRead,
     AuditRetentionPolicySave,
     EnforceRetentionRead,
+    ImportAuditRecordPage,
+    ImportAuditRecordRead,
 )
 from app.services.audit_log import enforce_retention, verify_integrity
 
@@ -139,6 +142,56 @@ async def export_records(
         ),
     ]
     return AuditExportRead(csv="\n".join(lines))
+
+
+@router.get("/import-records", response_model=ImportAuditRecordPage)
+async def search_import_records(
+    _: Annotated[AuthenticatedUser, audit_access],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    actor_id: Annotated[str | None, Query()] = None,
+    action: Annotated[str | None, Query()] = None,
+    entity_type: Annotated[str | None, Query()] = None,
+    entity_id: Annotated[str | None, Query()] = None,
+    result: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> ImportAuditRecordPage:
+    """Read access to ImportAuditLog - the opportunity-pipeline and
+
+    provider-lifecycle audit trail. Previously had no read endpoint at
+    all: `AuditRecord` (searched above) is a separate trail covering
+    backup/collection/data_lifecycle/release/system_configuration only,
+    so a Security Administrator had no way to read the audit trail that
+    actually protects this platform's core "Verified" trust label. Gated
+    on the same audit_access roles as every other route in this file.
+    """
+    filters = []
+    if actor_id is not None:
+        filters.append(ImportAuditLog.actor_id == actor_id)
+    if action is not None:
+        filters.append(ImportAuditLog.action == action)
+    if entity_type is not None:
+        filters.append(ImportAuditLog.entity_type == entity_type)
+    if entity_id is not None:
+        filters.append(ImportAuditLog.entity_id == entity_id)
+    if result is not None:
+        filters.append(ImportAuditLog.result == result)
+    total = await session.scalar(select(func.count(ImportAuditLog.id)).where(*filters))
+    rows = (
+        await session.scalars(
+            select(ImportAuditLog)
+            .where(*filters)
+            .order_by(ImportAuditLog.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+    ).all()
+    return ImportAuditRecordPage(
+        items=[ImportAuditRecordRead.model_validate(row) for row in rows],
+        total=total or 0,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/integrity", response_model=bool)

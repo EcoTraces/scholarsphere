@@ -16,8 +16,10 @@ this session, not copied from an earlier point in time.
 - **Opportunity backend**: FastAPI (async) + PostgreSQL (SQLAlchemy 2.0) +
   Celery/Redis, in `scholarsphere_backend/`. Auth fully delegated to
   Firebase — no local password/JWT code exists.
-- **Data ingestion**: six official structured APIs, no scraping (§4,
-  `docs/AUTHORITATIVE_SOURCES.md`).
+- **Data ingestion**: seven official structured APIs, plus (as of
+  2026-08-22) five web-scraper sources for named organizations with no
+  official API — all twelve feed the same mandatory human-verification
+  queue (§4, `docs/AUTHORITATIVE_SOURCES.md`).
 - **Deployment artifacts**: root `Dockerfile` (Flutter web → nginx),
   `scholarsphere_backend/Dockerfile` + `docker-compose.yml`
   (api/worker/beat/postgres/redis), `.github/workflows/ci.yml`.
@@ -79,15 +81,28 @@ falsely-reassuring pass. It remains an explicit open item (§9).
 
 ## 4. Source reliability
 
-All six integrated sources are official government/international-org APIs
-(Level 1 — primary/authoritative), not scraped or aggregator content — see
-`docs/AUTHORITATIVE_SOURCES.md` for the full registry with real base URLs,
-trust levels, and the sources that were evaluated and deliberately rejected.
-The single largest coverage gap is individual-student scholarships and
-fellowships (DAAD, Chevening, Fulbright, etc.) — none of the well-known
-providers publish a public API, and closing that gap needs a licensed data
-feed or per-provider partnership work, not more of the current integration
-pattern.
+Seven integrated sources are official government/international-org APIs
+(Level 1 — primary/authoritative). **Update, 2026-08-22**: five more
+sources (Commonwealth Scholarships, Chevening, DAAD, Chinese Embassy in
+Sierra Leone, Sierra Leone's Ministry of Technical and Higher Education)
+were added via a new web-scraper tier, confirmed to have no official API/
+RSS/dataset each — see `docs/AUTHORITATIVE_SOURCES.md` #8-#12 for the
+per-source research and robots.txt/terms check. These carry a lower
+`trust_level` (`web_scraped`, vs `official` for the API sources), which
+feeds into the confidence-triage signal
+(`app/services/verification_confidence.py`) but does **not** exempt them
+from the same mandatory human verification every source goes through — see
+`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §6. `docs/AUTHORITATIVE_SOURCES.md`
+has the full registry with real base URLs, trust levels, and the sources
+that were evaluated and deliberately rejected (including Fulbright, checked
+2026-08-22).
+
+The remaining real coverage gap is most other named individual-student
+scholarships and fellowships (university-specific funds, smaller
+foundations) — none publish a public API and most have not been evaluated
+for scraping; closing that gap further needs a licensed data feed,
+per-provider partnership work, or evaluating specific additional named
+sites the same way the five above were.
 
 ## 5. Verification workflow
 
@@ -172,10 +187,11 @@ exists here.
   repo.
 - `GET /external-opportunities/health` exposes per-source sync health
   (last success/failure, most recent error, next scheduled run) to staff.
-- **Gap, stated plainly**: no endpoint exposes the audit log
-  (`ImportAuditLog`) or rate-limit events for reading — a Security Officer
-  role exists in the RBAC set but has nothing to look at yet
-  (`docs/SECURITY_MODEL.md` §11).
+- **(2026-08-22)** `GET /audit/import-records` now exposes `ImportAuditLog`
+  for reading (filtering + pagination), gated on the same
+  `administrator`/`securityAdministrator`/`superAdministrator` roles as the
+  rest of `audit.py` — see `Task.md`/`Changelog.md`. Rate-limit events still
+  have no read endpoint.
 
 ## 10. Deployment
 
@@ -196,9 +212,9 @@ carried forward, unchanged:
 
 | Risk | Severity | Status |
 |---|---|---|
-| 35 of 36 Flutter feature areas (notifications, documents, provider self-submission, admin analytics, fraud detection, etc.) have no real backend | High (completeness) | Unchanged this session. Verification moved from demo to real this session; applications moved to real concurrently (not by this session). Everything else remains in-memory demo data. |
-| The concurrently-landed `applications` backend has not been security-reviewed | Medium-High, until reviewed | Open — needs the same §2 checklist pass this session gave the verification backend |
-| No Security Officer read access to audit/rate-limit data | Medium | Open, tracked in `docs/SECURITY_MODEL.md` §11 |
+| 35 of 36 Flutter feature areas had no real backend | High (completeness) | **Stale as of 2026-08-21/22** — per `Task.md`, the large majority of the 36 feature areas are now wired to real FastAPI backends; this row and this report predate that work and need a full refresh, not a patch edit. |
+| The `applications`/`verification`/`providers`/`provider_opportunities` backends had not been security-reviewed | Medium-High, until reviewed | **Resolved 2026-08-22** — independent §2-checklist review completed; 4 real gaps found and fixed (missing audit trail, permission-storage format bug, per-administrator permission-enforcement gap, unconstrained decision field), 0 IDOR/auth-bypass found. See `Task.md`/`Changelog.md` 2026-08-22 entry. |
+| No Security Officer read access to audit/rate-limit data | Medium | **Partially resolved 2026-08-22** — `GET /audit/import-records` now exposes `ImportAuditLog`. Rate-limit events still have no read endpoint. |
 | `firebase-admin`'s transitive `uuid` CVE (moderate) | Moderate | No upstream fix available; CI gates on `--audit-level=high` so this known, accepted finding doesn't block builds |
 | Firebase console bundle-ID re-registration | Medium, blocks Google Sign-In on renamed apps | Requires console access outside any coding session |
 | Unsigned mobile release builds | Medium, blocks app-store submission | Requires the team's own signing keystore |

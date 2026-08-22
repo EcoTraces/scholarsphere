@@ -34,6 +34,45 @@ class AuditRecordRead(BaseModel):
         return value.value if hasattr(value, "value") else str(value)
 
 
+class ImportAuditRecordRead(BaseModel):
+    """Read shape for ImportAuditLog - the append-only trail covering the
+
+    opportunity import/verification pipeline and provider lifecycle
+    actions (app/services/audit.py::append_audit), distinct from
+    AuditRecord above (backup/collection/data_lifecycle/release/
+    system_configuration, app/services/audit_log.py). Previously had no
+    read endpoint at all despite covering the pipeline that protects this
+    platform's core "Verified" trust label - see Task.md.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    opportunity_id: str | None
+    actor_id: str | None
+    actor_role: str | None
+    action: str
+    entity_type: str
+    entity_id: str
+    result: str
+    previous_value: dict | None
+    new_value: dict | None
+    correlation_id: str
+    created_at: datetime
+
+    @field_validator("id", "opportunity_id", mode="before")
+    @classmethod
+    def _stringify_opportunity_id(cls, value: object) -> str | None:
+        return None if value is None else str(value)
+
+
+class ImportAuditRecordPage(BaseModel):
+    items: list[ImportAuditRecordRead]
+    total: int
+    page: int
+    page_size: int
+
+
 class AuditRetentionPolicyRead(BaseModel):
     retention_days: int
 

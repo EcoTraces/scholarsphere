@@ -154,7 +154,7 @@ granted a tool that can itself change `verification_status`, create a
 source, or write to `ImportAuditLog`/`VerificationHistory`, and every
 AI-produced field must carry `{value, source_url, confidence}` with the
 official source's value always winning on conflict (see
-`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §9).
+`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §10).
 
 ## 7. Secrets management
 

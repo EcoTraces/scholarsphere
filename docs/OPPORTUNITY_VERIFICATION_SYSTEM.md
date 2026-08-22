@@ -12,11 +12,19 @@ than implied.
 
 Two pipelines exist today:
 
-- **Automated import**, from five official structured APIs (see
-  `docs/AUTHORITATIVE_SOURCES.md`) into a human review queue.
+- **Automated import**, from seven official structured APIs and five
+  web-scraper sources (see `docs/AUTHORITATIVE_SOURCES.md`) into a human
+  review queue. The scraper sources exist only for organizations with no
+  official API, RSS feed, or dataset; they are governed by the same
+  "never invent data" rule as every other source and land in exactly the
+  same queue below — **web scraping changes how data is retrieved, never
+  whether a human approves it.**
 - **Human verification**, performed by a Verification Officer (or an
   Administrator/Super Administrator acting in that capacity) through the
-  live queue described in §5.
+  live queue described in §5. This remains mandatory for every source,
+  including the highest-trust official APIs — see §6 for the
+  triage/priority signal that helps an officer work through a growing
+  queue without weakening that requirement.
 
 Not yet built: opportunity-provider self-submission, a Security Officer
 dashboard, and a Super Administrator source-registry editor. These are
@@ -26,11 +34,16 @@ implied to exist here.
 ## 2. Pipeline
 
 ```
-Official source API
+Official source API, or a source's own public web page
       |
    FETCH            app/services/{grants_gov,simpler_grants,eu_funding,
-      |              usajobs,reliefweb}.py — HTTPS-only, timeout + size-capped,
-      |              bounded retries (app/core/http_client.py)
+      |              usajobs,reliefweb}.py (API sources) or
+      |              app/services/web_scraper_base.py subclasses
+      |              (cscuk_scholarships, chevening, daad_scholarships,
+      |              embassy_announcements) — HTTPS-only, timeout +
+      |              size-capped, bounded retries either way
+      |              (app/core/http_client.py::get_json/get_html);
+      |              scrapers additionally rate-limit per host
       v
    NORMALIZE         NormalizedExternalOpportunity (app/schemas/external_opportunity.py)
       |              description HTML-sanitized (bleach) at this step
@@ -170,7 +183,31 @@ expires anything past its deadline automatically. The manual action exists
 for a source whose deadline field is missing, wrong, or ambiguous but that
 an officer has independently confirmed is closed.
 
-## 6. Publication is a separate, deliberate step
+## 6. Explainable confidence triage (never a bypass)
+
+`GET .../pending-verification?sort=confidence` (added 2026-08-22,
+`app/services/verification_confidence.py`) surfaces the most
+trustworthy-looking pending records first, to help an officer work through
+a growing queue. It is a **priority hint only**:
+
+- It never sets `verification_status` or `publication_status` — nothing in
+  the codebase gives it a path to do so.
+- Every record, regardless of its confidence level, still needs an
+  officer's explicit `approved` decision with all four checklist items
+  before it can be published — exactly the same requirement as §3–§4.
+- It is deterministic and rule-based, not AI/ML (see §10): official-API
+  source (+40), web-scraped source (+15), no cross-source duplicate flag,
+  all key fields present, a plausible (not past, not absurdly distant)
+  deadline, and HTTPS source/application URLs all raise the score;
+  missing fields, a duplicate flag, or an implausible deadline lower it.
+  Every score ships with the specific `reasons` that produced it
+  (`ConfidenceAssessment.reasons`), returned to the client as
+  `confidence_level` and `confidence_reasons` on each queue item — an
+  officer can always see *why*, never just a bare number.
+- The default queue order (`collected_at desc`) is unchanged unless an
+  officer explicitly asks for `sort=confidence`.
+
+## 7. Publication is a separate, deliberate step
 
 `verified` does not mean visible. An Administrator or Super Administrator
 must separately call `POST .../opportunities/{id}/publication`
@@ -178,7 +215,7 @@ must separately call `POST .../opportunities/{id}/publication`
 approval returns `409` (enforced server-side, regression-tested:
 `scholarsphere_backend/tests/test_production_hardening.py::test_import_requires_approval_then_explicit_publication_and_audits`).
 
-## 7. Audit trail
+## 8. Audit trail
 
 Two append-only tables back every claim above:
 
@@ -195,7 +232,7 @@ Two append-only tables back every claim above:
 Neither table has a read endpoint for the Security Officer role yet — see
 `docs/PRODUCTION_SECURITY_AUDIT.md` §2.6/§18 for that gap.
 
-## 8. Duplicate handling
+## 9. Duplicate handling
 
 Cross-source duplicate candidates are flagged (`duplicate_review_required`
 on `ExternalOpportunity`) but **never merged automatically** — a human
@@ -203,19 +240,23 @@ confirms via the `duplicate_checked` box before approval. The queue can be
 filtered to duplicates-only via `?duplicate_only=true` on
 `GET .../pending-verification`.
 
-## 9. AI's role: none, today
+## 10. AI's role: none, today
 
 There is no AI/LLM code anywhere in this repository
 (`docs/PRODUCTION_SECURITY_AUDIT.md` §2.7, confirmed by repository-wide
 search). Every fact shown to a verification officer or an applicant comes
-directly from a structured field in an official source's API response —
-never inferred, summarized, or generated. If AI-assisted extraction or
+directly from a structured field in an official source's API response, or
+(as of 2026-08-22) directly from text actually present on a source
+organization's own web page — never inferred, summarized, or generated.
+The confidence-triage scoring in §6 is deterministic rule-based arithmetic
+over fields that are themselves never invented, not a model prediction —
+it does not change this statement. If AI-assisted extraction or
 classification is added in the future, the platform specification's
 non-negotiable rule applies: AI output must carry a source reference and a
 confidence marker, must never itself set `verification_status`, and a human
 verification officer remains the sole authority for approval.
 
-## 10. Roles referenced above
+## 11. Roles referenced above
 
 | Role | Backend enforcement | Real capability today |
 |---|---|---|
@@ -223,5 +264,5 @@ verification officer remains the sole authority for approval.
 | Administrator | same set, plus `admin_access` for publication and source activation | Everything a Verification Officer can do, plus publish/unpublish and toggle a source active/inactive |
 | Super Administrator | same as Administrator today | No additional backend capability exists yet beyond Administrator's |
 | Security Officer | not wired to any route | No backend capability exists yet — see `docs/PRODUCTION_SECURITY_AUDIT.md` §18 |
-| Opportunity Provider | not wired to any route | No submission pipeline exists yet — every opportunity today originates from the five official-API sources, not provider self-service |
+| Opportunity Provider | not wired to any route | No submission pipeline exists yet — every opportunity today originates from the twelve API/scraper sources (`docs/AUTHORITATIVE_SOURCES.md`), not provider self-service |
 | Applicant | `get_current_user` only (no role check) | Read-only access to `GET /opportunities` and its detail/evidence sub-routes, restricted server-side to `verified` + `published` records only |

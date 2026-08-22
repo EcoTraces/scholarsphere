@@ -75,6 +75,74 @@ async def test_process_due_notifications_task_is_global(
 
 
 @pytest.mark.asyncio
+async def test_process_due_notifications_task_does_not_fabricate_email_or_push_delivery(
+    task_database: async_sessionmaker[AsyncSession],
+) -> None:
+    """No SMTP/ESP or FCM/APNs provider is integrated in this backend, so a
+
+    notification whose only channels are email/push must not be reported as
+    delivered - that would be a fabricated success. A notification that also
+    includes in_app still delivers honestly, since the in-app row itself is
+    the real delivery surface for that channel.
+    """
+    async with task_database() as session:
+        async with session.begin():
+            session.add_all(
+                [
+                    ScholarSphereNotification(
+                        id="email-only",
+                        user_id="user-x",
+                        type="deadline_reminder",
+                        title="t",
+                        message="m",
+                        channels=["email"],
+                        scheduled_for=date.today() - timedelta(days=1),
+                        status=NotificationDeliveryStatus.scheduled,
+                        retry_count=0,
+                        timezone="UTC",
+                    ),
+                    ScholarSphereNotification(
+                        id="push-only",
+                        user_id="user-y",
+                        type="deadline_reminder",
+                        title="t",
+                        message="m",
+                        channels=["push"],
+                        scheduled_for=date.today() - timedelta(days=1),
+                        status=NotificationDeliveryStatus.scheduled,
+                        retry_count=0,
+                        timezone="UTC",
+                    ),
+                    ScholarSphereNotification(
+                        id="in-app-and-email",
+                        user_id="user-z",
+                        type="deadline_reminder",
+                        title="t",
+                        message="m",
+                        channels=["in_app", "email"],
+                        scheduled_for=date.today() - timedelta(days=1),
+                        status=NotificationDeliveryStatus.scheduled,
+                        retry_count=0,
+                        timezone="UTC",
+                    ),
+                ]
+            )
+
+    result = process_due_notifications.run()
+    assert result == {"processed": 3, "delivered": 1, "failed": 2}
+
+    async with task_database() as session:
+        email_only = await session.get(ScholarSphereNotification, "email-only")
+        push_only = await session.get(ScholarSphereNotification, "push-only")
+        mixed = await session.get(ScholarSphereNotification, "in-app-and-email")
+    assert email_only.status == NotificationDeliveryStatus.failed
+    assert email_only.failure_reason == "Delivery provider is not configured."
+    assert push_only.status == NotificationDeliveryStatus.failed
+    assert push_only.failure_reason == "Delivery provider is not configured."
+    assert mixed.status == NotificationDeliveryStatus.delivered
+
+
+@pytest.mark.asyncio
 async def test_retry_failed_notifications_task(
     task_database: async_sessionmaker[AsyncSession],
 ) -> None:

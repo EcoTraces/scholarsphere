@@ -57,6 +57,44 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "community",
     },
+    # Web-scraper sources - no official API/RSS/dataset exists for these
+    # organizations (see docs/AUTHORITATIVE_SOURCES.md #8-#12). trust_level
+    # "web_scraped" is deliberately lower than "official": it still lands
+    # in the same mandatory human-verification queue as every other
+    # source (never auto-published - see
+    # docs/OPPORTUNITY_VERIFICATION_SYSTEM.md), but scores lower in
+    # app/services/verification_confidence.py so an officer sees the
+    # trust distinction explicitly rather than it being silently implied.
+    "cscuk_scholarships": {
+        "source_name": "Commonwealth Scholarships (CSC UK)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "chevening": {
+        "source_name": "Chevening Scholarships",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "daad_scholarships": {
+        "source_name": "DAAD Scholarship Database",
+        "source_type": "quasi_governmental",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "china_embassy_sl": {
+        "source_name": "Chinese Embassy in Sierra Leone (Scholarship Announcements)",
+        "source_type": "embassy",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "mthe_sierra_leone": {
+        "source_name": "Sierra Leone Ministry of Technical and Higher Education",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -72,6 +110,11 @@ def _base_urls() -> dict[str, str]:
         "reliefweb_jobs": f"{reliefweb_base}/jobs",
         "reliefweb_training": f"{reliefweb_base}/training",
         "manual_collection": "",
+        "cscuk_scholarships": settings.cscuk_base_url,
+        "chevening": settings.chevening_base_url,
+        "daad_scholarships": settings.daad_base_url,
+        "china_embassy_sl": settings.china_embassy_sl_base_url,
+        "mthe_sierra_leone": settings.mthe_sl_base_url,
     }
 
 
@@ -99,6 +142,15 @@ async def seed_opportunity_sources(
         "usajobs": now + timedelta(hours=6),
         "reliefweb_jobs": now + timedelta(hours=6),
         "reliefweb_training": now + timedelta(hours=12),
+        # Web-scraper sources sync once daily, not every 6-12h like the
+        # official APIs - lower volume of change, and a deliberately
+        # gentler request cadence for sources without a documented rate
+        # limit of their own (see docs/AUTHORITATIVE_SOURCES.md).
+        "cscuk_scholarships": now + timedelta(hours=24),
+        "chevening": now + timedelta(hours=24),
+        "daad_scholarships": now + timedelta(hours=24),
+        "china_embassy_sl": now + timedelta(hours=24),
+        "mthe_sierra_leone": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
