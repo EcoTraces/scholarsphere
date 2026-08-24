@@ -35,6 +35,7 @@ from app.api.routes.source_registry import router as source_registry_router
 from app.api.routes.support import router as support_router
 from app.api.routes.system_configuration import router as system_configuration_router
 from app.api.routes.taxonomy import router as taxonomy_router
+from app.core.auth import initialize_firebase
 from app.core.config import get_settings
 from app.core.errors import install_error_handling
 from app.core.rate_limit import install_rate_limiting
@@ -44,8 +45,36 @@ from app.db.session import AsyncSessionFactory, dispose_engine
 settings = get_settings()
 
 
+def ensure_firebase_ready_in_production(current_settings) -> None:
+    """Fail fast at startup, with an actionable message, if Firebase Admin
+    SDK can't initialize in production.
+
+    Firebase Admin SDK initialization is otherwise lazy (first call to
+    get_current_user) - that means a bad/missing credential would surface
+    as a confusing 401/500 on the *first authenticated request* in
+    production, not at deploy time. This exercises whichever credential
+    mechanism is actually active (an explicit FIREBASE_CREDENTIALS_PATH or
+    Application Default Credentials - config.py only validates the former
+    when it's set, since ADC is also a valid choice on GCP infrastructure).
+    A no-op outside app_env=production.
+    """
+    if current_settings.app_env != "production":
+        return
+    try:
+        initialize_firebase()
+    except Exception as error:
+        raise RuntimeError(
+            "Firebase Admin SDK failed to initialize at startup "
+            f"(app_env=production): {error}. Set FIREBASE_CREDENTIALS_PATH "
+            "to a valid service-account JSON key, or ensure Application "
+            "Default Credentials are available (e.g. a service account "
+            "attached to the GCP compute environment)."
+        ) from error
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ensure_firebase_ready_in_production(settings)
     yield
     await app.state.rate_limiter.close()
     await dispose_engine()

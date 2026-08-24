@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.http_client import ExternalAPIError
 from app.db.base import Base
-from app.models import OpportunitySyncHistory
+from app.models import ExternalOpportunity, OpportunitySyncHistory
 from app.models.external_opportunity import SyncStatus
 from app.schemas.external_opportunity import NormalizedExternalOpportunity
 from app.tasks import opportunity_sync
@@ -84,6 +84,59 @@ async def test_task_records_running_completed_and_statistics(
     assert history.records_created == 1
     assert history.finished_at is not None
     assert result["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_rerunning_the_same_task_id_is_idempotent(
+    task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Re-running a sync with the same task_id (e.g. a Celery retry, or an
+    at-least-once broker redelivering the same message) must not create a
+    second OpportunitySyncHistory row or a duplicate opportunity - the
+    unchanged-payload path (payload_hash comparison in
+    app/services/opportunity_import.py) should report it as skipped, not
+    created again.
+    """
+    collector = SimpleNamespace(
+        collect_for_import=AsyncMock(return_value=[record("idempotent-record")])
+    )
+    monkeypatch.setattr(opportunity_sync, "_collector", lambda _: collector)
+
+    first = await opportunity_sync._run_source_sync(
+        "grants_gov",
+        task_id="task-idempotent",
+        correlation_id="correlation-idempotent",
+        triggered_by="officer-1",
+    )
+    second = await opportunity_sync._run_source_sync(
+        "grants_gov",
+        task_id="task-idempotent",
+        correlation_id="correlation-idempotent",
+        triggered_by="officer-1",
+    )
+
+    async with task_database() as session:
+        histories = (
+            await session.scalars(
+                select(OpportunitySyncHistory).where(
+                    OpportunitySyncHistory.task_id == "task-idempotent"
+                )
+            )
+        ).all()
+        opportunities = (
+            await session.scalars(
+                select(ExternalOpportunity).where(
+                    ExternalOpportunity.external_id == "idempotent-record"
+                )
+            )
+        ).all()
+
+    assert first["records_created"] == 1
+    assert second["records_created"] == 0
+    assert second["records_skipped"] == 1
+    assert len(histories) == 1, "re-running the same task_id must not create a second history row"
+    assert len(opportunities) == 1, "re-running the same task_id must not create a duplicate opportunity"
 
 
 @pytest.mark.asyncio
@@ -198,10 +251,74 @@ def test_permanent_failure_does_not_retry_indefinitely(
 
 
 def test_all_scheduled_task_names_resolve() -> None:
+    """Regression note: `celery_app.tasks` only contains whatever task
+    modules have actually been *imported* in this process - it was
+    passing only when run as part of the full suite, because some other
+    test file happened to import `app.tasks.notifications` first as a
+    side effect, registering its tasks into the shared `celery_app`
+    singleton. Running this file (or this test) alone used to fail with
+    `process_due_notifications`/`retry_failed_notifications` reported
+    missing, even though they're real, correctly-decorated tasks - a
+    test-isolation bug, not a production one (a real worker/beat process
+    loads every module in `Celery(..., include=[...])` at startup via
+    `import_default_modules()`, which is exactly what's called explicitly
+    below to make this test deterministic regardless of run order).
+    """
+    opportunity_sync.celery_app.loader.import_default_modules()
     schedule = opportunity_sync.celery_app.conf.beat_schedule
     registered = opportunity_sync.celery_app.tasks
     assert schedule
     assert all(entry["task"] in registered for entry in schedule.values())
+
+
+def test_sync_task_executes_through_the_real_celery_task_interface(
+    task_database: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """DIRECT CELERY TASK EXECUTION TEST (task_always_eager), not a real
+    broker/worker test.
+
+    Every other test in this file calls `_execute_source_task`/
+    `_run_source_sync` directly - this one instead goes through the actual
+    `@celery_app.task(bind=True, ...)` object (`sync_cscuk_scholarships`)
+    via `.apply()`, exercising the real task-binding machinery
+    (`self.request.id`, `self.max_retries`, the `bind=True` decorator
+    itself) that direct-function calls skip. `task_always_eager=True`
+    means this still runs in-process with no real broker/worker involved -
+    see Task.md for why a real Redis broker + worker + beat scheduler
+    could not be exercised in this environment (no Redis/Docker
+    available), and why that remains a separate, undone verification.
+    """
+    task_record = NormalizedExternalOpportunity(
+        source_code="cscuk_scholarships",
+        external_id="celery-task-record",
+        title="Task Scholarship",
+        opportunity_type="scholarship",
+        provider_name="Commonwealth Scholarship Commission in the UK",
+        opportunity_status="posted",
+        raw_payload={"id": "celery-task-record"},
+    )
+    collector = SimpleNamespace(
+        collect_for_import=AsyncMock(return_value=[task_record])
+    )
+    monkeypatch.setattr(opportunity_sync, "_collector", lambda _: collector)
+    opportunity_sync.celery_app.conf.task_always_eager = True
+    opportunity_sync.celery_app.conf.task_eager_propagates = True
+    try:
+        result = opportunity_sync.sync_cscuk_scholarships.apply(
+            kwargs={
+                "correlation_id": "celery-eager-correlation",
+                "triggered_by": "eager-test",
+            }
+        )
+    finally:
+        opportunity_sync.celery_app.conf.task_always_eager = False
+        opportunity_sync.celery_app.conf.task_eager_propagates = False
+
+    assert result.successful(), result.traceback
+    payload = result.get()
+    assert payload["status"] == "completed"
+    assert payload["records_created"] == 1
 
 
 async def _seed_reverification_due_opportunity(

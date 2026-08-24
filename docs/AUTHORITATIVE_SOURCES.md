@@ -19,10 +19,15 @@ the specific reasoning and the robots.txt/terms check performed before it
 was added. Every scraper still lands its output in the exact same mandatory
 human-verification queue as an API source (see
 `docs/OPPORTUNITY_VERIFICATION_SYSTEM.md`) — scraping changes *how the data
-is retrieved*, never *whether a human approves it*. All twelve sources are
-governed by the shared source-adapter architecture in `app/services/` —
+is retrieved*, never *whether a human approves it*. All twenty-one sources
+are governed by the shared source-adapter architecture in `app/services/` —
 either a thin API client (sources 1–7) or a subclass of `WebScraperSource`
-(`app/services/web_scraper_base.py`, sources 8–12).
+(`app/services/web_scraper_base.py`, sources 8–21). Sources 13–17 and
+19–21 share the `_SingleProgramSource` base
+(`app/services/national_scholarship_programs.py`), added 2026-08-23 for a
+country-coverage expansion — each is one government or quasi-governmental
+body's own page(s) for its single recurring international scholarship
+program.
 
 ---
 
@@ -326,6 +331,301 @@ either a thin API client (sources 1–7) or a subclass of `WebScraperSource`
   captured HTML. **Smoke-test this adapter against the live site, and
   correct its selectors if needed, before relying on its scheduled sync** —
   tracked in Task.md.
+
+## 13. Wells Mountain Initiative (WMI) Scholars Program
+
+- **Organization**: Wells Mountain Initiative, a US-based nonprofit
+- **Route code**: `wmi-scholars` (`wmi_scholars` internally)
+- **Official domain / base URL**: `https://www.wellsmountaininitiative.org`
+  (`WMI_BASE_URL`)
+- **Opportunity types**: Scholarship (partial funding, first undergraduate
+  degree)
+- **Country coverage**: Global, restricted to students studying *in their
+  own home region* — explicitly excludes students planning to study in the
+  US, Canada, Australia, the UK, or Western Europe (per the site's own
+  eligibility text); `country` is left `null` rather than guessed since the
+  program isn't tied to one destination
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  (`app/services/national_scholarship_programs.py::_SingleProgramSource`,
+  shared with sources 14–17 below) — not a government body, but included at
+  the user's request as a named, verified, legitimate funding organization.
+  `robots.txt` returned a JS bot-challenge page when fetched directly
+  (checked 2026-08-22/23), but the actual `/prospective-scholars/` content
+  page did not — monitored rather than treated as fully blocked.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Field mapping**: title from the `<title>` tag (the page is built with
+  the Elementor page builder and has no single clean content `<h1>`);
+  description from `.entry-content`; deadline extracted only near
+  "deadline"/"march"/"submitted by" keywords
+- **Notes**: `scholarsphere_backend/tests/test_national_scholarship_programs.py`,
+  **live-tested 2026-08-23**: real sync created 1 opportunity, title "2026
+  Scholarship Application", deadline `2026-03-06` (a real, keyword-anchored
+  extraction, not the generic "March 1" recurring date quoted in prior-year
+  summaries — the live page states this cycle's actual date)
+
+## 14. Türkiye Bursları (Türkiye Scholarships)
+
+- **Organization**: Government of Turkey, administered by the Presidency
+  for Turks Abroad and Related Communities (YTB)
+- **Route code**: `turkiye-burslari` (`turkiye_burslari` internally)
+- **Official domain / base URL**: `https://www.turkiyeburslari.gov.tr`
+  (`TURKIYE_BURSLARI_BASE_URL`)
+- **Opportunity types**: Scholarship (associate, undergraduate, master's,
+  PhD)
+- **Country coverage**: Global
+- **Discovery method**: **Web scraper, single-flagship-program pattern.**
+  `robots.txt` (checked 2026-08-23) has no restrictions. Two pages are
+  fetched: the general criteria/programs page (title, description) and a
+  dated announcement page (deadline) — a deliberate two-page design since
+  the criteria page doesn't carry the current cycle's dates.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Field mapping**: `app/services/national_scholarship_programs.py` —
+  deadline extracted near "application dates"/"deadline"/"closing date"
+- **Notes**: `scholarsphere_backend/tests/test_national_scholarship_programs.py`,
+  **live-tested 2026-08-23**: real sync created 1 opportunity, deadline
+  correctly extracted as `2026-02-20` from the real fixture text
+  "Application Dates: 10 January – 20 February 2026" (the closing date —
+  the opening date "10 January" has no year in the same phrase and is
+  correctly not extracted as a deadline)
+
+## 15. Government of Ireland International Education Scholarships (GOI-IES)
+
+- **Organization**: Government of Ireland, managed by the Higher Education
+  Authority (HEA), a statutory state agency
+- **Route code**: `ireland-goi-ies` (`ireland_goi_ies` internally)
+- **Official domain / base URL**: `https://hea.ie` (`IRELAND_HEA_BASE_URL`)
+- **Opportunity types**: Scholarship (NFQ level 9/10 — master's,
+  postgraduate diploma, PhD)
+- **Country coverage**: Global (applicants outside the EU/EEA, Switzerland,
+  and the UK)
+- **Discovery method**: **Web scraper, single-flagship-program pattern.**
+  `robots.txt` (checked 2026-08-23) only disallows `/wp-admin/`. The page
+  has no `<h1>` and no `.entry-content` (its `<article>` element is an
+  unrelated 126-character snippet) — confirmed by measuring extracted text
+  length per candidate selector rather than assuming WordPress convention
+  held; title comes from the `<title>` tag, content from `<main>`.
+- **API / RSS / Sitemap**: None published (sitemap exists but is a generic
+  WordPress sitemap, not scholarship-specific)
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Notes**: `scholarsphere_backend/tests/test_national_scholarship_programs.py`,
+  **live-tested 2026-08-23**: real sync created 1 opportunity, title
+  "Government of Ireland International Education Scholarships"; deadline
+  `null` (the policy overview page doesn't state the current cycle's
+  closing date with an adjacent year — honestly left unset rather than
+  guessed, same as the DAAD/CSC UK precedent)
+
+## 16. ICCR Scholarship Programme (India)
+
+- **Organization**: Indian Council for Cultural Relations (ICCR), an
+  autonomous organization of India's Ministry of External Affairs
+- **Route code**: `india-iccr` (`india_iccr` internally)
+- **Official domain / base URL**: `https://iccr.gov.in`
+  (`INDIA_ICCR_BASE_URL`)
+- **Opportunity types**: Scholarship (18 schemes, UG/PG/PhD across
+  Non-STEM and STEM disciplines)
+- **Country coverage**: Global (192 UN-recognised countries per the
+  program's own materials)
+- **Discovery method**: **Web scraper, single-flagship-program pattern.**
+  `robots.txt` (standard Drupal pattern, checked 2026-08-23) does not
+  block the scholarship page. The page has two `<h1>` elements — Drupal's
+  generic page-title chrome appears first in document order, and the real
+  content heading ("ICCR Scholarship Programme") is nested inside
+  `.field--name-body`, so the content-scoped selector is tried first.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **LIVE SOURCE TEST: BLOCKED — a different failure mode than a network
+  timeout.** A plain `curl` fetch succeeds (200, real HTML) — but this
+  backend's real HTTP path (`app/core/http_client.py::get_html`, httpx +
+  certifi's default trust store) fails with `SSLCertVerificationError:
+  unable to get local issuer certificate`. `iccr.gov.in`'s server is not
+  sending a complete TLS certificate chain; `curl`/Windows SChannel
+  tolerates this (it can fetch a missing intermediate certificate itself),
+  but Python's strict OpenSSL/certifi verification does not — this is not
+  an artifact of one development machine, a standard-library Python
+  deployment (the actual production stack) would very likely hit the same
+  failure. **This was deliberately not worked around with `verify=False`**
+  — that would remove real TLS security for a source whose own operators
+  need to fix their certificate chain; see the class docstring in
+  `app/services/national_scholarship_programs.py`. Implemented and
+  unit-tested against real fixture HTML captured via `curl` (not through
+  this backend's own client, given the above), but the sync itself is
+  blocked until ICCR's server configuration changes. Re-test periodically.
+
+## 17. Swedish Institute Scholarships for Global Professionals (SISGP)
+
+- **Organization**: Swedish Institute (Svenska institutet), a Swedish
+  government agency
+- **Route code**: `sweden-si-scholarship` (`sweden_si_scholarship`
+  internally)
+- **Official domain / base URL**: `https://si.se` (`SWEDEN_SI_BASE_URL`)
+- **Opportunity types**: Scholarship (full-time master's study)
+- **Country coverage**: Citizens of 34 eligible countries (per the
+  program's own materials)
+- **Discovery method**: **Web scraper, single-flagship-program pattern.**
+  `robots.txt` itself returned a 403 when fetched directly (checked
+  2026-08-23, likely edge-level bot filtering on that specific path), but
+  the actual scholarship content page did not — monitored rather than
+  treated as fully blocked, same situation as source 13 (WMI) above.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Notes**: `scholarsphere_backend/tests/test_national_scholarship_programs.py`,
+  **live-tested 2026-08-23**: real sync created 1 opportunity, title "SI
+  Scholarship for Global Professionals"; deadline `null` (this page states
+  the application window only as month names without an adjacent year at
+  fetch time — honestly left unset)
+
+## 18. Eswatini Scholarship Loan Application System (SLAS)
+
+- **Organization**: Government of Eswatini, Ministry of Labour and Social
+  Security (Scholarship Secretariat)
+- **Route code**: `eswatini-slas` (`eswatini_slas` internally)
+- **Official domain / base URL**: `https://www.slas.gov.sz`
+  (`ESWATINI_SLAS_BASE_URL`)
+- **Opportunity types**: Scholarship/loan (local and SADC-region study —
+  Botswana, Lesotho, Zimbabwe, Tanzania, Kenya; explicitly excludes South
+  Africa and Namibia)
+- **Country coverage**: Eswatini (applicants). **Uses "Eswatini", the
+  country's official name since 2018, consistently — never "Swaziland"**,
+  per the country-name-normalization requirement for this expansion.
+- **Discovery method**: Same conservative announcement pattern as sources
+  11–12 (shared base class, `app/services/embassy_announcements.py`)
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **LIVE SOURCE TEST: NOT PERFORMED.** `https://www.slas.gov.sz` timed out
+  on every connection attempt (2026-08-22/23, both protocols) — the same
+  symptom as source 12 (MTHE) above: DNS resolves but the TCP handshake
+  never completes, pointing at a network-level issue rather than an
+  application-level block. Implemented against the same conservative
+  pattern and unit-tested against a realistic **synthetic** fixture only.
+  Smoke-test against the live site before enabling its scheduled sync.
+
+## 19. Italian Government Scholarships (MAECI)
+
+- **Organization**: Ministry of Foreign Affairs and International
+  Cooperation (MAECI), Italy
+- **Route code**: `italy-maeci-scholarships` (`italy_maeci_scholarships`
+  internally)
+- **Official domain / base URL**: `https://www.esteri.it`
+  (`ITALY_ESTERI_BASE_URL`) for the overview page; a second, related host
+  `https://studyinitaly.esteri.it` (`ITALY_STUDYINITALY_BASE_URL`) for the
+  current call's status — the first genuine two-host source in this
+  registry (`_SingleProgramSource.deadline_base_url` was added to support
+  this).
+- **Opportunity types**: Scholarship (master's, PhD, Italian Language,
+  research, Art/music/dance courses)
+- **Country coverage**: Global (eligible countries list published per
+  academic year)
+- **Discovery method**: **Web scraper, single-flagship-program pattern.**
+  `robots.txt` on both hosts (checked 2026-08-23) is empty/permissive.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Notes**: `scholarsphere_backend/tests/test_national_scholarship_programs.py`,
+  **live-tested 2026-08-23**: real sync created 1 opportunity, title
+  "Scholarships for foreign students and Italian citizens living abroad
+  awarded by the Italian Government"; deadline `null` — the live call
+  status page states the 2025-2026 call is closed with no new date
+  announced yet, correctly not treated as a deadline
+
+## 20. IKY Foreign Nationals Scholarships (Greece)
+
+- **Organization**: State Scholarships Foundation (IKY), Greece — a
+  government body operating since 1964
+- **Route code**: `greece-iky-scholarships` (`greece_iky_scholarships`
+  internally)
+- **Official domain / base URL**: `https://www.iky.gr`
+  (`GREECE_IKY_BASE_URL`)
+- **Opportunity types**: Scholarship (postgraduate studies, postdoctoral
+  research, Modern Greek Language and Culture)
+- **Country coverage**: Global (bilateral agreements vary by country)
+- **Discovery method**: **Web scraper, single-flagship-program pattern.**
+  `robots.txt` (standard WordPress pattern, checked 2026-08-23) only
+  disallows `/wp-admin/`.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Notes**: `scholarsphere_backend/tests/test_national_scholarship_programs.py`,
+  **live-tested 2026-08-23**: real sync created 1 opportunity, title
+  "Foreign Nationals Scholarships"; deadline `null` — the live page's text
+  is informational (references an old 2017-2018 language-course cycle
+  still on the page, states postgraduate scholarships are "not open for
+  this year") with no current date literal, correctly left unset
+
+## 21. National Research Foundation (NRF) Postgraduate Funding (South Africa)
+
+- **Organization**: National Research Foundation (NRF), a South African
+  statutory government research-funding agency
+- **Route code**: `south-africa-nrf` (`south_africa_nrf` internally)
+- **Official domain / base URL**: `https://www.nrf.ac.za`
+  (`SOUTH_AFRICA_NRF_BASE_URL`)
+- **Opportunity types**: Scholarship/grant (Honours, Master's, Doctoral,
+  and specialized programmes e.g. SARAO)
+- **Country coverage**: International applicants receive Partial Cost of
+  Study (PCS) funding; Full Cost of Study is citizens/permanent-residents
+  only
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading NRF's public funding-cycle announcement page (not the
+  authenticated NRF Connect application portal). `robots.txt` (standard
+  WordPress pattern, checked 2026-08-23) only disallows `/wp-admin/`.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choice**: `deadline_keywords = ()` — this adapter
+  never attempts deadline extraction. The real page publishes a *table* of
+  distinct closing dates per study level and sub-programme (Honours,
+  Master's, Doctoral, SARAO, first-time applicants, Designated-Authority
+  submissions, ...); a generic keyword-anchored extractor would pick one
+  row and mislabel it as *the* deadline for the whole opportunity — every
+  individual date is real, but attributing one to the wrong programme
+  would be misleading. Left `null` on purpose so a human officer reads the
+  actual table.
+- **LIVE SOURCE TEST: BLOCKED — the same failure mode as source #16
+  (India ICCR), not a network timeout.** A plain `curl` fetch succeeds
+  (200, real HTML), but this backend's real HTTP path (httpx + certifi's
+  default trust store) fails with `SSLCertVerificationError: unable to
+  get local issuer certificate` on repeat testing (one earlier attempt
+  surfaced as a TLS handshake timeout instead, but a retry reproduced the
+  certificate error consistently, confirming it's the same underlying
+  incomplete-chain issue rather than two separate problems).
+  `nrf.ac.za`'s server is not sending a complete certificate chain.
+  **Deliberately not worked around with `verify=False`.** Implemented and
+  unit-tested against real fixture HTML captured via `curl`. Re-test
+  periodically.
 
 ---
 

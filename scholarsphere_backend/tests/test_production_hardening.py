@@ -121,7 +121,13 @@ def test_production_accepts_real_infrastructure_credentials() -> None:
 
 
 def test_development_can_still_use_placeholder_infrastructure_credentials() -> None:
-    settings = Settings(app_env="development")
+    # _env_file=None: this test asserts Settings' own Python-level field
+    # defaults, which must hold regardless of whatever real local `.env` a
+    # developer happens to have sitting in the working directory (e.g. one
+    # pointing DATABASE_URL at a real local Postgres/SQLite instance) -
+    # without this override, the test's result would depend on ambient
+    # machine state instead of the code under test.
+    settings = Settings(_env_file=None, app_env="development")
     assert "change-me" in settings.database_url
     assert settings.redis_url == "redis://localhost:6379/0"
 

@@ -26,6 +26,15 @@ Supported sources:
 | `daad-scholarships` | DAAD Scholarship Database | Web scraper (curated seed list) | German study/research scholarships |
 | `china-embassy-sl` | Chinese Embassy in Sierra Leone | Web scraper (announcements) | Chinese Government / MOFCOM scholarships for Sierra Leonean students |
 | `mthe-sierra-leone` | Sierra Leone Ministry of Technical and Higher Education | Web scraper (announcements) | Government-announced scholarships for Sierra Leonean students (including partner-government offers, e.g. Russia) |
+| `wmi-scholars` | Wells Mountain Initiative (WMI) | Web scraper | Partial undergraduate scholarships for students studying in their own home region |
+| `turkiye-burslari` | Türkiye Bursları (Turkey) | Web scraper | Government of Turkey scholarships, all levels |
+| `ireland-goi-ies` | Government of Ireland GOI-IES | Web scraper | Irish government master's/PhD scholarships for non-EU/EEA/UK applicants |
+| `india-iccr` | ICCR Scholarship Programme (India) | Web scraper | Government of India scholarships across 18 schemes (**live-blocked**: ICCR's server has an incomplete TLS certificate chain — see `docs/AUTHORITATIVE_SOURCES.md` #16) |
+| `sweden-si-scholarship` | Swedish Institute Scholarships for Global Professionals | Web scraper | Swedish government master's scholarships |
+| `eswatini-slas` | Eswatini Scholarship Loan Application System (SLAS) | Web scraper (announcements) | Government of Eswatini local/SADC-region scholarships (**live-blocked**: network timeout, same pattern as MTHE above) |
+| `italy-maeci-scholarships` | Italian Government Scholarships (MAECI) | Web scraper | Italian government scholarships for foreign students |
+| `greece-iky-scholarships` | IKY Foreign Nationals Scholarships (Greece) | Web scraper | Greek government scholarships (postgraduate, research, language/culture) |
+| `south-africa-nrf` | NRF Postgraduate Funding (South Africa) | Web scraper | South African government research funding, international PCS track (**live-blocked**: TLS certificate-chain issue on NRF's server — see `docs/AUTHORITATIVE_SOURCES.md` #21) |
 
 The web-scraper sources exist only because no official API, RSS feed, or
 dataset is published for these organizations - see

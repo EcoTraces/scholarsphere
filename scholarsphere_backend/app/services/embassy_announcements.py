@@ -39,7 +39,7 @@ from app.core.config import get_settings
 from app.core.http_client import ExternalAPIError
 from app.schemas.external_opportunity import NormalizedExternalOpportunity
 from app.services.parsing import extract_confident_date_after, sanitize_html
-from app.services.web_scraper_base import WebScraperSource, absolute_https_url, clean_text
+from app.services.web_scraper_base import WebScraperSource, clean_text, same_host_https_url
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +120,14 @@ class _EmbassyAnnouncementSource(WebScraperSource):
             text = (clean_text(anchor) or "").lower()
             if not any(keyword in text for keyword in self.keywords):
                 continue
-            absolute = absolute_https_url(list_url, anchor["href"])
-            if absolute:
-                urls[absolute] = None
+            # same_host_https_url (not absolute_https_url) deliberately -
+            # this adapter is about to *fetch* whatever URLs come out of
+            # here, so a link to a third-party host on an otherwise
+            # trusted, vetted page must never be followed (see that
+            # function's docstring).
+            same_host = same_host_https_url(list_url, anchor["href"])
+            if same_host:
+                urls[same_host] = None
         return list(urls)
 
     def _normalize(self, url: str, soup: BeautifulSoup) -> NormalizedExternalOpportunity:
@@ -209,3 +214,33 @@ class SierraLeoneMTHESource(_EmbassyAnnouncementSource):
 
     def _base_url(self) -> str:
         return get_settings().mthe_sl_base_url
+
+
+class EswatiniSlasSource(_EmbassyAnnouncementSource):
+    """Eswatini's Scholarship Loan Application System (SLAS) - the
+    Ministry of Labour and Social Security's official portal for
+    domestic and SADC-region scholarship/loan applications (per source
+    research, see docs/AUTHORITATIVE_SOURCES.md #18). Uses "Eswatini",
+    the country's official name since 2018, consistently - never
+    "Swaziland" - matching the country-name-normalization requirement
+    for this expansion.
+
+    LIVE SOURCE TEST: NOT PERFORMED. `https://www.slas.gov.sz` timed out
+    on every connection attempt (2026-08-22/23, both protocols) - the
+    same failure pattern as `mthe_sl_base_url` above (a different
+    `.gov.sz`-adjacent... actually a distinct ccTLD/hosting path, but an
+    identical symptom: DNS resolves though this was not itself re-tested
+    for slas.gov.sz specifically, connection times out rather than
+    refuses). Implemented against the same conservative announcement
+    pattern and unit-tested against a realistic fixture only. Smoke-test
+    against the live site before enabling its scheduled sync.
+    """
+
+    source_code = "eswatini_slas"
+    list_path = "/"
+    provider_name = "Eswatini Ministry of Labour and Social Security (Scholarship Secretariat)"
+    country = "Eswatini"
+    keywords = ("scholarship", "scholarships", "sadc")
+
+    def _base_url(self) -> str:
+        return get_settings().eswatini_slas_base_url

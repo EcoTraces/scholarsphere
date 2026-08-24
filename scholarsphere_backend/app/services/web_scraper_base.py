@@ -93,12 +93,43 @@ def absolute_https_url(base: str, href: str | None) -> str | None:
     """Resolve `href` against `base` and return it only if the result is a
     well-formed HTTPS URL - matches the HTTPS-only rule every other source
     already enforces (`NormalizedExternalOpportunity.https_urls_only`).
+
+    Deliberately does NOT restrict the result to `base`'s own host - some
+    callers (e.g. an official source page linking out to a distinct
+    official application portal) legitimately need a different host. Use
+    `same_host_https_url` instead when a caller discovers links to follow
+    and fetch (not just to record) - see its docstring for why that
+    distinction matters.
     """
     if not href or not href.strip():
         return None
     resolved = urljoin(base, href.strip())
     parts = urlsplit(resolved)
     if parts.scheme != "https" or not parts.hostname:
+        return None
+    return resolved
+
+
+def same_host_https_url(base: str, href: str | None) -> str | None:
+    """Like `absolute_https_url`, but additionally rejects any result
+    whose host doesn't match `base`'s host.
+
+    Use this specifically when a link *discovered on a scraped page* will
+    itself be fetched next (following a "next article" or "programme
+    detail" link, for example) - without this check, a page under this
+    adapter's own configured, trusted domain could still contain a link
+    to an arbitrary third-party HTTPS host (an ad, a compromised/injected
+    link, a redirect trick), and naive discovery would follow it,
+    fetching attacker-influenced URLs under cover of a "trusted" source.
+    Every source's fetch target must stay within the single domain that
+    was actually vetted (see docs/AUTHORITATIVE_SOURCES.md's per-source
+    robots.txt/terms research) - not wherever an arbitrary page happens to
+    link.
+    """
+    resolved = absolute_https_url(base, href)
+    if resolved is None:
+        return None
+    if urlsplit(resolved).hostname != urlsplit(base).hostname:
         return None
     return resolved
 

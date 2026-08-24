@@ -197,6 +197,162 @@ after every change: **483/483 (`pytest -q`)**, up from 448.
 
 ---
 
+## [2026-08-23] — Global country-coverage expansion (WMI + 9 new sources, 23-country research inventory)
+
+Requested: expand opportunity discovery to 23 target countries/regions plus
+WMI, following the existing architecture with quality prioritized over
+quantity. Full research pass across all 24 targets first (see the new
+`docs/COUNTRY_PROVIDER_REGISTRY.md`), then implementation on the strongest
+candidates, in two batches. Full backend suite after both batches:
+**511/511 (`pytest -q`)**, up from 494. Nothing in this entry has been
+committed - left for explicit review.
+
+**Batch 2 (follow-up, same day)**: implemented the three next-recommended
+candidates - Italy (MAECI), Greece (IKY), South Africa (NRF). 2 of 3
+live-verified (Italy, Greece - both real syncs against the real sites);
+South Africa is implemented but live-blocked by the same failure class as
+India ICCR below (a real, reproducible `SSLCertVerificationError` on
+NRF's own server - confirmed by two separate attempts, ruling out a
+one-off fluke). New shared-architecture addition:
+`_SingleProgramSource` gained an overridable `_deadline_base_url()`
+method, since Italy's overview page and its deadline/call-status page are
+on two different hosts - the first source needing that. South Africa's
+adapter deliberately never attempts deadline extraction
+(`deadline_keywords = ()`) - the real page publishes a table of distinct
+closing dates per study level/sub-programme, and a generic
+keyword-anchored extractor would have picked one row and mislabeled it as
+*the* deadline. 14 new tests
+(`tests/test_national_scholarship_programs.py`). See
+`docs/AUTHORITATIVE_SOURCES.md` #19-#21, `docs/COUNTRY_PROVIDER_REGISTRY.md`.
+
+### Added
+- **6 new opportunity sources**: Wells Mountain Initiative (WMI) Scholars
+  Program, Türkiye Bursları (Turkey), Government of Ireland GOI-IES,
+  ICCR Scholarship Programme (India), Swedish Institute Scholarships for
+  Global Professionals (Sweden), Eswatini SLAS. See
+  `docs/AUTHORITATIVE_SOURCES.md` #13-#18. 4 of 6 live-verified (WMI,
+  Turkey, Ireland, Sweden - real syncs against the real sites, real
+  opportunities created); 2 implemented but live-blocked by documented
+  external issues, not falsely claimed working (see "Fixed" below and
+  Task.md for full detail).
+- **`app/services/national_scholarship_programs.py`** - a new shared
+  `_SingleProgramSource` base for the common shape of "one government or
+  quasi-governmental body's single recurring scholarship program,"
+  generalizing the pattern `chevening.py` established, used by 5 of the 6
+  new sources.
+- **`docs/COUNTRY_PROVIDER_REGISTRY.md`** - a full research inventory
+  across all 24 targets: 7 with an integrated provider (5 supported, 2
+  partially - see above), 14 with a credible official candidate
+  identified and classified (`READY_FOR_AUTOMATION` /
+  `REQUIRES_CURATED_SOURCE`) but not yet built, 2 with no reliable single
+  source found (Denmark, UAE), 1 actively blocked by anti-bot protection
+  and deliberately not pursued further (Cyprus - Azure WAF JS challenge).
+- 25 new tests: `tests/test_national_scholarship_programs.py`, additions
+  to `tests/test_embassy_announcements.py` (Eswatini SLAS).
+
+### Fixed
+- **Two real title-extraction bugs, found by live/fixture testing.**
+  India ICCR's page has two `<h1>` elements - a generic Drupal
+  page-title chrome element and the real content heading nested inside
+  `.field--name-body` - so a naive `select_one("h1")` silently grabbed
+  the wrong one. WMI and Ireland have *no* usable `<h1>` at all
+  (page-builder/custom-theme pages); both original tests passed anyway
+  because they never asserted on the actual title text, silently masking
+  a fallback-only result. Fixed by adding a `title_tag_separator`
+  fallback (extract from `<title>`, split on a real separator character)
+  and adding title assertions to the tests so this class of bug can't
+  hide again.
+- **India ICCR: real TLS certificate-chain issue on the server,
+  correctly not worked around.** `curl` succeeds against `iccr.gov.in`,
+  but this backend's actual HTTP path (httpx + certifi's default trust
+  store) fails with `SSLCertVerificationError: unable to get local
+  issuer certificate` - the server isn't sending a complete certificate
+  chain; `curl`/Windows SChannel tolerates this, strict OpenSSL/certifi
+  verification does not. Deliberately **not** patched around with
+  `verify=False` - that would remove real TLS security for a problem
+  that's actually on ICCR's end to fix.
+
+### Reviewed, no change needed
+- SSRF/link-following review of the new source: `national_scholarship_programs.py`
+  never follows a scraped link (every fetch target is a hardcoded class
+  attribute, not discovered from page content), so it has no SSRF
+  surface at all; `EswatiniSlasSource` inherits the same-host-only fix
+  already applied to the embassy-announcement pattern (see the previous
+  entry below).
+- Eswatini SLAS live connectivity: reconfirmed the same network-timeout
+  pattern already documented for Sierra Leone's MTHE - not resolved,
+  not fabricated as fixed.
+
+---
+
+## [2026-08-23] — Production-readiness hardening: startup validation, corrected Firebase/MTHE findings, SSRF fix
+
+A follow-up hardening pass over the previous increment's already-committed
+work (`6747e20`), continuing rather than repeating it. Full backend suite
+re-run and passing after every change: **494/494 (`pytest -q`)**, up from
+483. Nothing in this entry has been committed - left for explicit review.
+
+### Added
+- **Startup-time Firebase credential validation** for production
+  (`app/main.py::ensure_firebase_ready_in_production`, called from the
+  app's `lifespan`) - Firebase Admin SDK init was previously lazy (first
+  authenticated request only), so a bad credential would have surfaced as
+  a confusing runtime failure instead of a clear deploy-time one.
+  `app/core/config.py` also now refuses to start in production if
+  `FIREBASE_CREDENTIALS_PATH` is set but the file doesn't exist. 6 new
+  tests (`tests/test_startup_validation.py`).
+- `.env.example` rewritten to list every setting the codebase actually
+  reads (including the 5 web-scraper sources, previously missing),
+  labeled by when each is really required.
+- A real Celery task-interface test (`task_always_eager`, exercising
+  `sync_cscuk_scholarships.apply(...)` rather than calling the underlying
+  function directly), an idempotency test (same `task_id` re-run creates
+  no duplicate history/opportunity), and cross-cutting scraper resilience
+  tests (malformed HTML, simulated full layout change, missing-title
+  fallback) - see `tests/test_opportunity_tasks.py`,
+  `tests/test_scraper_resilience.py`.
+
+### Fixed
+- **SSRF-adjacent gap in the embassy-announcement adapter.**
+  `app/services/embassy_announcements.py`'s link discovery filtered only
+  by visible link text, not by the link's target host - a link on an
+  otherwise-trusted page could point anywhere and would still be fetched.
+  Added `same_host_https_url` (`app/services/web_scraper_base.py`) and
+  switched this adapter to it. Regression test:
+  `tests/test_scraper_resilience.py::test_discovered_links_to_a_different_host_are_never_followed`.
+- **Pre-existing test-isolation bug**:
+  `test_all_scheduled_task_names_resolve` only passed as part of the full
+  suite (it silently relied on another test file having already imported
+  `app.tasks.notifications`); failed when run alone. Not a production
+  bug - a real worker loads every `include=[...]` module at startup - but
+  a real test-determinism bug. Fixed by calling
+  `celery_app.loader.import_default_modules()` explicitly in the test.
+
+### Corrected (documentation, not code)
+- **Firebase "old bundle ID" blocker.** Direct inspection of every config
+  file (`build.gradle`, `google-services.json`, the Xcode project,
+  `firebase_options.dart`) found `com.scholarsphere.app` used
+  consistently everywhere - no mismatch. The real, more specific gap
+  found instead: `ios/Runner/GoogleService-Info.plist` doesn't exist, and
+  `Info.plist` has no Google Sign-In URL scheme. Android additionally
+  needs its OAuth client's SHA-1/SHA-256 fingerprint verified against
+  whichever keystore signs the build - not checkable from this
+  environment. Live Google Sign-In was not tested. See `Task.md`.
+- **MTHE connectivity.** Re-diagnosed precisely: DNS resolves fine
+  (`www.mthe.gov.sl` → `38.145.202.15`); every TCP connection (port 80,
+  port 443) and even ICMP ping times out with no response - a different
+  and more specific finding than "connection refused." No official
+  RSS/API/alternative source found. See `Task.md`.
+
+### Reviewed, no change needed
+- `pip-audit -r requirements.txt`: re-confirmed no known vulnerabilities.
+- Fulbright: re-confirmed unsupported; no new official source found.
+- Source-management and pending-verification endpoint authorization:
+  confirmed unchanged and still correctly gated (`admin_access`/
+  `preview_access`).
+
+---
+
 ## [2026-08-21] — Real backend fixes: search index, verification dashboard, reverification reminders, document-sharing consent
 
 Four wiring/completeness gaps identified in `Task.md`'s Critical Tasks were

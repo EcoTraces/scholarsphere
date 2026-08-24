@@ -95,6 +95,62 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    # Country-expansion single-flagship-program sources (2026-08-23) - see
+    # docs/AUTHORITATIVE_SOURCES.md #13-#18.
+    "wmi_scholars": {
+        "source_name": "Wells Mountain Initiative (WMI) Scholars Program",
+        "source_type": "funding_organization",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "turkiye_burslari": {
+        "source_name": "Türkiye Bursları (Türkiye Scholarships)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "ireland_goi_ies": {
+        "source_name": "Government of Ireland International Education Scholarships",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "india_iccr": {
+        "source_name": "ICCR Scholarship Programme (India)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "sweden_si_scholarship": {
+        "source_name": "Swedish Institute Scholarships for Global Professionals",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "eswatini_slas": {
+        "source_name": "Eswatini Scholarship Loan Application System (SLAS)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "italy_maeci_scholarships": {
+        "source_name": "Italian Government Scholarships (MAECI)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "greece_iky_scholarships": {
+        "source_name": "IKY Foreign Nationals Scholarships (Greece)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "south_africa_nrf": {
+        "source_name": "National Research Foundation (NRF) Postgraduate Funding (South Africa)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -115,6 +171,15 @@ def _base_urls() -> dict[str, str]:
         "daad_scholarships": settings.daad_base_url,
         "china_embassy_sl": settings.china_embassy_sl_base_url,
         "mthe_sierra_leone": settings.mthe_sl_base_url,
+        "wmi_scholars": settings.wmi_base_url,
+        "turkiye_burslari": settings.turkiye_burslari_base_url,
+        "ireland_goi_ies": settings.ireland_hea_base_url,
+        "india_iccr": settings.india_iccr_base_url,
+        "sweden_si_scholarship": settings.sweden_si_base_url,
+        "eswatini_slas": settings.eswatini_slas_base_url,
+        "italy_maeci_scholarships": settings.italy_esteri_base_url,
+        "greece_iky_scholarships": settings.greece_iky_base_url,
+        "south_africa_nrf": settings.south_africa_nrf_base_url,
     }
 
 
@@ -151,6 +216,15 @@ async def seed_opportunity_sources(
         "daad_scholarships": now + timedelta(hours=24),
         "china_embassy_sl": now + timedelta(hours=24),
         "mthe_sierra_leone": now + timedelta(hours=24),
+        "wmi_scholars": now + timedelta(hours=24),
+        "turkiye_burslari": now + timedelta(hours=24),
+        "ireland_goi_ies": now + timedelta(hours=24),
+        "india_iccr": now + timedelta(hours=24),
+        "sweden_si_scholarship": now + timedelta(hours=24),
+        "eswatini_slas": now + timedelta(hours=24),
+        "italy_maeci_scholarships": now + timedelta(hours=24),
+        "greece_iky_scholarships": now + timedelta(hours=24),
+        "south_africa_nrf": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

@@ -111,6 +111,30 @@ class Settings(BaseSettings):
     china_embassy_sl_base_url: str = "https://sl.china-embassy.gov.cn"
     mthe_sl_base_url: str = "https://www.mthe.gov.sl"
 
+    # Country-expansion single-flagship-program sources (2026-08-23) - see
+    # docs/AUTHORITATIVE_SOURCES.md #13-#18. Each is one government or
+    # quasi-governmental body's own page(s) for its single recurring
+    # international scholarship program - no official API/RSS/dataset
+    # exists for any of them.
+    wmi_base_url: str = "https://www.wellsmountaininitiative.org"
+    turkiye_burslari_base_url: str = "https://www.turkiyeburslari.gov.tr"
+    ireland_hea_base_url: str = "https://hea.ie"
+    india_iccr_base_url: str = "https://iccr.gov.in"
+    sweden_si_base_url: str = "https://si.se"
+    # Confirmed unreachable from every environment this project has had
+    # access to (connection timeout, both http/https - see
+    # docs/AUTHORITATIVE_SOURCES.md #18), the same failure pattern as
+    # mthe_sl_base_url above. Kept configured for future re-testing.
+    eswatini_slas_base_url: str = "https://www.slas.gov.sz"
+
+    # Second-batch country-expansion sources (2026-08-23).
+    italy_esteri_base_url: str = "https://www.esteri.it"
+    # Italy's call-status page lives on a different host (a dedicated
+    # applications subdomain) than the main ministry overview page above.
+    italy_studyinitaly_base_url: str = "https://studyinitaly.esteri.it"
+    greece_iky_base_url: str = "https://www.iky.gr"
+    south_africa_nrf_base_url: str = "https://www.nrf.ac.za"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -130,6 +154,20 @@ class Settings(BaseSettings):
     def split_csv(cls, value: object) -> object:
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+
+    @field_validator("firebase_credentials_path", mode="before")
+    @classmethod
+    def blank_firebase_credentials_path_is_unset(cls, value: object) -> object:
+        # A `.env` file with `FIREBASE_CREDENTIALS_PATH=` (present but
+        # blank - the common way to document a var as "available to set"
+        # without setting it) would otherwise coerce to `Path('.')`, the
+        # current working directory - truthy, and not None, so both the
+        # production-file-exists check below and initialize_firebase()'s
+        # own `if settings.firebase_credentials_path:` check
+        # (app/core/auth.py) would wrongly treat "blank" as "configured".
+        if isinstance(value, str) and not value.strip():
+            return None
         return value
 
     @field_validator(
@@ -159,6 +197,16 @@ class Settings(BaseSettings):
         "daad_base_url",
         "china_embassy_sl_base_url",
         "mthe_sl_base_url",
+        "wmi_base_url",
+        "turkiye_burslari_base_url",
+        "ireland_hea_base_url",
+        "india_iccr_base_url",
+        "sweden_si_base_url",
+        "eswatini_slas_base_url",
+        "italy_esteri_base_url",
+        "italy_studyinitaly_base_url",
+        "greece_iky_base_url",
+        "south_africa_nrf_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
@@ -197,6 +245,15 @@ class Settings(BaseSettings):
             )
         if self.redis_url == "redis://localhost:6379/0":
             problems.append("REDIS_URL is still the local-development default")
+        if self.firebase_credentials_path is not None and not self.firebase_credentials_path.is_file():
+            problems.append(
+                "FIREBASE_CREDENTIALS_PATH is set to "
+                f"'{self.firebase_credentials_path}' but that file does not "
+                "exist. Either point it at a real service-account JSON key, "
+                "or unset it entirely to use Application Default "
+                "Credentials (only correct if this deployment runs on GCP "
+                "infrastructure with a service account attached)."
+            )
         if problems:
             raise ValueError(
                 "Refusing to start with app_env=production and insecure "

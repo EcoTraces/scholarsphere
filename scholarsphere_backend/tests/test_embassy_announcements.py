@@ -7,6 +7,7 @@ from app.core.http_client import ExternalAPIError
 from app.services import web_scraper_base
 from app.services.embassy_announcements import (
     ChinaEmbassySierraLeoneSource,
+    EswatiniSlasSource,
     SierraLeoneMTHESource,
 )
 
@@ -216,6 +217,82 @@ async def test_mthe_unreachable_site_fails_safe_to_empty(
         web_scraper_base,
         "get_html",
         AsyncMock(side_effect=ExternalAPIError("connection refused")),
+    )
+
+    assert await source.collect() == []
+
+
+# --- Eswatini SLAS: synthetic fixture -------------------------------------
+#
+# LIVE SOURCE TEST: NOT PERFORMED. slas.gov.sz timed out on every
+# connection attempted from this development environment (see the class
+# docstring in app/services/embassy_announcements.py) - this fixture is a
+# realistic synthetic approximation, not captured from the live site.
+
+
+_SYNTHETIC_SLAS_LIST = """
+<html><body>
+<div class="news-list">
+  <a href="/news/sadc-scholarship-2027.html">Government of Eswatini Local and SADC Scholarship (PTET Loan) Now Open</a>
+  <a href="/news/office-hours.html">Ministry Holiday Office Hours</a>
+</div>
+</body></html>
+"""
+
+_SYNTHETIC_SLAS_ARTICLE = """
+<html><head><title>Government of Eswatini Local and SADC Scholarship (PTET Loan) Now Open</title></head>
+<body>
+<article>
+<p>The Ministry of Labour and Social Security announces that applications
+for the Local and SADC Scholarship (PTET Loan) for the 2027 academic year
+are now open for students wishing to study in Eswatini or in selected
+SADC countries.</p>
+<p>The application deadline is 15 October 2026. Apply online at
+www.slas.gov.sz.</p>
+</article>
+</body></html>
+"""
+
+
+@pytest.mark.asyncio
+async def test_eswatini_slas_collect_normalizes_synthetic_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = EswatiniSlasSource()
+    article_url = f"{source.base_url}/news/sadc-scholarship-2027.html"
+
+    async def fake_get_html(url: str, **_: object) -> str:
+        if url.rstrip("/") == source.base_url:
+            return _SYNTHETIC_SLAS_LIST
+        if url == article_url:
+            return _SYNTHETIC_SLAS_ARTICLE
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    monkeypatch.setattr(web_scraper_base, "get_html", AsyncMock(side_effect=fake_get_html))
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert "SADC Scholarship" in opportunity.title
+    assert opportunity.country == "Eswatini"
+    assert "Eswatini" in opportunity.provider_name
+    assert opportunity.deadline is not None
+    assert str(opportunity.deadline) == "2026-10-15"
+
+
+@pytest.mark.asyncio
+async def test_eswatini_slas_unreachable_site_fails_safe_to_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Mirrors the real behavior observed against the live site (every
+    connection attempt timed out) - the sync must fail safely rather
+    than crash the whole sync task."""
+    source = EswatiniSlasSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(side_effect=ExternalAPIError("connection timed out")),
     )
 
     assert await source.collect() == []

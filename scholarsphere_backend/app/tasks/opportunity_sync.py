@@ -40,6 +40,7 @@ from app.services.chevening import CheveningSource
 from app.services.daad_scholarships import DaadScholarshipsSource
 from app.services.embassy_announcements import (
     ChinaEmbassySierraLeoneSource,
+    EswatiniSlasSource,
     SierraLeoneMTHESource,
 )
 from app.services.eu_funding import EUFundingSource
@@ -49,6 +50,16 @@ from app.services.firebase_users import (
     list_reverification_recipient_uids,
 )
 from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
+from app.services.national_scholarship_programs import (
+    GreeceIkyScholarshipSource,
+    IndiaIccrSource,
+    IrelandGoiIesSource,
+    ItalyMaeciScholarshipSource,
+    SouthAfricaNrfScholarshipSource,
+    SwedishInstituteScholarshipSource,
+    TurkiyeBurslariSource,
+    WellsMountainInitiativeSource,
+)
 from app.services.notification_dispatch import (
     default_preferences,
     event_title,
@@ -126,6 +137,42 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_mthe_sierra_leone",
             "schedule": crontab(minute=0, hour=4),
         },
+        "sync-wmi-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_wmi_scholars",
+            "schedule": crontab(minute=15, hour=4),
+        },
+        "sync-turkiye-burslari": {
+            "task": "app.tasks.opportunity_sync.sync_turkiye_burslari",
+            "schedule": crontab(minute=30, hour=4),
+        },
+        "sync-ireland-goi-ies": {
+            "task": "app.tasks.opportunity_sync.sync_ireland_goi_ies",
+            "schedule": crontab(minute=45, hour=4),
+        },
+        "sync-india-iccr": {
+            "task": "app.tasks.opportunity_sync.sync_india_iccr",
+            "schedule": crontab(minute=0, hour=5),
+        },
+        "sync-sweden-si-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_sweden_si_scholarship",
+            "schedule": crontab(minute=15, hour=5),
+        },
+        "sync-eswatini-slas": {
+            "task": "app.tasks.opportunity_sync.sync_eswatini_slas",
+            "schedule": crontab(minute=30, hour=5),
+        },
+        "sync-italy-maeci-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_italy_maeci_scholarships",
+            "schedule": crontab(minute=45, hour=5),
+        },
+        "sync-greece-iky-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_greece_iky_scholarships",
+            "schedule": crontab(minute=0, hour=6),
+        },
+        "sync-south-africa-nrf": {
+            "task": "app.tasks.opportunity_sync.sync_south_africa_nrf",
+            "schedule": crontab(minute=15, hour=6),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -168,6 +215,15 @@ SOURCE_TASK_NAMES = {
     "daad_scholarships": "app.tasks.opportunity_sync.sync_daad_scholarships",
     "china_embassy_sl": "app.tasks.opportunity_sync.sync_china_embassy_sl",
     "mthe_sierra_leone": "app.tasks.opportunity_sync.sync_mthe_sierra_leone",
+    "wmi_scholars": "app.tasks.opportunity_sync.sync_wmi_scholars",
+    "turkiye_burslari": "app.tasks.opportunity_sync.sync_turkiye_burslari",
+    "ireland_goi_ies": "app.tasks.opportunity_sync.sync_ireland_goi_ies",
+    "india_iccr": "app.tasks.opportunity_sync.sync_india_iccr",
+    "sweden_si_scholarship": "app.tasks.opportunity_sync.sync_sweden_si_scholarship",
+    "eswatini_slas": "app.tasks.opportunity_sync.sync_eswatini_slas",
+    "italy_maeci_scholarships": "app.tasks.opportunity_sync.sync_italy_maeci_scholarships",
+    "greece_iky_scholarships": "app.tasks.opportunity_sync.sync_greece_iky_scholarships",
+    "south_africa_nrf": "app.tasks.opportunity_sync.sync_south_africa_nrf",
 }
 
 
@@ -400,6 +456,127 @@ def sync_mthe_sierra_leone(
     return _execute_source_task(self, "mthe_sierra_leone", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_wmi_scholars",
+    max_retries=3,
+)
+def sync_wmi_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "wmi_scholars", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_turkiye_burslari",
+    max_retries=3,
+)
+def sync_turkiye_burslari(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "turkiye_burslari", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_ireland_goi_ies",
+    max_retries=3,
+)
+def sync_ireland_goi_ies(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "ireland_goi_ies", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_india_iccr",
+    max_retries=3,
+)
+def sync_india_iccr(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "india_iccr", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_sweden_si_scholarship",
+    max_retries=3,
+)
+def sync_sweden_si_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "sweden_si_scholarship", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_eswatini_slas",
+    max_retries=3,
+)
+def sync_eswatini_slas(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "eswatini_slas", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_italy_maeci_scholarships",
+    max_retries=3,
+)
+def sync_italy_maeci_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "italy_maeci_scholarships", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_greece_iky_scholarships",
+    max_retries=3,
+)
+def sync_greece_iky_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "greece_iky_scholarships", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_south_africa_nrf",
+    max_retries=3,
+)
+def sync_south_africa_nrf(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "south_africa_nrf", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -612,6 +789,15 @@ def _collector(source_code: str) -> Any:
         "daad_scholarships": DaadScholarshipsSource,
         "china_embassy_sl": ChinaEmbassySierraLeoneSource,
         "mthe_sierra_leone": SierraLeoneMTHESource,
+        "wmi_scholars": WellsMountainInitiativeSource,
+        "turkiye_burslari": TurkiyeBurslariSource,
+        "ireland_goi_ies": IrelandGoiIesSource,
+        "india_iccr": IndiaIccrSource,
+        "sweden_si_scholarship": SwedishInstituteScholarshipSource,
+        "eswatini_slas": EswatiniSlasSource,
+        "italy_maeci_scholarships": ItalyMaeciScholarshipSource,
+        "greece_iky_scholarships": GreeceIkyScholarshipSource,
+        "south_africa_nrf": SouthAfricaNrfScholarshipSource,
     }[source_code]()
 
 
