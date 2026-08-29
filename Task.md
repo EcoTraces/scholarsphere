@@ -58,10 +58,11 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **670/670
+Test baseline as of this session's own verified run (2026-08-29): **676/676
 backend tests passing** (`pytest -q`; 586 as of the browser-rendering
 fallback earlier the same day, +84 for the Hybrid Scholarship Discovery
-and Verification Engine build-out described below — up from 511 on
+and Verification Engine build-out described below, +6 for the 40-country
+audit's United States/Eswatini work — up from 511 on
 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -1676,3 +1677,89 @@ for the full dated history.
         backend suite confirmed green after every individual phase, and
         the complete suite collects and passes at **670/670**
         (`pytest -q`, up from 586).
+
+- [x] **(2026-08-29)** 40-country coverage audit against the platform's
+      explicit target list, closing the two countries that had never
+      actually been researched (China, United States) and fixing one
+      real reachability bug found along the way (Eswatini) — a
+      continuation loop instruction to audit the full 40-country
+      requirement, implement every genuine gap, and report honestly on
+      what remains, rather than claim coverage that isn't real.
+      - **Audit finding**: cross-referencing the exact 40-country list
+        against `docs/COUNTRY_PROVIDER_REGISTRY.md` (already extremely
+        thorough from prior sessions — every one of the 40 had a
+        documented, live-tested classification except two) showed 38 of
+        40 already had a defensible SUPPORTED/PARTIALLY_SUPPORTED/
+        NOT_SUITABLE/BLOCKED/NO_RELIABLE_SOURCE_FOUND finding from real
+        research, not a guess or a placeholder. Only China and the
+        United States had never been individually researched at all.
+      - **United States — closed, SUPPORTED.** The prior US-facing
+        sources (Grants.gov, USAJOBS, ReliefWeb) are federal grants/
+        jobs/humanitarian postings, not international-student
+        scholarships, and Fulbright was already correctly rejected
+        (fragmented across ~160 embassy pages). Found and implemented
+        `educationusa.state.gov/find-financial-aid` (US Department of
+        State, EducationUSA network) — a real, live, plain-HTTPS
+        paginated Drupal Views listing of 277+ institution-specific
+        scholarships. New `app/services/educationusa_source.py`,
+        wired end-to-end (config, source registry, Celery beat schedule
+        + task, opportunity_sync mapping) exactly like every other
+        source. **The first real production consumer of
+        `app/services/pagination_engine.py`'s `paginate_by_url`**, built
+        earlier this session. Verified with 3 genuinely separate real
+        HTTPS fetches (page 0, page 1, and `?page=40` confirming the
+        site's own real zero-row "past the last page" response) and 5
+        new tests against those exact fixtures, captured unmodified.
+      - **China — closed, BLOCKED.** The China Scholarship Council (CSC)
+        administers a real, major, legitimate program. Every candidate
+        page — `csc.edu.cn`, `studyinchina.csc.edu.cn`, and even
+        `robots.txt` itself — returns either HTTP 412 or an obfuscated
+        JavaScript anti-bot challenge page ("系统繁忙，请稍后再试" —
+        "system busy"), the same class of protection already documented
+        for Cyprus and Brazil. Never attempted to bypass it — detected,
+        classified, and recorded as `BLOCKED`, not silently skipped or
+        left unresearched.
+      - **Eswatini — reachability bug found and fixed, reclassified
+        `NOT_SUITABLE`.** While re-checking the two previously-
+        "unreachable" Sierra-Leone-region sources, found that
+        `https://www.slas.gov.sz` (the configured host) still times out,
+        but the bare `https://slas.gov.sz` (no "www.") is genuinely
+        reachable (200, real content, 3/3 attempts). Fixed
+        `eswatini_slas_base_url` to the working host — a real, verified
+        technical fix. However, the real page content turned out to be
+        a domestic student-loan portal for Eswatini nationals, with
+        neither "scholarship" nor "SADC" appearing anywhere in its HTML
+        — `EswatiniSlasSource`'s own keyword-matching correctly extracts
+        zero records from it. Documented honestly as "reachability
+        fixed, but not confirmed to produce any records" rather than
+        claimed as newly working — added a real-fixture regression test
+        proving it fails safe to an empty list rather than fabricating
+        a match. Sierra Leone's own MTHE was re-checked the same way and
+        remains genuinely unreachable over HTTPS (a proxy-level TLS
+        failure on every attempt, distinct from the Eswatini www/non-www
+        issue) — no fix available, status unchanged.
+      - **Not touched this pass, per the audit's own honest read**: the
+        remaining 35 countries already had real, defensible research on
+        record from prior sessions and were not re-litigated without
+        new information — re-researching them today (same calendar day
+        as their original research) would not surface anything new. The
+        spec's "multiple source types per country" ambition (university
+        + government + embassy + foundation sources for every country)
+        remains a real, larger gap beyond this pass's scope — most
+        countries in this registry have exactly one flagship government
+        source, not the full multi-source-type coverage the spec
+        describes; closing that fully would require dedicated
+        per-country research at a scale beyond one session.
+      - Fixed two real (if minor) issues surfaced while running the full
+        suite: `tests/test_opportunity_import.py`'s hardcoded source-
+        count/set assertions needed the new `educationusa_financial_aid`
+        source added; two real-Chromium new-tab-detection tests
+        (`test_browser_interaction.py`,
+        `test_application_link_discovery.py`) were genuinely flaky under
+        full-suite system load (5/5 passed in isolation, intermittently
+        failed only when running alongside ~670 other tests) — fixed by
+        giving those two specific tests a longer timeout (15s vs. 5s),
+        not by changing any production logic.
+      - Verified: 6 new tests (5 for EducationUSA, 1 for Eswatini's real
+        content). Full backend suite confirmed green: **676/676**
+        (`pytest -q`, up from 670).

@@ -133,6 +133,13 @@ class Settings(BaseSettings):
     reliefweb_base_url: str = "https://api.reliefweb.int/v2"
     reliefweb_appname: str = ""
 
+    # EducationUSA "Find Financial Aid" database (US Department of State) -
+    # see app/services/educationusa_source.py and
+    # docs/AUTHORITATIVE_SOURCES.md #44. Closes the United States gap: the
+    # sources above are federal grants/jobs/humanitarian postings, not
+    # international-student scholarships.
+    educationusa_base_url: str = "https://educationusa.state.gov"
+
     # Web-scraper sources (app/services/web_scraper_base.py and its
     # subclasses) - no official API/RSS/dataset exists for these
     # organizations (see docs/AUTHORITATIVE_SOURCES.md), so this backend
@@ -169,11 +176,19 @@ class Settings(BaseSettings):
     ireland_hea_base_url: str = "https://hea.ie"
     india_iccr_base_url: str = "https://iccr.gov.in"
     sweden_si_base_url: str = "https://si.se"
-    # Confirmed unreachable from every environment this project has had
-    # access to (connection timeout, both http/https - see
-    # docs/AUTHORITATIVE_SOURCES.md #18), the same failure pattern as
-    # mthe_sl_base_url above. Kept configured for future re-testing.
-    eswatini_slas_base_url: str = "https://www.slas.gov.sz"
+    # The "www." host timed out in every environment this project has had
+    # access to until 2026-08-29, when the bare (non-www) host was found
+    # to be reachable (200, real content - see docs/AUTHORITATIVE_SOURCES.md
+    # #18 and docs/COUNTRY_PROVIDER_REGISTRY.md's Eswatini entry). The real
+    # page content is a domestic student-loan portal for Eswatini
+    # nationals ("Ministry of Labour and Social Security" / "Student
+    # Loan" / "Apply Now" / "Loan Repayment") with no "scholarship" or
+    # "SADC" text anywhere on the page - EswatiniSlasSource's own
+    # keyword-matching (app/services/embassy_announcements.py) correctly
+    # finds nothing on it, so fixing reachability alone does not make
+    # this source produce records; recorded honestly as reachable-but-
+    # likely-unsuitable rather than claimed as newly working.
+    eswatini_slas_base_url: str = "https://slas.gov.sz"
 
     # Second-batch country-expansion sources (2026-08-23).
     italy_esteri_base_url: str = "https://www.esteri.it"
@@ -276,6 +291,7 @@ class Settings(BaseSettings):
         "eu_funding_api_url",
         "usajobs_base_url",
         "reliefweb_base_url",
+        "educationusa_base_url",
         "cscuk_base_url",
         "chevening_base_url",
         "daad_base_url",

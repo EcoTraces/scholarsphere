@@ -501,8 +501,8 @@ program.
 - **Organization**: Government of Eswatini, Ministry of Labour and Social
   Security (Scholarship Secretariat)
 - **Route code**: `eswatini-slas` (`eswatini_slas` internally)
-- **Official domain / base URL**: `https://www.slas.gov.sz`
-  (`ESWATINI_SLAS_BASE_URL`)
+- **Official domain / base URL**: `https://slas.gov.sz` (no "www." — see
+  the live-test note below; `ESWATINI_SLAS_BASE_URL`)
 - **Opportunity types**: Scholarship/loan (local and SADC-region study —
   Botswana, Lesotho, Zimbabwe, Tanzania, Kenya; explicitly excludes South
   Africa and Namibia)
@@ -517,13 +517,22 @@ program.
 - **Verification method**: Human officer review, same checklist as sources
   1–7
 - **Sync cadence**: Every 24 hours
-- **LIVE SOURCE TEST: NOT PERFORMED.** `https://www.slas.gov.sz` timed out
-  on every connection attempt (2026-08-22/23, both protocols) — the same
-  symptom as source 12 (MTHE) above: DNS resolves but the TCP handshake
-  never completes, pointing at a network-level issue rather than an
-  application-level block. Implemented against the same conservative
-  pattern and unit-tested against a realistic **synthetic** fixture only.
-  Smoke-test against the live site before enabling its scheduled sync.
+- **LIVE SOURCE TEST: PARTIALLY PASSED, 2026-08-29.** `https://
+  www.slas.gov.sz` still times out on every attempt (same symptom as
+  source 12/MTHE — DNS resolves but the TCP handshake never completes),
+  but the bare `https://slas.gov.sz` (no "www.") is reachable — 200,
+  real ~41KB HTML, 3/3 attempts — and is now what `ESWATINI_SLAS_BASE_URL`
+  points at. However, the real homepage content turned out to be a
+  domestic student-loan portal for Eswatini nationals ("Ministry of
+  Labour and Social Security" / "Student Loan" / "Loan Repayment") —
+  neither "scholarship" nor "SADC" appears anywhere in its HTML, so this
+  adapter's own keyword-matching correctly extracts zero records from
+  it (see the real fixture `tests/fixtures/eswatini_slas_homepage.html`
+  and `tests/test_embassy_announcements.py`'s
+  `test_eswatini_slas_real_homepage_yields_no_records`). Reachability
+  is fixed; this source is not confirmed to actually produce any
+  opportunity records — see docs/COUNTRY_PROVIDER_REGISTRY.md's
+  Eswatini entry, reclassified `NOT_SUITABLE` rather than claimed fixed.
 
 ## 19. Italian Government Scholarships (MAECI)
 
@@ -1669,6 +1678,69 @@ program.
 
 ---
 
+## 44. EducationUSA "Find Financial Aid" Database (United States)
+
+Closes this platform's United States gap — the only prior US-facing
+sources (Grants.gov, USAJOBS, ReliefWeb, sources 1–7) are federal
+grants/jobs/humanitarian postings, not international-student
+scholarships, and the one dedicated candidate researched earlier
+(Fulbright Program) was rejected as unsuitable (see the table below —
+fragmented across ~160 individual US embassy pages with no single stable
+page).
+
+- **Organization**: U.S. Department of State, Bureau of Educational and
+  Cultural Affairs (ECA) — EducationUSA network
+- **Route code**: `educationusa-financial-aid`
+  (`educationusa_financial_aid` internally)
+- **Official domain / base URL**: `https://educationusa.state.gov`
+  (`EDUCATIONUSA_BASE_URL`) — a `.state.gov` federal government domain
+- **Opportunity types**: Scholarship (institution-specific awards for
+  international students, spanning undergraduate through
+  doctorate/post-doctorate)
+- **Country coverage**: United States (study destination); most listed
+  scholarships are open to international students broadly, a subset are
+  restricted to applicants from specific countries (the listing's own
+  country filter) — this adapter records only what each entry's own page
+  states, never inferring eligibility for any nationality
+- **Discovery method**: **Web scraper, paginated-listing pattern** —
+  the first production consumer of `app/services/pagination_engine.py`'s
+  `paginate_by_url`. `/find-financial-aid?page=N` (`N` 0-indexed) is a
+  real, plain server-rendered Drupal Views listing (no browser rendering
+  needed) of 277+ individual scholarships (~28 pages), each a `.views-row`
+  with a title/link (`.views-field-title a`), a host institution
+  (`.field-hei-institution-name`), and the site's own free-text deadline
+  statement (`.field-scholarship-deadline` — often recurring/rolling,
+  e.g. "Fall semester: July 1st; Spring semester: November 1st"; kept as
+  a plain description string, never forced into a single parsed date).
+  Each entry's own EducationUSA detail page (not its external "More
+  information" link, which would mean ~280 extra per-sync fetches
+  against arbitrary third-party university domains) is used as both
+  `official_source_url` and `official_application_url`.
+- **robots.txt**: returns HTTP 403 (not 200, not unreachable). Per
+  RFC 9309 §2.3.1.3, a non-2xx status on robots.txt means no crawl
+  restrictions apply — the same interpretation major search-engine
+  crawlers use — so there is no `Disallow` rule this adapter could be
+  violating even if the file were readable.
+- **API / RSS / Sitemap**: None published for this specific listing
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx) — 200, real Drupal-rendered HTML,
+  no spoofed user agent required, on three separate real fetches (page
+  0, page 1, and a genuinely-past-the-last-page response confirming the
+  listing's own "no more results" behavior, `?page=40` → 0 rows).
+  Implemented and unit-tested against all three real fixture pages,
+  captured unmodified from the httpx fetches
+  (`tests/fixtures/educationusa_find_financial_aid_*.html`) — proving
+  the pagination engine's stop-on-empty-page and dedup-by-key logic
+  against the real site's real termination behavior, not a synthetic
+  stand-in.
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research
@@ -1684,6 +1756,7 @@ record of what was checked, not just what was added:
 | UKRI Gateway to Research (`gtr.ukri.org`) | Real, free, official API — but it publishes *already-awarded* grants, not open calls to apply to. Presenting historical awards as live opportunities would conflict with the platform's "never mislead" rule, so it was left out |
 | EURAXESS | No official public API found; only third-party scrapers |
 | Fulbright Program | Researched 2026-08-22. The US-student-facing site (`us.fulbrightonline.org`) is the wrong audience for this platform; the foreign-student program is administered per-country through ~160 individual US embassy pages with no single list of open calls; the one Sierra-Leone-specific page checked (`sl.usembassy.gov/educational-professional-exchanges/`) returned a generic "Technical Difficulties" error page rather than real content — no single stable page to scrape reliably |
+| China Scholarship Council (CSC) / `csc.edu.cn` / `studyinchina.csc.edu.cn` | Researched 2026-08-29 — `BLOCKED`, see `docs/COUNTRY_PROVIDER_REGISTRY.md`'s China entry. A real, major, legitimate official program (the Chinese Government Scholarship), but every page checked — including `robots.txt` itself — returns HTTP 412 or an obfuscated JavaScript anti-bot challenge page ("系统繁忙，请稍后再试" / "system busy, try again later"), not real content. Never bypassed. |
 
 DAAD, Chevening, and Commonwealth Scholarships were in this table until
 2026-08-22 for the same reason as the rows above (no public API) — they are

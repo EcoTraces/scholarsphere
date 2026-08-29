@@ -296,3 +296,26 @@ async def test_eswatini_slas_unreachable_site_fails_safe_to_empty(
     )
 
     assert await source.collect() == []
+
+
+@pytest.mark.asyncio
+async def test_eswatini_slas_real_homepage_yields_no_records(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Real fixture fetched from https://slas.gov.sz on 2026-08-29 (the
+    bare, non-www host - see docs/COUNTRY_PROVIDER_REGISTRY.md's Eswatini
+    entry) - the site is reachable, but its real homepage is a domestic
+    student-loan portal with no "scholarship"/"sadc" text anywhere, so
+    this adapter's keyword-matching correctly finds nothing to extract.
+    Documents that a fixed URL alone does not make this source produce
+    records - it fails safe to an empty list rather than fabricating a
+    match against unrelated nav/loan-portal links.
+    """
+    source = EswatiniSlasSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("eswatini_slas_homepage.html")),
+    )
+
+    assert await source.collect() == []

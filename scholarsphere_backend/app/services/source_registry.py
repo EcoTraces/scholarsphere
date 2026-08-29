@@ -283,6 +283,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "educationusa_financial_aid": {
+        "source_name": "EducationUSA Find Financial Aid (US Department of State)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -334,6 +340,7 @@ def _base_urls() -> dict[str, str]:
         "romania_mfa": settings.romania_mfa_base_url,
         "hungary_stipendium_hungaricum": settings.hungary_stipendium_base_url,
         "mexico_amexcid": settings.mexico_amexcid_base_url,
+        "educationusa_financial_aid": settings.educationusa_base_url,
     }
 
 
@@ -401,6 +408,7 @@ async def seed_opportunity_sources(
         "romania_mfa": now + timedelta(hours=24),
         "hungary_stipendium_hungaricum": now + timedelta(hours=24),
         "mexico_amexcid": now + timedelta(hours=24),
+        "educationusa_financial_aid": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (32, across multiple sessions)
+## Implemented (33, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -43,7 +43,7 @@ that were actually built this session (in two batches).
 | 15 | Government of Ireland Int'l Education Scholarships | Ireland | GOVERNMENT | hea.ie | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 16 | ICCR Scholarship Programme | India | GOVERNMENT | iccr.gov.in | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by a TLS certificate-chain issue on ICCR's own server (see #16 in AUTHORITATIVE_SOURCES.md) |
 | 17 | Swedish Institute Scholarships for Global Professionals | Sweden | GOVERNMENT | si.se | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
-| 18 | Eswatini SLAS | Eswatini | GOVERNMENT | slas.gov.sz | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by a network timeout (same pattern as Sierra Leone's MTHE, source #12) |
+| 18 | Eswatini SLAS | Eswatini | GOVERNMENT | slas.gov.sz | WEB_SCRAPER | **NOT_SUITABLE** — the "www." host still times out, but the bare host is reachable as of 2026-08-29 (base URL corrected); its real content is a domestic student-loan portal for Eswatini nationals with no scholarship/SADC text anywhere, so this adapter correctly extracts nothing from it (see docs/AUTHORITATIVE_SOURCES.md #18) |
 | 19 | Italian Government Scholarships (MAECI) | Italy | GOVERNMENT | esteri.it / studyinitaly.esteri.it | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 20 | IKY Foreign Nationals Scholarships | Greece | GOVERNMENT | iky.gr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 21 | NRF Postgraduate Funding | South Africa | GOVERNMENT | nrf.ac.za | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by the same TLS certificate-chain issue class as ICCR (see #21 in AUTHORITATIVE_SOURCES.md) |
@@ -69,6 +69,7 @@ that were actually built this session (in two batches).
 | 41 | Romanian Government Scholarships (MFA) | Romania | GOVERNMENT | studyinromania.gov.ro | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 42 | Stipendium Hungaricum | Hungary | GOVERNMENT | stipendiumhungaricum.hu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 43 | Becas de Excelencia del Gobierno de México (AMEXCID) | Mexico | GOVERNMENT | gob.mx | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 44 | EducationUSA "Find Financial Aid" Database | United States | GOVERNMENT | educationusa.state.gov | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -658,6 +659,57 @@ findings or force a weak candidate through.
 
 ---
 
+## United States and China (2026-08-29, closing the original 40-country audit)
+
+The only two named countries in the original 40-country target list that
+had never been individually researched (every other one already has a
+documented finding above, most dated the same day) — found while cross-
+checking the full implementation against that exact list.
+
+### United States — `SUPPORTED` (implemented 2026-08-29)
+- Prior US-facing sources (Grants.gov, USAJOBS, ReliefWeb) are federal
+  grants/jobs/humanitarian postings, not international-student
+  scholarships; Fulbright was already researched and rejected (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s "Sources evaluated and deliberately
+  not integrated" table).
+- `educationusa.state.gov/find-financial-aid` (US Department of State,
+  EducationUSA network) is a real, live, paginated Drupal Views listing
+  of 277+ individually browsable, institution-specific scholarships for
+  international students — plain server-rendered HTTPS, no browser
+  rendering needed. `robots.txt` returns HTTP 403 (treated as "no
+  restrictions apply" per RFC 9309 §2.3.1.3, not silently assumed —
+  see the source's own entry). Live-tested with three real fetches
+  (page 0, page 1, and `?page=40` confirming a genuine zero-row "past
+  the last page" response).
+- **Classification**: `SUPPORTED` — see source #44 in
+  `docs/AUTHORITATIVE_SOURCES.md` for the full write-up.
+
+### China — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The China Scholarship Council (CSC) administers the Chinese Government
+  Scholarship, a real, major, well-known program for international
+  students to study in China — genuinely worth pursuing, unlike most
+  `NOT_SUITABLE`/`NO_RELIABLE_SOURCE_FOUND` findings elsewhere in this
+  document.
+- Every candidate official page checked returns either HTTP 412
+  (`csc.edu.cn`, `studyinchina.csc.edu.cn`, tested with and without a
+  browser-like `User-Agent`) or, for `robots.txt` itself (which did
+  return HTTP 200), an obfuscated JavaScript anti-bot challenge page
+  (a heavily minified/obfuscated inline script plus a "404 系统繁忙，
+  请稍后再试" — "system busy, please try again later" — message), the
+  same class of active anti-bot protection already documented for
+  Cyprus's Azure WAF and Brazil's F5/Distil challenge. `campuschina.org`
+  (a secondary official-adjacent domain sometimes used for the same
+  program) did not respond at all within a 15-second timeout.
+- Never attempted to bypass any of this - detected, classified, and
+  recorded, per this project's standing anti-bot policy (see
+  `app/services/browser_rendering.py`'s module docstring).
+- **Classification**: `BLOCKED` — a real program with active anti-bot
+  protection blocking every access path tried, not a code defect. Not
+  pursued further without an explicit, informed decision to do so via
+  an authorized channel, the same standing given Cyprus.
+
+---
+
 ## Country coverage summary
 
 | Country/Region | Status | Notes |
@@ -670,7 +722,7 @@ findings or force a weak candidate through.
 | Greece | SUPPORTED | Live-verified |
 | Germany | SUPPORTED | Pre-existing (DAAD) |
 | India | PARTIALLY_SUPPORTED | Blocked by ICCR's TLS chain issue |
-| Eswatini | PARTIALLY_SUPPORTED | Blocked by network timeout |
+| Eswatini | NOT_SUITABLE | Reachability fixed 2026-08-29 (bare host, not "www."), but real content is a domestic student-loan portal with no scholarship/SADC text - adapter correctly extracts nothing |
 | South Africa | PARTIALLY_SUPPORTED | Blocked by the same TLS chain issue class as India |
 | Netherlands | SUPPORTED | Live-verified 2026-08-29 |
 | Spain | SUPPORTED | Live-verified 2026-08-29 |
@@ -720,6 +772,8 @@ findings or force a weak candidate through.
 | Pakistan | BLOCKED | Confirmed 2026-08-29 — HEC's domain fails TLS certificate verification on every hostname tried, 6/6 attempts |
 | Philippines | BLOCKED | Confirmed 2026-08-29 — CHED's official site returns 403 Forbidden, 3/3 attempts |
 | Nigeria | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Federal Scholarships Board is outbound/domestic only, for Nigerian citizens |
+| United States | SUPPORTED | Live-verified 2026-08-29 — EducationUSA "Find Financial Aid" database (source #44) |
+| China | BLOCKED | Confirmed 2026-08-29 — China Scholarship Council is real and legitimate, but every page (including robots.txt) is behind an active anti-bot challenge (HTTP 412 or an obfuscated-JS "system busy" interstitial) |
 | Ghana | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Scholarships Authority is outbound/domestic only, for Ghanaian citizens |
 | Rwanda | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Higher Education Council is a domestic student-loan/outbound body |
 | Jordan | NOT_SUITABLE | Confirmed 2026-08-29 — real bidirectional cultural-agreement program, but the page is too thin (no funding/deadline detail) |

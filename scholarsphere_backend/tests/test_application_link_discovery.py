@@ -172,7 +172,12 @@ async def test_click_reveals_new_tab_destination(
     with _TestHttpsServer(html) as base_url:
         async with _RealBrowserSession(monkeypatch):
             async with browser_rendering.interactive_session(base_url) as page:
-                engine = BrowserInteractionEngine(page, default_timeout_ms=5_000)
+                # Longer timeout than the other tests in this file - a
+                # real new OS-level browser tab (window.open) is slower
+                # and more susceptible to flaking under system load
+                # (parallel Chromium instances from other tests in the
+                # same run) than an in-page DOM/URL change.
+                engine = BrowserInteractionEngine(page, default_timeout_ms=15_000)
                 candidates = await discover_application_links(engine, base_url=base_url)
 
         assert len(candidates) == 1

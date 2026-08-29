@@ -83,6 +83,7 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
 )
+from app.services.educationusa_source import EducationUsaFinancialAidSource
 from app.services.notification_dispatch import (
     default_preferences,
     event_title,
@@ -284,6 +285,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_mexico_amexcid",
             "schedule": crontab(minute=45, hour=11),
         },
+        "sync-educationusa-financial-aid": {
+            "task": "app.tasks.opportunity_sync.sync_educationusa_financial_aid",
+            "schedule": crontab(minute=0, hour=12),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -367,6 +372,9 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum"
     ),
     "mexico_amexcid": "app.tasks.opportunity_sync.sync_mexico_amexcid",
+    "educationusa_financial_aid": (
+        "app.tasks.opportunity_sync.sync_educationusa_financial_aid"
+    ),
 }
 
 
@@ -1018,6 +1026,21 @@ def sync_mexico_amexcid(
     return _execute_source_task(self, "mexico_amexcid", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_educationusa_financial_aid",
+    max_retries=3,
+)
+def sync_educationusa_financial_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "educationusa_financial_aid", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1261,6 +1284,7 @@ def _collector(source_code: str) -> Any:
         "romania_mfa": RomaniaMfaScholarshipSource,
         "hungary_stipendium_hungaricum": HungaryStipendiumHungaricumSource,
         "mexico_amexcid": MexicoAmexcidScholarshipSource,
+        "educationusa_financial_aid": EducationUsaFinancialAidSource,
     }[source_code]()
 
 

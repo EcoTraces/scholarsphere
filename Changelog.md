@@ -91,6 +91,53 @@ execution-plus-DOM-extraction test. Full backend suite: **586/586**
 (`pytest -q`, up from 575). `pip-audit`: no known vulnerabilities in the
 new `playwright` dependency.
 
+## [2026-08-29] — 40-country audit: United States and China closed, Eswatini reachability fixed
+
+Cross-referenced the platform's exact 40-country target list against
+`docs/COUNTRY_PROVIDER_REGISTRY.md` (already thorough from prior
+sessions — 38 of 40 already had a real, live-tested classification).
+Closed the two that had never been researched, and fixed one real bug
+found while re-checking.
+
+### Added
+- `app/services/educationusa_source.py` — a new United States source:
+  `educationusa.state.gov/find-financial-aid` (US Department of State),
+  a real, live, plain-HTTPS paginated database of 277+
+  institution-specific scholarships. The first production consumer of
+  `app/services/pagination_engine.py`'s `paginate_by_url`. Wired
+  end-to-end (config, source registry, Celery beat + task,
+  opportunity_sync mapping) and verified against 3 genuinely separate
+  real fetches (page 0, page 1, and a real `?page=40` zero-row
+  "past the last page" response), all saved as test fixtures.
+
+### Changed
+- `eswatini_slas_base_url` corrected from `https://www.slas.gov.sz`
+  (still times out) to `https://slas.gov.sz` (bare host, genuinely
+  reachable — 200, real content, 3/3 attempts). The real page turned out
+  to be a domestic student-loan portal with no scholarship/SADC content,
+  so `EswatiniSlasSource` correctly still extracts zero records from it
+  — reclassified `NOT_SUITABLE` rather than claimed newly working.
+- `tests/test_opportunity_import.py`'s hardcoded source count/set
+  updated for the new source; two real-Chromium new-tab-detection tests
+  given a longer timeout after being found genuinely flaky under
+  full-suite system load (not a production bug).
+
+### Deliberately not touched
+China: the China Scholarship Council (CSC) is a real, major program, but
+every candidate page — including `robots.txt` itself — returns HTTP 412
+or an obfuscated JS anti-bot challenge page, the same class of
+protection as Cyprus/Brazil. Classified `BLOCKED`, never bypassed.
+
+The remaining 35 (of 40) countries already had defensible research on
+record and were not re-litigated without new information. The spec's
+"multiple source types per country" ambition (university + government +
+embassy + foundation sources for every country) remains a real, larger
+gap beyond one session's scope — most countries here have exactly one
+flagship government source today.
+
+Verified: 6 new tests. Full backend suite confirmed green: **676/676**
+(`pytest -q`, up from 670).
+
 ## [2026-08-29] — Hybrid Scholarship Discovery and Verification Engine: the rest of the spec
 
 A continuation of the browser-rendering fallback above, building out the

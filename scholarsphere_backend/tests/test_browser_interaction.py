@@ -212,7 +212,12 @@ async def test_click_and_wait_detects_new_tab(monkeypatch: pytest.MonkeyPatch) -
     with _TestHttpsServer(_NEW_TAB_HTML) as base_url:
         async with _RealBrowserSession(monkeypatch):
             async with browser_rendering.interactive_session(base_url) as page:
-                engine = BrowserInteractionEngine(page, default_timeout_ms=5_000)
+                # A longer timeout than the other tests here - opening an
+                # actual new OS-level browser tab is slower and more
+                # susceptible to flaking under system load (parallel
+                # Chromium instances from other tests in the same run)
+                # than an in-page DOM/URL change.
+                engine = BrowserInteractionEngine(page, default_timeout_ms=15_000)
                 await engine.click("link", by="role", text="Open in new tab")
                 outcome = await engine.wait_for_navigation_or_change()
 
