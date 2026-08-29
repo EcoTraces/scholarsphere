@@ -530,6 +530,118 @@ before any implementation decision.
 
 ---
 
+## Beyond the original request, second pass (2026-08-29) — 0 new sources
+
+A second pass beyond the original request, covering 8 more countries:
+**New Zealand** (Oceania), **Singapore**, **Pakistan**, **Philippines**
+(South/Southeast Asia), **Nigeria**, **Ghana**, **Rwanda**
+(Sub-Saharan Africa), and **Jordan** (Middle East). Unlike every prior
+pass in this initiative, **none of the 8 yielded an implementable
+source** — reported here in full because that is itself a real,
+honest research outcome worth recording, not a reason to omit the
+findings or force a weak candidate through.
+
+### New Zealand — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- Manaaki New Zealand Scholarships (NZAID), funded through the New
+  Zealand Aid Programme and administered by MFAT, is a real, well-
+  documented, genuinely inbound program with an official site
+  (`nzscholarships.govt.nz`, fully permissive `robots.txt`) — the
+  research failure here is structural, not a content problem. The
+  entire site is built with Next.js CSS Modules: every wrapping
+  element, down to the immediate parent of the page's own `<h1>`, uses
+  an auto-generated hashed class name (e.g. `Layout_main__E16O_`,
+  `HeroPanel-module_inner__P3zsE`) with no stable, hand-authored class
+  or id anywhere near the content. The generic `<main>` tag itself is
+  non-unique (2 matches per page), and the first one in document order
+  is a navigation/menu block, not the real content — so even the
+  simplest possible selector picks the wrong element. No selector on
+  this page is safe from breaking on the site's next deploy.
+- **Classification**: `NOT_SUITABLE` — no stable selector exists
+  anywhere on the site, a novel failure mode distinct from every prior
+  "thin content" or "blocked" finding in this registry.
+
+### Singapore — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- The Singapore International Graduate Award (SINGA), A*STAR's
+  well-known PhD scholarship, no longer has a dedicated "about the
+  program" page — every guessed and search-suggested URL under
+  `a-star.edu.sg/scholarships/...` for it returns `404`, and a full
+  scan of the site's own `sitemap.xml` (643KB, checked directly) turns
+  up only a scholar-testimonial page mentioning SINGA by name, not a
+  program overview. The one current "International Awards" offering
+  found, the Singapore Research Attachment Programme (SRAP), is
+  institution-initiated — applications must be submitted by "Singapore
+  researchers... together with their overseas collaborator(s)", not by
+  individual prospective students — the same disqualifying shape
+  already ruled out for Canada's SICS program.
+- **Classification**: `NOT_SUITABLE` — SINGA appears to have no current
+  standalone page, and the one program that does is not
+  individually-applicable.
+
+### Pakistan — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The Higher Education Commission (HEC) does run scholarships for
+  foreign students (Central Asian and "friendly country" nationals),
+  per third-party mentions, but every variant of its domain
+  (`hec.gov.pk`, `www.hec.gov.pk`, `scholarship.hec.gov.pk`) fails with
+  `SSL: CERTIFICATE_VERIFY_FAILED` — a real, broken TLS certificate
+  chain on HEC's own servers, confirmed 6/6 across all three hostnames
+  and two attempts each, the same class of finding as India ICCR and
+  South Africa NRF (sources #16, #21). No real HTML content could be
+  fetched at all, so no fixture or adapter could be built.
+- **Classification**: `BLOCKED` — TLS certificate-chain defect,
+  connection fails before any content is ever served.
+
+### Philippines — `BLOCKED` (confirmed by live testing 2026-08-29)
+- CHED (Commission on Higher Education) is described only vaguely in
+  third-party sources as "occasionally" partnering on scholarships for
+  foreign students — a weaker candidate to begin with — and its
+  official site (`ched.gov.ph`) returns `403 Forbidden` on every
+  attempt (3/3, both the homepage and `robots.txt`), an active,
+  consistent block.
+- **Classification**: `BLOCKED`.
+
+### Nigeria — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- The Federal Scholarships Board (a department of the Federal Ministry
+  of Education) implements Nigeria's Bilateral Education Agreement and
+  Commonwealth scholarship commitments — entirely for the benefit of
+  *Nigerian* citizens (both those studying abroad and those studying
+  locally). No official program funding foreign nationals to study *in*
+  Nigeria was found.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND`.
+
+### Ghana — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- The Ghana Scholarships Authority (`scholarships.gov.gh`) offers "local
+  tertiary scholarships for students enrolled in public tertiary
+  institutions in Ghana" and "foreign tertiary scholarships for
+  Ghanaians accepted into recognized international institutions" — both
+  explicitly for Ghanaian citizens, the same outbound/domestic-only
+  shape as Nigeria's FSB. No inbound program was found.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND`.
+
+### Rwanda — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- The Higher Education Council (`hec.gov.rw`) is primarily a domestic
+  student-loan and outbound-scholarship body for Rwandan citizens (its
+  most prominent current program is literally titled "Government Study
+  Loan Rwanda"). No official Rwandan government program funding foreign
+  nationals to study *in* Rwanda was found.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND`.
+
+### Jordan — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- The Ministry of Higher Education and Scientific Research's "Cultural
+  Agreements" page (`mohe.gov.jo`, no `robots.txt` restrictions) does
+  confirm a genuine, bidirectional inbound mechanism: "citizens of
+  [partner] countries are hosted by Jordanian public universities" under
+  agreements with 25 named Arab and foreign partner countries. But the
+  page has no `<h1>` and the real content, once separated from the
+  page's extensive navigation menu, is only two sentences plus a
+  country list — no funding coverage, no deadline, no application
+  process described anywhere on the page — the same thin-content shape
+  already ruled out for Colombia's `programa-de-reciprocidad` page and
+  Malaysia's MIS portal.
+- **Classification**: `NOT_SUITABLE` — real bidirectional program, but
+  insufficient on-page substance to build a reliable record from.
+
+---
+
 ## Country coverage summary
 
 | Country/Region | Status | Notes |
@@ -587,6 +699,14 @@ before any implementation decision.
 | Egypt | BLOCKED | Confirmed 2026-08-29 — official portal is a pure JS SPA with zero server-rendered content on any route |
 | Israel | BLOCKED | Confirmed 2026-08-29 — government scholarship page returns 403 Forbidden, 3/3 attempts |
 | Kenya | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — the one page found is an outbound-opportunity database, not an inbound single program |
+| New Zealand | NOT_SUITABLE | Confirmed 2026-08-29 — entire site relies on auto-generated CSS-module hash classes, no stable selector exists anywhere |
+| Singapore | NOT_SUITABLE | Confirmed 2026-08-29 — SINGA has no current standalone page; the one current program is institution-initiated, not individually-applicable |
+| Pakistan | BLOCKED | Confirmed 2026-08-29 — HEC's domain fails TLS certificate verification on every hostname tried, 6/6 attempts |
+| Philippines | BLOCKED | Confirmed 2026-08-29 — CHED's official site returns 403 Forbidden, 3/3 attempts |
+| Nigeria | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Federal Scholarships Board is outbound/domestic only, for Nigerian citizens |
+| Ghana | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Scholarships Authority is outbound/domestic only, for Ghanaian citizens |
+| Rwanda | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Higher Education Council is a domestic student-loan/outbound body |
+| Jordan | NOT_SUITABLE | Confirmed 2026-08-29 — real bidirectional cultural-agreement program, but the page is too thin (no funding/deadline detail) |
 
 **19 of 24 original targets have a genuinely integrated provider** (15
 fully live-verified, 4 implemented-but-live-blocked/partially-blocked with
@@ -653,16 +773,37 @@ be reached or don't fit this system's single-flagship pattern, not
 because they're unresearched.
 
 **No named country or region from the original master-prompt request
-remains unresearched.** A tenth pass has now also researched 8
-countries entirely outside that original request (Hungary, Mexico,
-Indonesia, Malaysia, Vietnam, Egypt, Israel, Kenya) — see the dedicated
-"Beyond the original request" section above. Any further expansion from
-here would mean either revisiting a `NOT_SUITABLE`/`BLOCKED`/
+remains unresearched.** A tenth and eleventh pass have now researched 16
+more countries entirely outside that original request (tenth: Hungary,
+Mexico, Indonesia, Malaysia, Vietnam, Egypt, Israel, Kenya; eleventh:
+New Zealand, Singapore, Pakistan, Philippines, Nigeria, Ghana, Rwanda,
+Jordan) — see the two dedicated "Beyond the original request" sections
+above. The eleventh pass, notably, yielded zero new sources — a real
+research outcome, not a gap: several African and outbound-focused
+ministries turned out to have no inbound program at all, two government
+sites are actively unreachable (a TLS certificate defect, a 403 block),
+and two otherwise-real programs failed on structural grounds (an
+entirely CSS-module-hashed site with no stable selector, and a program
+that no longer has a standalone page). Any further expansion from here
+would mean either revisiting a `NOT_SUITABLE`/`BLOCKED`/
 `NO_RELIABLE_SOURCE_FOUND` finding with new evidence (e.g. checking
 whether Finland's EDUFI Fellowship gets a successor programme, whether
-Ecuador's Prometeo programme has a current official page, or whether
-Egypt's or Israel's official sites gain a server-rendered fallback), or
-choosing more new countries.
+Pakistan's HEC fixes its TLS certificate chain, or whether Egypt's or
+Israel's official sites gain a server-rendered fallback), or choosing
+more new countries — there is no shortage of unresearched countries
+left worldwide, just diminishing odds of a clean single-flagship match
+per country picked at random.
+
+**The eleventh pass (8 more new countries entirely outside the original
+request) added no new sources**: New Zealand and Singapore were found
+`NOT_SUITABLE` (a site with no stable selector anywhere, and a program
+with no current standalone page, respectively); Pakistan and Philippines
+were found `BLOCKED` (a TLS certificate defect, and a 403 block);
+Nigeria, Ghana, and Rwanda came back `NO_RELIABLE_SOURCE_FOUND` (each
+ministry's scholarship program is outbound/domestic only); Jordan was
+found `NOT_SUITABLE` (a real bidirectional program, but too thin on the
+page to build a record from) — see their entries in the second "Beyond
+the original request" section above.
 
 **Implemented since the tenth pass (8 new countries entirely outside
 the original master-prompt request)**: Hungary (Stipendium Hungaricum)

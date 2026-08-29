@@ -1431,3 +1431,55 @@ for the full dated history.
         countries/regions now have at least one real source (up from
         29), now including 2 entirely outside the original
         master-prompt request.
+
+- [x] **(2026-08-29)** A second batch beyond the original master-prompt
+      request (user said "go on"): New Zealand, Singapore, Pakistan,
+      Philippines, Nigeria, Ghana, Rwanda, Jordan. **Zero new sources
+      added** — a real, honest research outcome recorded in full rather
+      than omitted or forced:
+      - **New Zealand**: Manaaki New Zealand Scholarships is a real,
+        well-documented, permissively-crawlable inbound program, but
+        the entire site is built with Next.js CSS Modules — every
+        wrapper down to the immediate parent of the page's `<h1>` uses
+        an auto-generated hashed class name, and the generic `<main>`
+        tag itself is non-unique with the wrong element first in
+        document order. No selector on the page is safe from breaking
+        on the next deploy — `NOT_SUITABLE`.
+      - **Singapore**: SINGA (A*STAR's well-known PhD scholarship) no
+        longer has a dedicated program page — every guessed/search-
+        suggested URL 404s, confirmed by scanning the site's full
+        643KB `sitemap.xml` directly. The one current "International
+        Awards" offering is institution-initiated (Singapore
+        researchers apply together with overseas collaborators), the
+        same disqualifying shape as Canada's SICS — `NOT_SUITABLE`.
+      - **Pakistan**: HEC does run scholarships for foreign students,
+        but every domain variant (`hec.gov.pk`, `www.hec.gov.pk`,
+        `scholarship.hec.gov.pk`) fails `SSL: CERTIFICATE_VERIFY_FAILED`
+        — a real TLS certificate-chain defect, confirmed 6/6 across all
+        hostnames — `BLOCKED`, same class as India ICCR/South Africa
+        NRF.
+      - **Philippines**: CHED's official site returns 403 Forbidden on
+        3/3 attempts — `BLOCKED`.
+      - **Nigeria, Ghana, Rwanda**: each country's national scholarship
+        body (Federal Scholarships Board, Ghana Scholarships Authority,
+        Higher Education Council) turned out to be outbound/domestic-
+        only — funding citizens to study abroad or at home institutions,
+        never funding foreign nationals to study in-country —
+        `NO_RELIABLE_SOURCE_FOUND` for all three.
+      - **Jordan**: MOHE's "Cultural Agreements" page confirms a real,
+        genuinely bidirectional inbound mechanism across 25 partner
+        countries, but the actual on-page content (once separated from
+        navigation menus) is only two sentences plus a country list —
+        no funding, no deadline, no application process — the same
+        thin-content bar that already ruled out Colombia's reciprocity
+        page and Malaysia's MIS — `NOT_SUITABLE`.
+      - No code changes: since nothing was implementable, no source
+        classes, config entries, tests, or fixtures were added. Docs
+        updated: `docs/COUNTRY_PROVIDER_REGISTRY.md` (new dedicated
+        "second pass" section with all 8 findings; coverage summary and
+        recommended-next-candidates updated to record the 0-for-8
+        outcome honestly).
+      - **Country coverage unchanged at 31** — this pass added no new
+        sources, only negative findings (which still have value: future
+        sessions won't need to re-research these 8 countries from
+        scratch).

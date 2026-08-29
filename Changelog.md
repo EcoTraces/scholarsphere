@@ -28,6 +28,46 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Second beyond-the-original-request pass: 8 more countries researched, zero new sources — an honest null result
+
+A second batch of 8 countries entirely outside the original
+master-prompt request: New Zealand, Singapore, Pakistan, Philippines,
+Nigeria, Ghana, Rwanda, Jordan. Unlike every prior pass, **this one adds
+no new sources** — recorded here in full because a real, honest research
+outcome, not a gap:
+
+- **New Zealand**: Manaaki New Zealand Scholarships is real and
+  well-documented, but the entire site is built with Next.js CSS
+  Modules — every wrapper down to the `<h1>`'s immediate parent uses an
+  auto-generated hashed class, and even the generic `<main>` tag is
+  non-unique with the wrong element first. No selector is safe from
+  breaking on the next deploy.
+- **Singapore**: SINGA no longer has a dedicated program page (every
+  guessed/search-suggested URL 404s, confirmed against the site's full
+  sitemap.xml); the one current offering is institution-initiated, not
+  individually-applicable, the same shape already ruled out for Canada.
+- **Pakistan**: HEC's domain fails TLS certificate verification on
+  every hostname tried — the same class of finding as India ICCR and
+  South Africa NRF.
+- **Philippines**: CHED's official site returns 403 Forbidden, 3/3
+  attempts.
+- **Nigeria, Ghana, Rwanda**: each national scholarship body turned out
+  to be outbound/domestic-only — no program was found funding foreign
+  nationals to study in-country.
+- **Jordan**: a real, genuinely bidirectional inbound mechanism exists
+  across 25 partner countries, but the actual page content is only two
+  sentences plus a country list — no funding, deadline, or application
+  detail — the same thin-content bar that already ruled out Colombia's
+  reciprocity page and Malaysia's MIS.
+
+No code changes this round — nothing was implementable, so no source
+classes, tests, or fixtures were added. `docs/COUNTRY_PROVIDER_REGISTRY.md`
+updated with a new dedicated section recording all 8 findings.
+
+Country coverage unchanged at 31 real sources — this pass added negative
+findings only, which still have value: future sessions won't re-research
+these 8 countries from scratch.
+
 ## [2026-08-29] — Beyond the original request: 8 new countries researched; Hungary and Mexico added
 
 With every country/region named in the original master-prompt request
