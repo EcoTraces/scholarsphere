@@ -241,6 +241,36 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "switzerland_sbfi_eskas": {
+        "source_name": "Swiss Government Excellence Scholarships (ESKAS)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "poland_nawa_myfirstchoice": {
+        "source_name": "Poland My First Choice (NAWA)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "czech_republic_msmt": {
+        "source_name": "Government Scholarships - Developing Countries (MŠMT, Czech Republic)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "serbia_world_in_serbia": {
+        "source_name": "World in Serbia Scholarships",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "romania_mfa": {
+        "source_name": "Romanian Government Scholarships (MFA)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -285,6 +315,11 @@ def _base_urls() -> dict[str, str]:
         "south_korea_gks": settings.south_korea_gks_base_url,
         "saudi_arabia_moe": settings.saudi_arabia_moe_base_url,
         "qatar_scholarships": settings.qatar_scholarships_base_url,
+        "switzerland_sbfi_eskas": settings.switzerland_sbfi_base_url,
+        "poland_nawa_myfirstchoice": settings.poland_nawa_base_url,
+        "czech_republic_msmt": settings.czech_republic_msmt_base_url,
+        "serbia_world_in_serbia": settings.serbia_welcometoserbia_base_url,
+        "romania_mfa": settings.romania_mfa_base_url,
     }
 
 
@@ -345,6 +380,11 @@ async def seed_opportunity_sources(
         "south_korea_gks": now + timedelta(hours=24),
         "saudi_arabia_moe": now + timedelta(hours=24),
         "qatar_scholarships": now + timedelta(hours=24),
+        "switzerland_sbfi_eskas": now + timedelta(hours=24),
+        "poland_nawa_myfirstchoice": now + timedelta(hours=24),
+        "czech_republic_msmt": now + timedelta(hours=24),
+        "serbia_world_in_serbia": now + timedelta(hours=24),
+        "romania_mfa": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

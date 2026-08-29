@@ -12,6 +12,7 @@ from app.services.national_scholarship_programs import (
     BelgiumAresScholarshipSource,
     ChileAgcidScholarshipSource,
     ColombiaIcetexBecaExtranjerosSource,
+    CzechRepublicMsmtScholarshipSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
@@ -21,13 +22,17 @@ from app.services.national_scholarship_programs import (
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     PeruPronabecAlianzaPacificoSource,
+    PolandNawaMyFirstChoiceSource,
     PortugalCamoesScholarshipSource,
     QatarScholarshipsSource,
+    RomaniaMfaScholarshipSource,
     SaudiArabiaMoeScholarshipSource,
+    SerbiaWorldInSerbiaScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SouthKoreaGksScholarshipSource,
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
+    SwitzerlandEskasScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
 )
@@ -973,6 +978,207 @@ async def test_qatar_scholarships_collect_normalizes_real_fixture(
 
 def test_qatar_scholarships_never_attempts_deadline_extraction() -> None:
     assert QatarScholarshipsSource.deadline_keywords == ()
+
+
+# --- Switzerland SBFI ESKAS: real fixture, fetched 2026-08-29 ---------------
+
+
+@pytest.mark.asyncio
+async def test_switzerland_eskas_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = SwitzerlandEskasScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("switzerland_sbfi_eskas.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "switzerland-sbfi-eskas-scholarships"
+    assert opportunity.title == "Swiss Government Excellence Scholarships 2027 – 2028"
+    assert opportunity.country == "Switzerland"
+    assert opportunity.provider_name == (
+        "Federal Commission for Scholarships for Foreign Students "
+        "(FCS/ESKAS), State Secretariat for Education, Research and "
+        "Innovation (SBFI), Switzerland"
+    )
+    assert opportunity.description is not None
+    assert "CHF 2450" in opportunity.description
+    # A concrete monthly amount is stated but tuition coverage is never
+    # mentioned - correctly partial rather than fully funded.
+    assert opportunity.funding_type == "partial_funding"
+    # Deadlines are published per country of origin via Swiss diplomatic
+    # representations, not as one global date on this page.
+    assert opportunity.deadline is None
+
+
+def test_switzerland_eskas_never_attempts_deadline_extraction() -> None:
+    assert SwitzerlandEskasScholarshipSource.deadline_keywords == ()
+
+
+# --- Poland NAWA: real fixture, fetched 2026-08-29 ---------------------------
+
+
+@pytest.mark.asyncio
+async def test_poland_nawa_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = PolandNawaMyFirstChoiceSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("poland_nawa_myfirstchoice.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "poland-nawa-my-first-choice"
+    # The page's real content h1 ("header") is picked over the earlier
+    # hidden accessibility h1 ("sr-only").
+    assert opportunity.title == "Poland My First Choice NAWA"
+    assert opportunity.country == "Poland"
+    assert opportunity.provider_name == (
+        "Polish National Agency for Academic Exchange (NAWA), Poland"
+    )
+    assert opportunity.description is not None
+    assert "exemption from tuition fees" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_poland_nawa_never_attempts_deadline_extraction() -> None:
+    assert PolandNawaMyFirstChoiceSource.deadline_keywords == ()
+
+
+# --- Czech Republic MSMT: real fixture, fetched 2026-08-29 -------------------
+
+
+@pytest.mark.asyncio
+async def test_czech_republic_msmt_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = CzechRepublicMsmtScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("czech_republic_msmt_scholarships.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "czech-republic-msmt-government-scholarships"
+    assert opportunity.title == "Government Scholarships – Developing Countries"
+    assert opportunity.country == "Czech Republic"
+    assert opportunity.provider_name == (
+        "Ministry of Education, Youth and Sports (MŠMT) / Ministry of "
+        "Foreign Affairs (MZV), Czech Republic"
+    )
+    assert opportunity.description is not None
+    assert "APPLICATION SUBMISSION AND DEADLINE" in opportunity.description
+    # No funding-coverage language appears in the page's own HTML - the
+    # real monthly amount lives only in a linked PDF this scraper does
+    # not parse.
+    assert opportunity.funding_type is None
+    # Unlike every other source in this initiative, this one is NOT left
+    # null by design - a genuine, singular, cleanly extractable deadline
+    # exists ("by 30 September 2026 at the latest").
+    assert opportunity.deadline == date(2026, 9, 30)
+
+
+def test_czech_republic_msmt_uses_default_deadline_keywords() -> None:
+    assert CzechRepublicMsmtScholarshipSource.deadline_keywords == (
+        "deadline",
+        "closing date",
+    )
+
+
+# --- Serbia "World in Serbia": real fixture, fetched 2026-08-29 -------------
+
+
+@pytest.mark.asyncio
+async def test_serbia_world_in_serbia_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = SerbiaWorldInSerbiaScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("serbia_world_in_serbia.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "serbia-world-in-serbia-scholarships"
+    # No <h1> at all - the page's only heading is a plain <h2>.
+    assert opportunity.title == "Scholarships"
+    assert opportunity.country == "Serbia"
+    assert opportunity.provider_name == "Ministry of Education, Republic of Serbia"
+    assert opportunity.description is not None
+    assert "free of charge" in opportunity.description
+    # Genuinely comprehensive coverage: free tuition, accommodation and
+    # food, a monthly allowance, and health insurance.
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_serbia_world_in_serbia_never_attempts_deadline_extraction() -> None:
+    assert SerbiaWorldInSerbiaScholarshipSource.deadline_keywords == ()
+
+
+# --- Romania MFA: real fixture, fetched 2026-08-29 ---------------------------
+
+
+@pytest.mark.asyncio
+async def test_romania_mfa_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = RomaniaMfaScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("romania_studyinromania_about.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "romania-mfa-government-scholarships"
+    assert opportunity.title == "About the scholarships"
+    assert opportunity.country == "Romania"
+    assert opportunity.provider_name == (
+        "Ministry of Foreign Affairs (MFA) / Ministry of Education and "
+        "Research, Romania"
+    )
+    assert opportunity.description is not None
+    assert "Foreign citizens from all non-EU countries" in opportunity.description
+    # Confirmed by the fixture's own text further down the page (past
+    # the description's 5000-character excerpt window, but read in full
+    # before classifying): explicit financing of tuition expenses (both
+    # the preparatory year and the actual studies), a monthly
+    # scholarship, and accommodation expenses.
+    assert opportunity.funding_type == "fully_funded"
+    # A real deadline is stated ("31 March 2026") but the page's first
+    # "deadline" mention is an earlier, unrelated one with no date
+    # nearby - extract_confident_date_after only searches after a
+    # keyword's first occurrence, so it correctly finds nothing here.
+    assert opportunity.deadline is None
+
+
+def test_romania_mfa_never_attempts_deadline_extraction() -> None:
+    assert RomaniaMfaScholarshipSource.deadline_keywords == ()
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

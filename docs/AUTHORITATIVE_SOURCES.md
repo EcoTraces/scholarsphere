@@ -1343,6 +1343,242 @@ program.
 
 ---
 
+## 37. Swiss Government Excellence Scholarships (ESKAS) (Switzerland)
+
+- **Organization**: Federal Commission for Scholarships for Foreign
+  Students (FCS/ESKAS), under the State Secretariat for Education,
+  Research and Innovation (SBFI)
+- **Route code**: `switzerland-sbfi-eskas` (`switzerland_sbfi_eskas`
+  internally)
+- **Official domain / base URL**: `https://www.sbfi.admin.ch`
+  (`SWITZERLAND_SBFI_BASE_URL`)
+- **Opportunity types**: Scholarship (postgraduate research at any Swiss
+  cantonal university, university of applied sciences, ETHZ/EPFL, or an
+  ETH Domain research institute; and a separate art-scholarship track)
+- **Country coverage**: Switzerland; open to applicants from 183 countries
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/en/swiss-government-excellence-scholarships`. `robots.txt`
+  (`Disallow:` empty for `*`) is fully permissive.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ()` — the page explicitly states "Information
+    on application deadlines and scholarship available by country of
+    origin will be published here in August 2026"; deadlines are set
+    per country of origin, routed through Swiss diplomatic
+    representations — the same embassy-mediated pattern already
+    established for Japan MEXT and GKS (sources #25, #34).
+  - `funding_type = "partial_funding"`, not this pattern's
+    `fully_funded` default — the page states a concrete monthly amount
+    ("funding: CHF 2450.--/month") but never states whether tuition
+    fees are covered, unlike Japan MEXT/Portugal Camões/GKS which
+    explicitly confirm tuition coverage.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~198KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 38. Poland My First Choice (NAWA) (Poland)
+
+- **Organization**: Polish National Agency for Academic Exchange (NAWA)
+- **Route code**: `poland-nawa-myfirstchoice` (`poland_nawa_myfirstchoice`
+  internally)
+- **Official domain / base URL**: `https://nawa.gov.pl`
+  (`POLAND_NAWA_BASE_URL`)
+- **Opportunity types**: Scholarship (full-time second-cycle/master's
+  study at Polish higher education institutions)
+- **Country coverage**: Poland; open to citizens of ~40 named countries
+  and territories
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/en/students/foreign-students/poland-my-first-choice-programme`.
+  The page has a hidden accessibility `<h1 class="sr-only">` before the
+  real content `<h1 class="header">` — the same class of bug already
+  documented for India ICCR and Colombia ICETEX (source #31) —
+  `title_selectors = ("h1.header", "h1")` skips it. NAWA runs several
+  other named programmes (Banach NAWA, Ignacy Łukasiewicz, Polonista
+  NAWA), each restricted to a narrower partner-country list under
+  Polish Development Assistance; "Poland My First Choice" was chosen
+  because it has the broadest eligible-country list and is not itself a
+  multi-program bundle. `robots.txt` (standard Joomla pattern) does not
+  disallow this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ()` — no deadline-style date literal, or even
+    the words "deadline"/"closing date", appears anywhere on the page
+    (confirmed by a full-text search).
+  - `funding_type = "partial_funding"` — the page confirms "an
+    exemption from tuition fees at public universities" explicitly, but
+    only vaguely references "a scholarship" without ever stating a
+    monthly amount or whether living costs are covered.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~291KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 39. Government Scholarships – Developing Countries (Czech Republic)
+
+- **Organization**: Ministry of Education, Youth and Sports (MŠMT),
+  jointly with the Ministry of Foreign Affairs (MZV) and Ministry of
+  Health
+- **Route code**: `czech-republic-msmt` (`czech_republic_msmt`
+  internally)
+- **Official domain / base URL**: `https://msmt.gov.cz`
+  (`CZECH_REPUBLIC_MSMT_BASE_URL`)
+- **Opportunity types**: Scholarship (bachelor's, follow-up master's,
+  and doctoral study at Czech public higher education institutions,
+  including a one-year Czech-language preparatory course)
+- **Country coverage**: Czech Republic; open to citizens of 13 named
+  developing/partner countries for the 2027/2028 academic year
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/en/scholarships/government-scholarships-developing-countries`.
+  This site is a headless-CMS build (Next.js frontend over a WordPress
+  backend, evidenced by genuine `wp-block-*` classes mixed with
+  Tailwind utility classes) whose React-rendered wrapper divs carry
+  auto-generated ids (e.g. `id="S:5"`, a React Server Components
+  streaming-boundary id) that are deployment artifacts, not stable
+  content anchors — deliberately not used. Content is instead scoped to
+  `.global-msmt`, a real, site-specific custom class the page's own
+  developers added — the same class of choice already made for
+  Colombia ICETEX's `data-analytics-asset-title` and Chile AGCID over
+  positional/auto-generated alternatives. `robots.txt` (`Allow: /`,
+  only `/api/` and `/preview/` disallowed) does not disallow this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - Unlike every other source in this initiative's default
+    configuration, `deadline_keywords` is **not** overridden here — it
+    is left at the base class's own default (`("deadline", "closing
+    date")`) because this page has a genuine, singular, cleanly
+    extractable deadline: a section literally titled "APPLICATION
+    SUBMISSION AND DEADLINE" stating "Each applicant is obliged to fill
+    in an electronic application form by 30 September 2026 at the
+    latest" — confirmed by running `extract_confident_date_after`
+    directly against the real fixture text and getting back
+    `2026-09-30`.
+  - `funding_type = None` — the specific monthly stipend amount (found
+    only in third-party search summaries, not on this page) lives in a
+    linked PDF/DOCX "Guidelines" document this scraper does not parse —
+    no funding-coverage language appears in the page's own HTML text.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~238KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 40. "World in Serbia" Scholarships (Serbia)
+
+- **Organization**: Ministry of Education, Republic of Serbia, in
+  cooperation with the Ministry of Foreign Affairs
+- **Route code**: `serbia-world-in-serbia` (`serbia_world_in_serbia`
+  internally)
+- **Official domain / base URL**: `https://welcometoserbia.gov.rs`
+  (`SERBIA_WELCOMETOSERBIA_BASE_URL`)
+- **Opportunity types**: Scholarship (bachelor's, master's, doctoral,
+  and professional study at Serbian public universities, including a
+  free intensive Serbian-language course)
+- **Country coverage**: Serbia; open to candidates from Non-Aligned
+  Movement member/observer countries in Africa, Asia, and Central/South
+  America
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/scholarships`. `robots.txt` only disallows `/Admin`, not
+  this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ("h2",)` — the page has no `<h1>`; its only
+    heading is `<h2>Scholarships</h2>`, generic but honest (identical to
+    the `<title>` tag's own first segment), the same acceptance of a
+    real-if-plain heading already applied to WMI and other titleless-
+    page sources in this pattern.
+  - `deadline_keywords = ()` — "Every year, the Ministry of Education
+    announces a competition... in cooperation with the Ministry of
+    Foreign Affairs, through consular representation offices" —
+    consulate-mediated, no single global deadline, the same pattern as
+    Japan MEXT and GKS.
+  - `funding_type` kept at this pattern's `fully_funded` default — the
+    page explicitly states "study free of charge", "accommodation and
+    food", "a monthly financial allowance", and "health insurance".
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~34KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 41. Romanian Government Scholarships (MFA) (Romania)
+
+- **Organization**: Ministry of Foreign Affairs (MFA), jointly with the
+  Ministry of Education and Research
+- **Route code**: `romania-mfa` (`romania_mfa` internally)
+- **Official domain / base URL**:
+  `https://scholarships.studyinromania.gov.ro` (`ROMANIA_MFA_BASE_URL`)
+- **Opportunity types**: Scholarship (bachelor's, master's, and doctoral
+  study at accredited Romanian higher education institutions)
+- **Country coverage**: Romania; open to foreign citizens from non-EU
+  countries (with named exceptions — Romanian-heritage communities,
+  protection-status holders, diplomatic staff, etc., who have separate
+  programmes)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/scholarship-about`. Content is scoped to
+  `.about-text-block`, a unique, site-specific class — not the page's
+  own generic `.content` class, which matches 6 different unrelated
+  blocks on the page. `robots.txt` (`Allow: /`, only query-string paths
+  and `/tmp`/`/cgi-bin/` disallowed) does not disallow this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ()` despite the page stating a real, specific
+    closing date ("The deadline for submitting applications is 31
+    March 2026") in a fully parseable "DD Month YYYY" literal —
+    deliberately, not because the date itself is unparseable this time.
+    The page's *first* occurrence of the word "deadline" is an
+    unrelated, earlier mention ("comply with the enrolment deadline")
+    with no date nearby; `extract_confident_date_after` only ever
+    searches after a keyword's *first* occurrence (by design — see that
+    function's own docstring), so it correctly finds nothing here,
+    confirmed directly against the real fixture text. Extending that
+    shared function to consider every occurrence of a keyword is a
+    cross-cutting change affecting every scraper source, not something
+    to do incidentally while adding one adapter.
+  - `funding_type` kept at this pattern's `fully_funded` default — the
+    page explicitly confirms financing of tuition fees (both the
+    preparatory year and the actual studies), a monthly scholarship, and
+    accommodation expenses (this language appears further down the page
+    than the 5,000-character description excerpt reaches, but was read
+    in full before classifying).
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~125KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

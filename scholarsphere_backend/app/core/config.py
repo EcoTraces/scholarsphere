@@ -168,6 +168,11 @@ class Settings(BaseSettings):
     south_korea_gks_base_url: str = "https://www.studyinkorea.go.kr"
     saudi_arabia_moe_base_url: str = "https://www.moe.gov.sa"
     qatar_scholarships_base_url: str = "https://www.qatarscholarships.qa"
+    switzerland_sbfi_base_url: str = "https://www.sbfi.admin.ch"
+    poland_nawa_base_url: str = "https://nawa.gov.pl"
+    czech_republic_msmt_base_url: str = "https://msmt.gov.cz"
+    serbia_welcometoserbia_base_url: str = "https://welcometoserbia.gov.rs"
+    romania_mfa_base_url: str = "https://scholarships.studyinromania.gov.ro"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -256,6 +261,11 @@ class Settings(BaseSettings):
         "south_korea_gks_base_url",
         "saudi_arabia_moe_base_url",
         "qatar_scholarships_base_url",
+        "switzerland_sbfi_base_url",
+        "poland_nawa_base_url",
+        "czech_republic_msmt_base_url",
+        "serbia_welcometoserbia_base_url",
+        "romania_mfa_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

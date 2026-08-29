@@ -28,6 +28,65 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Europe: first research pass on the last 8 named countries; 5 sources added — no named region left unresearched
+
+A dedicated **first** research pass on the eight remaining named European
+countries from the original master-prompt request — the last
+unresearched region. 5 real sources added:
+
+- **Switzerland** (SBFI ESKAS): `funding_type = "partial_funding"` — a
+  concrete monthly amount (CHF 2450) is stated but tuition coverage is
+  never mentioned.
+- **Poland** (NAWA "Poland My First Choice"): hidden accessibility
+  `<h1 class="sr-only">` before the real `<h1 class="header">` — the
+  same bug class as India ICCR and Colombia ICETEX.
+- **Czech Republic** (MŠMT Government Scholarships): a headless
+  Next.js-over-WordPress build whose React wrapper divs carry
+  auto-generated `id="S:N"` streaming-boundary ids — deliberately not
+  used as a selector; scoped instead to `.global-msmt`, a real custom
+  class. Unusually, `deadline_keywords` is **left at the base class's
+  default** rather than disabled — this page has a genuine, singular,
+  cleanly extractable deadline ("by 30 September 2026 at the latest"),
+  confirmed directly against the real fixture. The first source in this
+  whole initiative where deadline extraction is actually used.
+- **Serbia** ("World in Serbia"): no `<h1>` — the page's only heading is
+  a plain `<h2>Scholarships</h2>`. `funding_type = "fully_funded"` —
+  explicit free tuition, accommodation, food, monthly allowance, and
+  health insurance.
+- **Romania** (MFA Government Scholarships): a genuinely interesting
+  deadline-extraction near-miss — the page states a real, parseable
+  deadline ("31 March 2026") but the shared date-extraction function
+  only searches after a keyword's *first* occurrence, and this page's
+  first "deadline" mention is an unrelated, dateless one earlier in the
+  eligibility section — confirmed directly against the real fixture that
+  extraction correctly (if unluckily) returns nothing.
+
+**Croatia** was investigated and found `NOT_SUITABLE`: every source is a
+year-dated "Call for Applications" page (seven different such pages
+found spanning 2020/2021 through 2026/2027), no evergreen "about" page,
+plus nomination-only eligibility. **Norway** came back
+`NO_RELIABLE_SOURCE_FOUND`: its two historical inbound programs (the
+"Quota Scheme" and NORSTIP) are both confirmed defunct/cancelled.
+**Finland** was found `NOT_SUITABLE`: its one national program (EDUFI
+Fellowship) states on its own official page that it "will end at the end
+of 2025. New applications cannot be submitted after 17.10.2025" —
+already past by this session's date, despite several third-party
+aggregators still listing it as "active in 2026" (exactly why this
+project verifies against primary sources).
+
+Source count 37 → 41. `docs/AUTHORITATIVE_SOURCES.md` (#37-#41) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Europe" section
+covering all 8 findings) fully updated.
+
+Verified: 10 new tests (2 per source) against real fixtures; full backend
+suite **571/571** (`pytest -q`).
+
+29 of the master prompt's ~40 named countries/regions now have at least
+one real source (up from 24). **No named country or region from the
+original master-prompt request remains unresearched** — South America,
+the remaining named Asian countries, and the remaining named European
+countries have each now had a full first-pass research effort.
+
 ## [2026-08-29] — Asia: first research pass on South Korea, Saudi Arabia, Qatar, Thailand; 3 sources added
 
 A dedicated **first** research pass on the four remaining named Asian

@@ -112,9 +112,14 @@ async def test_source_seeding_is_idempotent(session: AsyncSession) -> None:
         "south_korea_gks",
         "saudi_arabia_moe",
         "qatar_scholarships",
+        "switzerland_sbfi_eskas",
+        "poland_nawa_myfirstchoice",
+        "czech_republic_msmt",
+        "serbia_world_in_serbia",
+        "romania_mfa",
     }
     assert first["grants_gov"].id == second["grants_gov"].id
-    assert await session.scalar(select(func.count(OpportunitySource.id))) == 37
+    assert await session.scalar(select(func.count(OpportunitySource.id))) == 42
 
 
 @pytest.mark.asyncio

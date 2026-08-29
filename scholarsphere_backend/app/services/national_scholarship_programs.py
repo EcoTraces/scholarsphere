@@ -1185,3 +1185,238 @@ class QatarScholarshipsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().qatar_scholarships_base_url
+
+
+class SwitzerlandEskasScholarshipSource(_SingleProgramSource):
+    """Swiss Government Excellence Scholarships (ESKAS) - awarded by the
+    Federal Commission for Scholarships for Foreign Students (FCS/ESKAS),
+    under the State Secretariat for Education, Research and Innovation
+    (SBFI). Confirmed 2026-08-29 (both via `curl` and this backend's
+    actual httpx path - 200, real HTML, ~198KB): `robots.txt` (`Disallow:`
+    empty for `*`) is fully permissive.
+
+    `deadline_keywords = ()`: the page explicitly states "Information on
+    application deadlines and scholarship available by country of origin
+    will be published here in August 2026" - deadlines are set and
+    published per country of origin (applications route through Swiss
+    diplomatic representations), not as one single global date on this
+    page - the same embassy-mediated pattern already established for
+    Japan MEXT and GKS.
+
+    `funding_type = "partial_funding"`, not this pattern's `fully_funded`
+    default - the page states a concrete monthly amount ("funding: CHF
+    2450.--/month") but never states whether tuition fees are covered or
+    waived, unlike Japan MEXT/Portugal Camões/GKS which explicitly
+    confirm tuition coverage - so `fully_funded` would overstate what is
+    actually promised here.
+    """
+
+    source_code = "switzerland_sbfi_eskas"
+    overview_path = "/en/swiss-government-excellence-scholarships"
+    title_selectors = ("h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    funding_type = "partial_funding"
+    provider_name = (
+        "Federal Commission for Scholarships for Foreign Students "
+        "(FCS/ESKAS), State Secretariat for Education, Research and "
+        "Innovation (SBFI), Switzerland"
+    )
+    country = "Switzerland"
+    external_id = "switzerland-sbfi-eskas-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().switzerland_sbfi_base_url
+
+
+class PolandNawaMyFirstChoiceSource(_SingleProgramSource):
+    """Poland My First Choice NAWA - the Polish National Agency for
+    Academic Exchange (NAWA)'s scholarship programme for foreign
+    nationals to pursue full-time second-cycle (master's) studies at
+    Polish higher education institutions. Confirmed 2026-08-29 (both via
+    `curl` and this backend's actual httpx path - 200, real HTML,
+    ~291KB): `robots.txt` (standard Joomla pattern) does not disallow
+    this path.
+
+    The page has a hidden accessibility `<h1 class="sr-only">` before
+    the real content `<h1 class="header">` - the same class of bug
+    already documented for India ICCR and Colombia ICETEX -
+    `title_selectors = ("h1.header", "h1")` skips it.
+
+    NAWA runs several other named scholarship programmes (Banach NAWA,
+    Ignacy Łukasiewicz, Polonista NAWA), each restricted to a different,
+    narrower list of partner countries under Polish Development
+    Assistance - "Poland My First Choice" is the one chosen here because
+    it has the broadest eligible-country list (~40 named countries
+    including much of the EU, several Asian and American countries) and
+    is not itself a multi-program bundle like the others would be if
+    listed on one shared page.
+
+    `deadline_keywords = ()`: no deadline-style date literal, or even
+    the words "deadline"/"closing date", appears anywhere on the page
+    (confirmed by a full-text search, not just the description-length
+    excerpt). `funding_type = "partial_funding"`: the page confirms
+    "an exemption from tuition fees at public universities" explicitly,
+    but only vaguely references "a scholarship" without ever stating a
+    monthly amount or whether living costs are covered - a real but
+    incomplete funding picture, not a page that never mentions funding
+    at all (which would warrant `None` instead, as with Belgium ARES).
+    """
+
+    source_code = "poland_nawa_myfirstchoice"
+    overview_path = "/en/students/foreign-students/poland-my-first-choice-programme"
+    title_selectors = ("h1.header", "h1")
+    content_selectors = (".item-page",)
+    deadline_keywords = ()
+    funding_type = "partial_funding"
+    provider_name = "Polish National Agency for Academic Exchange (NAWA), Poland"
+    country = "Poland"
+    external_id = "poland-nawa-my-first-choice"
+
+    def _base_url(self) -> str:
+        return get_settings().poland_nawa_base_url
+
+
+class CzechRepublicMsmtScholarshipSource(_SingleProgramSource):
+    """Government Scholarships - Developing Countries - the Czech
+    Republic's Ministry of Education, Youth and Sports (MŠMT), jointly
+    with the Ministry of Foreign Affairs (MZV) and Ministry of Health.
+    Confirmed 2026-08-29 (both via `curl` and this backend's actual
+    httpx path - 200, real HTML, ~238KB): `robots.txt` (`Allow: /`, only
+    `/api/` and `/preview/` disallowed) does not disallow this path.
+
+    This site is a headless-CMS build (Next.js frontend over a
+    WordPress backend, evidenced by genuine `wp-block-*` classes mixed
+    with Tailwind utility classes) whose React-rendered wrapper divs
+    carry auto-generated ids (e.g. `id="S:5"`, a React Server Components
+    streaming-boundary id) that are deployment artifacts, not stable
+    content anchors - deliberately not used as a selector for that
+    reason. Instead, content is scoped to `.global-msmt`, a real,
+    site-specific custom class the page's own developers added (the
+    same class of choice already made for Colombia ICETEX's
+    `data-analytics-asset-title` and Chile AGCID over positional/
+    auto-generated alternatives).
+
+    Unlike every other source in this pattern's default configuration,
+    `deadline_keywords` is **not** overridden here - it is left at the
+    base class's own default (`("deadline", "closing date")`) because
+    this page has a genuine, singular, cleanly extractable deadline: a
+    section literally titled "APPLICATION SUBMISSION AND DEADLINE"
+    stating "Each applicant is obliged to fill in an electronic
+    application form by 30 September 2026 at the latest" - confirmed by
+    running `extract_confident_date_after` directly against the real
+    fixture text and getting back `2026-09-30`, not guessed.
+
+    `funding_type = None`: the specific monthly stipend amount (found
+    only in third-party search summaries, not on this page) lives in a
+    linked PDF/DOCX "Guidelines" document this scraper does not parse -
+    no funding-coverage language appears in the page's own HTML text,
+    so left unset rather than guessed from outside sources.
+    """
+
+    source_code = "czech_republic_msmt"
+    overview_path = "/en/scholarships/government-scholarships-developing-countries"
+    title_selectors = ("h1",)
+    content_selectors = (".global-msmt",)
+    funding_type = None
+    provider_name = (
+        "Ministry of Education, Youth and Sports (MŠMT) / Ministry of "
+        "Foreign Affairs (MZV), Czech Republic"
+    )
+    country = "Czech Republic"
+    external_id = "czech-republic-msmt-government-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().czech_republic_msmt_base_url
+
+
+class SerbiaWorldInSerbiaScholarshipSource(_SingleProgramSource):
+    """"World in Serbia" - the Government of the Republic of Serbia's
+    scholarship project, run by the Ministry of Education in cooperation
+    with the Ministry of Foreign Affairs, for candidates from Non-Aligned
+    Movement member/observer countries in Africa, Asia, and Central/South
+    America. Confirmed 2026-08-29 (both via `curl` and this backend's
+    actual httpx path - 200, real HTML, ~34KB): `robots.txt` only
+    disallows `/Admin`, not this path.
+
+    The page has no `<h1>` - its only heading is `<h2>Scholarships</h2>`,
+    the single heading on the page and identical to the `<title>` tag's
+    own first segment - generic but honest, the same acceptance of a
+    real-if-plain heading already applied to WMI and other titleless-page
+    sources in this pattern.
+
+    `deadline_keywords = ()`: "Every year, the Ministry of Education
+    announces a competition... in cooperation with the Ministry of
+    Foreign Affairs, through consular representation offices" -
+    embassy/consulate-mediated, no single global deadline published on
+    this page, the same pattern as Japan MEXT and GKS. `funding_type`
+    kept at this pattern's `fully_funded` default - the page explicitly
+    states "study free of charge", "accommodation and food",
+    "a monthly financial allowance", and "health insurance", genuinely
+    comprehensive coverage.
+    """
+
+    source_code = "serbia_world_in_serbia"
+    overview_path = "/scholarships"
+    title_selectors = ("h2",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = "Ministry of Education, Republic of Serbia"
+    country = "Serbia"
+    external_id = "serbia-world-in-serbia-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().serbia_welcometoserbia_base_url
+
+
+class RomaniaMfaScholarshipSource(_SingleProgramSource):
+    """Romanian Government Scholarships - awarded by Romania's Ministry
+    of Foreign Affairs (MFA) jointly with the Ministry of Education and
+    Research, to foreign citizens from non-EU countries. Confirmed
+    2026-08-29 (both via `curl` and this backend's actual httpx path -
+    200, real HTML, ~125KB): `robots.txt` (`Allow: /`, only query-string
+    paths and `/tmp`/`/cgi-bin/` disallowed) does not disallow this path.
+
+    Content is scoped to `.about-text-block`, a unique, site-specific
+    class - not the page's own generic `.content` class, which matches
+    6 different unrelated blocks on the page (the first of which happens
+    to be correct, by document order, but `.about-text-block` is a
+    safer, self-evidently-unique choice rather than relying on match
+    ordering).
+
+    `deadline_keywords = ()` despite the page stating a real, specific
+    closing date ("The deadline for submitting applications is 31 March
+    2026") in a fully parseable "DD Month YYYY" literal - deliberately,
+    not because the date itself is unparseable this time. The page's
+    *first* occurrence of the word "deadline" is an unrelated, earlier
+    mention ("comply with the enrolment deadline") with no date nearby;
+    `extract_confident_date_after` only ever searches after a keyword's
+    *first* occurrence (by design, to avoid ambiguity - see that
+    function's own docstring), so it would search from that first, dateless
+    mention and correctly find nothing - confirmed directly against the
+    real fixture text. Extending that shared function to consider every
+    occurrence of a keyword is a cross-cutting change affecting every
+    scraper source, not something to do incidentally while adding one
+    adapter, so this source honestly reports `null` rather than a
+    half-solution.
+
+    `funding_type` kept at this pattern's `fully_funded` default - the
+    page explicitly confirms financing of tuition fees (both the
+    preparatory year and the actual studies), a monthly scholarship, and
+    accommodation expenses.
+    """
+
+    source_code = "romania_mfa"
+    overview_path = "/scholarship-about"
+    title_selectors = ("h1",)
+    content_selectors = (".about-text-block",)
+    deadline_keywords = ()
+    provider_name = (
+        "Ministry of Foreign Affairs (MFA) / Ministry of Education and "
+        "Research, Romania"
+    )
+    country = "Romania"
+    external_id = "romania-mfa-government-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().romania_mfa_base_url

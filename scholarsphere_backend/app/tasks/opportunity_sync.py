@@ -57,6 +57,7 @@ from app.services.national_scholarship_programs import (
     BelgiumAresScholarshipSource,
     ChileAgcidScholarshipSource,
     ColombiaIcetexBecaExtranjerosSource,
+    CzechRepublicMsmtScholarshipSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
@@ -66,13 +67,17 @@ from app.services.national_scholarship_programs import (
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     PeruPronabecAlianzaPacificoSource,
+    PolandNawaMyFirstChoiceSource,
     PortugalCamoesScholarshipSource,
     QatarScholarshipsSource,
+    RomaniaMfaScholarshipSource,
     SaudiArabiaMoeScholarshipSource,
+    SerbiaWorldInSerbiaScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SouthKoreaGksScholarshipSource,
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
+    SwitzerlandEskasScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
 )
@@ -249,6 +254,26 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_qatar_scholarships",
             "schedule": crontab(minute=0, hour=10),
         },
+        "sync-switzerland-sbfi-eskas": {
+            "task": "app.tasks.opportunity_sync.sync_switzerland_sbfi_eskas",
+            "schedule": crontab(minute=15, hour=10),
+        },
+        "sync-poland-nawa-myfirstchoice": {
+            "task": "app.tasks.opportunity_sync.sync_poland_nawa_myfirstchoice",
+            "schedule": crontab(minute=30, hour=10),
+        },
+        "sync-czech-republic-msmt": {
+            "task": "app.tasks.opportunity_sync.sync_czech_republic_msmt",
+            "schedule": crontab(minute=45, hour=10),
+        },
+        "sync-serbia-world-in-serbia": {
+            "task": "app.tasks.opportunity_sync.sync_serbia_world_in_serbia",
+            "schedule": crontab(minute=0, hour=11),
+        },
+        "sync-romania-mfa": {
+            "task": "app.tasks.opportunity_sync.sync_romania_mfa",
+            "schedule": crontab(minute=15, hour=11),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -319,6 +344,15 @@ SOURCE_TASK_NAMES = {
     "south_korea_gks": "app.tasks.opportunity_sync.sync_south_korea_gks",
     "saudi_arabia_moe": "app.tasks.opportunity_sync.sync_saudi_arabia_moe",
     "qatar_scholarships": "app.tasks.opportunity_sync.sync_qatar_scholarships",
+    "switzerland_sbfi_eskas": "app.tasks.opportunity_sync.sync_switzerland_sbfi_eskas",
+    "poland_nawa_myfirstchoice": (
+        "app.tasks.opportunity_sync.sync_poland_nawa_myfirstchoice"
+    ),
+    "czech_republic_msmt": "app.tasks.opportunity_sync.sync_czech_republic_msmt",
+    "serbia_world_in_serbia": (
+        "app.tasks.opportunity_sync.sync_serbia_world_in_serbia"
+    ),
+    "romania_mfa": "app.tasks.opportunity_sync.sync_romania_mfa",
 }
 
 
@@ -869,6 +903,79 @@ def sync_qatar_scholarships(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_switzerland_sbfi_eskas",
+    max_retries=3,
+)
+def sync_switzerland_sbfi_eskas(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "switzerland_sbfi_eskas", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_poland_nawa_myfirstchoice",
+    max_retries=3,
+)
+def sync_poland_nawa_myfirstchoice(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "poland_nawa_myfirstchoice", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_czech_republic_msmt",
+    max_retries=3,
+)
+def sync_czech_republic_msmt(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "czech_republic_msmt", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_serbia_world_in_serbia",
+    max_retries=3,
+)
+def sync_serbia_world_in_serbia(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "serbia_world_in_serbia", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_romania_mfa",
+    max_retries=3,
+)
+def sync_romania_mfa(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "romania_mfa", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1105,6 +1212,11 @@ def _collector(source_code: str) -> Any:
         "south_korea_gks": SouthKoreaGksScholarshipSource,
         "saudi_arabia_moe": SaudiArabiaMoeScholarshipSource,
         "qatar_scholarships": QatarScholarshipsSource,
+        "switzerland_sbfi_eskas": SwitzerlandEskasScholarshipSource,
+        "poland_nawa_myfirstchoice": PolandNawaMyFirstChoiceSource,
+        "czech_republic_msmt": CzechRepublicMsmtScholarshipSource,
+        "serbia_world_in_serbia": SerbiaWorldInSerbiaScholarshipSource,
+        "romania_mfa": RomaniaMfaScholarshipSource,
     }[source_code]()
 
 

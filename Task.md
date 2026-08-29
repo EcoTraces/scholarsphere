@@ -58,14 +58,16 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **561/561
+Test baseline as of this session's own verified run (2026-08-29): **571/571
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
 Australia sources, 3 for the Japan source, 8 for the Belgium/France/
 Austria/Morocco sources, 2 for the Portugal source, 2 for the Colombia
 source, 2 for the Chile source, 2 for the Peru source, 2 for the South
-Korea source, 2 for the Saudi Arabia source, 2 for the Qatar source).
+Korea source, 2 for the Saudi Arabia source, 2 for the Qatar source, 2
+for the Switzerland source, 2 for the Poland source, 2 for the Czech
+Republic source, 2 for the Serbia source, 2 for the Romania source).
 Flutter suite not re-run this session (no Flutter SDK available in this
 environment); one small Flutter data-layer addition landed (see Completed
 Tasks' master-prompt entry) but was not compiled or run. Re-run both
@@ -1293,3 +1295,76 @@ for the full dated history.
         21). The only remaining unresearched territory: the remaining
         named European countries (Switzerland, Poland, Czech Republic,
         Croatia, Serbia, Romania, Norway, Finland).
+
+- [x] **(2026-08-29)** The eight remaining named European countries — a
+      dedicated **first** research pass, the last unresearched region
+      from the original master-prompt request (Switzerland, Poland,
+      Czech Republic, Croatia, Serbia, Romania, Norway, Finland). 5 real
+      sources added:
+      - **Switzerland** (SBFI ESKAS - Swiss Government Excellence
+        Scholarships): `funding_type = "partial_funding"` — a concrete
+        monthly amount (CHF 2450) is stated but tuition coverage is
+        never mentioned, unlike Japan MEXT/Portugal Camões/GKS.
+      - **Poland** (NAWA "Poland My First Choice"): hidden accessibility
+        `<h1 class="sr-only">` before the real `<h1 class="header">` —
+        the same bug class as India ICCR and Colombia ICETEX. NAWA runs
+        several other named programmes each restricted to narrower
+        partner-country lists; this one has the broadest eligible list.
+      - **Czech Republic** (MŠMT Government Scholarships): a headless
+        Next.js-over-WordPress build whose React wrapper divs carry
+        auto-generated `id="S:N"` streaming-boundary ids — deliberately
+        not used as a selector (a deployment artifact, not a stable
+        anchor); scoped instead to `.global-msmt`, a real custom class.
+        Unusually, `deadline_keywords` is **left at the base class's
+        default** (not overridden to `()`) — this page has a genuine,
+        singular, cleanly extractable deadline ("by 30 September 2026 at
+        the latest"), confirmed by running the real extractor against
+        the real fixture and getting back `2026-09-30`. The first
+        source in this whole initiative where deadline extraction is
+        actually used, not disabled.
+      - **Serbia** ("World in Serbia"): no `<h1>` — the page's only
+        heading is a plain `<h2>Scholarships</h2>`, generic but honest.
+        `funding_type = "fully_funded"` — explicit free tuition,
+        accommodation, food, monthly allowance, and health insurance.
+      - **Romania** (MFA Government Scholarships): a genuinely
+        interesting deadline-extraction near-miss — the page states a
+        real, parseable deadline ("31 March 2026") but the shared
+        `extract_confident_date_after` function only searches after a
+        keyword's *first* occurrence, and this page's first "deadline"
+        mention is an unrelated, dateless one earlier in the eligibility
+        section — confirmed directly against the real fixture that
+        extraction correctly (if unluckily) returns nothing, so
+        `deadline_keywords = ()` was set deliberately.
+      - **Croatia** was investigated and found `NOT_SUITABLE`, not
+        implemented: every source is a year-dated "Call for
+        Applications" page with its own numeric ID (seven different
+        such pages found spanning 2020/2021 through 2026/2027), no
+        evergreen "about" page independent of a specific year, plus
+        nomination-only eligibility via partner institutions.
+      - **Norway** was investigated and found `NO_RELIABLE_SOURCE_FOUND`:
+        its two historical inbound programs (the "Quota Scheme" and
+        NORSTIP) are both confirmed defunct/cancelled across multiple
+        independent sources; Lånekassen's remaining support requires
+        Norwegian citizenship or existing permanent residence.
+      - **Finland** was investigated and found `NOT_SUITABLE`: the one
+        national program (EDUFI Fellowship) states on its own official
+        page that it "will end at the end of 2025. New applications
+        cannot be submitted after 17.10.2025" — already past by this
+        session's date, despite several third-party aggregators still
+        listing it as "active in 2026." Finland's own study-abroad
+        portal confirms no replacement exists.
+      - Source count 37 → 41 (5 added: Switzerland, Poland, Czech
+        Republic, Serbia, Romania). Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #37-#41, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Europe" section
+        with all 8 findings; Implemented table extended; coverage
+        summary and recommended-next-candidates rewritten — **no named
+        country or region from the original master-prompt request
+        remains unresearched**).
+      - Verified: 10 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **571/571** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 29
+        countries/regions now have at least one real source (up from
+        24). Every region named in the original master-prompt request
+        has now had at least one full research pass.

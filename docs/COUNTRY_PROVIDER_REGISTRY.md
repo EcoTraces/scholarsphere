@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (25, across multiple sessions)
+## Implemented (30, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -62,6 +62,11 @@ that were actually built this session (in two batches).
 | 34 | GKS (Global Korea Scholarship) Program | South Korea | GOVERNMENT | studyinkorea.go.kr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 35 | Government University Scholarships | Saudi Arabia | GOVERNMENT | moe.gov.sa | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 36 | Qatar Scholarships | Qatar | GOVERNMENT | qatarscholarships.qa | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 37 | Swiss Government Excellence Scholarships (ESKAS) | Switzerland | GOVERNMENT | sbfi.admin.ch | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 38 | Poland My First Choice | Poland | GOVERNMENT | nawa.gov.pl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 39 | Government Scholarships – Developing Countries | Czech Republic | GOVERNMENT | msmt.gov.cz | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 40 | "World in Serbia" Scholarships | Serbia | GOVERNMENT | welcometoserbia.gov.rs | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 41 | Romanian Government Scholarships (MFA) | Romania | GOVERNMENT | studyinromania.gov.ro | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -354,6 +359,74 @@ backend's actual httpx path before any implementation decision.
 
 ---
 
+## Europe — remaining named countries (first research pass, 2026-08-29)
+
+The eight remaining named European countries from the original
+master-prompt request, the last unresearched region. Each was checked
+for a genuine *inbound* single-flagship government program,
+live-verified via both `curl` and this backend's actual httpx path
+before any implementation decision.
+
+### Switzerland — implemented, see source #37 above (live-verified 2026-08-29)
+
+### Poland — implemented, see source #38 above (live-verified 2026-08-29)
+
+### Czech Republic — implemented, see source #39 above (live-verified 2026-08-29)
+
+### Croatia — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- The Ministry of Science, Education and Youth's "Croatian Government
+  Scholarships (Bilateral Scholarships)" are real, but every source
+  found is a year-dated "Call for Applications" page with its own
+  numeric ID (e.g. `.../scholarships-of-the-republic-of-croatia-call-
+  for-applications-in-the-academic-year-2026-2027/7588`) — a fresh
+  search turned up seven different such pages spanning 2020/2021
+  through 2026/2027, with no evergreen "about the programme" URL
+  independent of a specific year's call, the same "year-dated slug, not
+  evergreen" shape already ruled out for Thailand. The programme is
+  also nomination-only: "the Bilateral Scholarships can be awarded only
+  to the candidates who are nominated by the foreign partner
+  institutions."
+- **Classification**: `NOT_SUITABLE` for the single-flagship pattern —
+  the real content lives in year-dated call pages requiring an annual
+  code update, not one stable URL.
+
+### Serbia — implemented, see source #40 above (live-verified 2026-08-29)
+
+### Romania — implemented, see source #41 above (live-verified 2026-08-29)
+
+### Norway — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- Norway's two historical inbound scholarship mechanisms are both
+  confirmed defunct: the "Quota Scheme" (run through Lånekassen, the
+  Norwegian State Educational Loan Fund) ended in 2016, and a related
+  successor programme, NORSTIP, was cancelled from the 2026 budget
+  onward — corroborated across multiple independent sources, not a
+  single claim. Lånekassen's own remaining support for "foreign
+  nationals" is fundamentally a means-tested loan/grant system
+  requiring Norwegian citizenship or an existing permanent residence
+  permit, not a scholarship for prospective international applicants.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND` — no active
+  government inbound scholarship program exists.
+
+### Finland — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- The one clear national government scholarship, the EDUFI Fellowship
+  (Finnish National Agency for Education/OPH), states on its own
+  official page: "EDUFI Fellowship for foreign doctoral researchers
+  will end at the end of 2025. New applications cannot be submitted
+  after 17.10.2025" — a date already in the past relative to this
+  session. Several third-party aggregators still list it as "active in
+  2026", confirming exactly why this project verifies against primary
+  sources rather than trusting secondary summaries. Finland's own
+  official study-abroad portal (`studyinfinland.fi`) independently
+  confirms there is no replacement: "University scholarships are
+  competitive and usually cover tuition fees only, not living
+  costs... Plan to cover your tuition fees and living costs
+  independently" — funding is decentralized to individual universities,
+  not a national government program.
+- **Classification**: `NOT_SUITABLE` — the one national program found is
+  confirmed discontinued by its own official page, with no replacement.
+
+---
+
 ## Country coverage summary
 
 | Country/Region | Status | Notes |
@@ -395,6 +468,14 @@ backend's actual httpx path before any implementation decision.
 | Saudi Arabia | SUPPORTED | Live-verified 2026-08-29 |
 | Qatar | SUPPORTED | Live-verified 2026-08-29 |
 | Thailand | NOT_SUITABLE | Confirmed 2026-08-29 — real mechanism is a year-dated announcement feed; the one evergreen "about" page found is stale (frozen ~2013-2015 content) |
+| Switzerland | SUPPORTED | Live-verified 2026-08-29 |
+| Poland | SUPPORTED | Live-verified 2026-08-29 |
+| Czech Republic | SUPPORTED | Live-verified 2026-08-29 |
+| Croatia | NOT_SUITABLE | Confirmed 2026-08-29 — real content lives in year-dated call pages, nomination-only via partner institutions |
+| Serbia | SUPPORTED | Live-verified 2026-08-29 |
+| Romania | SUPPORTED | Live-verified 2026-08-29 |
+| Norway | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Quota Scheme ended 2016, NORSTIP cancelled from 2026 budget, no active program found |
+| Finland | NOT_SUITABLE | Confirmed 2026-08-29 — EDUFI Fellowship confirmed discontinued (no new applications after 17.10.2025) by its own official page, no replacement |
 
 **19 of 24 original targets have a genuinely integrated provider** (15
 fully live-verified, 4 implemented-but-live-blocked/partially-blocked with
@@ -435,25 +516,39 @@ announcement feed rather than one evergreen page, and the one candidate
 
 ## Recommended next candidates
 
-**The original 24-country queue is empty**, South America has had its
-first full research pass (2026-08-29), and the four remaining named
-Asian countries have too — see the dedicated sections above. Every
-country checked in both passes is now either a real, live-verified
-source or a confirmed, evidence-backed `BLOCKED` / `NOT_SUITABLE` /
-`NO_RELIABLE_SOURCE_FOUND` finding — none are left as stale guesses. The
-2 entries still under "Researched, not yet implemented" above (Cyprus,
-UAE) are there because they genuinely can't be reached or don't fit this
-system's single-flagship pattern, not because they're unresearched.
+**The original 24-country queue is empty**, and every region named in
+the original master-prompt request has now had its first full research
+pass — South America (2026-08-29), the four remaining named Asian
+countries (2026-08-29), and the eight remaining named European
+countries (2026-08-29) — see the dedicated sections above. Every
+country checked across all three passes is now either a real,
+live-verified source or a confirmed, evidence-backed `BLOCKED` /
+`NOT_SUITABLE` / `NO_RELIABLE_SOURCE_FOUND` finding — none are left as
+stale guesses. The 2 entries still under "Researched, not yet
+implemented" above (Cyprus, UAE) are there because they genuinely can't
+be reached or don't fit this system's single-flagship pattern, not
+because they're unresearched.
 
-The only way to add more real coverage from here is a **first** research
-pass on the remaining named European countries (Switzerland, Poland,
-Czech Republic, Croatia, Serbia, Romania, Norway, Finland) — the last
-unresearched region from the original master-prompt request.
+**No named country or region from the original master-prompt request
+remains unresearched.** Any further expansion from here would mean
+either revisiting a `NOT_SUITABLE`/`BLOCKED`/`NO_RELIABLE_SOURCE_FOUND`
+finding with new evidence (e.g. checking whether Finland's EDUFI
+Fellowship gets a successor programme, or whether Ecuador's Prometeo
+programme has a current official page), or choosing new countries
+outside the original request entirely.
 
-The only way to add more real coverage from here is a **first** research
-pass on the remaining named European countries (Switzerland, Poland,
-Czech Republic, Croatia, Serbia, Romania, Norway, Finland) — the last
-unresearched region from the original master-prompt request.
+**Implemented since the ninth pass (the eight remaining named European
+countries, a dedicated first-pass research effort)**: Switzerland
+(SBFI ESKAS), Poland (NAWA My First Choice), Czech Republic (MŠMT
+Government Scholarships), Serbia ("World in Serbia"), and Romania (MFA
+Government Scholarships), all fully live-verified — see
+`docs/AUTHORITATIVE_SOURCES.md` #37-#41. Croatia and Finland were
+investigated in the same pass and found `NOT_SUITABLE` (Croatia: only
+year-dated, nomination-only call pages exist; Finland: its one national
+program is confirmed discontinued by its own official page) rather than
+implemented; Norway came back `NO_RELIABLE_SOURCE_FOUND` (its historical
+inbound programs are confirmed defunct) — see their entries in the
+Europe section above.
 
 **Implemented since the eighth pass (the four remaining named Asian
 countries, a dedicated first-pass research effort)**: South Korea (GKS
