@@ -103,15 +103,14 @@ class AuthenticatedUser:
 @lru_cache
 def initialize_firebase() -> firebase_admin.App:
     settings = get_settings()
+    options = {
+        "projectId": settings.firebase_project_id,
+        "storageBucket": settings.firebase_storage_bucket,
+    }
     if settings.firebase_credentials_path:
         credential = credentials.Certificate(str(settings.firebase_credentials_path))
-        return firebase_admin.initialize_app(
-            credential,
-            {"projectId": settings.firebase_project_id},
-        )
-    return firebase_admin.initialize_app(
-        options={"projectId": settings.firebase_project_id}
-    )
+        return firebase_admin.initialize_app(credential, options)
+    return firebase_admin.initialize_app(options=options)
 
 
 async def get_current_user(

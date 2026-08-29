@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
+import app.services.document_storage as document_storage
 from app.core.auth import AuthenticatedUser, get_current_user
 from app.db.base import Base
 from app.db.session import get_db
@@ -327,6 +328,182 @@ async def test_invalid_document_type_is_rejected(session: AsyncSession) -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 422
+
+
+def _install_fake_download_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_generate_download_url(storage_path: str, *, expires_in_minutes: int = 15) -> str:
+        return f"https://storage.test/{storage_path}?signed=1&minutes={expires_in_minutes}"
+
+    monkeypatch.setattr(
+        document_storage, "generate_download_url", fake_generate_download_url
+    )
+
+
+@pytest.mark.asyncio
+async def test_owner_can_get_download_url(
+    session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_fake_download_url(monkeypatch)
+    overrides(session, "applicant", uid="doc-owner")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            created = await _add(
+                client, uid="doc-owner", doc_type="passport", file_name="passport.pdf"
+            )
+            response = await client.get(
+                f"/api/v1/applicant-documents/{created['id']}/download-url"
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["url"] == "https://storage.test/applicant-documents/doc-owner/passport.pdf?signed=1&minutes=15"
+    assert body["expires_in_minutes"] == 15
+
+
+@pytest.mark.asyncio
+async def test_download_url_unknown_document_is_not_found(session: AsyncSession) -> None:
+    overrides(session, "applicant", uid="doc-missing")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(
+                "/api/v1/applicant-documents/00000000-0000-0000-0000-000000000000/download-url"
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_unrelated_applicant_cannot_get_download_url(
+    session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_fake_download_url(monkeypatch)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-i")
+        created = await _add(
+            client, uid="doc-i", doc_type="passport", file_name="passport.pdf"
+        )
+
+        overrides(session, "applicant", uid="doc-j")
+        denied = await client.get(
+            f"/api/v1/applicant-documents/{created['id']}/download-url"
+        )
+    app.dependency_overrides.clear()
+
+    assert denied.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_provider_without_grant_cannot_get_download_url_or_see_it_shared(
+    session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_fake_download_url(monkeypatch)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-k")
+        created = await _add(
+            client, uid="doc-k", doc_type="passport", file_name="passport.pdf"
+        )
+
+        overrides(session, "opportunityProvider", uid="provider-owner")
+        denied = await client.get(
+            f"/api/v1/applicant-documents/{created['id']}/download-url"
+        )
+        shared = await client.get("/api/v1/applicant-documents/shared-with-me")
+    app.dependency_overrides.clear()
+
+    assert denied.status_code == 404
+    assert shared.json() == []
+
+
+@pytest.mark.asyncio
+async def test_granted_provider_can_get_download_url_and_see_it_shared(
+    session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_fake_download_url(monkeypatch)
+    provider_id = await _seed_provider(session)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        overrides(session, "applicant", uid="doc-l")
+        created = await _add(
+            client, uid="doc-l", doc_type="passport", file_name="passport.pdf"
+        )
+        await _grant_third_party_sharing_consent(client)
+        shared_response = await client.post(
+            f"/api/v1/applicant-documents/{created['id']}/share",
+            json={"provider_id": provider_id},
+        )
+        assert shared_response.status_code == 200, shared_response.text
+
+        # provider-owner is _seed_provider's owning uid.
+        overrides(session, "opportunityProvider", uid="provider-owner")
+        allowed = await client.get(
+            f"/api/v1/applicant-documents/{created['id']}/download-url"
+        )
+        shared_list = await client.get("/api/v1/applicant-documents/shared-with-me")
+
+        # a different provider owner, not granted, still can't see it.
+        overrides(session, "opportunityProvider", uid="someone-else")
+        other_shared_list = await client.get("/api/v1/applicant-documents/shared-with-me")
+    app.dependency_overrides.clear()
+
+    assert allowed.status_code == 200
+    assert allowed.json()["url"].startswith("https://storage.test/")
+
+    assert len(shared_list.json()) == 1
+    entry = shared_list.json()[0]
+    assert entry["id"] == created["id"]
+    assert entry["user_id"] == "doc-l"
+    assert "storage_path" not in entry
+
+    assert other_shared_list.json() == []
+
+
+@pytest.mark.asyncio
+async def test_download_url_generation_failure_surfaces_as_503(
+    session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def failing_generate_download_url(storage_path: str, *, expires_in_minutes: int = 15) -> str:
+        raise document_storage.DocumentDownloadUrlError("no credentials configured")
+
+    monkeypatch.setattr(
+        document_storage, "generate_download_url", failing_generate_download_url
+    )
+    overrides(session, "applicant", uid="doc-m")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            created = await _add(
+                client, uid="doc-m", doc_type="passport", file_name="passport.pdf"
+            )
+            response = await client.get(
+                f"/api/v1/applicant-documents/{created['id']}/download-url"
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_applicant_role_sees_no_shared_documents(session: AsyncSession) -> None:
+    overrides(session, "applicant", uid="doc-n")
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get("/api/v1/applicant-documents/shared-with-me")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json() == []
 
 
 @pytest.mark.asyncio

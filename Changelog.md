@@ -28,6 +28,47 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Differential Storage access for provider-granted applicant documents
+
+Closed the `Task.md` Backend Tasks gap where a provider granted access to an
+applicant's document (`ApplicantDocument.shared_with_provider_ids`, set via
+`POST /applicant-documents/{id}/share`) was still denied at the Storage
+layer, because `storage.rules` scopes `applicant-documents/` to owner-only
+and that never changed. Rather than widen the Storage rule (which would
+remove the backend as an auditable choke point), providers now read shared
+files through two new backend-issued routes instead:
+
+- `GET /applicant-documents/{id}/download-url` — mints a short-lived (15
+  minute), v4 signed Storage URL via the Firebase Admin SDK, for the
+  document's owner or a provider whose `Provider.id` appears in
+  `shared_with_provider_ids`. Everyone else gets 404 (matching this
+  router's existing owner-scoped convention of not distinguishing "not
+  found" from "not yours"). Signing failures (no credentials configured)
+  surface honestly as 503, never a fabricated URL.
+- `GET /applicant-documents/shared-with-me` — provider-facing listing of
+  documents shared with any `Provider` record the caller owns. Deliberately
+  omits `storage_path`; only the download-url route above may read it.
+
+New `app/services/document_storage.py` wraps the Admin SDK call so it can be
+monkeypatched in tests, matching `app/services/firebase_users.py`'s
+established pattern. Firebase app initialization
+(`app/core/auth.py::initialize_firebase`) now also passes `storageBucket`
+(new `Settings.firebase_storage_bucket`, defaulting to the same
+`scholarsphere-d44f5.firebasestorage.app` already used in
+`lib/firebase_options.dart`) — previously unset, which is why signed URLs
+were never possible before. `storage.rules` and the affected route
+docstrings updated to describe the new arrangement instead of the old
+"not-yet-built follow-up" note.
+
+Verified: 7 new tests in `tests/test_applicant_documents_route.py` (owner
+access, unrelated applicant denied, ungranted provider denied on both
+routes, granted provider allowed on both routes and correctly scoped to
+their own `Provider` record, signing-failure 503, non-provider role sees an
+empty shared list rather than an error). Full backend suite **518/518**
+(`pytest -q`). Flutter suite not touched, not re-run this session — no
+Flutter files changed; the client-side "download a shared document" UI for
+providers is not part of this change.
+
 ## [2026-08-22] — Security review, Firebase officer roster, audit-read endpoint, notification-delivery honesty fix
 
 Independent security review of the applications/verification/providers/

@@ -85,3 +85,29 @@ class ApplicantDocumentRead(BaseModel):
     @field_serializer("type")
     def _serialize_type(self, value: DocumentType, _info: Any) -> str:
         return type_to_wire(value)
+
+
+class SharedApplicantDocumentRead(BaseModel):
+    """Provider-facing view of a document shared with them.
+
+    Deliberately omits ``storage_path``: a provider never reads Storage
+    directly (``storage.rules`` denies it), only through the signed URL
+    issued by ``GET /applicant-documents/{id}/download-url``.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: str
+    type: DocumentType
+    file_name: str
+    uploaded_at: datetime
+
+    @field_serializer("type")
+    def _serialize_type(self, value: DocumentType, _info: Any) -> str:
+        return type_to_wire(value)
+
+
+class DocumentDownloadUrlRead(BaseModel):
+    url: str
+    expires_in_minutes: int

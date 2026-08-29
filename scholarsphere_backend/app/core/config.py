@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     )
     redis_url: str = "redis://localhost:6379/0"
     firebase_project_id: str = "scholarsphere-d44f5"
+    # Matches lib/firebase_options.dart's storageBucket. Needed so the
+    # Admin SDK can generate signed download URLs for applicant documents
+    # shared with a provider (see app/services/document_storage.py) -
+    # unset previously, which is why that capability never existed.
+    firebase_storage_bucket: str = "scholarsphere-d44f5.firebasestorage.app"
     firebase_credentials_path: Path | None = None
     # Revocation checking calls the Identity Toolkit API, which needs a real
     # service-account credential (firebase_credentials_path or ADC). Keep

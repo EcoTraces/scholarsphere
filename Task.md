@@ -58,11 +58,12 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-23): **511/511
-backend tests passing** (`pytest -q`, up from 448 at the start of the
-scraper-tier work — 63 new tests total). Flutter suite not re-run this
-session (no Flutter files changed). Re-run both suites before
-trusting these numbers if more than a few commits have landed since.
+Test baseline as of this session's own verified run (2026-08-29): **518/518
+backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 new
+tests for the differential-Storage-access feature below). Flutter suite not
+re-run this session (no Flutter SDK available in this environment; no
+Flutter files were changed). Re-run both suites before trusting these
+numbers if more than a few commits have landed since.
 
 ---
 
@@ -93,18 +94,6 @@ None outstanding. Both items below were resolved and verified this session
       validates path *shape* only). Requires adding `firebase-admin`'s
       Storage SDK usage to the backend (no `storageBucket` is configured on
       the Firebase app today — see `app/core/auth.py::initialize_firebase`).
-- [ ] Add differential Storage access for provider-granted applicant
-      documents. **Reviewed again this session, no change made:** the
-      Postgres-level grant is consent-gated (`applicant_documents.py`), but
-      `storage.rules` still scopes `applicant-documents/` to owner-only, so
-      a provider granted access in Postgres still cannot fetch the actual
-      file. This fails *safe*, not open — a granted provider is wrongly
-      denied, not an ungranted one wrongly allowed — so it is a
-      completeness gap, not a security hole, and was left as a scoped
-      follow-up rather than an unplanned mid-session feature build (it
-      needs a signed-URL-issuing download route plus a
-      provider-facing "list documents shared with me" endpoint). Files:
-      `storage.rules`, a new provider-facing read route.
 - [ ] **DECISION REQUIRED:** decide whether `eligibility_rules`,
       `integrations`, `data_transfer`, `platforms` get real backends or get
       deleted — currently dead code (domain model + demo repository, no
@@ -720,3 +709,26 @@ for the full dated history.
       - **Not committed** — left for explicit review/approval per this
         increment's instructions, unlike the previous increment where
         committing and pushing was explicitly requested.
+- [x] **(2026-08-29)** Differential Storage access for provider-granted
+      applicant documents — the Backend Tasks gap immediately above this
+      line is now closed. Two new routes:
+      `GET /applicant-documents/{id}/download-url` (owner or a granted
+      provider gets a 15-minute v4 signed Storage URL via the Admin SDK;
+      everyone else 404; signing failure honestly 503s, never a fabricated
+      URL) and `GET /applicant-documents/shared-with-me` (provider-facing
+      listing, `storage_path` deliberately omitted). New
+      `app/services/document_storage.py` wraps the Admin SDK signing call
+      behind a monkeypatchable function, matching
+      `app/services/firebase_users.py`'s pattern. Added
+      `Settings.firebase_storage_bucket` (previously unset, so signing was
+      never actually possible before — `initialize_firebase()` now passes
+      `storageBucket`). `storage.rules` and the `grant_provider_access`
+      docstring updated to describe the new arrangement instead of the old
+      "not-yet-built follow-up" note; the rule itself is unchanged
+      (deliberately still owner-only — the backend stays the one auditable
+      choke point for third-party access). See `Changelog.md` for full
+      detail. Verified: 7 new tests
+      (`tests/test_applicant_documents_route.py`); full backend suite
+      **518/518** (`pytest -q`). Flutter not touched — the provider-side
+      "download a shared document" UI is a separate, not-yet-built
+      follow-up.
