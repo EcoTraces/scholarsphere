@@ -793,3 +793,60 @@ class MoroccoAmciScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().morocco_amci_base_url
+
+
+class PortugalCamoesScholarshipSource(_SingleProgramSource):
+    """Bolsas da Cooperação - Formação em Portugal - Camões, Instituto da
+    Cooperação e da Língua, I.P., Portugal's institute for development
+    cooperation and the Portuguese language, under the Ministry for
+    Foreign Affairs.
+
+    Confirmed 2026-08-29: `robots.txt` (a Joomla-standard pattern) does
+    not disallow this path. Neither the top-level "Bolsas do Camões,
+    I.P." hub (a thin 2-link navigation page, ~1.4KB) nor its
+    "Bolsas da Cooperação" child (also thin, ~0.4KB, no further content)
+    were used - both are pure navigation. This adapter targets the
+    specific "Formação em Portugal" leaf page instead, which has real,
+    substantial content (200, ~58KB, ~5.2KB of real text):
+    `<h1>Formação em Portugal</h1>`, the 9 eligible partner countries
+    named explicitly (Angola, Cabo Verde, Colômbia, Etiópia,
+    Guiné-Bissau, Moçambique, São Tomé e Príncipe, Senegal,
+    Timor-Leste), and a real funding table with actual euro amounts per
+    degree level.
+
+    Unlike every prior source in this initiative that left `funding_type`
+    unasserted for lack of evidence, this page's table names *maintenance
+    subsidy* ("Subsídio Manutenção", paid monthly), *tuition subsidy*
+    ("Subsídio de Propina", up to €1306.25-2612.50/year depending on
+    degree level), *housing subsidy* ("Subsídio Alojamento"), and an
+    *installation subsidy* explicitly, with real figures for each -
+    `funding_type = "fully_funded"` is kept at this pattern's default
+    because it is, this time, genuinely supported by the source text, the
+    same reasoning already applied to Japan's MEXT Scholarship (source
+    #25).
+
+    `deadline_keywords = ()`: "A apresentação das candidaturas decorre,
+    unicamente, no país de origem junto das competentes autoridades
+    locais" (applications are submitted only in the applicant's home
+    country, through local authorities in partnership with Portugal's
+    embassies) - the same embassy-mediated pattern already established
+    for Japan MEXT and Morocco AMCI (sources #25, #29); no single global
+    deadline is published on this page.
+    """
+
+    source_code = "portugal_camoes"
+    overview_path = (
+        "/activity/o-que-fazemos/bolsas-estudo/bolsas-camoes/"
+        "bolsas-cooperacao/formacao-em-portugal"
+    )
+    title_selectors = ("h1",)
+    content_selectors = (".item-page", "main")
+    deadline_keywords = ()
+    provider_name = (
+        "Camões – Instituto da Cooperação e da Língua, I.P. (Portugal)"
+    )
+    country = "Portugal"
+    external_id = "portugal-camoes-cooperation-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().portugal_camoes_base_url

@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (17, across multiple sessions)
+## Implemented (18, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -55,13 +55,14 @@ that were actually built this session (in two batches).
 | 27 | France Excellence Eiffel Scholarship | France | GOVERNMENT | campusfrance.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 28 | OeAD Ernst Mach Grant | Austria | GOVERNMENT | oead.at | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 29 | AMCI Scholarships of the Kingdom of Morocco | Morocco | GOVERNMENT | amci.ma | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 30 | Camões Cooperation Scholarships | Portugal | GOVERNMENT | instituto-camoes.pt | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
 
 ---
 
-## Researched, not yet implemented (6)
+## Researched, not yet implemented (5)
 
 For each: what was found, why it wasn't built this session (time — not a
 disqualification), and its recommended classification.
@@ -102,13 +103,12 @@ disqualification), and its recommended classification.
 
 ### Italy — implemented, see source #19 above
 
-### Portugal — `RESEARCHED_NOT_IMPLEMENTED`
-- **Source**: Camões, I.P. (Instituto da Cooperação e da Língua),
-  `instituto-camoes.pt` — multiple bilateral-cooperation scholarship
-  programs rather than one flagship program.
-- **Classification**: `REQUIRES_CURATED_SOURCE` — needs a second pass to
-  identify which specific Camões program(s) have the clearest single
-  page and deadline.
+### Portugal — implemented, see source #30 above (live-verified 2026-08-29)
+- The specific program targeted is "Formação em Portugal" (degree study
+  in Portugal for 9 named partner countries); Camões also runs a
+  separate Portuguese Language and Culture scholarship track
+  (`bolsas-lingua-cultura`), not covered here — a distinct, narrower
+  program left for a future pass if it's worth adding.
 
 ### Belgium — implemented (ARES), see source #26 above (live-verified 2026-08-29)
 - ARES's own `/bourses-de-mobilite` hub links to ~8 distinct instruments;
@@ -231,22 +231,23 @@ disqualification), and its recommended classification.
 | France | SUPPORTED | Live-verified 2026-08-29 (Eiffel program only — Campus Bourses database still needs its own design) |
 | Austria | SUPPORTED | Live-verified 2026-08-29 |
 | Morocco | SUPPORTED | Live-verified 2026-08-29 |
+| Portugal | SUPPORTED | Live-verified 2026-08-29 |
 | Canada | NOT_SUITABLE | Confirmed by live research 2026-08-29 — institution-initiated, no individual-applicant path |
-| Portugal | RESEARCHED_NOT_IMPLEMENTED | Curated source needed |
 | Denmark | NOT_SUITABLE | Confirmed by a dedicated follow-up search 2026-08-29 — decentralized to individual universities |
 | Cyprus | BLOCKED | Active anti-bot (Azure WAF) — not bypassed |
 | Wales | NOT_SUITABLE | Corrected 2026-08-29 — the flagship program appears discontinued/decentralized; previous READY_FOR_AUTOMATION note was wrong, never live-tested |
 | UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
 
-**18 of 24 targets have a genuinely integrated provider** (14 fully
+**19 of 24 targets have a genuinely integrated provider** (15 fully
 live-verified, 4 implemented-but-live-blocked/partially-blocked with
 documented reasons — 2 of those 4 share the same TLS-certificate-chain
 root cause on the respective government servers, 1 (Eswatini) is the
 same network-timeout pattern as Sierra Leone's MTHE, and 1 (Australia) is
 that same network-timeout pattern on one of its two source pages only —
-none are code defects). **1 has a credible official candidate identified
-and classified** (Portugal), ready for a future implementation pass
-without further country-level research. **1 has no reliable
+none are code defects). **None of the remaining 5 have a credible
+official candidate identified and classified** — the queue that section
+used to describe is now empty; every entry left is either genuinely
+unsuitable, unreachable, or unresourced (see below). **1 has no reliable
 single-source candidate found yet** (UAE). **3 (Canada, Denmark, Wales)
 turned out, on live verification this session, not to have a
 single-flagship program worth automating** — decentralized to individual
@@ -259,25 +260,25 @@ not a technical bypass).
 
 ## Recommended next candidates
 
-A dedicated research pass (2026-08-29) live-tested every remaining
-`READY_FOR_AUTOMATION`/`REQUIRES_CURATED_SOURCE` candidate this registry
-had queued (Belgium, Canada, France, Austria, Morocco) plus Denmark's
-long-standing follow-up. Four turned into real sources; two (Canada,
-Denmark) were confirmed genuinely unsuitable for the single-flagship
-pattern rather than left as stale guesses — see their corrected entries
-above. Only one queued candidate is left:
+**The queue is empty.** Two dedicated research passes (2026-08-29)
+live-tested every `READY_FOR_AUTOMATION`/`REQUIRES_CURATED_SOURCE`
+candidate this registry had accumulated across its whole history —
+Belgium, Canada, France, Austria, Morocco, Portugal, plus Denmark and
+Wales's long-standing follow-up items. Every one is now either a real,
+live-verified source or a confirmed, evidence-backed `NOT_SUITABLE` /
+`BLOCKED` / `NO_RELIABLE_SOURCE_FOUND` finding — none are left as stale
+guesses. The 5 entries still under "Researched, not yet implemented"
+above (Canada, Denmark, Wales, Cyprus, UAE) are there because they
+genuinely don't fit this system's single-flagship pattern or can't be
+reached, not because they're unresearched.
 
-1. **Portugal** (Camões, I.P.) — multiple bilateral-cooperation programs
-   rather than one flagship; needs the same kind of investigation this
-   pass gave Belgium/Austria/Morocco (find the specific program page
-   with the clearest single deadline, or confirm it needs the
-   multi-program-hub treatment instead) before it can move to
-   `READY_FOR_AUTOMATION`.
-
-Countries entirely outside this registry (all of South America, most of
-Asia, most of the remaining named European countries) still need a first
-research pass before they can even reach this list — see the chat history
-of this initiative for the full outstanding list.
+The only way to add more real coverage from here is a **first** research
+pass on countries entirely outside this registry: all of South America
+(9 countries), most of Asia (South Korea, Saudi Arabia, Qatar, Thailand —
+China and India already have narrower partial coverage), and most of the
+remaining named European countries (Switzerland, Poland, Czech Republic,
+Croatia, Serbia, Romania, Norway, Finland) — see the chat history of this
+initiative for the full outstanding list from the original request.
 
 **Implemented since the first pass**: Italy (MAECI), Greece (IKY), and
 South Africa (NRF, live-blocked by a TLS issue) — see
@@ -296,4 +297,7 @@ one)**: Belgium (ARES), France (Eiffel), Austria (OeAD Ernst Mach), and
 Morocco (AMCI), all fully live-verified — see
 `docs/AUTHORITATIVE_SOURCES.md` #26-#29. Canada and Denmark were
 investigated in the same pass and confirmed `NOT_SUITABLE` on live
-testing rather than implemented.
+testing rather than implemented. **Implemented since the sixth pass**:
+Portugal (Camões Cooperation Scholarships, fully live-verified, the last
+entry this registry had queued) — see `docs/AUTHORITATIVE_SOURCES.md`
+#30.

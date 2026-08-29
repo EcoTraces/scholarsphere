@@ -18,6 +18,7 @@ from app.services.national_scholarship_programs import (
     JapanMextScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
+    PortugalCamoesScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
@@ -664,6 +665,49 @@ def test_morocco_amci_title_uses_ascii_pipe_separator_not_missing_h1() -> None:
     pipe."""
     assert MoroccoAmciScholarshipSource.title_selectors == ()
     assert MoroccoAmciScholarshipSource.title_tag_separator == "|"
+
+
+# --- Portugal Camões: real fixture, fetched 2026-08-29 ----------------------
+
+
+@pytest.mark.asyncio
+async def test_portugal_camoes_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = PortugalCamoesScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("portugal_camoes_formacao.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "portugal-camoes-cooperation-scholarships"
+    assert opportunity.title == "Formação em Portugal"
+    assert opportunity.country == "Portugal"
+    assert opportunity.provider_name == (
+        "Camões – Instituto da Cooperação e da Língua, I.P. (Portugal)"
+    )
+    assert opportunity.description is not None
+    assert "Angola" in opportunity.description
+    # Confirmed by the real fixture's own funding table (maintenance,
+    # tuition ("Subsídio de Propina"), housing, and installation
+    # subsidies, each with real euro amounts) - unlike Belgium, Austria,
+    # and Morocco above, this classification is actually verified by the
+    # source text this time, the same reasoning already applied to
+    # Japan's MEXT Scholarship.
+    assert opportunity.funding_type == "fully_funded"
+    # Applications are submitted only in the applicant's home country
+    # through local authorities and Portugal's embassies - no single
+    # global deadline is published, correctly null.
+    assert opportunity.deadline is None
+
+
+def test_portugal_camoes_never_attempts_deadline_extraction() -> None:
+    assert PortugalCamoesScholarshipSource.deadline_keywords == ()
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

@@ -58,15 +58,16 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **547/547
+Test baseline as of this session's own verified run (2026-08-29): **549/549
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
 Australia sources, 3 for the Japan source, 8 for the Belgium/France/
-Austria/Morocco sources). Flutter suite not re-run this session (no
-Flutter SDK available in this environment); one small Flutter data-layer
-addition landed (see Completed Tasks' master-prompt entry) but was not
-compiled or run. Re-run both suites before trusting these numbers
+Austria/Morocco sources, 2 for the Portugal source). Flutter suite not
+re-run this session (no Flutter SDK available in this environment); one
+small Flutter data-layer addition landed (see Completed Tasks'
+master-prompt entry) but was not compiled or run. Re-run both suites
+before trusting these numbers
 if more than a few commits have landed since.
 
 ---
@@ -1124,3 +1125,40 @@ for the full dated history.
         Wales) that replaced stale guesses with real findings. South
         America (9 countries), most of Asia, and most of the remaining
         named European countries are still completely unresearched.
+- [x] **(2026-08-29)** Portugal (Camões Cooperation Scholarships) —
+      the last country this registry had queued from the original
+      research. Neither the "Bolsas do Camões, I.P." hub nor its
+      "Bolsas da Cooperação" child (both fetched and confirmed to be
+      thin, content-free navigation pages) were used; this adapter
+      targets the specific "Formação em Portugal" leaf page instead,
+      with real substantial content: 9 named eligible partner countries
+      (Angola, Cabo Verde, Colômbia, Etiópia, Guiné-Bissau, Moçambique,
+      São Tomé e Príncipe, Senegal, Timor-Leste) and a real funding table
+      with actual euro amounts. Unlike Belgium/Austria/Morocco earlier
+      in this same research initiative, `funding_type = "fully_funded"`
+      **is** kept here — genuinely supported by the source text (a
+      maintenance subsidy, a tuition subsidy up to
+      €1,306.25–2,612.50/year, a housing subsidy, and an installation
+      subsidy, each with real figures), the same reasoning already
+      applied to Japan's MEXT Scholarship. `deadline_keywords = ()` —
+      embassy-mediated applications, same pattern as Japan MEXT and
+      Morocco AMCI.
+      - Source count 30 → 31. Docs updated:
+        `docs/AUTHORITATIVE_SOURCES.md` #30, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (Portugal moved to implemented;
+        coverage summary, totals, and the recommended-next-candidates
+        section all updated — **the queue this registry has tracked
+        since 2026-08-23 is now genuinely empty**: every candidate this
+        registry ever identified is either a real source or a confirmed,
+        evidence-backed non-candidate, none left as stale guesses).
+      - Verified: 2 new tests (`tests/test_national_scholarship_programs.py`)
+        against a real fixture; full backend suite **549/549**
+        (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 18
+        countries/regions now have at least one real source (up from
+        17). The only way to add more from here is a **first** research
+        pass on countries entirely outside this registry — all of South
+        America, most of Asia (South Korea, Saudi Arabia, Qatar,
+        Thailand), and most of the remaining named European countries
+        (Switzerland, Poland, Czech Republic, Croatia, Serbia, Romania,
+        Norway, Finland) — none of which have been touched at all yet.

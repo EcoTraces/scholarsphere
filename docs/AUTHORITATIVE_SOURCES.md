@@ -978,6 +978,57 @@ program.
   (~42KB) through this backend's actual httpx path. Implemented and
   unit-tested against real fixture HTML captured from this live fetch.
 
+## 30. Camões Cooperation Scholarships (Portugal)
+
+- **Organization**: Camões – Instituto da Cooperação e da Língua, I.P.,
+  under Portugal's Ministry for Foreign Affairs
+- **Route code**: `portugal-camoes` (`portugal_camoes` internally)
+- **Official domain / base URL**: `https://www.instituto-camoes.pt`
+  (`PORTUGAL_CAMOES_BASE_URL`)
+- **Opportunity types**: Scholarship (bachelor's, integrated master's,
+  master's, and PhD study at Portuguese higher education institutions)
+- **Country coverage**: Portugal; open to nationals/residents of 9 named
+  bilateral-cooperation partner countries (Angola, Cabo Verde, Colômbia,
+  Etiópia, Guiné-Bissau, Moçambique, São Tomé e Príncipe, Senegal,
+  Timor-Leste)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading Camões's specific "Formação em Portugal" leaf page — **not**
+  the "Bolsas do Camões, I.P." hub (a thin 2-link navigation page) or its
+  "Bolsas da Cooperação" child (also thin, no further content), both of
+  which were fetched and confirmed to be pure navigation before this
+  deeper page was chosen. `robots.txt` (a Joomla-standard pattern,
+  checked 2026-08-29) does not disallow this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `funding_type` is kept at this pattern's `fully_funded` default —
+    unlike Belgium, Austria, and Morocco earlier in this same research
+    pass, this classification *is* genuinely supported by the source
+    text: a real funding table names a maintenance subsidy (monthly), a
+    tuition subsidy ("Subsídio de Propina", up to €1,306.25–2,612.50/year
+    depending on degree level), a housing subsidy, and an installation
+    subsidy, each with real euro amounts — the same reasoning already
+    applied to Japan's MEXT Scholarship (source #25).
+  - `deadline_keywords = ()` — "A apresentação das candidaturas decorre,
+    unicamente, no país de origem junto das competentes autoridades
+    locais" (applications are submitted only in the applicant's home
+    country, through local authorities and Portugal's embassies) — the
+    same embassy-mediated pattern already established for Japan MEXT and
+    Morocco AMCI (sources #25, #29); no single global deadline is
+    published on this page.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~58KB real
+  HTML. No TLS or network issue (note: the page is UTF-8 but a raw
+  `curl`-saved copy decoded incorrectly with Python's strict UTF-8
+  reader during initial inspection — httpx's own encoding detection
+  handled it correctly, confirmed by re-fetching through this backend's
+  actual client before trusting the result). Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

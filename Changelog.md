@@ -28,6 +28,39 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Portugal (Camões) source added — the country-registry queue is now empty
+
+Portugal was the last country this registry had queued from the original
+research pass. Neither the "Bolsas do Camões, I.P." hub nor its "Bolsas
+da Cooperação" child (both fetched and confirmed to be thin, content-free
+navigation pages) were used — this adapter targets the specific
+"Formação em Portugal" leaf page instead, with real substantial content:
+9 named eligible partner countries and a real funding table with actual
+euro amounts (a maintenance subsidy, a tuition subsidy up to
+€1,306.25–2,612.50/year, a housing subsidy, and an installation subsidy).
+
+Unlike Belgium/Austria/Morocco earlier in this same research initiative,
+`funding_type = "fully_funded"` **is** kept here — genuinely supported by
+that funding table, the same reasoning already applied to Japan's MEXT
+Scholarship. `deadline_keywords = ()` — embassy-mediated applications,
+same pattern as Japan MEXT and Morocco AMCI.
+
+Source count 30 → 31. `docs/AUTHORITATIVE_SOURCES.md` (#30) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` fully updated. **The queue this
+registry has tracked since 2026-08-23 is now genuinely empty**: every
+candidate it ever identified is either a real, live-verified source or a
+confirmed, evidence-backed non-candidate (`NOT_SUITABLE`, `BLOCKED`, or
+`NO_RELIABLE_SOURCE_FOUND`) — none left as stale guesses.
+
+Verified: 2 new tests against a real fixture; full backend suite
+**549/549** (`pytest -q`).
+
+18 of the master prompt's ~40 named countries/regions now have at least
+one real source (up from 17). The only way to add more from here is a
+first research pass on countries entirely outside this registry — all of
+South America, most of Asia, and most of the remaining named European
+countries have not been touched at all.
+
 ## [2026-08-29] — A real research pass: Belgium, France, Austria, Morocco added; Canada, Denmark confirmed unsuitable
 
 A dedicated research pass — not a fetch-and-wire pass — on the remaining

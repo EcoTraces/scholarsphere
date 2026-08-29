@@ -63,6 +63,7 @@ from app.services.national_scholarship_programs import (
     JapanMextScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
+    PortugalCamoesScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
@@ -214,6 +215,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_morocco_amci",
             "schedule": crontab(minute=15, hour=8),
         },
+        "sync-portugal-camoes": {
+            "task": "app.tasks.opportunity_sync.sync_portugal_camoes",
+            "schedule": crontab(minute=30, hour=8),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -277,6 +282,7 @@ SOURCE_TASK_NAMES = {
     "france_eiffel": "app.tasks.opportunity_sync.sync_france_eiffel",
     "austria_oead": "app.tasks.opportunity_sync.sync_austria_oead",
     "morocco_amci": "app.tasks.opportunity_sync.sync_morocco_amci",
+    "portugal_camoes": "app.tasks.opportunity_sync.sync_portugal_camoes",
 }
 
 
@@ -734,6 +740,19 @@ def sync_morocco_amci(
     return _execute_source_task(self, "morocco_amci", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_portugal_camoes",
+    max_retries=3,
+)
+def sync_portugal_camoes(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "portugal_camoes", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -963,6 +982,7 @@ def _collector(source_code: str) -> Any:
         "france_eiffel": FranceEiffelScholarshipSource,
         "austria_oead": AustriaOeadErnstMachSource,
         "morocco_amci": MoroccoAmciScholarshipSource,
+        "portugal_camoes": PortugalCamoesScholarshipSource,
     }[source_code]()
 
 

@@ -199,6 +199,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "portugal_camoes": {
+        "source_name": "Camões Cooperation Scholarships (Portugal)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -236,6 +242,7 @@ def _base_urls() -> dict[str, str]:
         "france_eiffel": settings.france_campusfrance_base_url,
         "austria_oead": settings.austria_oead_base_url,
         "morocco_amci": settings.morocco_amci_base_url,
+        "portugal_camoes": settings.portugal_camoes_base_url,
     }
 
 
@@ -289,6 +296,7 @@ async def seed_opportunity_sources(
         "france_eiffel": now + timedelta(hours=24),
         "austria_oead": now + timedelta(hours=24),
         "morocco_amci": now + timedelta(hours=24),
+        "portugal_camoes": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

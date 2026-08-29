@@ -161,6 +161,7 @@ class Settings(BaseSettings):
     france_campusfrance_base_url: str = "https://www.campusfrance.org"
     austria_oead_base_url: str = "https://oead.at"
     morocco_amci_base_url: str = "https://www.amci.ma"
+    portugal_camoes_base_url: str = "https://www.instituto-camoes.pt"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -242,6 +243,7 @@ class Settings(BaseSettings):
         "france_campusfrance_base_url",
         "austria_oead_base_url",
         "morocco_amci_base_url",
+        "portugal_camoes_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
