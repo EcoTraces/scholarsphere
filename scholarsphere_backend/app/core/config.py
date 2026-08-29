@@ -173,6 +173,8 @@ class Settings(BaseSettings):
     czech_republic_msmt_base_url: str = "https://msmt.gov.cz"
     serbia_welcometoserbia_base_url: str = "https://welcometoserbia.gov.rs"
     romania_mfa_base_url: str = "https://scholarships.studyinromania.gov.ro"
+    hungary_stipendium_base_url: str = "https://stipendiumhungaricum.hu"
+    mexico_amexcid_base_url: str = "https://www.gob.mx"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -266,6 +268,8 @@ class Settings(BaseSettings):
         "czech_republic_msmt_base_url",
         "serbia_welcometoserbia_base_url",
         "romania_mfa_base_url",
+        "hungary_stipendium_base_url",
+        "mexico_amexcid_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

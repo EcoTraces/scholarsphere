@@ -58,7 +58,7 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **571/571
+Test baseline as of this session's own verified run (2026-08-29): **575/575
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -67,11 +67,12 @@ Austria/Morocco sources, 2 for the Portugal source, 2 for the Colombia
 source, 2 for the Chile source, 2 for the Peru source, 2 for the South
 Korea source, 2 for the Saudi Arabia source, 2 for the Qatar source, 2
 for the Switzerland source, 2 for the Poland source, 2 for the Czech
-Republic source, 2 for the Serbia source, 2 for the Romania source).
-Flutter suite not re-run this session (no Flutter SDK available in this
-environment); one small Flutter data-layer addition landed (see Completed
-Tasks' master-prompt entry) but was not compiled or run. Re-run both
-suites before trusting these numbers
+Republic source, 2 for the Serbia source, 2 for the Romania source, 2 for
+the Hungary source, 2 for the Mexico source). Flutter suite not re-run
+this session (no Flutter SDK available in this environment); one small
+Flutter data-layer addition landed (see Completed Tasks' master-prompt
+entry) but was not compiled or run. Re-run both suites before trusting
+these numbers
 if more than a few commits have landed since.
 
 ---
@@ -1368,3 +1369,65 @@ for the full dated history.
         countries/regions now have at least one real source (up from
         24). Every region named in the original master-prompt request
         has now had at least one full research pass.
+
+- [x] **(2026-08-29)** Beyond the original master-prompt request — with
+      every named country/region researched, the user asked to choose
+      new countries entirely outside that request. Picked 8 spanning
+      regions not yet touched: Hungary, Mexico, Indonesia, Malaysia,
+      Vietnam, Egypt, Israel, Kenya. 2 real sources added:
+      - **Hungary** (Stipendium Hungaricum): a heavily JS-rendered site
+        with no semantic heading markup at all (no `<h1>`-`<h4>`
+        anywhere) and a `<title>` tag that only ever yields the single
+        word "About" once split — falls back to a title formatted from
+        `external_id`, the same choice already made for Saudi Arabia.
+        `funding_type = "fully_funded"` — explicit tuition-free
+        education plus real HUF/EUR monthly stipend figures.
+      - **Mexico** (AMEXCID Excellence Scholarships): one transient
+        timeout on first fetch, resolved cleanly on retry. Content
+        scoped to the article-body column specifically, not `main`
+        (which also pulls in an unrelated "Publicaciones Recientes"
+        sidebar of 5 other news items ahead of the real content).
+        `funding_type = None` — this overview page explicitly defers
+        all concrete funding/deadline terms to a separate "Condiciones
+        Generales de la Convocatoria" not linked as plain HTML.
+      - **Indonesia** was investigated and found `BLOCKED`: the current
+        official interactive site is a pure JS app with zero
+        server-rendered content, and a content-rich companion site
+        describing the same program explicitly disallows `ClaudeBot` by
+        name in its `robots.txt` (alongside GPTBot, Bytespider, and
+        others) — honored rather than routed around with a different
+        User-Agent.
+      - **Malaysia** was investigated and found `NOT_SUITABLE`: the
+        real MOHE portal page is too thin (~700 characters, no `<h1>`,
+        no funding/deadline language) with the real detail living only
+        in an unparsed PDF — the same thin-content shape already ruled
+        out for Colombia's reciprocity page.
+      - **Vietnam** was investigated and found `BLOCKED`: the one
+        candidate site with real content doesn't support HTTPS at all
+        (confirmed by direct `ConnectError` on every `https://`
+        variant) — this backend's HTTPS-only requirement is a security
+        boundary applied uniformly, never relaxed for one adapter.
+      - **Egypt** was investigated and found `BLOCKED`: the official
+        EGYAID/Study-in-Egypt portal is a pure client-side JS SPA with
+        zero server-rendered content on every route checked.
+      - **Israel** was investigated and found `BLOCKED`: the MFA
+        scholarship page returned 403 Forbidden on 3/3 attempts with
+        this backend's actual httpx client, a consistent active block.
+      - **Kenya** was investigated and found `NO_RELIABLE_SOURCE_FOUND`:
+        the Ministry of Education's scholarships page is a searchable
+        multi-entry table of outbound (Kenyans-studying-abroad)
+        opportunities, the same database-not-single-page shape already
+        seen for Argentina, with no inbound program identified.
+      - Source count 41 → 43. Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #42-#43, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Beyond the
+        original request" section with all 8 findings; Implemented
+        table extended; coverage summary and recommended-next-
+        candidates rewritten).
+      - Verified: 4 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **575/575** (`pytest -q`).
+      - **Country coverage after this increment**: 31
+        countries/regions now have at least one real source (up from
+        29), now including 2 entirely outside the original
+        master-prompt request.

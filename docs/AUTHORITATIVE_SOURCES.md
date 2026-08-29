@@ -1579,6 +1579,96 @@ program.
 
 ---
 
+## 42. Stipendium Hungaricum (Hungary)
+
+- **Organization**: Tempus Public Foundation, under Hungary's Ministry
+  of Foreign Affairs and Trade
+- **Route code**: `hungary-stipendium-hungaricum`
+  (`hungary_stipendium_hungaricum` internally)
+- **Official domain / base URL**: `https://stipendiumhungaricum.hu`
+  (`HUNGARY_STIPENDIUM_BASE_URL`)
+- **Opportunity types**: Scholarship (bachelor's, master's, one-tier
+  master's, doctoral, and non-degree study at Hungarian higher
+  education institutions)
+- **Country coverage**: Hungary; available in over 100 countries across
+  five continents via bilateral education agreements
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/about/`. `robots.txt` is empty (no restrictions declared).
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ()`, no `title_tag_separator` — a heavily
+    JS-rendered site with no semantic heading markup at all (no
+    `<h1>`-`<h4>` tags anywhere on the page) and a generic `<title>`
+    ("About - Stipendium Hungaricum") that only ever yields the single
+    word "About" once split — deliberately falls through to this
+    pattern's final fallback (a title formatted from `external_id`),
+    the same choice already made for Saudi Arabia MOE (source #35).
+  - `deadline_keywords = ()` — no deadline-style date literal, or even
+    the words "deadline"/"closing date", appears anywhere on the page.
+  - `funding_type` kept at this pattern's `fully_funded` default — the
+    page explicitly states "Tuition-free education", a monthly stipend
+    with real HUF/EUR figures for bachelor's/master's level, and a
+    separate, higher monthly figure for doctoral level.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~113KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 43. Becas de Excelencia del Gobierno de México (AMEXCID) (Mexico)
+
+- **Organization**: Agencia Mexicana de Cooperación Internacional para
+  el Desarrollo (AMEXCID), under Mexico's Secretaría de Relaciones
+  Exteriores (SRE)
+- **Route code**: `mexico-amexcid` (`mexico_amexcid` internally)
+- **Official domain / base URL**: `https://www.gob.mx`
+  (`MEXICO_AMEXCID_BASE_URL`)
+- **Opportunity types**: Scholarship (master's and doctoral study,
+  graduate/postdoctoral research, and undergraduate/graduate academic
+  mobility, at participating Mexican higher education institutions)
+- **Country coverage**: Mexico; open to citizens of over 170 countries
+  via bilateral agreements, multilateral mechanisms, and special
+  agreements
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/amexcid/acciones-y-programas/becas-para-extranjeros-29785`
+  (one transient timeout on the first attempt, resolved cleanly on
+  retry — 2/2 subsequent attempts succeeded). `robots.txt` has no
+  `User-agent: *` block at all (only specific Google-bot entries, all
+  `Disallow:` empty), so no rule applies to this backend's generic
+  client.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - Content is scoped to `.col-sm-7.pull-left`, the article-body column
+    — not the page's own generic `main` element, which also includes an
+    unrelated "Publicaciones Recientes" (recent news) sidebar list of
+    five other AMEXCID news items ahead of the actual scholarship
+    content in document order.
+  - `deadline_keywords = ()` and `funding_type = None` — this specific
+    overview page is a bilingual (Spanish/English) marketing summary
+    that explicitly defers all concrete terms — dates, tuition/stipend
+    coverage — to "las Condiciones Generales de la Convocatoria" (the
+    official Call's General Conditions), reachable only by contacting
+    `infobecas@sre.gob.mx` or a document not linked as plain HTML on
+    this page — no funding-coverage language or date literal appears in
+    the page's own text.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~59KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

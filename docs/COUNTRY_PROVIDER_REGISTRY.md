@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (30, across multiple sessions)
+## Implemented (32, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -67,6 +67,8 @@ that were actually built this session (in two batches).
 | 39 | Government Scholarships – Developing Countries | Czech Republic | GOVERNMENT | msmt.gov.cz | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 40 | "World in Serbia" Scholarships | Serbia | GOVERNMENT | welcometoserbia.gov.rs | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 41 | Romanian Government Scholarships (MFA) | Romania | GOVERNMENT | studyinromania.gov.ro | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 42 | Stipendium Hungaricum | Hungary | GOVERNMENT | stipendiumhungaricum.hu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 43 | Becas de Excelencia del Gobierno de México (AMEXCID) | Mexico | GOVERNMENT | gob.mx | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -427,6 +429,107 @@ before any implementation decision.
 
 ---
 
+## Beyond the original request (first research pass, 2026-08-29)
+
+With every country and region named in the original master-prompt
+request now researched, this pass picked 8 new countries entirely
+outside that request, spanning regions not yet touched at all:
+**Hungary** (Europe), **Mexico** (North America), **Indonesia**,
+**Malaysia**, **Vietnam** (Southeast Asia), **Egypt**, **Israel**
+(Middle East/North Africa), and **Kenya** (Sub-Saharan Africa). Each
+was checked for a genuine *inbound* single-flagship government program,
+live-verified via both `curl` and this backend's actual httpx path
+before any implementation decision.
+
+### Hungary — implemented, see source #42 above (live-verified 2026-08-29)
+
+### Mexico — implemented, see source #43 above (live-verified 2026-08-29)
+
+### Indonesia — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The real program, KNB (Kemitraan Negara Berkembang) Scholarship, is
+  managed by the Directorate General of Higher Education under
+  Indonesia's Ministry of Higher Education, Science, and Technology.
+  Its current official interactive site (`knb.kemdiktisaintek.go.id`) is
+  a pure client-side JavaScript app — the raw HTML response is just
+  "Loading homepage..." with no server-rendered content on any route
+  checked. A content-rich companion site describing the same current
+  program was found (`knb.kemendikbudristek.net`), but its `robots.txt`
+  explicitly disallows `ClaudeBot` by name (alongside GPTBot,
+  Bytespider, and several other named AI crawlers), and sets
+  `Content-Signal: ai-train=no` for the general `User-agent: *` block —
+  a clear, explicit statement of the site operator's intent that this
+  project honors rather than routes around with a different
+  User-Agent string.
+- **Classification**: `BLOCKED` — the interactive official site has no
+  scrapable content, and the one alternative with real content
+  explicitly disallows this project's crawler by name.
+
+### Malaysia — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- The Malaysia International Scholarship (MIS), run by the Ministry of
+  Higher Education (MOHE), has a real official portal
+  (`biasiswa.mohe.gov.my/INTER/index.php`), but the page itself is
+  extremely thin (~700 characters of actual description before a
+  status notice that the 2026/2027 cycle is closed) with no `<h1>` and
+  no funding-coverage or deadline language in its own HTML text — the
+  only richer detail lives in a linked PDF Guidelines document this
+  scraper does not parse. The same thin-content shape already ruled out
+  for Colombia's `programa-de-reciprocidad` page (source #31's
+  docstring).
+- **Classification**: `NOT_SUITABLE` — real program, but insufficient
+  on-page substance to build a reliable record from.
+
+### Vietnam — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The one candidate inbound portal found, `studyinvietnam.edu.vn`
+  ("Vietnam Government Scholarship"), does not support HTTPS at all —
+  confirmed by a direct connection attempt (`ConnectError` on every
+  `https://` variant tried), while plain `http://` responds normally.
+  This backend's `_validate_url` hard-requires an HTTPS scheme for every
+  external fetch (a security boundary applied uniformly across every
+  source in this codebase, never relaxed for one adapter), so this site
+  is structurally incompatible regardless of content quality. VIED
+  (Vietnam International Education Development), the other candidate
+  organization, appears predominantly focused on funding Vietnamese
+  citizens to study *abroad* (e.g. "Project 911"), not inbound.
+- **Classification**: `BLOCKED` — the one HTML-content candidate site
+  cannot be reached over HTTPS at all.
+
+### Egypt — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The official EGYAID/Study-in-Egypt portal
+  (`admission.study-in-egypt.gov.eg`), run by the Ministry of Higher
+  Education and Scientific Research, is a pure client-side JavaScript
+  single-page app with zero server-rendered content on any route
+  checked (`/`, `/about`, `/programs`, `/scholarships`, `/egyaid`,
+  `/en/about` all return the identical 2,021-byte JS-only shell: "You
+  need to enable JavaScript to run this app.").
+- **Classification**: `BLOCKED` — no scrapable content exists anywhere
+  on this domain without executing JavaScript.
+
+### Israel — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The Ministry of Foreign Affairs scholarship page
+  (`gov.il/en/service/scholarships_application_for_academic_studies_in_
+  israel`) returned `403 Forbidden` on 3/3 attempts with this backend's
+  actual httpx client — a consistent, active block, not a one-off
+  transient failure. MASA, a second candidate program, was set aside as
+  a different shape: it is restricted to Jewish students specifically
+  (not a general international-student program) and is run by the
+  quasi-governmental Jewish Agency for Israel rather than the state
+  directly.
+- **Classification**: `BLOCKED` — the government page actively refuses
+  this backend's requests.
+
+### Kenya — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- The Ministry of Education's `education.go.ke/scholarships` page is a
+  searchable multi-entry table ("Scholarship Name / Type / Country /
+  Duration / Deadline") of bilateral opportunities for *Kenyan citizens*
+  to study abroad (China, Japan, India, Russia, Turkey, Hungary, etc.) —
+  outbound, and a database rather than a single page, the same
+  double-disqualifying shape already seen for Argentina. No official
+  Kenyan government program funding foreign nationals to study *in*
+  Kenya was found.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND`.
+
+---
+
 ## Country coverage summary
 
 | Country/Region | Status | Notes |
@@ -476,6 +579,14 @@ before any implementation decision.
 | Romania | SUPPORTED | Live-verified 2026-08-29 |
 | Norway | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — Quota Scheme ended 2016, NORSTIP cancelled from 2026 budget, no active program found |
 | Finland | NOT_SUITABLE | Confirmed 2026-08-29 — EDUFI Fellowship confirmed discontinued (no new applications after 17.10.2025) by its own official page, no replacement |
+| Hungary | SUPPORTED | Live-verified 2026-08-29 |
+| Mexico | SUPPORTED | Live-verified 2026-08-29 |
+| Indonesia | BLOCKED | Confirmed 2026-08-29 — official site is JS-only; the content-rich alternative explicitly disallows ClaudeBot by name in robots.txt |
+| Malaysia | NOT_SUITABLE | Confirmed 2026-08-29 — real program but the page is too thin, real detail only in an unparsed PDF |
+| Vietnam | BLOCKED | Confirmed 2026-08-29 — the one candidate site does not support HTTPS at all, incompatible with this backend's HTTPS-only requirement |
+| Egypt | BLOCKED | Confirmed 2026-08-29 — official portal is a pure JS SPA with zero server-rendered content on any route |
+| Israel | BLOCKED | Confirmed 2026-08-29 — government scholarship page returns 403 Forbidden, 3/3 attempts |
+| Kenya | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — the one page found is an outbound-opportunity database, not an inbound single program |
 
 **19 of 24 original targets have a genuinely integrated provider** (15
 fully live-verified, 4 implemented-but-live-blocked/partially-blocked with
@@ -514,6 +625,18 @@ announcement feed rather than one evergreen page, and the one candidate
 "about" page found on a different official domain was stale (frozen
 ~2013-2015 content, not the currently active cycle).
 
+**Beyond the original request, a first pass on 8 new countries entirely
+outside it adds 2 more live-verified sources** (Hungary, Mexico) — see
+the dedicated section above. Of the other 6: 4 came back `BLOCKED`
+(Indonesia — JS-only official site plus a content-rich alternative that
+explicitly disallows this project's crawler by name; Vietnam — the one
+candidate site doesn't support HTTPS at all; Egypt — official portal is
+a pure JS SPA with zero server-rendered content on any route; Israel —
+government scholarship page returns 403 on every attempt), 1 is
+`NOT_SUITABLE` (Malaysia — real program, but the page is too thin to
+build a reliable record from), and 1 has `NO_RELIABLE_SOURCE_FOUND`
+(Kenya — the one page found is an outbound-opportunity database).
+
 ## Recommended next candidates
 
 **The original 24-country queue is empty**, and every region named in
@@ -530,12 +653,25 @@ be reached or don't fit this system's single-flagship pattern, not
 because they're unresearched.
 
 **No named country or region from the original master-prompt request
-remains unresearched.** Any further expansion from here would mean
-either revisiting a `NOT_SUITABLE`/`BLOCKED`/`NO_RELIABLE_SOURCE_FOUND`
-finding with new evidence (e.g. checking whether Finland's EDUFI
-Fellowship gets a successor programme, or whether Ecuador's Prometeo
-programme has a current official page), or choosing new countries
-outside the original request entirely.
+remains unresearched.** A tenth pass has now also researched 8
+countries entirely outside that original request (Hungary, Mexico,
+Indonesia, Malaysia, Vietnam, Egypt, Israel, Kenya) — see the dedicated
+"Beyond the original request" section above. Any further expansion from
+here would mean either revisiting a `NOT_SUITABLE`/`BLOCKED`/
+`NO_RELIABLE_SOURCE_FOUND` finding with new evidence (e.g. checking
+whether Finland's EDUFI Fellowship gets a successor programme, whether
+Ecuador's Prometeo programme has a current official page, or whether
+Egypt's or Israel's official sites gain a server-rendered fallback), or
+choosing more new countries.
+
+**Implemented since the tenth pass (8 new countries entirely outside
+the original master-prompt request)**: Hungary (Stipendium Hungaricum)
+and Mexico (AMEXCID Excellence Scholarships), both fully live-verified
+— see `docs/AUTHORITATIVE_SOURCES.md` #42-#43. Indonesia, Vietnam,
+Egypt, and Israel were investigated in the same pass and found
+`BLOCKED`; Malaysia came back `NOT_SUITABLE`; Kenya came back
+`NO_RELIABLE_SOURCE_FOUND` — see their entries in the "Beyond the
+original request" section above.
 
 **Implemented since the ninth pass (the eight remaining named European
 countries, a dedicated first-pass research effort)**: Switzerland

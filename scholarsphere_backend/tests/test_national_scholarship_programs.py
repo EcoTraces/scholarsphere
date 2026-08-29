@@ -15,10 +15,12 @@ from app.services.national_scholarship_programs import (
     CzechRepublicMsmtScholarshipSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
+    HungaryStipendiumHungaricumSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     JapanMextScholarshipSource,
+    MexicoAmexcidScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     PeruPronabecAlianzaPacificoSource,
@@ -1179,6 +1181,87 @@ async def test_romania_mfa_collect_normalizes_real_fixture(
 
 def test_romania_mfa_never_attempts_deadline_extraction() -> None:
     assert RomaniaMfaScholarshipSource.deadline_keywords == ()
+
+
+# --- Hungary Stipendium Hungaricum: real fixture, fetched 2026-08-29 --------
+
+
+@pytest.mark.asyncio
+async def test_hungary_stipendium_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = HungaryStipendiumHungaricumSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("hungary_stipendium_hungaricum.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "hungary-stipendium-hungaricum-scholarship"
+    # No <h1>-<h4> tag exists anywhere on the page, and the <title> tag
+    # only yields the single word "About" once split - correctly falls
+    # back to a title formatted from external_id instead.
+    assert opportunity.title == "Hungary Stipendium Hungaricum Scholarship"
+    assert opportunity.country == "Hungary"
+    assert opportunity.provider_name == (
+        "Tempus Public Foundation, Ministry of Foreign Affairs and "
+        "Trade, Hungary"
+    )
+    assert opportunity.description is not None
+    assert "Tuition-free education" in opportunity.description
+    # Explicit tuition-free education plus real HUF/EUR monthly stipend
+    # figures for both bachelor's/master's and doctoral level.
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_hungary_stipendium_never_attempts_deadline_extraction() -> None:
+    assert HungaryStipendiumHungaricumSource.deadline_keywords == ()
+
+
+# --- Mexico AMEXCID: real fixture, fetched 2026-08-29 ------------------------
+
+
+@pytest.mark.asyncio
+async def test_mexico_amexcid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = MexicoAmexcidScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("mexico_amexcid_scholarships.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "mexico-amexcid-excellence-scholarships"
+    assert opportunity.title == (
+        "Becas de Excelencia del Gobierno de México para Extranjeros 2026"
+    )
+    assert opportunity.country == "Mexico"
+    assert opportunity.provider_name == (
+        "Agencia Mexicana de Cooperación Internacional para el "
+        "Desarrollo (AMEXCID), Secretaría de Relaciones Exteriores "
+        "(SRE), Mexico"
+    )
+    assert opportunity.description is not None
+    assert "170 países" in opportunity.description
+    # The overview page explicitly defers all concrete funding terms to
+    # the official Call's "Condiciones Generales" - correctly null
+    # rather than guessed from third-party summaries.
+    assert opportunity.funding_type is None
+    assert opportunity.deadline is None
+
+
+def test_mexico_amexcid_never_attempts_deadline_extraction() -> None:
+    assert MexicoAmexcidScholarshipSource.deadline_keywords == ()
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

@@ -271,6 +271,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "hungary_stipendium_hungaricum": {
+        "source_name": "Stipendium Hungaricum",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "mexico_amexcid": {
+        "source_name": "Becas de Excelencia del Gobierno de México (AMEXCID)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -320,6 +332,8 @@ def _base_urls() -> dict[str, str]:
         "czech_republic_msmt": settings.czech_republic_msmt_base_url,
         "serbia_world_in_serbia": settings.serbia_welcometoserbia_base_url,
         "romania_mfa": settings.romania_mfa_base_url,
+        "hungary_stipendium_hungaricum": settings.hungary_stipendium_base_url,
+        "mexico_amexcid": settings.mexico_amexcid_base_url,
     }
 
 
@@ -385,6 +399,8 @@ async def seed_opportunity_sources(
         "czech_republic_msmt": now + timedelta(hours=24),
         "serbia_world_in_serbia": now + timedelta(hours=24),
         "romania_mfa": now + timedelta(hours=24),
+        "hungary_stipendium_hungaricum": now + timedelta(hours=24),
+        "mexico_amexcid": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

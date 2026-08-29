@@ -60,10 +60,12 @@ from app.services.national_scholarship_programs import (
     CzechRepublicMsmtScholarshipSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
+    HungaryStipendiumHungaricumSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     JapanMextScholarshipSource,
+    MexicoAmexcidScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     PeruPronabecAlianzaPacificoSource,
@@ -274,6 +276,14 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_romania_mfa",
             "schedule": crontab(minute=15, hour=11),
         },
+        "sync-hungary-stipendium-hungaricum": {
+            "task": "app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum",
+            "schedule": crontab(minute=30, hour=11),
+        },
+        "sync-mexico-amexcid": {
+            "task": "app.tasks.opportunity_sync.sync_mexico_amexcid",
+            "schedule": crontab(minute=45, hour=11),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -353,6 +363,10 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_serbia_world_in_serbia"
     ),
     "romania_mfa": "app.tasks.opportunity_sync.sync_romania_mfa",
+    "hungary_stipendium_hungaricum": (
+        "app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum"
+    ),
+    "mexico_amexcid": "app.tasks.opportunity_sync.sync_mexico_amexcid",
 }
 
 
@@ -976,6 +990,34 @@ def sync_romania_mfa(
     return _execute_source_task(self, "romania_mfa", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum",
+    max_retries=3,
+)
+def sync_hungary_stipendium_hungaricum(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "hungary_stipendium_hungaricum", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_mexico_amexcid",
+    max_retries=3,
+)
+def sync_mexico_amexcid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "mexico_amexcid", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1217,6 +1259,8 @@ def _collector(source_code: str) -> Any:
         "czech_republic_msmt": CzechRepublicMsmtScholarshipSource,
         "serbia_world_in_serbia": SerbiaWorldInSerbiaScholarshipSource,
         "romania_mfa": RomaniaMfaScholarshipSource,
+        "hungary_stipendium_hungaricum": HungaryStipendiumHungaricumSource,
+        "mexico_amexcid": MexicoAmexcidScholarshipSource,
     }[source_code]()
 
 

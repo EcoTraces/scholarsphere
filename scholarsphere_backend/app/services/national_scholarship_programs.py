@@ -1420,3 +1420,91 @@ class RomaniaMfaScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().romania_mfa_base_url
+
+
+class HungaryStipendiumHungaricumSource(_SingleProgramSource):
+    """Stipendium Hungaricum - the Hungarian Government's flagship
+    higher-education scholarship programme, founded in 2013, supervised
+    by the Ministry of Foreign Affairs and Trade, and managed by the
+    Tempus Public Foundation. Confirmed 2026-08-29 (both via `curl` and
+    this backend's actual httpx path - 200, real HTML, ~113KB):
+    `robots.txt` is empty (no restrictions declared).
+
+    This is a heavily JS-rendered site with no semantic heading markup
+    at all (no `<h1>`-`<h4>` tags anywhere on the page) and a generic
+    `<title>` ("About - Stipendium Hungaricum") that only ever yields
+    the single word "About" once split - not usable as a title on its
+    own. `title_selectors = ()` and no `title_tag_separator` is set,
+    deliberately falling through to this pattern's final fallback (a
+    title formatted from `external_id`), the same choice already made
+    for Saudi Arabia MOE, rather than surfacing a one-word title.
+    Content is scoped to `.main-wrapper`, the one wrapping div that
+    contains the real body content (confirmed unique on the page).
+
+    `deadline_keywords = ()`: no deadline-style date literal, or even
+    the words "deadline"/"closing date", appears anywhere on the page.
+    `funding_type` kept at this pattern's `fully_funded` default - the
+    page explicitly states "Tuition-free education", a monthly stipend
+    with real HUF/EUR figures for bachelor's/master's level, and a
+    separate, higher monthly figure for doctoral level.
+    """
+
+    source_code = "hungary_stipendium_hungaricum"
+    overview_path = "/about/"
+    title_selectors = ()
+    content_selectors = (".main-wrapper",)
+    deadline_keywords = ()
+    provider_name = (
+        "Tempus Public Foundation, Ministry of Foreign Affairs and "
+        "Trade, Hungary"
+    )
+    country = "Hungary"
+    external_id = "hungary-stipendium-hungaricum-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().hungary_stipendium_base_url
+
+
+class MexicoAmexcidScholarshipSource(_SingleProgramSource):
+    """Becas de Excelencia del Gobierno de México para Extranjeros -
+    Mexico's Ministry of Foreign Affairs (SRE), through the Mexican
+    Agency for International Development Cooperation (AMEXCID).
+    Confirmed 2026-08-29 (both via `curl` and this backend's actual
+    httpx path, after one transient timeout resolved on retry - 200,
+    real HTML, ~59KB): `robots.txt` has no `User-agent: *` block at all
+    (only specific Google-bot entries, all `Disallow:` empty), so no
+    rule applies to this backend's generic client - unrestricted by
+    the file's own terms.
+
+    Content is scoped to `.col-sm-7.pull-left`, the article-body column
+    - not the page's own generic `main` element, which also includes an
+    unrelated "Publicaciones Recientes" (recent news) sidebar list of
+    five other AMEXCID news items ahead of the actual scholarship
+    content in document order.
+
+    `deadline_keywords = ()` and `funding_type = None`: this specific
+    overview page is a bilingual (Spanish/English) marketing summary of
+    the programme and explicitly defers all concrete terms - dates,
+    tuition/stipend coverage - to "las Condiciones Generales de la
+    Convocatoria" (the official Call's General Conditions), reachable
+    only by contacting `infobecas@sre.gob.mx` or a separate document not
+    linked as plain HTML on this page - no funding-coverage language or
+    date literal appears in the page's own text.
+    """
+
+    source_code = "mexico_amexcid"
+    overview_path = "/amexcid/acciones-y-programas/becas-para-extranjeros-29785"
+    title_selectors = ("h1",)
+    content_selectors = (".col-sm-7.pull-left",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = (
+        "Agencia Mexicana de Cooperación Internacional para el "
+        "Desarrollo (AMEXCID), Secretaría de Relaciones Exteriores "
+        "(SRE), Mexico"
+    )
+    country = "Mexico"
+    external_id = "mexico-amexcid-excellence-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().mexico_amexcid_base_url

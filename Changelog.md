@@ -28,6 +28,50 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Beyond the original request: 8 new countries researched; Hungary and Mexico added
+
+With every country/region named in the original master-prompt request
+researched, this pass picked 8 new countries entirely outside that
+request, spanning previously-untouched regions: Hungary, Mexico,
+Indonesia, Malaysia, Vietnam, Egypt, Israel, Kenya. 2 real sources added:
+
+- **Hungary** (Stipendium Hungaricum): a heavily JS-rendered site with
+  no semantic heading markup at all and a `<title>` tag that only ever
+  yields the single word "About" once split — falls back to a title
+  formatted from `external_id`. `funding_type = "fully_funded"` —
+  explicit tuition-free education plus real HUF/EUR monthly stipend
+  figures.
+- **Mexico** (AMEXCID Excellence Scholarships): content scoped to the
+  article-body column specifically, not `main` (which also pulls in an
+  unrelated news sidebar). `funding_type = None` — the overview page
+  explicitly defers all concrete funding/deadline terms to a separate
+  "Condiciones Generales" document not linked as plain HTML.
+
+The other 6 were investigated and found unsuitable, for genuinely
+varied reasons: **Indonesia** `BLOCKED` (official site is a pure JS app
+with zero server-rendered content; a content-rich companion site
+explicitly disallows `ClaudeBot` by name in its `robots.txt`, honored
+rather than routed around with a different User-Agent). **Vietnam**
+`BLOCKED` (the one candidate site doesn't support HTTPS at all — this
+backend's HTTPS-only requirement is a security boundary, never relaxed
+for one adapter). **Egypt** `BLOCKED` (official portal is a pure
+client-side JS SPA on every route checked). **Israel** `BLOCKED` (MFA
+scholarship page returns 403 on 3/3 attempts). **Malaysia**
+`NOT_SUITABLE` (real program, but the page is too thin — real detail
+lives only in an unparsed PDF). **Kenya** `NO_RELIABLE_SOURCE_FOUND`
+(the one page found is an outbound-opportunity database, not an inbound
+single program).
+
+Source count 41 → 43. `docs/AUTHORITATIVE_SOURCES.md` (#42-#43) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Beyond the original
+request" section covering all 8 findings) fully updated.
+
+Verified: 4 new tests (2 per source) against real fixtures; full backend
+suite **575/575** (`pytest -q`).
+
+31 countries/regions now have at least one real source (up from 29),
+including 2 entirely outside the original master-prompt request.
+
 ## [2026-08-29] — Europe: first research pass on the last 8 named countries; 5 sources added — no named region left unresearched
 
 A dedicated **first** research pass on the eight remaining named European
