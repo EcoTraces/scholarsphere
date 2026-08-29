@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (13, across multiple sessions)
+## Implemented (17, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -51,44 +51,54 @@ that were actually built this session (in two batches).
 | 23 | Becas MAEC-AECID | Spain | GOVERNMENT | aecid.es | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 24 | Australia Awards | Australia | GOVERNMENT | australiaawards.com.au | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable from this environment, same network-level pattern as Sierra Leone's MTHE |
 | 25 | Japanese Government (MEXT) Scholarship | Japan | GOVERNMENT | studyinjapan.go.jp | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 26 | ARES International Training Scholarships | Belgium | GOVERNMENT | ares-ac.be | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 27 | France Excellence Eiffel Scholarship | France | GOVERNMENT | campusfrance.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 28 | OeAD Ernst Mach Grant | Austria | GOVERNMENT | oead.at | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 29 | AMCI Scholarships of the Kingdom of Morocco | Morocco | GOVERNMENT | amci.ma | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
 
 ---
 
-## Researched, not yet implemented (10)
+## Researched, not yet implemented (6)
 
 For each: what was found, why it wasn't built this session (time — not a
 disqualification), and its recommended classification.
 
-### Canada — `RESEARCHED_NOT_IMPLEMENTED`
+### Canada — `NOT_SUITABLE` for the single-flagship pattern (confirmed by live research 2026-08-29)
 - **Government sources**: Global Affairs Canada / EduCanada
   (educanada.ca), via the "My EduCanada" portal.
-- **Structural note**: applications are institution-mediated — Canadian
-  colleges/universities apply *on behalf of* eligible students, rather
-  than a student applying directly to one public page with a stated
-  deadline. This doesn't fit the single-flagship-program pattern used for
-  sources 13–17 as cleanly; it likely needs its own research pass into
-  whether `educanada.ca` publishes a public, structured list of open
-  exchange agreements.
-- **Classification**: `REQUIRES_CURATED_SOURCE` (needs a second research
-  pass focused on `educanada.ca`'s actual page structure before deciding
-  scraper vs. manual).
+- **What live testing actually found**: `educanada.ca`'s "Scholarships
+  for international applicants" page is a directory of several distinct
+  named programs (Emerging Leaders in the Americas Program, Study in
+  Canada Scholarships, SEED-2, Canada-China Scholars' Exchange Program,
+  and more), not one flagship. Its broadest-eligibility program, Study in
+  Canada Scholarships (SICS), was fetched and confirmed
+  **institution-initiated, not student-initiated**: "Only Canadian
+  post-secondary institutions are eligible to apply on this call...
+  Direct applications from individuals are not accepted." Canadian
+  institutions select students proactively; there is no page an
+  individual applicant submits anything to, unlike France's Eiffel
+  program (source #27) or Japan's MEXT Scholarship (source #25), where
+  the institution/embassy nominates a student who did apply somewhere.
+- **Classification**: `REQUIRES_CURATED_SOURCE` for the directory as a
+  whole (a real multi-listing database, like Campus Bourses below, not
+  the single-flagship pattern); `NOT_SUITABLE` for SICS specifically at
+  the individual-applicant level this platform models. `robots.txt`
+  (checked 2026-08-29) is permissive, so a future curated-database
+  adapter is technically feasible if that investment is made.
 
 ### Japan — implemented, see source #25 above (live-verified 2026-08-29)
 
 ### Netherlands — implemented, see source #22 above (live-verified 2026-08-29)
 
-### France — `RESEARCHED_NOT_IMPLEMENTED`
-- **Source**: Campus France (quasi-governmental agency) — France
-  Excellence Eiffel Scholarship, `campusfrance.org`. Campus France also
-  runs "Campus Bourses," a searchable scholarship database.
-- **Classification**: `REQUIRES_CURATED_SOURCE` for Campus Bourses (a
-  real multi-listing database would need its own discovery-and-parsing
-  design, like CSC UK, not the single-flagship pattern); the Eiffel
-  program page alone would be `READY_FOR_AUTOMATION` as a narrower first
-  cut.
+### France — implemented (Eiffel), see source #27 above (live-verified 2026-08-29)
+- The Eiffel program is one specific narrower cut of France's coverage,
+  not the whole picture: Campus France also runs "Campus Bourses," a
+  real multi-listing searchable database that still needs its own
+  discovery-and-parsing design, like CSC UK, not the single-flagship
+  pattern — genuinely `REQUIRES_CURATED_SOURCE`, left for a future pass.
 
 ### Italy — implemented, see source #19 above
 
@@ -100,53 +110,46 @@ disqualification), and its recommended classification.
   identify which specific Camões program(s) have the clearest single
   page and deadline.
 
-### Belgium — `RESEARCHED_NOT_IMPLEMENTED`
-- **Sources**: ARES (Académie de Recherche et d'Enseignement supérieur,
-  French-speaking universities' coordinating body), `ares-ac.be`, ~200
-  scholarships/year via a central application platform; VLIR-UOS
-  (Flemish universities), decentralized across individual university
-  websites, no single portal found.
-- **Classification**: ARES — `READY_FOR_AUTOMATION` (has a central
-  portal); VLIR-UOS — `REQUIRES_MANUAL_INTEGRATION` (genuinely
-  decentralized, matches the "do not scrape every university" guidance).
+### Belgium — implemented (ARES), see source #26 above (live-verified 2026-08-29)
+- ARES's own `/bourses-de-mobilite` hub links to ~8 distinct instruments;
+  the specific "Bourses de formations internationales" sub-page
+  implemented here is one of them (the one aimed at students/young
+  professionals). VLIR-UOS (Flemish universities) remains genuinely
+  decentralized across individual university websites, no single portal
+  found — `REQUIRES_MANUAL_INTEGRATION`, not attempted.
 
 ### Spain — implemented, see source #23 above (live-verified 2026-08-29)
 
 ### Australia — implemented, see source #24 above (overview live-verified 2026-08-29; deadline page unreachable)
 
-### Austria — `RESEARCHED_NOT_IMPLEMENTED`
-- **Source**: OeAD (Österreichischer Austauschdienst), the Austrian
-  federal government's exchange-service agency — `oead.at`, application
-  portal at `grants.oead.at`, ~3,500 international students/researchers
-  funded per year across several named programs (e.g. Ernst Mach Grant).
-- **Classification**: `REQUIRES_CURATED_SOURCE` — OeAD runs *multiple*
-  named programs rather than one flagship, closer to DAAD's shape (a
-  small database) than to Chevening's; would benefit from the same
-  curated-seed-list approach used for DAAD if a catalog/sitemap gap is
-  found, or a scraper per named program if pages are structured cleanly.
+### Austria — implemented, see source #28 above (live-verified 2026-08-29)
+- Confirmed by live research to run *multiple* named sub-grants on one
+  page rather than one flagship (Ernst Mach – Ukraine, worldwide, for
+  Fachhochschule study, Follow-Up, ASEA-UNINET, ...) — handled with the
+  same deliberate `deadline_keywords = ()` pattern as South Africa NRF
+  and Spain AECID, rather than the DAAD-style curated-seed-list approach
+  originally guessed at here.
 
 ### South Africa — implemented, see source #21 above (live-blocked — TLS)
 
-### Denmark — `NO_RELIABLE_SOURCE_FOUND` (pending further research)
-- Multiple sources point to `studyindenmark.dk` as an aggregator/
-  informational portal (mentions "the Danish Education Support Agency")
-  but no single named government body/URL was confidently identified as
-  the *awarding* authority in this pass — Denmark's model appears to be
-  per-university tuition waivers within a national framework rather than
-  one centrally-administered flagship scholarship. Needs a dedicated
-  follow-up search specifically for the responsible ministry/agency
-  (likely under `ufm.dk`, the Ministry of Higher Education and Science)
-  before it can be reclassified.
+### Denmark — `NOT_SUITABLE` for the single-flagship pattern (confirmed by a dedicated follow-up search, 2026-08-29)
+- The dedicated follow-up this entry itself called for was done this
+  pass. Confirmed directly (not just inferred): "The scholarships are
+  administered by the Danish universities, who each select the students
+  who are awarded with a scholarship" — genuinely decentralized, no
+  single national awarding body to target. Denmark's separate SU
+  (Statens Uddannelsesstøtte) state education-support scheme is
+  explicitly for Danish residents, not the international-applicant
+  scholarship this platform models. `NOT_SUITABLE` at the
+  national-government level, same category as Canada above; a future
+  pass could instead evaluate individual Danish universities directly if
+  that investment is made.
 
-### Morocco — `RESEARCHED_NOT_IMPLEMENTED`
-- **Government source**: Moroccan Agency for International Cooperation
-  (AMCI), under the Ministry of Higher Education — Moroccan Government
-  Scholarship Programme, applications via the "Maroc Alumni" digital
-  platform.
-- **Classification**: `REQUIRES_CURATED_SOURCE` — the exact official
-  domain for "Maroc Alumni" was not confidently confirmed in this pass
-  (several third-party summaries reference it without a consistent
-  canonical URL); needs direct verification before building an adapter.
+### Morocco — implemented, see source #29 above (live-verified 2026-08-29)
+- The official domain is `amci.ma` (confirmed live, resolving the prior
+  uncertainty about "Maroc Alumni"'s canonical URL — that appears to be
+  a separate, narrower alumni-relations platform, not the main AMCI
+  scholarships page this source targets).
 
 ### Cyprus — `BLOCKED`
 - **Government source**: Cyprus State Scholarship Foundation (IKYK),
@@ -224,29 +227,31 @@ disqualification), and its recommended classification.
 | Spain | SUPPORTED | Live-verified 2026-08-29 |
 | Australia | PARTIALLY_SUPPORTED | Overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable, same pattern as Sierra Leone's MTHE |
 | Japan | SUPPORTED | Live-verified 2026-08-29 |
-| Canada | RESEARCHED_NOT_IMPLEMENTED | Institution-mediated, needs deeper research |
-| France | RESEARCHED_NOT_IMPLEMENTED | Curated source (database) needed |
+| Belgium | SUPPORTED | Live-verified 2026-08-29 |
+| France | SUPPORTED | Live-verified 2026-08-29 (Eiffel program only — Campus Bourses database still needs its own design) |
+| Austria | SUPPORTED | Live-verified 2026-08-29 |
+| Morocco | SUPPORTED | Live-verified 2026-08-29 |
+| Canada | NOT_SUITABLE | Confirmed by live research 2026-08-29 — institution-initiated, no individual-applicant path |
 | Portugal | RESEARCHED_NOT_IMPLEMENTED | Curated source needed |
-| Belgium | RESEARCHED_NOT_IMPLEMENTED | ARES ready; VLIR-UOS decentralized |
-| Austria | RESEARCHED_NOT_IMPLEMENTED | Curated source (multi-program) needed |
-| Denmark | NO_RELIABLE_SOURCE_FOUND | Needs a dedicated follow-up search |
-| Morocco | RESEARCHED_NOT_IMPLEMENTED | Curated source; exact domain unconfirmed |
+| Denmark | NOT_SUITABLE | Confirmed by a dedicated follow-up search 2026-08-29 — decentralized to individual universities |
 | Cyprus | BLOCKED | Active anti-bot (Azure WAF) — not bypassed |
 | Wales | NOT_SUITABLE | Corrected 2026-08-29 — the flagship program appears discontinued/decentralized; previous READY_FOR_AUTOMATION note was wrong, never live-tested |
 | UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
 
-**14 of 24 targets have a genuinely integrated provider** (10 fully
+**18 of 24 targets have a genuinely integrated provider** (14 fully
 live-verified, 4 implemented-but-live-blocked/partially-blocked with
 documented reasons — 2 of those 4 share the same TLS-certificate-chain
 root cause on the respective government servers, 1 (Eswatini) is the
 same network-timeout pattern as Sierra Leone's MTHE, and 1 (Australia) is
 that same network-timeout pattern on one of its two source pages only —
-none are code defects). **6 have a credible official candidate identified
-and classified**, ready for a future implementation pass without further
-country-level research. **2 have no reliable single-source candidate
-found yet** (Denmark, UAE). **1 (Wales) turned out, on live verification,
-not to have a single-flagship program worth automating any more** — see
-its corrected entry above. **1 is actively blocked by anti-bot
+none are code defects). **1 has a credible official candidate identified
+and classified** (Portugal), ready for a future implementation pass
+without further country-level research. **1 has no reliable
+single-source candidate found yet** (UAE). **3 (Canada, Denmark, Wales)
+turned out, on live verification this session, not to have a
+single-flagship program worth automating** — decentralized to individual
+institutions in each case, confirmed directly rather than assumed; see
+their corrected entries above. **1 is actively blocked by anti-bot
 protection** (Cyprus) and will not be pursued further without an
 explicit, informed decision to do so via an authorized channel (e.g.
 contacting the Cyprus government for an API/data-sharing arrangement —
@@ -254,27 +259,20 @@ not a technical bypass).
 
 ## Recommended next candidates
 
-Every previously-classified `READY_FOR_AUTOMATION` candidate in this
-registry has now been implemented (or, in Wales's case, live-tested and
-found unsuitable). None of the 10 remaining researched-but-not-implemented
-entries are that simple — each needs a real second research pass before
-building an adapter, not just a fetch-and-wire pass:
+A dedicated research pass (2026-08-29) live-tested every remaining
+`READY_FOR_AUTOMATION`/`REQUIRES_CURATED_SOURCE` candidate this registry
+had queued (Belgium, Canada, France, Austria, Morocco) plus Denmark's
+long-standing follow-up. Four turned into real sources; two (Canada,
+Denmark) were confirmed genuinely unsuitable for the single-flagship
+pattern rather than left as stale guesses — see their corrected entries
+above. Only one queued candidate is left:
 
-1. **Belgium** (ARES) — has a real central application portal for its
-   ~200 scholarships/year (French-speaking universities); the closest
-   remaining candidate to the proven single-flagship shape, but was not
-   itself live-tested this session.
-2. **Canada** (EduCanada) — institution-mediated (Canadian institutions
-   apply on a student's behalf), needs a page-structure investigation
-   before deciding scraper vs. manual.
-3. **France** (Campus France) — the flagship Eiffel program page alone
-   would fit the pattern; "Campus Bourses" (a real searchable multi-
-   listing database) is the bigger, harder win and needs its own
-   discovery-and-parsing design, closer to CSC UK's shape than a single
-   page.
-4. **Austria** (OeAD) and **Morocco** (AMCI/"Maroc Alumni") — both
-   `REQUIRES_CURATED_SOURCE`: multiple named programs (Austria) or an
-   unconfirmed canonical domain (Morocco), respectively.
+1. **Portugal** (Camões, I.P.) — multiple bilateral-cooperation programs
+   rather than one flagship; needs the same kind of investigation this
+   pass gave Belgium/Austria/Morocco (find the specific program page
+   with the clearest single deadline, or confirm it needs the
+   multi-program-hub treatment instead) before it can move to
+   `READY_FOR_AUTOMATION`.
 
 Countries entirely outside this registry (all of South America, most of
 Asia, most of the remaining named European countries) still need a first
@@ -292,4 +290,10 @@ this environment) — see `docs/AUTHORITATIVE_SOURCES.md` #23-#24.
 **Implemented since the fourth pass**: Japan (MEXT Scholarship, fully
 live-verified) — see `docs/AUTHORITATIVE_SOURCES.md` #25. Wales was
 investigated in the same pass and found `NOT_SUITABLE` on live testing
-(see its corrected entry above) rather than implemented.
+(see its corrected entry above) rather than implemented. **Implemented
+since the fifth pass (a dedicated research pass, not a fetch-and-wire
+one)**: Belgium (ARES), France (Eiffel), Austria (OeAD Ernst Mach), and
+Morocco (AMCI), all fully live-verified — see
+`docs/AUTHORITATIVE_SOURCES.md` #26-#29. Canada and Denmark were
+investigated in the same pass and confirmed `NOT_SUITABLE` on live
+testing rather than implemented.

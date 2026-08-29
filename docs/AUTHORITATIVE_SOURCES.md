@@ -822,6 +822,162 @@ program.
   HTML. No TLS or network issue. Implemented and unit-tested against real
   fixture HTML captured from this live fetch.
 
+## 26. ARES International Training Scholarships (Belgium)
+
+- **Organization**: ARES (Académie de Recherche et d'Enseignement
+  supérieur), the coordinating body for Wallonia-Brussels Federation
+  universities and university colleges in Belgium
+- **Route code**: `belgium-ares` (`belgium_ares` internally)
+- **Official domain / base URL**: `https://www.ares-ac.be`
+  (`BELGIUM_ARES_BASE_URL`)
+- **Opportunity types**: Scholarship (bachelor's, one-year specialized
+  master's, or 6-month continuing-training programs in Belgium)
+- **Country coverage**: Belgium; open to permanent residents of ARES's
+  31 partner countries holding a higher-education diploma
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading ARES's specific "Bourses de formations internationales"
+  sub-page — **not** the generic `/bourses-de-mobilite` hub, which is a
+  category page linking to ~8 distinct instruments (individual mobility
+  grants, ASEM-DUO, research prizes, project funding, and this program).
+  `robots.txt` (checked 2026-08-29, standard Drupal pattern) is
+  permissive.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choice**: `deadline_keywords = ()`, despite a real
+  specific closing date appearing on the page ("Date limite :
+  18.09.2026") — that date is `DD.MM.YYYY` numeric form, which
+  `app/services/parsing.py::_CONFIDENT_DATE_PATTERN` does not match (it
+  only recognizes `DD Month YYYY` / `Month DD, YYYY` literal forms by
+  design). Extending that shared regex is a cross-cutting change
+  affecting every scraper source, not something to do incidentally while
+  adding one adapter — left honestly `null` rather than a half-solution.
+  `funding_type` is also left `None` — no monetary-amount language was
+  found on this page.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~38KB real
+  HTML. No TLS or network issue. Implemented and unit-tested against real
+  fixture HTML captured from this live fetch.
+
+## 27. France Excellence Eiffel Scholarship Program (France)
+
+- **Organization**: Campus France, on behalf of the French Ministry for
+  Europe and Foreign Affairs
+- **Route code**: `france-eiffel` (`france_eiffel` internally)
+- **Official domain / base URL**: `https://www.campusfrance.org`
+  (`FRANCE_CAMPUSFRANCE_BASE_URL`)
+- **Opportunity types**: Scholarship (master's and PhD study at French
+  higher education institutions)
+- **Country coverage**: France; open to non-French applicants up to 29
+  (master's) or 35 (PhD) years old
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading Campus France's official program page. `robots.txt` (standard
+  Drupal pattern, checked 2026-08-29) is permissive.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ("deadline",)` — the page states a real,
+    parseable deadline ("Deadline for the reception of applications by
+    Campus France: January 8, 2026") and this one *is* extracted, unlike
+    Belgium's above (different date format).
+  - Applications are institution-mediated ("Only applications submitted
+    by French higher education institutions are accepted") — the same
+    standard shape as DAAD and Japan's MEXT Scholarship (both already
+    implemented), where the student's chosen institution nominates them,
+    not the institution-*initiated* shape this same research pass ruled
+    out for Canada's SICS program (see the declined-sources table
+    below).
+  - `funding_type = None` — no monetary-amount language was found on
+    this page (only linked PDF fact sheets, not fetched/parsed);
+    Eiffel's real-world reputation as a generous scholarship is outside
+    knowledge this page's own text doesn't support asserting.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~146KB real
+  HTML. No TLS or network issue. Implemented and unit-tested against real
+  fixture HTML captured from this live fetch.
+
+## 28. OeAD Ernst Mach Grant (Austria)
+
+- **Organization**: OeAD (Austria's Agency for Education and
+  Internationalisation), financed by the Austrian Federal Ministry of
+  Women, Science and Research
+- **Route code**: `austria-oead` (`austria_oead` internally)
+- **Official domain / base URL**: `https://oead.at`
+  (`AUSTRIA_OEAD_BASE_URL`) — `www.oead.at` 301-redirects here; this is
+  the current canonical domain.
+- **Opportunity types**: Scholarship/grant (a family of named sub-grants
+  for research and study stays in Austria)
+- **Country coverage**: Austria; open to students/researchers from
+  outside Austria (specific eligible countries vary per named sub-grant)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading OeAD's "Ernst Mach Grant" page. `robots.txt` (checked
+  2026-08-29) is permissive for `*`.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choice**: same shape as South Africa NRF and Spain
+  AECID (sources #21, #23) — this single page actually describes a
+  *family* of named sub-grants (Ernst Mach – Ukraine, worldwide, for
+  Fachhochschule study, Follow-Up, ASEA-UNINET, ASEA-UNINET Short-term),
+  each with its own distinct closing date and, in at least one case
+  (Ukraine), its own distinct monthly amount ("715 euros per month").
+  `deadline_keywords = ()` and `funding_type = None`, both deliberate —
+  a generic extractor would misattribute one sub-grant's figures to the
+  whole page.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~402KB real
+  HTML. No TLS or network issue. Implemented and unit-tested against real
+  fixture HTML captured from this live fetch.
+
+## 29. AMCI Scholarships of the Kingdom of Morocco (Morocco)
+
+- **Organization**: AMCI (Moroccan Agency for International Cooperation)
+- **Route code**: `morocco-amci` (`morocco_amci` internally)
+- **Official domain / base URL**: `https://www.amci.ma`
+  (`MOROCCO_AMCI_BASE_URL`)
+- **Opportunity types**: Scholarship (higher education and professional
+  training in Moroccan public institutions)
+- **Country coverage**: Morocco; predominantly African international
+  students (~85% of AMCI scholarship holders per the page's own stated
+  figures)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading AMCI's academic-cooperation page.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ()`: the page has no `<h1>` — the real title
+    comes from the `<title>` tag ("Coopération Académique | AMCI"),
+    split on the ASCII pipe.
+  - `deadline_keywords = ()`: applications route through the applicant's
+    home country's Moroccan diplomatic representation, the same
+    embassy-mediated pattern as Japan's MEXT Scholarship — no single
+    global deadline is published on the official page.
+  - `funding_type = None` — no funding-amount language was found on this
+    specific page (third-party sources cite a monthly stipend figure,
+    but this adapter does not assert what its own source text doesn't
+    state).
+- **LIVE SOURCE TEST: PARTIAL — content page PASSED 2026-08-29,
+  `robots.txt` itself returned 403.** The same "monitored, not treated as
+  fully blocked" situation already documented for the Swedish Institute
+  (source #17): `robots.txt` returned an Apache 403 when fetched
+  directly, but the actual content page returned 200 with real HTML
+  (~42KB) through this backend's actual httpx path. Implemented and
+  unit-tested against real fixture HTML captured from this live fetch.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

@@ -28,6 +28,70 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — A real research pass: Belgium, France, Austria, Morocco added; Canada, Denmark confirmed unsuitable
+
+A dedicated research pass — not a fetch-and-wire pass — on the remaining
+queue: Belgium (ARES), Canada (EduCanada), France (Campus France),
+Austria (OeAD), Morocco (AMCI/"Maroc Alumni"), and Denmark's
+long-standing "needs a dedicated follow-up search" item. 4 of 6 turned
+into real, live-verified sources; 2 were confirmed genuinely unsuitable
+rather than left as stale guesses.
+
+**Belgium (ARES)** targets the specific "Bourses de formations
+internationales" sub-page (a real, currently-open call), not the general
+mobility-grants hub, which links to ~8 unrelated instruments. Its real
+deadline ("18.09.2026") is deliberately not extracted — that's
+`DD.MM.YYYY` numeric form, which the shared date regex in
+`app/services/parsing.py` doesn't match by design; extending that regex
+is a cross-cutting change out of scope for one adapter.
+
+**France (Campus France Eiffel)** is a genuinely clean single-flagship
+page with a real, parseable deadline ("January 8, 2026") that *is*
+extracted. Institution-mediated applications, confirmed to be the same
+standard shape as DAAD/Japan MEXT (already implemented) by directly
+reading the page, not assumed.
+
+**Austria (OeAD Ernst Mach Grant)** follows the same multi-program-hub
+shape as South Africa NRF/Spain AECID — 6 named sub-grants, each with its
+own deadline and, for one, its own distinct monthly amount — `deadline_
+keywords = ()` deliberately.
+
+**Morocco (AMCI)** resolves the prior uncertainty about "Maroc Alumni"'s
+canonical URL: the real official page is `amci.ma/cooperation-academique`.
+Embassy-mediated, same honest null-deadline pattern as Japan MEXT.
+
+**Canada — confirmed NOT_SUITABLE, not implemented.** Live-fetched
+EduCanada's actual pages: its broadest international-applicant program
+(Study in Canada Scholarships) states outright "Only Canadian
+post-secondary institutions are eligible to apply on this call... Direct
+applications from individuals are not accepted" — no path for an
+individual applicant to initiate anything, unlike France's Eiffel
+program. Corrected from a vague "needs deeper research" note to a
+specific, evidence-backed finding.
+
+**Denmark — confirmed NOT_SUITABLE, not implemented.** The dedicated
+follow-up search this entry itself called for was done: Danish
+government scholarships are "administered by the Danish universities,
+who each select the students" — genuinely decentralized, no single
+national awarding body. Corrected from "no reliable source found"
+(implying more searching might help) to a confirmed structural fact.
+
+No monetary/"fully funded" language was found on any of the 4 new
+sources' actual pages, so `funding_type = None` on all four — not
+guessed from general reputation.
+
+Source count 26 → 30. `docs/AUTHORITATIVE_SOURCES.md` (#26-#29) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` fully updated (all 6 countries'
+entries corrected with what was actually found; only Portugal remains as
+a genuine queued candidate).
+
+Verified: 8 new tests against real fixture HTML, all passing on the
+first run; full backend suite **547/547** (`pytest -q`).
+
+17 of the master prompt's ~40 named countries/regions now have at least
+one real source (up from 13). South America, most of Asia, and most of
+the remaining named European countries remain completely unresearched.
+
 ## [2026-08-29] — Japan (MEXT Scholarship) source added; Wales corrected to NOT_SUITABLE
 
 Continued the country-coverage queue with Wales and Japan — but only one

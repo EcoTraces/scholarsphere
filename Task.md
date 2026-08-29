@@ -58,14 +58,15 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **539/539
+Test baseline as of this session's own verified run (2026-08-29): **547/547
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
-Australia sources, 3 for the Japan source). Flutter suite not re-run this
-session (no Flutter SDK available in this environment); one small Flutter
-data-layer addition landed (see Completed Tasks' master-prompt entry) but
-was not compiled or run. Re-run both suites before trusting these numbers
+Australia sources, 3 for the Japan source, 8 for the Belgium/France/
+Austria/Morocco sources). Flutter suite not re-run this session (no
+Flutter SDK available in this environment); one small Flutter data-layer
+addition landed (see Completed Tasks' master-prompt entry) but was not
+compiled or run. Re-run both suites before trusting these numbers
 if more than a few commits have landed since.
 
 ---
@@ -1046,3 +1047,80 @@ for the full dated history.
         12). South America (9 countries), most of Asia, and most of the
         remaining named European countries remain completely
         unresearched.
+- [x] **(2026-08-29)** A dedicated research pass — not a fetch-and-wire
+      pass — on the remaining queue: Belgium (ARES), Canada (EduCanada),
+      France (Campus France), Austria (OeAD), Morocco (AMCI/"Maroc
+      Alumni"), and Denmark's long-standing "needs a dedicated follow-up
+      search" item. 4 of 6 turned into real, live-verified sources; 2
+      (Canada, Denmark) were confirmed genuinely unsuitable rather than
+      left as stale guesses.
+      - **Belgium (ARES)**: the general `/bourses-de-mobilite` hub is a
+        category page linking to ~8 distinct instruments, not a single
+        flagship — this adapter targets the specific "Bourses de
+        formations internationales" sub-page instead, which has a real
+        currently-open call and a real deadline ("18.09.2026"). That
+        deadline is deliberately **not** extracted — it's in `DD.MM.YYYY`
+        numeric form, which `app/services/parsing.py`'s shared date
+        regex doesn't match (by design, to avoid guessing at date
+        formats); extending that shared regex is a cross-cutting change
+        out of scope for one adapter.
+      - **France (Campus France Eiffel)**: a genuinely clean single
+        flagship page with a real, parseable deadline ("January 8,
+        2026") — `deadline_keywords` actually extracts it this time.
+        Applications are institution-mediated, the same standard shape
+        as DAAD/Japan MEXT (already implemented), confirmed distinct
+        from Canada's SICS program (see below) by directly reading both
+        pages rather than assuming they're the same shape.
+      - **Austria (OeAD Ernst Mach Grant)**: same multi-program-hub
+        shape as South Africa NRF/Spain AECID — the page covers 6 named
+        sub-grants (Ukraine, worldwide, Fachhochschule, Follow-Up,
+        ASEA-UNINET, ASEA-UNINET Short-term), each with its own deadline
+        and, for one, its own distinct monthly amount ("715 euros/month"
+        for Ukraine only) — `deadline_keywords = ()` deliberately.
+      - **Morocco (AMCI)**: resolved the prior uncertainty about "Maroc
+        Alumni"'s canonical URL — the real official page is
+        `amci.ma/cooperation-academique`. `robots.txt` itself 403s but
+        the content page doesn't (same "monitored, not blocked" case as
+        the Swedish Institute). Embassy-mediated, `deadline_keywords =
+        ()`, same pattern as Japan MEXT.
+      - **Canada — confirmed NOT_SUITABLE, not implemented.** Live-fetched
+        EduCanada's actual scholarship pages: the international-applicant
+        section is a directory of several distinct named programs, and
+        its broadest one (Study in Canada Scholarships) states outright
+        "Only Canadian post-secondary institutions are eligible to apply
+        on this call... Direct applications from individuals are not
+        accepted." Unlike France's Eiffel program, there is no path for
+        an individual applicant to initiate anything — institutions
+        select students proactively. Corrected in
+        `docs/COUNTRY_PROVIDER_REGISTRY.md` from its prior vaguer
+        "institution-mediated, needs deeper research" note to a specific,
+        evidence-backed `NOT_SUITABLE`.
+      - **Denmark — confirmed NOT_SUITABLE, not implemented.** The
+        dedicated follow-up search this entry itself called for was
+        done: confirmed directly that Danish government scholarships are
+        "administered by the Danish universities, who each select the
+        students" — genuinely decentralized, no single national awarding
+        body. Corrected from `NO_RELIABLE_SOURCE_FOUND` (implying more
+        searching might help) to `NOT_SUITABLE` (the decentralization is
+        now a confirmed fact, not a research gap).
+      - No monetary/"fully funded" language was found on any of the 4
+        new sources' actual pages, so `funding_type = None` on all four
+        — not guessed from general reputation (Eiffel and Ernst Mach are
+        both well-known generous programs in reality, but that's outside
+        knowledge these adapters' own source text doesn't support
+        asserting).
+      - Source count 26 → 30. Docs updated:
+        `docs/AUTHORITATIVE_SOURCES.md` #26-#29 (full detail per source),
+        `docs/COUNTRY_PROVIDER_REGISTRY.md` (all 6 countries' entries
+        corrected/updated with what was actually found; coverage
+        summary, totals, and recommended-next-candidates list all
+        updated — only Portugal remains as a genuine queued candidate).
+      - Verified: 8 new tests (`tests/test_national_scholarship_programs.py`)
+        against real fixture HTML — all passed on the first run; full
+        backend suite **547/547** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 17
+        countries/regions now have at least one real source (up from
+        13), across 3 confirmed-unsuitable corrections (Canada, Denmark,
+        Wales) that replaced stale guesses with real findings. South
+        America (9 countries), most of Asia, and most of the remaining
+        named European countries are still completely unresearched.

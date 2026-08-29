@@ -615,3 +615,181 @@ class JapanMextScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().japan_mext_base_url
+
+
+class BelgiumAresScholarshipSource(_SingleProgramSource):
+    """Bourses de formations internationales - ARES (Académie de
+    Recherche et d'Enseignement supérieur), the coordinating body for
+    Wallonia-Brussels Federation universities and university colleges in
+    Belgium.
+
+    Confirmed 2026-08-29: ARES's `/bourses-de-mobilite` landing page is a
+    category hub linking to ~8 distinct instruments (individual mobility
+    grants for researchers, ASEM-DUO, research prizes, project funding,
+    and this program) - not itself a single flagship page, so it was
+    **not** used. This adapter targets the specific
+    "Bourses de formations internationales" sub-page instead
+    (`/fr/bourses`), which has a real, currently open call: "L'appel
+    bourses 2027-2028 est ouvert !", real content (200, ~38KB), and
+    `<h1>Bourses de formations internationales</h1>`. `robots.txt`
+    (standard Drupal pattern, checked 2026-08-29) is permissive.
+
+    `deadline_keywords = ()` despite the page stating a real, specific
+    closing date ("Date limite : 18.09.2026") - deliberately, not because
+    of ambiguity this time. That date is in `DD.MM.YYYY` numeric form,
+    which `app/services/parsing.py::_CONFIDENT_DATE_PATTERN` does not
+    match (it only recognizes "DD Month YYYY" / "Month DD, YYYY" literal
+    forms, by design - see that pattern's own docstring on why guessing
+    is avoided). Extending that shared regex to cover more date formats
+    is a cross-cutting change affecting every scraper source, not
+    something to do incidentally while adding one adapter, so this
+    source honestly reports `null` rather than a half-solution.
+
+    No "fully funded"/"tuition"/monetary-amount language was found on
+    this specific page, so `funding_type` is left `None` rather than
+    guessed, same reasoning as Australia Awards (source #24).
+    """
+
+    source_code = "belgium_ares"
+    overview_path = "/fr/bourses"
+    title_selectors = ("h1",)
+    content_selectors = ("#main-content", "main")
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = (
+        "Académie de Recherche et d'Enseignement supérieur (ARES), Belgium"
+    )
+    country = "Belgium"
+    external_id = "belgium-ares-international-training-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().belgium_ares_base_url
+
+
+class FranceEiffelScholarshipSource(_SingleProgramSource):
+    """France Excellence Eiffel Scholarship Program - established by the
+    French Ministry for Europe and Foreign Affairs, administered by
+    Campus France, to enable French higher education institutions to
+    attract top foreign master's and PhD students.
+
+    Confirmed 2026-08-29: `robots.txt` (standard Drupal pattern) is
+    permissive; the page returns real HTML (200, ~146KB) with a clean
+    `<h1>France Excellence Eiffel scholarship program</h1>` and real
+    content in `.node__content` (~2.3KB). The 2026 campaign timeline is
+    stated explicitly, including a real, parseable deadline: "Deadline
+    for the reception of applications by Campus France: January 8, 2026".
+
+    Like DAAD and Japan's MEXT Scholarship (both already implemented),
+    applications are institution-mediated - "Only applications submitted
+    by French higher education institutions are accepted" - but this is
+    the same standard shape as those already-integrated sources (the
+    student's chosen French institution nominates them), not the
+    institution-*initiated* shape of Canada's SICS program (which this
+    registry's research pass separately confirmed is not suitable: "Only
+    Canadian post-secondary institutions are eligible to apply... Direct
+    applications from individuals are not accepted" - no path for
+    student awareness/initiation at all, unlike Eiffel's own "You are a
+    student interested in participating? click here" link).
+
+    No "fully funded"/tuition/monetary-amount language was found on this
+    specific page (only linked PDF fact sheets, which this adapter does
+    not fetch or parse), so `funding_type` is left `None` rather than
+    guessed from Eiffel's real-world reputation as a generous scholarship
+    - that is outside knowledge, not something this page's own text
+    supports asserting.
+    """
+
+    source_code = "france_eiffel"
+    overview_path = "/en/france-excellence-eiffel-scholarship-program"
+    title_selectors = ("h1",)
+    content_selectors = (".node__content", "article")
+    deadline_keywords = ("deadline",)
+    funding_type = None
+    provider_name = "Campus France / French Ministry for Europe and Foreign Affairs"
+    country = "France"
+    external_id = "france-eiffel-excellence-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().france_campusfrance_base_url
+
+
+class AustriaOeadErnstMachSource(_SingleProgramSource):
+    """Ernst Mach Grant - OeAD (Austria's Agency for Education and
+    Internationalisation), financed by the Austrian Federal Ministry of
+    Women, Science and Research.
+
+    Confirmed 2026-08-29: `robots.txt` (checked at `oead.at`, the current
+    domain - `www.oead.at` 301-redirects here) is permissive for `*`. The
+    page returns real HTML (200, ~402KB) with a clean
+    `<h1>Ernst Mach Grant</h1>`.
+
+    Same shape as South Africa NRF and Spain AECID (sources #21, #23):
+    this single page actually describes a *family* of named sub-grants
+    (Ernst Mach - Ukraine, Ernst Mach - worldwide, Ernst Mach for
+    Fachhochschule study, Ernst Mach Follow-Up, Ernst Mach - ASEA-UNINET,
+    Ernst Mach - ASEA-UNINET Short-term), each with its own distinct
+    closing date and, in at least one case, its own distinct scholarship
+    amount ("715 euros per month" for the Ukraine-specific grant only).
+    `deadline_keywords = ()` and `funding_type = None`, both deliberately
+    - a generic extractor would misattribute one sub-grant's date or
+    amount to the whole page.
+    """
+
+    source_code = "austria_oead"
+    overview_path = "/en/study-research-teaching/overview-grants-and-scholarships/ernst-mach-grant"
+    title_selectors = ("h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = "OeAD (Austria's Agency for Education and Internationalisation)"
+    country = "Austria"
+    external_id = "austria-oead-ernst-mach-grant"
+
+    def _base_url(self) -> str:
+        return get_settings().austria_oead_base_url
+
+
+class MoroccoAmciScholarshipSource(_SingleProgramSource):
+    """Scholarships of the Kingdom of Morocco - AMCI (Moroccan Agency for
+    International Cooperation), under the Ministry of Higher Education,
+    for international students (predominantly African) in Moroccan
+    public higher education institutions.
+
+    Confirmed 2026-08-29: `robots.txt` itself returned a 403 (Apache
+    "Forbidden") when fetched directly, but the actual content page did
+    not - the same "monitored, not treated as fully blocked" situation
+    already documented for the Swedish Institute (source #17). The page
+    returns real HTML (200, ~42KB) with real content (~4.3KB) in
+    `article`, including real figures (approximately 14,500 international
+    students in Moroccan public institutions in 2019/2020, 12,500 of them
+    from 47 African countries).
+
+    `title_selectors = ()`: the page has no `<h1>` - the real title comes
+    from the `<title>` tag ("Coopération Académique | AMCI", split on the
+    ASCII pipe).
+
+    `deadline_keywords = ()`: applications route through the applicant's
+    home country's Moroccan diplomatic representation ("selon des
+    modalités et échéances communiquées annuellement par l'AMCI aux
+    représentations diplomatiques marocaines à l'étranger" - per
+    third-party sourcing, not stated on this exact page), the same
+    embassy-mediated pattern as Japan's MEXT Scholarship - no single
+    global deadline is published on the official page itself either way.
+    No funding-amount language was found on this page, so `funding_type`
+    is left `None` rather than asserted from third-party figures this
+    adapter cannot itself verify.
+    """
+
+    source_code = "morocco_amci"
+    overview_path = "/cooperation-academique"
+    title_selectors = ()
+    title_tag_separator = "|"
+    content_selectors = ("article",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = "Moroccan Agency for International Cooperation (AMCI)"
+    country = "Morocco"
+    external_id = "morocco-amci-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().morocco_amci_base_url

@@ -53,11 +53,15 @@ from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
 from app.services.link_health import check_link_reachable
 from app.services.national_scholarship_programs import (
     AustraliaDfatAwardsSource,
+    AustriaOeadErnstMachSource,
+    BelgiumAresScholarshipSource,
+    FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     JapanMextScholarshipSource,
+    MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
@@ -194,6 +198,22 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_japan_mext",
             "schedule": crontab(minute=15, hour=7),
         },
+        "sync-belgium-ares": {
+            "task": "app.tasks.opportunity_sync.sync_belgium_ares",
+            "schedule": crontab(minute=30, hour=7),
+        },
+        "sync-france-eiffel": {
+            "task": "app.tasks.opportunity_sync.sync_france_eiffel",
+            "schedule": crontab(minute=45, hour=7),
+        },
+        "sync-austria-oead": {
+            "task": "app.tasks.opportunity_sync.sync_austria_oead",
+            "schedule": crontab(minute=0, hour=8),
+        },
+        "sync-morocco-amci": {
+            "task": "app.tasks.opportunity_sync.sync_morocco_amci",
+            "schedule": crontab(minute=15, hour=8),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -253,6 +273,10 @@ SOURCE_TASK_NAMES = {
     "spain_aecid": "app.tasks.opportunity_sync.sync_spain_aecid",
     "australia_dfat_awards": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
     "japan_mext": "app.tasks.opportunity_sync.sync_japan_mext",
+    "belgium_ares": "app.tasks.opportunity_sync.sync_belgium_ares",
+    "france_eiffel": "app.tasks.opportunity_sync.sync_france_eiffel",
+    "austria_oead": "app.tasks.opportunity_sync.sync_austria_oead",
+    "morocco_amci": "app.tasks.opportunity_sync.sync_morocco_amci",
 }
 
 
@@ -658,6 +682,58 @@ def sync_japan_mext(
     return _execute_source_task(self, "japan_mext", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_belgium_ares",
+    max_retries=3,
+)
+def sync_belgium_ares(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "belgium_ares", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_france_eiffel",
+    max_retries=3,
+)
+def sync_france_eiffel(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "france_eiffel", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_austria_oead",
+    max_retries=3,
+)
+def sync_austria_oead(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "austria_oead", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_morocco_amci",
+    max_retries=3,
+)
+def sync_morocco_amci(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "morocco_amci", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -883,6 +959,10 @@ def _collector(source_code: str) -> Any:
         "spain_aecid": SpainAecidScholarshipSource,
         "australia_dfat_awards": AustraliaDfatAwardsSource,
         "japan_mext": JapanMextScholarshipSource,
+        "belgium_ares": BelgiumAresScholarshipSource,
+        "france_eiffel": FranceEiffelScholarshipSource,
+        "austria_oead": AustriaOeadErnstMachSource,
+        "morocco_amci": MoroccoAmciScholarshipSource,
     }[source_code]()
 
 

@@ -153,6 +153,15 @@ class Settings(BaseSettings):
     australia_awards_base_url: str = "https://www.australiaawards.com.au"
     japan_mext_base_url: str = "https://www.studyinjapan.go.jp"
 
+    # Fourth-batch country-expansion sources (2026-08-29), from a
+    # dedicated research pass rather than a fetch-and-wire pass - see
+    # docs/COUNTRY_PROVIDER_REGISTRY.md for what was checked and why
+    # Canada/Denmark were investigated but not integrated.
+    belgium_ares_base_url: str = "https://www.ares-ac.be"
+    france_campusfrance_base_url: str = "https://www.campusfrance.org"
+    austria_oead_base_url: str = "https://oead.at"
+    morocco_amci_base_url: str = "https://www.amci.ma"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -229,6 +238,10 @@ class Settings(BaseSettings):
         "spain_aecid_base_url",
         "australia_awards_base_url",
         "japan_mext_base_url",
+        "belgium_ares_base_url",
+        "france_campusfrance_base_url",
+        "austria_oead_base_url",
+        "morocco_amci_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

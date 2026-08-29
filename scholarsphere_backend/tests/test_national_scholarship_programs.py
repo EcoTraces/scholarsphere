@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 from unittest.mock import AsyncMock
 
@@ -7,11 +8,15 @@ from app.core.http_client import ExternalAPIError
 from app.services import web_scraper_base
 from app.services.national_scholarship_programs import (
     AustraliaDfatAwardsSource,
+    AustriaOeadErnstMachSource,
+    BelgiumAresScholarshipSource,
+    FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     JapanMextScholarshipSource,
+    MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
@@ -522,6 +527,143 @@ def test_japan_mext_title_uses_fullwidth_separator_not_shared_h1() -> None:
     ASCII pipe."""
     assert JapanMextScholarshipSource.title_selectors == ()
     assert JapanMextScholarshipSource.title_tag_separator == "｜"
+
+
+# --- Belgium ARES: real fixture, fetched 2026-08-29 -------------------------
+
+
+@pytest.mark.asyncio
+async def test_belgium_ares_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = BelgiumAresScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("belgium_ares_bourses.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "belgium-ares-international-training-scholarships"
+    assert opportunity.title == "Bourses de formations internationales"
+    assert opportunity.country == "Belgium"
+    assert opportunity.funding_type is None
+    assert opportunity.description is not None
+    # The real fixture states "Date limite : 18.09.2026" - a real
+    # deadline, but in a DD.MM.YYYY numeric form the shared date
+    # extractor does not parse - correctly null, not a fabricated guess
+    # at reformatting it.
+    assert opportunity.deadline is None
+
+
+def test_belgium_ares_never_attempts_deadline_extraction() -> None:
+    assert BelgiumAresScholarshipSource.deadline_keywords == ()
+
+
+# --- France Eiffel: real fixture, fetched 2026-08-29 ------------------------
+
+
+@pytest.mark.asyncio
+async def test_france_eiffel_collect_normalizes_real_fixture_and_extracts_deadline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = FranceEiffelScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("france_campus_france_eiffel.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "france-eiffel-excellence-scholarship"
+    assert opportunity.title == "France Excellence Eiffel scholarship program"
+    assert opportunity.country == "France"
+    assert opportunity.funding_type is None
+    assert opportunity.description is not None
+    # The real fixture states a real, parseable deadline: "Deadline for
+    # the reception of applications by Campus France: January 8, 2026".
+    assert opportunity.deadline == date(2026, 1, 8)
+
+
+# --- Austria OeAD Ernst Mach Grant: real fixture, fetched 2026-08-29 --------
+
+
+@pytest.mark.asyncio
+async def test_austria_oead_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = AustriaOeadErnstMachSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("austria_oead_ernst_mach.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "austria-oead-ernst-mach-grant"
+    assert opportunity.title == "Ernst Mach Grant"
+    assert opportunity.country == "Austria"
+    assert opportunity.funding_type is None
+    assert opportunity.description is not None
+    # The real fixture describes several distinct named sub-grants (
+    # Ukraine, worldwide, Fachhochschule, Follow-Up, ASEA-UNINET, ...),
+    # each with its own closing date and, for at least one, its own
+    # distinct monthly amount - correctly null rather than misattributing
+    # one sub-grant's figures to the whole page.
+    assert opportunity.deadline is None
+
+
+def test_austria_oead_never_attempts_deadline_extraction() -> None:
+    assert AustriaOeadErnstMachSource.deadline_keywords == ()
+
+
+# --- Morocco AMCI: real fixture, fetched 2026-08-29 -------------------------
+
+
+@pytest.mark.asyncio
+async def test_morocco_amci_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = MoroccoAmciScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("morocco_amci_cooperation.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "morocco-amci-scholarships"
+    assert opportunity.title == "Coopération Académique"
+    assert opportunity.country == "Morocco"
+    assert opportunity.funding_type is None
+    assert opportunity.description is not None
+    # Embassy-mediated applications, same honest pattern as Japan MEXT -
+    # no single global deadline is published on the official page.
+    assert opportunity.deadline is None
+
+
+def test_morocco_amci_never_attempts_deadline_extraction() -> None:
+    assert MoroccoAmciScholarshipSource.deadline_keywords == ()
+
+
+def test_morocco_amci_title_uses_ascii_pipe_separator_not_missing_h1() -> None:
+    """The page has no <h1> at all - the real title comes from the
+    <title> tag ("Coopération Académique | AMCI"), split on the ASCII
+    pipe."""
+    assert MoroccoAmciScholarshipSource.title_selectors == ()
+    assert MoroccoAmciScholarshipSource.title_tag_separator == "|"
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

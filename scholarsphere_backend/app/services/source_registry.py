@@ -175,6 +175,30 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "belgium_ares": {
+        "source_name": "ARES International Training Scholarships (Belgium)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "france_eiffel": {
+        "source_name": "France Excellence Eiffel Scholarship",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "austria_oead": {
+        "source_name": "OeAD Ernst Mach Grant (Austria)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "morocco_amci": {
+        "source_name": "AMCI Scholarships of the Kingdom of Morocco",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -208,6 +232,10 @@ def _base_urls() -> dict[str, str]:
         "spain_aecid": settings.spain_aecid_base_url,
         "australia_dfat_awards": settings.australia_awards_base_url,
         "japan_mext": settings.japan_mext_base_url,
+        "belgium_ares": settings.belgium_ares_base_url,
+        "france_eiffel": settings.france_campusfrance_base_url,
+        "austria_oead": settings.austria_oead_base_url,
+        "morocco_amci": settings.morocco_amci_base_url,
     }
 
 
@@ -257,6 +285,10 @@ async def seed_opportunity_sources(
         "spain_aecid": now + timedelta(hours=24),
         "australia_dfat_awards": now + timedelta(hours=24),
         "japan_mext": now + timedelta(hours=24),
+        "belgium_ares": now + timedelta(hours=24),
+        "france_eiffel": now + timedelta(hours=24),
+        "austria_oead": now + timedelta(hours=24),
+        "morocco_amci": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
