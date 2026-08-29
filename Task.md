@@ -855,3 +855,47 @@ for the full dated history.
         given real anti-bot/ToS walls already hit); a manual review queue
         UI beyond the existing verification queue; and the admin
         dashboard's actual UI wiring, per the Flutter caveat above.
+- [x] **(2026-08-29)** GitHub Pages deployment prep for the Flutter web
+      build. New `.github/workflows/deploy-pages.yml`: builds
+      `flutter build web --release` with
+      `--base-href "/${{ github.event.repository.name }}/"` (required for
+      a GitHub Pages project site served under `/scholarsphere/`, not
+      root — the app's routing is in-memory, a single `MaterialApp` with a
+      `NavigatorKey` and no `GoRouter`/path-based routes, per
+      `lib/app/app.dart`, so no server-side rewrite rules are needed
+      beyond that), adds `.nojekyll` and a defensive `index.html` ->
+      `404.html` fallback, then deploys via the official
+      `actions/upload-pages-artifact` + `actions/deploy-pages` actions
+      (trigger: push to `main` touching `lib/`, `web/`, `assets/`,
+      `pubspec.{yaml,lock}`, or the workflow itself; also
+      `workflow_dispatch`).
+      - **Real, unavoidable manual steps this alone does not satisfy**
+        (documented in the workflow's own comments and
+        `.env.example`, not silently assumed done):
+        1. **Enable Pages with source "GitHub Actions"** in this repo's
+           Settings → Pages. Confirmed not yet done —
+           `https://ecotraces.github.io/scholarsphere/` currently 404s.
+        2. **Deploy `scholarsphere_backend/` somewhere publicly
+           reachable over HTTPS**, then set it as the `SCHOLARSPHERE_API_BASE_URL`
+           repo Actions variable (Settings → Secrets and variables →
+           Actions → Variables) — it's a compile-time `--dart-define`
+           (see `api_opportunity_repository.dart`), baked into the JS
+           bundle, not read at runtime. Left unset, the deployed site
+           falls back to `http://localhost:8000/api/v1`, which is
+           unreachable from a visitor's browser — a real, working
+           preview needs this set. This backend is not deployed anywhere
+           by this workflow or by this repository today.
+        3. **Add the Pages origin to `ALLOWED_ORIGINS`** on whatever
+           deploys the backend (`.env.example` updated with the exact
+           format) — otherwise the deployed frontend's API calls are
+           blocked by CORS.
+        4. **Add the Pages origin to Firebase Console's Authorized
+           domains** (Authentication → Settings → Authorized domains) —
+           required for Google Sign-In's redirect/popup flow to work from
+           `ecotraces.github.io`; console-only, cannot be done from this
+           environment, same category as the existing bundle-ID/
+           Google-Sign-In items already tracked in Bugs and Issues below.
+      - Not run end-to-end (no live GitHub Actions execution or Pages
+        environment available from this session) — the workflow's YAML
+        was validated for well-formedness but the actual deploy has not
+        been observed to succeed. Verify on the first real push to `main`.

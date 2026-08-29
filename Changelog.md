@@ -28,6 +28,47 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — GitHub Pages deployment workflow for the Flutter web build
+
+New `.github/workflows/deploy-pages.yml`: builds `flutter build web
+--release` with `--base-href "/${{ github.event.repository.name }}/"`
+(required so asset URLs resolve correctly once served from a GitHub
+Pages project site's `/scholarsphere/` subpath rather than root — the
+app's navigation is in-memory, a single `MaterialApp`/`NavigatorKey` with
+no `GoRouter`/path-based routes, so no server-side rewrite rules are
+needed beyond that), adds `.nojekyll` and an `index.html` -> `404.html`
+fallback, then deploys via the official `actions/upload-pages-artifact` +
+`actions/deploy-pages` actions. Triggers on push to `main` touching
+`lib/`, `web/`, `assets/`, `pubspec.{yaml,lock}`, or the workflow itself,
+plus manual `workflow_dispatch`.
+
+Also updated `.env.example`'s CORS section with the exact origin format
+needed once a GitHub Pages deployment exists.
+
+**Four real, unavoidable manual steps this alone does not satisfy** (the
+workflow's own comments and `.env.example` document each, rather than
+silently assuming they're done):
+1. Enable Pages with source "GitHub Actions" in repo Settings → Pages —
+   confirmed not yet done (`ecotraces.github.io/scholarsphere/` 404s
+   today).
+2. Deploy `scholarsphere_backend/` somewhere publicly reachable over
+   HTTPS and set its URL as the `SCHOLARSPHERE_API_BASE_URL` repo Actions
+   variable — it's a compile-time `--dart-define`, baked into the JS
+   bundle; left unset, the deployed site falls back to
+   `http://localhost:8000/api/v1`, unreachable from a visitor's browser.
+   This backend is not deployed anywhere today.
+3. Add the Pages origin to that backend's `ALLOWED_ORIGINS`, or its API
+   calls are blocked by CORS.
+4. Add the Pages origin to Firebase Console's Authorized domains, or
+   Google Sign-In's redirect/popup flow won't work from it — console-only,
+   same category as this project's existing bundle-ID/Google-Sign-In
+   items.
+
+Not run end-to-end — no live GitHub Actions execution or Pages
+environment available from this session. The workflow YAML was validated
+for well-formedness; verify the actual deploy on the first real push to
+`main`.
+
 ## [2026-08-29] — Link-health monitoring, Netherlands (Nuffic) source, admin discovery-summary endpoint
 
 Response to a "global scholarship discovery/verification" master-prompt
