@@ -52,12 +52,14 @@ from app.services.firebase_users import (
 from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
 from app.services.link_health import check_link_reachable
 from app.services.national_scholarship_programs import (
+    AustraliaDfatAwardsSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
+    SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
@@ -179,6 +181,14 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
             "schedule": crontab(minute=30, hour=6),
         },
+        "sync-spain-aecid": {
+            "task": "app.tasks.opportunity_sync.sync_spain_aecid",
+            "schedule": crontab(minute=45, hour=6),
+        },
+        "sync-australia-dfat-awards": {
+            "task": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
+            "schedule": crontab(minute=0, hour=7),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -235,6 +245,8 @@ SOURCE_TASK_NAMES = {
     "greece_iky_scholarships": "app.tasks.opportunity_sync.sync_greece_iky_scholarships",
     "south_africa_nrf": "app.tasks.opportunity_sync.sync_south_africa_nrf",
     "netherlands_nuffic": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
+    "spain_aecid": "app.tasks.opportunity_sync.sync_spain_aecid",
+    "australia_dfat_awards": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
 }
 
 
@@ -601,6 +613,32 @@ def sync_netherlands_nuffic(
     return _execute_source_task(self, "netherlands_nuffic", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_spain_aecid",
+    max_retries=3,
+)
+def sync_spain_aecid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "spain_aecid", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_australia_dfat_awards",
+    max_retries=3,
+)
+def sync_australia_dfat_awards(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "australia_dfat_awards", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -823,6 +861,8 @@ def _collector(source_code: str) -> Any:
         "greece_iky_scholarships": GreeceIkyScholarshipSource,
         "south_africa_nrf": SouthAfricaNrfScholarshipSource,
         "netherlands_nuffic": NetherlandsNufficScholarshipSource,
+        "spain_aecid": SpainAecidScholarshipSource,
+        "australia_dfat_awards": AustraliaDfatAwardsSource,
     }[source_code]()
 
 

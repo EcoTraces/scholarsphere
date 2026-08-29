@@ -28,6 +28,49 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Two more country sources: Spain (AECID) and Australia (DFAT Awards)
+
+Continued the master-prompt country-coverage initiative with the top two
+`READY_FOR_AUTOMATION` candidates in `docs/COUNTRY_PROVIDER_REGISTRY.md`
+— same live-verification discipline as every prior source (fetched via
+both `curl` and this backend's actual httpx path, `robots.txt` checked,
+real HTML captured as test fixtures, never written from assumption).
+
+**Spain (AECID)** — live-verified cleanly. Deliberately targets AECID's
+specific international-applicant sub-page ("Becas para ciudadanos de
+países de América Latina, África y Asia"), not its generic scholarships
+hub, which mostly serves Spanish nationals and is irrelevant to this
+platform. `deadline_keywords = ()`, same reasoning as South Africa NRF
+and the Netherlands: the page lists several named sub-programs, each with
+its own distinct closing date. `funding_type = "partial_funding"` — no
+"fully funded" language found on the page.
+
+**Australia (DFAT Awards)** — partially live-verified. The overview site
+(`australiaawards.com.au`) is fully reachable; the authoritative deadline
+page (`dfat.gov.au`) is not — every attempt (multiple user agents, `curl`
+and httpx) hung at the TLS-handshake stage until timeout, the same
+"connects, then nothing responds" pattern already documented for Sierra
+Leone's MTHE, not a WAF challenge. `deadline_path` left unset rather than
+pointed at an unverified host. `funding_type = None` — no
+funding-coverage language was found on the reachable pages; Australia
+Awards are widely known to be comprehensively funded in practice, but
+that's outside knowledge the adapter's own source text doesn't support
+asserting.
+
+Source count 23 → 25. `docs/AUTHORITATIVE_SOURCES.md` (#23-#24) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` updated (both moved out of
+"researched, not implemented"; Wales, Japan, and Canada are now the top
+queued candidates).
+
+Verified: 5 new tests against real fixture HTML; full backend suite
+**536/536** (`pytest -q`).
+
+**Still a small fraction of the original master prompt's ~40 named
+countries/regions**: 12 now have at least one real source (up from 10).
+South America (9 countries), most of Asia, and most of the remaining
+named European countries remain completely unresearched — not silently
+dropped, just not attempted this pass.
+
 ## [2026-08-29] — Free-hosting-tier deployment prep for the backend (Render + Neon + Upstash)
 
 Researched the current (2026) free-tier landscape before picking a stack

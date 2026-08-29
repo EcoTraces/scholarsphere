@@ -58,14 +58,15 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **531/531
+Test baseline as of this session's own verified run (2026-08-29): **536/536
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
-Netherlands source, 4 for the discovery-summary endpoint). Flutter suite
-not re-run this session (no Flutter SDK available in this environment); one
-small Flutter data-layer addition landed (see Completed Tasks' master-prompt
-entry) but was not compiled or run. Re-run both suites before trusting
-these numbers if more than a few commits have landed since.
+Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
+Australia sources). Flutter suite not re-run this session (no Flutter SDK
+available in this environment); one small Flutter data-layer addition
+landed (see Completed Tasks' master-prompt entry) but was not compiled or
+run. Re-run both suites before trusting these numbers if more than a few
+commits have landed since.
 
 ---
 
@@ -946,3 +947,52 @@ for the full dated history.
         `render.yaml` passed YAML well-formedness validation; neither was
         exercised against a real build or a real Render deploy. Verify on
         the first real deploy attempt.
+- [x] **(2026-08-29)** Two more country sources from the master-prompt
+      queue: **Spain** (AECID) and **Australia** (DFAT Awards) — the top
+      two `READY_FOR_AUTOMATION` candidates in
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`. Same live-verification
+      discipline as every prior source in this initiative (fetched via
+      both `curl` and this backend's actual httpx path, robots.txt
+      checked, real HTML captured as test fixtures — never written from
+      assumption).
+      - **Spain (AECID)**: live-verified, no issues. Deliberately targets
+        AECID's specific international-applicant sub-page (`Becas para
+        ciudadanos de países de América Latina, África y Asia`), not its
+        generic scholarships hub (which mostly serves Spanish nationals —
+        irrelevant to this platform). Same `deadline_keywords = ()`
+        pattern as South Africa NRF/Netherlands: the page lists several
+        named sub-programs, each with its own distinct closing date.
+        `funding_type = "partial_funding"` — no "fully funded" language
+        found on the page.
+      - **Australia (DFAT Awards)**: **partially live-verified**. The
+        overview site (`australiaawards.com.au`) is fully reachable and
+        implemented; the authoritative deadline page (`dfat.gov.au`) is
+        **not** — every attempt (multiple user agents, `curl` and httpx)
+        hung at the TLS-handshake stage until timeout, the same
+        "connects, then nothing responds" pattern already documented for
+        Sierra Leone's MTHE, not a WAF challenge (no challenge content
+        was ever returned). `deadline_path` deliberately left unset
+        rather than pointed at an unverified host. `funding_type = None`
+        — no funding-coverage language found on the reachable pages;
+        Australia Awards are widely known to be comprehensively funded
+        in practice, but that's outside knowledge the adapter's own
+        source text doesn't support asserting, so it was left honestly
+        unclassified rather than guessed.
+      - Source count 23 → 25. Docs updated: `docs/AUTHORITATIVE_SOURCES.md`
+        #23-#24, `docs/COUNTRY_PROVIDER_REGISTRY.md` (both moved out of
+        "researched, not implemented"; coverage summary, totals, and
+        recommended-next-candidates list all updated — Wales, Japan, and
+        Canada are now the top queued candidates).
+      - Verified: 5 new tests (`tests/test_national_scholarship_programs.py`)
+        against real fixture HTML; full backend suite **536/536**
+        (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 12
+        countries/regions now have at least one real, integrated source
+        (up from 10) — still a small fraction of the ~40 the original
+        prompt named. South America (9 countries), most of Asia, and
+        most of the remaining European countries in that list remain
+        completely unresearched. See the chat response to "have you
+        implemented all the countries i provided" earlier this session
+        for the full country-by-country accounting; that gap has not
+        materially closed, only the top 2 queued candidates were picked
+        up.

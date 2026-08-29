@@ -462,3 +462,99 @@ class NetherlandsNufficScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().netherlands_nuffic_base_url
+
+
+class SpainAecidScholarshipSource(_SingleProgramSource):
+    """Becas MAEC-AECID - the Spanish Agency for International
+    Development Cooperation (AECID), under the Ministry of Foreign
+    Affairs, EU and Cooperation (MAEC). Confirmed 2026-08-29 (both via
+    `curl` and this backend's actual httpx path - 200, real HTML,
+    ~169KB): `robots.txt` (permissive, `Disallow:` empty for `*`) allows
+    this path.
+
+    AECID's generic `/becas-lectorados` hub page was deliberately **not**
+    used - it links out to several distinct audiences (young Spaniards,
+    lectorados, artistic residencies, and this program), most irrelevant
+    to this platform's international-applicant focus. This adapter
+    targets the one sub-page actually aimed at international applicants:
+    `<h1>Becas para ciudadanos de países de América Latina, África y
+    Asia</h1>` ("Scholarships for citizens of Latin America, Africa and
+    Asia").
+
+    That page itself lists several named sub-programs (Programa MÁSTER,
+    Programa ESCUELA DIPLOMÁTICA, Programa ÁFRICA-MED Máster), each with
+    its own distinct start/close date (e.g. Escuela Diplomática:
+    21/05/2026-03/06/2026; África-Med: 02/07-15/07/2026) - the exact same
+    shape already handled honestly for South Africa NRF and the
+    Netherlands: `deadline_keywords = ()` deliberately, since a generic
+    keyword-anchored extractor would pick one sub-program's date and
+    mislabel it as *the* deadline for the whole page. No explicit
+    "fully funded"/"full tuition" language was found on this page either
+    (it states a monthly stipend + health insurance, aimed partly at
+    civil servants for some sub-programs) - `funding_type` left at this
+    class's inherited default is wrong here, so it's set to
+    `"partial_funding"` rather than guessed as `"fully_funded"`.
+    """
+
+    source_code = "spain_aecid"
+    overview_path = "/becas-para-ciudadanos-de-paises-de-america-latina-africa-y-asia"
+    title_selectors = ("h1",)
+    content_selectors = ("#main-content", "main")
+    deadline_keywords = ()
+    funding_type = "partial_funding"
+    provider_name = (
+        "Spanish Agency for International Development Cooperation (AECID)"
+    )
+    country = "Spain"
+    external_id = "spain-aecid-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().spain_aecid_base_url
+
+
+class AustraliaDfatAwardsSource(_SingleProgramSource):
+    """Australia Awards - the Australian Government's flagship
+    scholarship program for students and professionals from the
+    Indo-Pacific region, administered by the Department of Foreign
+    Affairs and Trade (DFAT).
+
+    Confirmed 2026-08-29: `dfat.gov.au` itself - the authoritative source
+    for the program's actual intake/closing dates
+    (`.../australia-awards-scholarships-opening-and-closing-dates`) -
+    could not be reached from this environment. Every attempt (multiple
+    user agents, both `curl` and this backend's actual httpx path)
+    resulted in a TLS-handshake-stage timeout, not an HTTP error or a
+    DNS failure - the same "connects, then nothing responds" pattern
+    already documented for Sierra Leone's MTHE
+    (`embassy_announcements.py`), not a WAF/anti-bot challenge page (no
+    challenge content was ever returned to inspect). `deadline_path` is
+    deliberately left unset rather than pointed at a host that cannot be
+    verified reachable.
+
+    `australiaawards.com.au` - a separate, DFAT-affiliated informational
+    site (confirmed reachable: 200, real HTML, ~184KB; permissive
+    `robots.txt`) - is used as the overview page instead. It states no
+    specific deadline itself (an honest `deadline_keywords = ()`, not
+    a defect) and has no `<h1>` (a page-builder-style homepage, the same
+    shape as `WellsMountainInitiativeSource` above) - the real title
+    comes from the bare `<title>Australia Awards</title>` tag. No
+    "fully funded"/"tuition"/"stipend" language was found on the pages
+    checked, so `funding_type` is left `None` rather than guessed -
+    Australia Awards are widely known to be comprehensively funded in
+    practice, but that is not something this adapter can honestly assert
+    from the text it can actually read.
+    """
+
+    source_code = "australia_dfat_awards"
+    overview_path = "/"
+    title_selectors = ()
+    title_tag_separator = "–"
+    content_selectors = ("#content", "main")
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = "Department of Foreign Affairs and Trade (DFAT), Australia"
+    country = "Australia"
+    external_id = "australia-dfat-awards"
+
+    def _base_url(self) -> str:
+        return get_settings().australia_awards_base_url

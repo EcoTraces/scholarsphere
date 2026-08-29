@@ -6,12 +6,14 @@ import pytest
 from app.core.http_client import ExternalAPIError
 from app.services import web_scraper_base
 from app.services.national_scholarship_programs import (
+    AustraliaDfatAwardsSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
+    SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
@@ -375,6 +377,95 @@ def test_netherlands_nuffic_is_not_labeled_fully_funded() -> None:
     explicitly "not a full-tuition scholarship" - must not inherit
     _SingleProgramSource's fully_funded default."""
     assert NetherlandsNufficScholarshipSource.funding_type == "partial_funding"
+
+
+# --- Spain AECID: real fixture, fetched 2026-08-29 -------------------------
+
+
+@pytest.mark.asyncio
+async def test_spain_aecid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = SpainAecidScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("spain_aecid_scholarships.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "spain-aecid-scholarships"
+    assert opportunity.title == (
+        "Becas para ciudadanos de países de América Latina, África y Asia"
+    )
+    assert opportunity.country == "Spain"
+    assert opportunity.provider_name == (
+        "Spanish Agency for International Development Cooperation (AECID)"
+    )
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.description is not None
+    # The real fixture lists several sub-programs, each with its own
+    # start/close date - correctly null, not one sub-program's date
+    # misattributed to the whole page.
+    assert opportunity.deadline is None
+
+
+def test_spain_aecid_never_attempts_deadline_extraction() -> None:
+    """Same reasoning as South Africa NRF and the Netherlands above: the
+    real page lists multiple named sub-programs, each with its own
+    distinct closing date, not one program-wide deadline."""
+    assert SpainAecidScholarshipSource.deadline_keywords == ()
+
+
+# --- Australia DFAT Awards: real fixture, fetched 2026-08-29 ---------------
+
+
+@pytest.mark.asyncio
+async def test_australia_dfat_awards_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = AustraliaDfatAwardsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("australia_dfat_awards.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "australia-dfat-awards"
+    assert opportunity.title == "Australia Awards"
+    assert opportunity.country == "Australia"
+    assert opportunity.provider_name == (
+        "Department of Foreign Affairs and Trade (DFAT), Australia"
+    )
+    assert opportunity.description is not None
+    assert "international students" in opportunity.description.lower()
+    # dfat.gov.au (the actual deadline-bearing page) could not be reached
+    # from this environment - correctly null, not fabricated, and no
+    # deadline_path was configured to point at an unverified host.
+    assert opportunity.deadline is None
+
+
+def test_australia_dfat_awards_never_attempts_deadline_extraction() -> None:
+    """The authoritative deadline page (dfat.gov.au) is unreachable from
+    this environment (see the adapter's own docstring for the specific
+    failure mode) - deadline_keywords stays empty rather than guessing
+    from the reachable overview site, which states no date itself."""
+    assert AustraliaDfatAwardsSource.deadline_keywords == ()
+
+
+def test_australia_dfat_awards_does_not_assert_a_funding_classification() -> None:
+    """No "fully funded"/"tuition"/"stipend" language was found on the
+    pages this adapter can actually read - funding_type must stay None
+    rather than inheriting _SingleProgramSource's fully_funded default or
+    guessing from general knowledge of the real-world program."""
+    assert AustraliaDfatAwardsSource.funding_type is None
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

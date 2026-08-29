@@ -671,6 +671,105 @@ program.
   Implemented and unit-tested against real fixture HTML captured from this
   live fetch.
 
+## 23. Becas MAEC-AECID (Spain)
+
+- **Organization**: Spanish Agency for International Development
+  Cooperation (AECID), under the Ministry of Foreign Affairs, EU and
+  Cooperation (MAEC)
+- **Route code**: `spain-aecid` (`spain_aecid` internally)
+- **Official domain / base URL**: `https://www.aecid.es`
+  (`SPAIN_AECID_BASE_URL`)
+- **Opportunity types**: Scholarship (several named sub-programs — a
+  master's program, a diplomatic-school program, an Africa/Middle East
+  program — under one umbrella call)
+- **Country coverage**: Spain; open to citizens of Latin America, Africa,
+  and Asia (this adapter deliberately targets that specific sub-page, not
+  AECID's generic scholarships hub, which mostly links to programs for
+  Spanish nationals — irrelevant to this platform's international-
+  applicant focus)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading AECID's public program page. `robots.txt` (checked 2026-08-29)
+  is permissive (`Disallow:` empty for `*`).
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ()`, same reasoning as sources #21 and #22: the
+    page lists several distinct named sub-programs (e.g. Escuela
+    Diplomática: 21/05–03/06/2026; África-Med: 02/07–15/07/2026), each
+    with its own closing date — a generic keyword-anchored extractor
+    would pick one and mislabel it as *the* deadline for the whole page.
+  - `funding_type = "partial_funding"` — no "fully funded"/"full
+    tuition" language was found on the page (it states a monthly stipend
+    plus health insurance, and some sub-programs are aimed at civil
+    servants specifically), so this pattern's `fully_funded` default was
+    deliberately overridden rather than left unverified.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this backend's
+  actual HTTP path (httpx, not just `curl`) — 200, ~169KB real HTML,
+  `<h1>Becas para ciudadanos de países de América Latina, África y
+  Asia</h1>`, real content in `#main-content`. No TLS or network issue.
+  Implemented and unit-tested against real fixture HTML captured from
+  this live fetch.
+
+## 24. Australia Awards (DFAT)
+
+- **Organization**: Department of Foreign Affairs and Trade (DFAT),
+  Australian Government
+- **Route code**: `australia-dfat-awards` (`australia_dfat_awards`
+  internally)
+- **Official domain / base URL**: `https://www.australiaawards.com.au`
+  (`AUSTRALIA_AWARDS_BASE_URL`) — a DFAT-affiliated informational site,
+  used instead of `dfat.gov.au` itself; see the live-test note below for
+  why.
+- **Opportunity types**: Scholarship (the Australian Government's
+  flagship program for students and professionals from the Indo-Pacific
+  region)
+- **Country coverage**: Australia; open to nationals of DFAT's listed
+  partner countries (predominantly Indo-Pacific — see
+  `dfat.gov.au/people-to-people/australia-awards/participating-countries`,
+  itself unreachable from this environment — not open to every country)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `australiaawards.com.au`'s homepage. `robots.txt` (checked
+  2026-08-29, standard WordPress pattern) only disallows
+  `/wordpress/wp-admin/`.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - No `deadline_path` configured, and `deadline_keywords = ()`. The
+    authoritative intake/closing-dates page
+    (`dfat.gov.au/.../australia-awards-scholarships-opening-and-closing-dates`)
+    is on `dfat.gov.au`, a host this environment could not reach at all
+    (see the live-test note below) — rather than point `deadline_path`
+    at a host that cannot be verified, it was left unset. The reachable
+    overview site states no specific date itself either way.
+  - `title_selectors = ()`, `title_tag_separator = "–"`: the homepage has
+    no `<h1>` (a page-builder-style landing page, the same shape as
+    source #13, WMI) — the real title comes from the bare
+    `<title>Australia Awards</title>` tag.
+  - `funding_type = None` — no "fully funded"/"tuition"/"stipend"
+    language was found on the pages this adapter can actually read.
+    Australia Awards are widely known to be comprehensively funded in
+    practice, but that is general/outside knowledge, not something this
+    adapter's own source text supports asserting — left honestly
+    unclassified rather than guessed either way.
+- **LIVE SOURCE TEST: PARTIAL — overview PASSED 2026-08-29, deadline page
+  BLOCKED.** `australiaawards.com.au` verified through this backend's
+  actual HTTP path (httpx) — 200, ~184KB real HTML. `dfat.gov.au` itself
+  — tried with multiple user agents, both `curl` and httpx — consistently
+  hung at the TLS-handshake stage until timeout: not an HTTP error, not a
+  DNS failure, and no bot-challenge page was ever returned to inspect.
+  The same "connects to nothing" pattern already documented for Sierra
+  Leone's MTHE (source #12), not a WAF/anti-bot challenge like Cyprus
+  (declined-sources table below). Implemented and unit-tested against
+  real fixture HTML captured from the successful overview fetch.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

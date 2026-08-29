@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (10, across multiple sessions)
+## Implemented (12, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -48,13 +48,15 @@ that were actually built this session (in two batches).
 | 20 | IKY Foreign Nationals Scholarships | Greece | GOVERNMENT | iky.gr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 21 | NRF Postgraduate Funding | South Africa | GOVERNMENT | nrf.ac.za | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by the same TLS certificate-chain issue class as ICCR (see #21 in AUTHORITATIVE_SOURCES.md) |
 | 22 | NL Scholarship (Nuffic) | Netherlands | GOVERNMENT | studyinnl.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 23 | Becas MAEC-AECID | Spain | GOVERNMENT | aecid.es | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 24 | Australia Awards | Australia | GOVERNMENT | australiaawards.com.au | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable from this environment, same network-level pattern as Sierra Leone's MTHE |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
 
 ---
 
-## Researched, not yet implemented (11)
+## Researched, not yet implemented (9)
 
 For each: what was found, why it wasn't built this session (time — not a
 disqualification), and its recommended classification.
@@ -119,20 +121,9 @@ disqualification), and its recommended classification.
   portal); VLIR-UOS — `REQUIRES_MANUAL_INTEGRATION` (genuinely
   decentralized, matches the "do not scrape every university" guidance).
 
-### Spain — `RESEARCHED_NOT_IMPLEMENTED`
-- **Government source**: Ministry of Foreign Affairs, EU and Cooperation
-  (MAEC) via AECID (Spanish Agency for International Development
-  Cooperation) — MAEC-AECID Scholarships, `aecid.es`.
-- **Classification**: `READY_FOR_AUTOMATION` — official government
-  cooperation agency, flagship program (master's, diplomatic training,
-  residencies), applications February–May.
+### Spain — implemented, see source #23 above (live-verified 2026-08-29)
 
-### Australia — `RESEARCHED_NOT_IMPLEMENTED`
-- **Government source**: Department of Foreign Affairs and Trade (DFAT)
-  — Australia Awards, applied for via the OASIS system;
-  `australiaawards.com.au` / `dfat.gov.au` / `studyaustralia.gov.au`.
-- **Classification**: `READY_FOR_AUTOMATION` — official `.gov.au`-linked
-  program, single flagship scholarship, well-documented eligibility.
+### Australia — implemented, see source #24 above (overview live-verified 2026-08-29; deadline page unreachable)
 
 ### Austria — `RESEARCHED_NOT_IMPLEMENTED`
 - **Source**: OeAD (Österreichischer Austauschdienst), the Austrian
@@ -221,13 +212,13 @@ disqualification), and its recommended classification.
 | Eswatini | PARTIALLY_SUPPORTED | Blocked by network timeout |
 | South Africa | PARTIALLY_SUPPORTED | Blocked by the same TLS chain issue class as India |
 | Netherlands | SUPPORTED | Live-verified 2026-08-29 |
+| Spain | SUPPORTED | Live-verified 2026-08-29 |
+| Australia | PARTIALLY_SUPPORTED | Overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable, same pattern as Sierra Leone's MTHE |
 | Canada | RESEARCHED_NOT_IMPLEMENTED | Institution-mediated, needs deeper research |
 | Japan | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
 | France | RESEARCHED_NOT_IMPLEMENTED | Curated source (database) needed |
 | Portugal | RESEARCHED_NOT_IMPLEMENTED | Curated source needed |
 | Belgium | RESEARCHED_NOT_IMPLEMENTED | ARES ready; VLIR-UOS decentralized |
-| Spain | RESEARCHED_NOT_IMPLEMENTED | Ready for automation — strong next candidate |
-| Australia | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
 | Austria | RESEARCHED_NOT_IMPLEMENTED | Curated source (multi-program) needed |
 | Denmark | NO_RELIABLE_SOURCE_FOUND | Needs a dedicated follow-up search |
 | Morocco | RESEARCHED_NOT_IMPLEMENTED | Curated source; exact domain unconfirmed |
@@ -235,33 +226,39 @@ disqualification), and its recommended classification.
 | Wales | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
 | UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
 
-**11 of 24 targets have a genuinely integrated provider** (8 fully
-live-verified, 3 implemented-but-live-blocked with documented reasons —
-2 of those 3 share the same TLS-certificate-chain root cause on the
-respective government servers, not a code defect). **10 have a credible
-official candidate identified and classified**, ready for a future
-implementation pass without further country-level research. **2 have no
-reliable single-source candidate found yet** (Denmark, UAE). **1 is
-actively blocked by anti-bot protection** (Cyprus) and will not be pursued
-further without an explicit, informed decision to do so via an authorized
-channel (e.g. contacting the Cyprus government for an API/data-sharing
-arrangement — not a technical bypass).
+**13 of 24 targets have a genuinely integrated provider** (9 fully
+live-verified, 4 implemented-but-live-blocked/partially-blocked with
+documented reasons — 2 of those 4 share the same TLS-certificate-chain
+root cause on the respective government servers, 1 (Eswatini) is the
+same network-timeout pattern as Sierra Leone's MTHE, and 1 (Australia) is
+that same network-timeout pattern on one of its two source pages only —
+none are code defects). **8 have a credible official candidate identified
+and classified**, ready for a future implementation pass without further
+country-level research. **2 have no reliable single-source candidate
+found yet** (Denmark, UAE). **1 is actively blocked by anti-bot
+protection** (Cyprus) and will not be pursued further without an
+explicit, informed decision to do so via an authorized channel (e.g.
+contacting the Cyprus government for an API/data-sharing arrangement —
+not a technical bypass).
 
 ## Recommended next candidates (highest value, `READY_FOR_AUTOMATION`)
 
 In priority order, based on official-domain strength, single-flagship
 simplicity (matching the proven pattern), and geographic spread:
 
-1. **Spain** (AECID) — official cooperation agency, clear program.
-2. **Australia** (DFAT/Australia Awards) — official domain, well
-   documented.
-3. **Wales** (Global Wales) — official partnership portal.
-4. **Japan** (MEXT via Study in Japan) — high applicant interest; expect
+1. **Wales** (Global Wales) — official partnership portal.
+2. **Japan** (MEXT via Study in Japan) — high applicant interest; expect
    `null` deadlines most cycles (embassy-mediated), same honest pattern
    as Ireland/Sweden this session.
+3. **Canada** (EduCanada) — needs a second research pass into its
+   institution-mediated application shape before it fits the
+   single-flagship pattern cleanly.
 
 **Implemented since the first pass**: Italy (MAECI), Greece (IKY), and
 South Africa (NRF, live-blocked by a TLS issue) — see
 `docs/AUTHORITATIVE_SOURCES.md` #19-#21. **Implemented since the second
 pass**: Netherlands (Nuffic NL Scholarship, fully live-verified) — see
-`docs/AUTHORITATIVE_SOURCES.md` #22.
+`docs/AUTHORITATIVE_SOURCES.md` #22. **Implemented since the third
+pass**: Spain (AECID, fully live-verified) and Australia (DFAT Awards,
+overview live-verified — the deadline page itself is unreachable from
+this environment) — see `docs/AUTHORITATIVE_SOURCES.md` #23-#24.

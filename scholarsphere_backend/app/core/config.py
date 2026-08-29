@@ -144,6 +144,13 @@ class Settings(BaseSettings):
     # in NL" portal - the NL Scholarship program was rebranded from
     # "Holland Scholarship"; hollandscholarship.nl now 301-redirects here.
     netherlands_nuffic_base_url: str = "https://www.studyinnl.org"
+    spain_aecid_base_url: str = "https://www.aecid.es"
+    # dfat.gov.au itself (the deadline-bearing authoritative domain) is
+    # unreachable from this environment - a separate, DFAT-affiliated
+    # informational site is used as the overview page instead. See
+    # AustraliaDfatAwardsSource's own docstring for the full reachability
+    # findings.
+    australia_awards_base_url: str = "https://www.australiaawards.com.au"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -218,6 +225,8 @@ class Settings(BaseSettings):
         "greece_iky_base_url",
         "south_africa_nrf_base_url",
         "netherlands_nuffic_base_url",
+        "spain_aecid_base_url",
+        "australia_awards_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
