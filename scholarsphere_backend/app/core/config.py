@@ -140,6 +140,11 @@ class Settings(BaseSettings):
     greece_iky_base_url: str = "https://www.iky.gr"
     south_africa_nrf_base_url: str = "https://www.nrf.ac.za"
 
+    # Third-batch country-expansion source (2026-08-29). Nuffic's "Study
+    # in NL" portal - the NL Scholarship program was rebranded from
+    # "Holland Scholarship"; hollandscholarship.nl now 301-redirects here.
+    netherlands_nuffic_base_url: str = "https://www.studyinnl.org"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -212,6 +217,7 @@ class Settings(BaseSettings):
         "italy_studyinitaly_base_url",
         "greece_iky_base_url",
         "south_africa_nrf_base_url",
+        "netherlands_nuffic_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

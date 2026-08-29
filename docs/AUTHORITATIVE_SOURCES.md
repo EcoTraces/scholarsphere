@@ -627,6 +627,50 @@ program.
   unit-tested against real fixture HTML captured via `curl`. Re-test
   periodically.
 
+## 22. NL Scholarship (Netherlands)
+
+- **Organization**: Nuffic, the Dutch organisation for internationalisation
+  in education, on behalf of the Dutch Ministry of Education, Culture and
+  Science, jointly funded with participating Dutch research universities
+  and universities of applied sciences
+- **Route code**: `netherlands-nuffic` (`netherlands_nuffic` internally)
+- **Official domain / base URL**: `https://www.studyinnl.org`
+  (`NETHERLANDS_NUFFIC_BASE_URL`) — the program's original public name and
+  domain, "Holland Scholarship" (`hollandscholarship.nl`), now
+  301-redirects here; confirmed the *current* source by the page's own
+  `<title>Nl Scholarship | Study in NL</title>`, not a stale/retired one.
+- **Opportunity types**: Scholarship (fixed €5,000 award toward a
+  full-time bachelor's or master's programme)
+- **Country coverage**: Netherlands; open to non-EEA nationals applying to
+  one of the participating institutions
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading Nuffic's public program page. `robots.txt` (standard Drupal
+  pattern, checked 2026-08-29) does not disallow `/finances/nl-scholarship`.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources
+  1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `funding_type = "partial_funding"`, not this pattern's usual
+    `fully_funded` default — the page states outright "the scholarship
+    amounts to €5,000 ... Please note that this is not a full-tuition
+    scholarship."
+  - `deadline_keywords = ()`, same reasoning as source #21 (South Africa
+    NRF): the page explicitly says "You can find the specific closing
+    dates ... on the website of the institution you want to apply to" —
+    Nuffic does not itself publish one program-wide deadline, since each
+    of the ~30 participating institutions sets its own. Left `null` on
+    purpose rather than misattributing one institution's date to the
+    whole program.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this backend's
+  actual HTTP path (httpx, not just `curl`) — 200, ~49KB real HTML,
+  `<h1 class="page-header__title">NL Scholarship</h1>`, real content in
+  `.node__content`. No TLS or network issue (unlike sources #16 and #21).
+  Implemented and unit-tested against real fixture HTML captured from this
+  live fetch.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

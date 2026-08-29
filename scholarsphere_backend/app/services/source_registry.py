@@ -151,6 +151,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "netherlands_nuffic": {
+        "source_name": "Nuffic NL Scholarship (Netherlands)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -180,6 +186,7 @@ def _base_urls() -> dict[str, str]:
         "italy_maeci_scholarships": settings.italy_esteri_base_url,
         "greece_iky_scholarships": settings.greece_iky_base_url,
         "south_africa_nrf": settings.south_africa_nrf_base_url,
+        "netherlands_nuffic": settings.netherlands_nuffic_base_url,
     }
 
 
@@ -225,6 +232,7 @@ async def seed_opportunity_sources(
         "italy_maeci_scholarships": now + timedelta(hours=24),
         "greece_iky_scholarships": now + timedelta(hours=24),
         "south_africa_nrf": now + timedelta(hours=24),
+        "netherlands_nuffic": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

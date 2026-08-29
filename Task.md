@@ -58,12 +58,14 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **518/518
-backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 new
-tests for the differential-Storage-access feature below). Flutter suite not
-re-run this session (no Flutter SDK available in this environment; no
-Flutter files were changed). Re-run both suites before trusting these
-numbers if more than a few commits have landed since.
+Test baseline as of this session's own verified run (2026-08-29): **531/531
+backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
+differential Storage access, 6 for link-health monitoring, 3 for the
+Netherlands source, 4 for the discovery-summary endpoint). Flutter suite
+not re-run this session (no Flutter SDK available in this environment); one
+small Flutter data-layer addition landed (see Completed Tasks' master-prompt
+entry) but was not compiled or run. Re-run both suites before trusting
+these numbers if more than a few commits have landed since.
 
 ---
 
@@ -91,9 +93,13 @@ None outstanding. Both items below were resolved and verified this session
       fix. Blocked on credentials.
 - [ ] Add Firebase Admin Storage existence check for provider-document
       paths before accepting them into a `Provider` record (currently
-      validates path *shape* only). Requires adding `firebase-admin`'s
-      Storage SDK usage to the backend (no `storageBucket` is configured on
-      the Firebase app today — see `app/core/auth.py::initialize_firebase`).
+      validates path *shape* only). **Partially unblocked (2026-08-29):**
+      `Settings.firebase_storage_bucket` now exists and
+      `initialize_firebase()` passes `storageBucket` (added for the
+      differential-Storage-access feature below), so the Admin SDK's
+      Storage client can now actually be constructed — the existence
+      check itself (calling it from `providers.py`'s submission route)
+      is still not implemented.
 - [ ] **DECISION REQUIRED:** decide whether `eligibility_rules`,
       `integrations`, `data_transfer`, `platforms` get real backends or get
       deleted — currently dead code (domain model + demo repository, no
@@ -773,3 +779,79 @@ for the full dated history.
       **518/518** (`pytest -q`). Flutter not touched — the provider-side
       "download a shared document" UI is a separate, not-yet-built
       follow-up.
+- [x] **(2026-08-29)** Global scholarship-discovery master-prompt initiative
+      — audited against the existing discovery/verification pipeline
+      first (per the prompt's own Phase 1/2 instructions), found it
+      already implements the large majority of the spec (official vs.
+      application-URL separation, hard verification gate, deduplication,
+      confidence scoring, change history, scheduled Celery-beat loop with
+      bounded retries, a 22-country research inventory). Picked three
+      concrete, testable gaps rather than attempting all 60 sections or
+      dozens of countries at once (would require skipping this project's
+      own live-verification rigor):
+      1. **Link-health monitoring** (spec gap — deadline expiry existed,
+         periodic application-link reachability did not). New
+         `ExternalOpportunity.link_checked_at` column (migration
+         `20260914_32`), `app/services/link_health.py`, and
+         `app.tasks.opportunity_sync.check_link_health` (daily, bounded to
+         100 published+verified opportunities per run, oldest-checked
+         first). An unreachable link demotes `verified` →
+         `reverification_required` and logs a `VerificationHistory` entry
+         and flips `VerificationReview.application_link_checked = False`
+         — mirrors `detect_expired_opportunities`'s existing pattern
+         exactly, never deletes the opportunity or its link. 6 new tests.
+      2. **Netherlands** (Nuffic NL Scholarship) — the top
+         `READY_FOR_AUTOMATION` candidate in
+         `docs/COUNTRY_PROVIDER_REGISTRY.md`. Live-verified 2026-08-29
+         through this backend's actual httpx path (not just `curl`, per
+         this project's own India-ICCR/South-Africa-NRF lesson about TLS
+         chain differences between the two): 200, real HTML,
+         `<h1 class="page-header__title">NL Scholarship</h1>`.
+         `hollandscholarship.nl` (the program's old public name/domain)
+         301-redirects to `studyinnl.org/finances/nl-scholarship`,
+         confirmed current by the page's own `<title>`. Two honesty
+         choices forced by the page's own text, not a formatting quirk:
+         `funding_type = "partial_funding"` (page states outright "not a
+         full-tuition scholarship", fixed €5,000) and
+         `deadline_keywords = ()` (page says closing dates are set by each
+         of ~30 participating institutions individually, same reasoning as
+         South Africa NRF). 3 new tests against a real fixture; source
+         count 22 → 23. Docs updated:
+         `docs/AUTHORITATIVE_SOURCES.md` #22, `docs/
+         COUNTRY_PROVIDER_REGISTRY.md` (moved out of "researched, not
+         implemented", coverage summary and recommended-next-candidates
+         list updated).
+      3. **Admin discovery dashboard** — spec's admin-visibility gap
+         (`GET /sources` and `GET /verification-summary` already existed;
+         no source/country/link-health aggregate view did). New
+         `GET /external-opportunities/discovery-summary`
+         (`DiscoverySummary` schema): source totals/active/recent-errors,
+         opportunity totals by publication status, duplicate-review
+         backlog, opportunities-by-country breakdown, and
+         never-link-checked/broken-links counts from the task above. 4 new
+         tests. **Flutter**: added the data-layer piece only
+         (`LiveDiscoverySummary` + `ApiVerificationRepository
+         .getDiscoverySummary()` in `api_verification_repository.dart`,
+         mirroring `getSummary()`'s exact existing pattern) — did **not**
+         wire this into `administration_dashboard_screen.dart` or
+         `verification_officer_dashboard_screen.dart` (884–1151 lines
+         each): this environment has no Flutter SDK to compile or run
+         against, and blind edits to files that size with no way to catch
+         a mistake would be irresponsible. UI wiring is a real, scoped
+         follow-up for an environment that can run `flutter analyze`/
+         `flutter test`.
+      - Verified: 13 new backend tests; full backend suite **531/531**
+        (`pytest -q`). Flutter: data-layer addition only, **not compiled
+        or run** — no Flutter SDK available in this environment; flag any
+        issue found when it's next built.
+      - **Genuinely still open** (not attempted, listed honestly rather
+        than silently dropped): the other ~10 `READY_FOR_AUTOMATION`
+        countries in the registry (Spain, Australia, Wales, Japan, ...);
+        every country outside that inventory the master prompt named
+        (most of Asia, all of South America, the Middle East); true
+        live-search-driven multilingual discovery (this system's proven
+        pattern is one hand-vetted adapter per researched source, not a
+        search-engine-query crawler — recommended to keep, not replace,
+        given real anti-bot/ToS walls already hit); a manual review queue
+        UI beyond the existing verification queue; and the admin
+        dashboard's actual UI wiring, per the Flutter caveat above.

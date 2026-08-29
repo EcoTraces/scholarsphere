@@ -419,3 +419,46 @@ class SouthAfricaNrfScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().south_africa_nrf_base_url
+
+
+class NetherlandsNufficScholarshipSource(_SingleProgramSource):
+    """NL Scholarship - Nuffic (the Dutch organisation for
+    internationalisation in education), on behalf of the Dutch Ministry
+    of Education, Culture and Science. Confirmed 2026-08-29: the program's
+    old public name and domain, "Holland Scholarship"
+    (hollandscholarship.nl), 301-redirects to this current page; `<title>`
+    is literally "NL Scholarship | Study in NL", so this is the real
+    current source, not a stale/retired one. `robots.txt` (standard
+    Drupal pattern) does not disallow `/finances/nl-scholarship`; the page
+    returns real HTML (200, ~49KB) with `<h1 class="page-header__title">`
+    reading "NL Scholarship" and real content (~4.3KB) in `.node__content`
+    (`article`/`main` also match but include surrounding
+    nav/breadcrumb/footer chrome `.node__content` does not).
+
+    Two deliberate honesty choices, both forced by the page's own text
+    rather than a formatting quirk:
+    - `funding_type = "partial_funding"`, not this base class's
+      `"fully_funded"` default - the page states outright "the scholarship
+      amounts to €5,000 ... Please note that this is not a full-tuition
+      scholarship."
+    - `deadline_keywords = ()`, same reasoning as South Africa NRF above:
+      the page explicitly says "You can find the specific closing dates
+      ... on the website of the institution you want to apply to" -
+      Nuffic itself does not publish one closing date, since each of the
+      ~30 participating Dutch institutions sets its own. Extracting any
+      single date here would misattribute one institution's deadline to
+      the whole program.
+    """
+
+    source_code = "netherlands_nuffic"
+    overview_path = "/finances/nl-scholarship"
+    title_selectors = ("h1.page-header__title", "h1")
+    content_selectors = (".node__content", "article", "main")
+    deadline_keywords = ()
+    funding_type = "partial_funding"
+    provider_name = "Nuffic"
+    country = "Netherlands"
+    external_id = "netherlands-nuffic-nl-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().netherlands_nuffic_base_url

@@ -28,6 +28,66 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Link-health monitoring, Netherlands (Nuffic) source, admin discovery-summary endpoint
+
+Response to a "global scholarship discovery/verification" master-prompt
+initiative: audited the existing discovery pipeline first (it already
+implements most of the spec — official/application-URL separation, a hard
+verification gate, deduplication, confidence scoring, append-only change
+history, a scheduled Celery-beat loop with bounded retries, a 22-country
+research inventory), then closed three concrete, testable gaps rather than
+attempting all of it or every named country at once.
+
+**Link-health monitoring.** New `ExternalOpportunity.link_checked_at`
+column (migration `20260914_32`), `app/services/link_health.py`, and
+`app.tasks.opportunity_sync.check_link_health` (daily, bounded to 100
+published+verified opportunities per run, oldest/never-checked first). An
+unreachable link demotes `verified` → `reverification_required`, logs a
+`VerificationHistory` entry, and flips
+`VerificationReview.application_link_checked = False` — mirrors
+`detect_expired_opportunities`'s existing pattern; never deletes the
+opportunity or its stored link. 6 new tests.
+
+**Netherlands (Nuffic NL Scholarship).** The top `READY_FOR_AUTOMATION`
+candidate in `docs/COUNTRY_PROVIDER_REGISTRY.md`. Live-verified through
+this backend's actual httpx path (not just `curl` — see the India-ICCR/
+South-Africa-NRF TLS-chain lesson already in this codebase): 200, real
+HTML. `hollandscholarship.nl` (the program's old public name/domain)
+301-redirects to `studyinnl.org/finances/nl-scholarship`, confirmed
+current by the page's own `<title>`. Two honesty choices forced by the
+page's own text: `funding_type = "partial_funding"` (page states outright
+this is not a full-tuition scholarship) and `deadline_keywords = ()` (the
+page says closing dates are set per participating institution, not by
+Nuffic itself — same reasoning already applied to South Africa NRF). 3 new
+tests against a real fixture; source count 22 → 23.
+`docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+updated.
+
+**Admin discovery-summary endpoint.** New
+`GET /external-opportunities/discovery-summary` (`DiscoverySummary`
+schema) fills the one real admin-visibility gap found in the audit:
+source totals/active/recent-errors, opportunity totals by publication
+status, duplicate-review backlog, an opportunities-by-country breakdown,
+and never-link-checked/broken-links counts from the task above. 4 new
+tests. Flutter: added `LiveDiscoverySummary` +
+`ApiVerificationRepository.getDiscoverySummary()` (data layer only,
+mirroring `getSummary()`'s existing pattern) — deliberately did **not**
+wire this into the 884–1151-line dashboard screens, since this
+environment has no Flutter SDK to compile or run against and a blind edit
+at that size isn't a responsible bet.
+
+Verified: 13 new backend tests; full backend suite **531/531** (`pytest
+-q`). Flutter data-layer addition not compiled or run — no SDK available
+here.
+
+**Left genuinely open**, not silently dropped: the ~10 other
+`READY_FOR_AUTOMATION` countries already queued in the registry, every
+country outside that inventory the initiative named, true live-search-
+driven multilingual discovery (recommended to keep this system's proven
+one-adapter-per-researched-source pattern instead, given the real
+anti-bot/ToS walls already hit), a manual review queue UI, and the admin
+dashboard's actual UI wiring.
+
 ## [2026-08-29] — Dependabot alert investigation: stale nginx base image bumped, uuid CVE note corrected
 
 Investigated the 11 Dependabot alerts (3 high, 4 moderate, 4 low) GitHub

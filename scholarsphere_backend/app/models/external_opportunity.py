@@ -157,6 +157,13 @@ class ExternalOpportunity(Base):
     last_external_update_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
+    # Set by app/tasks/opportunity_sync.py::check_link_health, never by the
+    # import pipeline itself - null means "never checked", which the task
+    # prioritizes over stale-but-checked rows. Deliberately separate from
+    # verification_status/publication_status: a link check only ever moves
+    # a *verified* opportunity to reverification_required (see the task's
+    # docstring), it never publishes or expires one on its own.
+    link_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

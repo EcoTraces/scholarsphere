@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented this session (9)
+## Implemented (10, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -47,6 +47,7 @@ that were actually built this session (in two batches).
 | 19 | Italian Government Scholarships (MAECI) | Italy | GOVERNMENT | esteri.it / studyinitaly.esteri.it | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 20 | IKY Foreign Nationals Scholarships | Greece | GOVERNMENT | iky.gr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 21 | NRF Postgraduate Funding | South Africa | GOVERNMENT | nrf.ac.za | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by the same TLS certificate-chain issue class as ICCR (see #21 in AUTHORITATIVE_SOURCES.md) |
+| 22 | NL Scholarship (Nuffic) | Netherlands | GOVERNMENT | studyinnl.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -86,13 +87,7 @@ disqualification), and its recommended classification.
   and Sweden came back `null` this session — genuinely honest, not a
   defect.
 
-### Netherlands — `RESEARCHED_NOT_IMPLEMENTED`
-- **Source**: Nuffic (quasi-governmental, contracted by the Dutch
-  Ministry of Education, Culture & Science and Ministry of Foreign
-  Affairs) — Holland Scholarship, `nuffic.nl`.
-- **Classification**: `READY_FOR_AUTOMATION` — single flagship program
-  (€5,000, bachelor's/master's), same shape as the sources built this
-  session. Good next candidate.
+### Netherlands — implemented, see source #22 above (live-verified 2026-08-29)
 
 ### France — `RESEARCHED_NOT_IMPLEMENTED`
 - **Source**: Campus France (quasi-governmental agency) — France
@@ -225,9 +220,9 @@ disqualification), and its recommended classification.
 | India | PARTIALLY_SUPPORTED | Blocked by ICCR's TLS chain issue |
 | Eswatini | PARTIALLY_SUPPORTED | Blocked by network timeout |
 | South Africa | PARTIALLY_SUPPORTED | Blocked by the same TLS chain issue class as India |
+| Netherlands | SUPPORTED | Live-verified 2026-08-29 |
 | Canada | RESEARCHED_NOT_IMPLEMENTED | Institution-mediated, needs deeper research |
 | Japan | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
-| Netherlands | RESEARCHED_NOT_IMPLEMENTED | Ready for automation — strong next candidate |
 | France | RESEARCHED_NOT_IMPLEMENTED | Curated source (database) needed |
 | Portugal | RESEARCHED_NOT_IMPLEMENTED | Curated source needed |
 | Belgium | RESEARCHED_NOT_IMPLEMENTED | ARES ready; VLIR-UOS decentralized |
@@ -240,10 +235,10 @@ disqualification), and its recommended classification.
 | Wales | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
 | UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
 
-**10 of 24 targets have a genuinely integrated provider** (7 fully
+**11 of 24 targets have a genuinely integrated provider** (8 fully
 live-verified, 3 implemented-but-live-blocked with documented reasons —
 2 of those 3 share the same TLS-certificate-chain root cause on the
-respective government servers, not a code defect). **11 have a credible
+respective government servers, not a code defect). **10 have a credible
 official candidate identified and classified**, ready for a future
 implementation pass without further country-level research. **2 have no
 reliable single-source candidate found yet** (Denmark, UAE). **1 is
@@ -257,16 +252,16 @@ arrangement — not a technical bypass).
 In priority order, based on official-domain strength, single-flagship
 simplicity (matching the proven pattern), and geographic spread:
 
-1. **Netherlands** (Nuffic/Holland Scholarship) — clean single-flagship
-   shape.
-2. **Spain** (AECID) — official cooperation agency, clear program.
-3. **Australia** (DFAT/Australia Awards) — official domain, well
+1. **Spain** (AECID) — official cooperation agency, clear program.
+2. **Australia** (DFAT/Australia Awards) — official domain, well
    documented.
-4. **Wales** (Global Wales) — official partnership portal.
-5. **Japan** (MEXT via Study in Japan) — high applicant interest; expect
+3. **Wales** (Global Wales) — official partnership portal.
+4. **Japan** (MEXT via Study in Japan) — high applicant interest; expect
    `null` deadlines most cycles (embassy-mediated), same honest pattern
    as Ireland/Sweden this session.
 
 **Implemented since the first pass**: Italy (MAECI), Greece (IKY), and
 South Africa (NRF, live-blocked by a TLS issue) — see
-`docs/AUTHORITATIVE_SOURCES.md` #19-#21.
+`docs/AUTHORITATIVE_SOURCES.md` #19-#21. **Implemented since the second
+pass**: Netherlands (Nuffic NL Scholarship, fully live-verified) — see
+`docs/AUTHORITATIVE_SOURCES.md` #22.

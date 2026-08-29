@@ -10,6 +10,7 @@ from app.services.national_scholarship_programs import (
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
+    NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SwedishInstituteScholarshipSource,
     TurkiyeBurslariSource,
@@ -329,6 +330,51 @@ def test_south_africa_nrf_never_attempts_deadline_extraction() -> None:
     keyword-anchored extractor would pick one row and mislabel it as
     THE deadline. Locks in that deadline_keywords stays empty."""
     assert SouthAfricaNrfScholarshipSource.deadline_keywords == ()
+
+
+# --- Netherlands Nuffic NL Scholarship: real fixture, fetched 2026-08-29 --
+
+
+@pytest.mark.asyncio
+async def test_netherlands_nuffic_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = NetherlandsNufficScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("netherlands_nuffic_nl_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "netherlands-nuffic-nl-scholarship"
+    assert opportunity.title == "NL Scholarship"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "Nuffic"
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.description is not None
+    assert "5,000" in opportunity.description or "5.000" in opportunity.description
+    # The real page states closing dates vary by participating
+    # institution and does not publish one program-wide deadline -
+    # correctly null, not extracted from an unrelated date on the page.
+    assert opportunity.deadline is None
+
+
+def test_netherlands_nuffic_never_attempts_deadline_extraction() -> None:
+    """Same reasoning as South Africa NRF above: Nuffic's own page states
+    closing dates are set per participating institution (~30 of them),
+    not by Nuffic itself. Locks in that deadline_keywords stays empty."""
+    assert NetherlandsNufficScholarshipSource.deadline_keywords == ()
+
+
+def test_netherlands_nuffic_is_not_labeled_fully_funded() -> None:
+    """The real page states outright this is a fixed EUR 5,000 award and
+    explicitly "not a full-tuition scholarship" - must not inherit
+    _SingleProgramSource's fully_funded default."""
+    assert NetherlandsNufficScholarshipSource.funding_type == "partial_funding"
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

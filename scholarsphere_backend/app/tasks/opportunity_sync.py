@@ -50,11 +50,13 @@ from app.services.firebase_users import (
     list_reverification_recipient_uids,
 )
 from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
+from app.services.link_health import check_link_reachable
 from app.services.national_scholarship_programs import (
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
+    NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SwedishInstituteScholarshipSource,
     TurkiyeBurslariSource,
@@ -173,6 +175,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_south_africa_nrf",
             "schedule": crontab(minute=15, hour=6),
         },
+        "sync-netherlands-nuffic": {
+            "task": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
+            "schedule": crontab(minute=30, hour=6),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -180,6 +186,10 @@ celery_app.conf.update(
         "detect-expired-opportunities": {
             "task": "app.tasks.opportunity_sync.detect_expired_opportunities",
             "schedule": crontab(minute=5, hour=1),
+        },
+        "check-link-health": {
+            "task": "app.tasks.opportunity_sync.check_link_health",
+            "schedule": crontab(minute=45, hour=1),
         },
         "schedule-reverification": {
             "task": "app.tasks.opportunity_sync.schedule_reverification",
@@ -224,6 +234,7 @@ SOURCE_TASK_NAMES = {
     "italy_maeci_scholarships": "app.tasks.opportunity_sync.sync_italy_maeci_scholarships",
     "greece_iky_scholarships": "app.tasks.opportunity_sync.sync_greece_iky_scholarships",
     "south_africa_nrf": "app.tasks.opportunity_sync.sync_south_africa_nrf",
+    "netherlands_nuffic": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
 }
 
 
@@ -577,6 +588,19 @@ def sync_south_africa_nrf(
     return _execute_source_task(self, "south_africa_nrf", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_netherlands_nuffic",
+    max_retries=3,
+)
+def sync_netherlands_nuffic(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "netherlands_nuffic", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -798,6 +822,7 @@ def _collector(source_code: str) -> Any:
         "italy_maeci_scholarships": ItalyMaeciScholarshipSource,
         "greece_iky_scholarships": GreeceIkyScholarshipSource,
         "south_africa_nrf": SouthAfricaNrfScholarshipSource,
+        "netherlands_nuffic": NetherlandsNufficScholarshipSource,
     }[source_code]()
 
 
@@ -873,6 +898,78 @@ async def _detect_expired_opportunities() -> dict[str, int]:
                 )
                 changed += 1
     return {"expired": changed}
+
+
+LINK_HEALTH_BATCH_SIZE = 100
+
+
+@celery_app.task(name="app.tasks.opportunity_sync.check_link_health")
+def check_link_health() -> dict[str, int]:
+    return run_async_safely(_check_link_health())
+
+
+async def _check_link_health() -> dict[str, int]:
+    """Periodically confirm published opportunities' links are still live.
+
+    Scoped to verified+published opportunities: those are the only ones a
+    real applicant can currently reach, so they're the only ones where a
+    broken link is actionable right now. Bounded to
+    LINK_HEALTH_BATCH_SIZE per run, oldest-checked (nulls - never checked -
+    first) so one run can't grow unbounded as the catalog grows; the next
+    scheduled run picks up where this one left off.
+
+    A reachable response only proves the URL still resolves, not that it
+    still points at the right page - see link_checked_at's docstring. An
+    unreachable one demotes verification_status back to
+    reverification_required (this codebase's existing "needs another look"
+    state - see schedule_reverification above) and logs a
+    VerificationHistory entry, exactly like a passed deadline does in
+    detect_expired_opportunities. It never deletes the opportunity or its
+    stored link.
+    """
+    checked = 0
+    broken = 0
+    async with AsyncSessionFactory() as session:
+        async with session.begin():
+            opportunities = (
+                await session.scalars(
+                    select(ExternalOpportunity)
+                    .where(
+                        ExternalOpportunity.verification_status == VerificationStatus.verified,
+                        ExternalOpportunity.publication_status == PublicationStatus.published,
+                    )
+                    .order_by(ExternalOpportunity.link_checked_at.asc().nulls_first())
+                    .limit(LINK_HEALTH_BATCH_SIZE)
+                )
+            ).all()
+            for opportunity in opportunities:
+                url = opportunity.official_application_url or opportunity.official_source_url
+                if url is None:
+                    continue
+                checked += 1
+                reachable = await check_link_reachable(url)
+                opportunity.link_checked_at = utc_now()
+                if reachable:
+                    continue
+                broken += 1
+                opportunity.verification_status = VerificationStatus.reverification_required
+                session.add(
+                    VerificationHistory(
+                        opportunity_id=opportunity.id,
+                        previous_status=VerificationStatus.verified.value,
+                        new_status=VerificationStatus.reverification_required.value,
+                        reason="Routine link health check could not reach the stored "
+                        "application/source URL.",
+                    )
+                )
+                review = await session.scalar(
+                    select(VerificationReview).where(
+                        VerificationReview.opportunity_id == opportunity.id
+                    )
+                )
+                if review is not None:
+                    review.application_link_checked = False
+    return {"checked": checked, "broken": broken}
 
 
 @celery_app.task(name="app.tasks.opportunity_sync.schedule_reverification")
