@@ -28,6 +28,48 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Dependabot alert investigation: stale nginx base image bumped, uuid CVE note corrected
+
+Investigated the 11 Dependabot alerts (3 high, 4 moderate, 4 low) GitHub
+reported on the default branch. This session's tooling has no `gh` CLI, no
+Dependabot-alerts MCP tool, and no authenticated access to the Security
+tab, so the exact CVE IDs could not be read directly. Instead, every
+dependency manifest in the repo was audited against public advisory
+databases: `pip-audit` (backend), `npm audit --json` including dev
+dependencies (Cloud Functions), and an OSV.dev batch query over all 73
+pub.dev-hosted packages in `pubspec.lock` (ecosystem name `Pub` confirmed
+against OSV's own ecosystem list) — **all three came back with zero
+findings**. Android's Gradle files declare no explicit dependency
+versions (delegated to the Flutter Gradle plugin), and there is no
+`Podfile.lock` or `Gemfile`, so those aren't a source either.
+
+That leaves this repo's three Docker base images as the only remaining
+Dependabot-tracked ecosystem, and the likely real source (11 OS-package
+findings is a typical count for a stale Alpine/Debian base). Couldn't run
+a scanner directly (no Docker daemon in this environment, and fetching a
+third-party tool like Trivy from GitHub releases is blocked by this
+session's repo-scoping proxy), but direct registry inspection confirmed
+`nginx:1.27-alpine` (root `Dockerfile`) was three stable-branch releases
+behind current — bumped to **`nginx:1.30-alpine`**, verified via registry
+digest comparison to be the exact same image nginx's own `stable-alpine`
+tag currently resolves to. `python:3.12-slim` and
+`ghcr.io/cirruslabs/flutter:stable` are both already floating tags that
+pick up the latest patched image on next build, so left unchanged.
+
+Also corrected a stale `Task.md` note along the way: the moderate `uuid`
+CVE (GHSA-w5hq-g745-h8pq) once tracked as blocked on Cloud Functions'
+`firebase-admin` is already resolved — `functions/node_modules/uuid` is
+`14.0.1`, past every fixed threshold (11.1.1/12.0.1/13.0.1 depending on
+major line) in OSV's own advisory record, confirmed by both the OSV
+lookup and a clean `npm audit`. No code change was needed there, only the
+stale tracking note.
+
+**Not verified against the actual alert list or count** — this is
+reasoning from public advisory data, not a read of GitHub's own Dependabot
+report. Re-check the Security tab once this lands (and once the next
+scheduled image rebuild picks up the two floating tags) to confirm the
+count actually drops before treating this as closed.
+
 ## [2026-08-29] — Differential Storage access for provider-granted applicant documents
 
 Closed the `Task.md` Backend Tasks gap where a provider granted access to an

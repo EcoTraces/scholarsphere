@@ -325,12 +325,53 @@ None outstanding. Both items below were resolved and verified this session
       alone. See `docs/PRODUCTION_READINESS.md` for the full checklist.
 - [!] Android/iOS/macOS release builds sign with the debug key, not a real
       release keystore. Blocked on the team's signing credentials.
-- [ ] `firebase-admin`'s transitive `uuid` dependency carries a moderate
-      CVE (GHSA-w5hq-g745-h8pq) with no patched release yet — tracked, not
-      actionable today; re-check `npm audit` monthly.
+- [x] **(2026-08-29)** `firebase-admin`'s transitive `uuid` dependency's
+      moderate CVE (GHSA-w5hq-g745-h8pq, fixed at 11.1.1/12.0.1/13.0.1
+      depending on major line) is resolved — `functions/node_modules/uuid`
+      is now `14.0.1`, well past every fixed threshold, and
+      `npm audit --json` in `functions/` reports zero vulnerabilities at
+      any severity (checked directly, not just this line's stale claim).
+      No code change was needed; this note was simply never updated after
+      a `firebase-admin` bump pulled in a patched `uuid` transitively. See
+      `Changelog.md`.
 - [ ] `storage.rules`'s new provider-document rules have been reasoned
       about but never deployed and exercised against a real Firebase
       Storage bucket in any environment this project has had access to.
+- [!] **(2026-08-29)** GitHub reported 11 Dependabot alerts (3 high, 4
+      moderate, 4 low) on the default branch when this session's previous
+      push landed. **Could not be read directly** — this environment has
+      no `gh` CLI, the GitHub MCP server has no Dependabot-alerts tool, and
+      the Security/Dependabot tab needs authenticated repo access
+      `WebFetch` can't reach; ask a maintainer to export the alert list
+      (Security → Dependabot alerts) if exact CVE IDs are needed. Instead,
+      every dependency manifest in the repo was audited directly against
+      public advisory databases: `pip-audit` (backend, `requirements.txt`)
+      **0 findings**; `npm audit --json` including dev deps (`functions/`)
+      **0 findings** (also disproves this file's own now-corrected `uuid`
+      CVE note above); an OSV.dev batch query (ecosystem `Pub`, confirmed
+      correct against OSV's own ecosystem list) over all 73 pub.dev-hosted
+      packages in `pubspec.lock` **0 findings**; the Android Gradle files
+      declare no explicit dependency versions (delegated entirely to the
+      Flutter Gradle plugin), so there is no separate Gradle dependency
+      graph to audit; no `Podfile.lock` (iOS) or `Gemfile` exists. That
+      leaves the three Docker base images as the only remaining ecosystem
+      Dependabot tracks here — and the likely real source, since 11
+      OS-package-level findings is a typical count for a stale Alpine/
+      Debian base, not application code. Couldn't be scanned directly (no
+      Docker daemon available in this environment, and downloading a
+      third-party scanner like Trivy from GitHub releases is blocked by
+      this session's repo-scoping proxy), but registry inspection
+      (`registry-1.docker.io` — not proxy-restricted) confirmed
+      `nginx:1.27-alpine` (root `Dockerfile`) was 3 stable-branch releases
+      behind current (`1.30-alpine` now resolves to the same digest as
+      nginx's own `stable-alpine` tag) — **bumped to `nginx:1.30-alpine`**.
+      `python:3.12-slim` (`scholarsphere_backend/Dockerfile`) and
+      `ghcr.io/cirruslabs/flutter:stable` (build stage) are both already
+      floating "latest patch" tags that self-update on the next `docker
+      build` without a text change, so left as-is. **Not verified against
+      the actual alert list** — re-check the Security tab after this
+      lands and after the next scheduled rebuild to confirm the count
+      actually drops; do not mark this resolved from reasoning alone.
 
 ## Completed Tasks
 
