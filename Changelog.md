@@ -28,6 +28,66 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — South America: first research pass across all 9 countries; Colombia, Chile, Peru added
+
+A dedicated **first** research pass on South America — none of its 9
+countries had any prior research in this registry. 3 real sources added:
+
+- **Colombia** (ICETEX Beca Colombia Extranjeros): the site (Liferay) has
+  a hidden accessibility `<h1 class="hide-accessible">Navegación</h1>`
+  before the real content (the same bug class already documented for
+  India ICCR) and reuses one `.journal-content-article` class for 8+
+  unrelated blocks, including a "Historial" accordion holding the three
+  *previous* application cycles. Solved with the one stable, unique
+  anchor Liferay stamps on the actual article content:
+  `[data-analytics-asset-title='Beca Colombia Extranjeros']`. A thinner
+  companion page and an unrelated governance-notice sub-page were both
+  fetched and rejected first.
+- **Chile** (AGCID Becas para Extranjeros): a single unique `<h1>` and
+  `<article>`, but the article bundles several distinct
+  bilateral/regional sub-programs with materially conflicting funding
+  formulas, plus the page's own disclaimer that terms are
+  reference-only pending each call's official republication — the same
+  multi-program shape already handled honestly for South Africa NRF,
+  the Netherlands, and Spain AECID.
+- **Peru** (PRONABEC Beca Alianza del Pacífico): a reciprocal
+  student-mobility program among the four Pacific Alliance member
+  states — Peru offers 50 inbound slots for Chilean/Colombian/Mexican
+  nationals specifically, the same honest bilateral-partner pattern as
+  Portugal Camões. No `<h1>` at all — title falls back to the `<title>`
+  tag split on the en dash.
+
+All three follow this initiative's established honesty discipline:
+`deadline_keywords = ()` wherever the real deadline is stated but in a
+numeric or non-English-month form the shared parser cannot recognize
+(`DD/MM/YYYY`, Spanish month names), and `funding_type` left `None` or
+set to `"partial_funding"` rather than guessed wherever the page's own
+funding language is absent, conflicting, or incomplete.
+
+**Brazil** was investigated and found genuinely `BLOCKED`, not
+implemented: the real program (PEC-G) has rich real content confirmed
+via a browser-spoofed `curl` fetch, but this backend's actual unspoofed
+httpx client is served a JavaScript bot-challenge page 3/3 attempts —
+the same class of finding as Cyprus's Azure WAF block, and bypassing it
+is out of scope by the same policy. **Argentina, Uruguay, Paraguay**
+confirmed `NOT_SUITABLE` (a multi-entry database instead of a single
+page, or residency-restricted eligibility not open to prospective
+international applicants). **Ecuador, Bolivia** came back
+`NO_RELIABLE_SOURCE_FOUND`.
+
+Source count 31 → 34. `docs/AUTHORITATIVE_SOURCES.md` (#31-#33) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "South America"
+section covering all 9 findings) fully updated.
+
+Verified: 6 new tests (2 per source) against real fixtures; full backend
+suite **555/555** (`pytest -q`).
+
+21 of the master prompt's ~40 named countries/regions now have at least
+one real source (up from 18). Remaining unresearched territory: most of
+Asia (South Korea, Saudi Arabia, Qatar, Thailand) and the remaining named
+European countries (Switzerland, Poland, Czech Republic, Croatia, Serbia,
+Romania, Norway, Finland).
+
 ## [2026-08-29] — Portugal (Camões) source added — the country-registry queue is now empty
 
 Portugal was the last country this registry had queued from the original

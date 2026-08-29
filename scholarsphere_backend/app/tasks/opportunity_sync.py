@@ -55,6 +55,8 @@ from app.services.national_scholarship_programs import (
     AustraliaDfatAwardsSource,
     AustriaOeadErnstMachSource,
     BelgiumAresScholarshipSource,
+    ChileAgcidScholarshipSource,
+    ColombiaIcetexBecaExtranjerosSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
@@ -63,6 +65,7 @@ from app.services.national_scholarship_programs import (
     JapanMextScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
+    PeruPronabecAlianzaPacificoSource,
     PortugalCamoesScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
@@ -219,6 +222,18 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_portugal_camoes",
             "schedule": crontab(minute=30, hour=8),
         },
+        "sync-colombia-icetex": {
+            "task": "app.tasks.opportunity_sync.sync_colombia_icetex",
+            "schedule": crontab(minute=45, hour=8),
+        },
+        "sync-chile-agcid": {
+            "task": "app.tasks.opportunity_sync.sync_chile_agcid",
+            "schedule": crontab(minute=0, hour=9),
+        },
+        "sync-peru-pronabec": {
+            "task": "app.tasks.opportunity_sync.sync_peru_pronabec",
+            "schedule": crontab(minute=15, hour=9),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -283,6 +298,9 @@ SOURCE_TASK_NAMES = {
     "austria_oead": "app.tasks.opportunity_sync.sync_austria_oead",
     "morocco_amci": "app.tasks.opportunity_sync.sync_morocco_amci",
     "portugal_camoes": "app.tasks.opportunity_sync.sync_portugal_camoes",
+    "colombia_icetex": "app.tasks.opportunity_sync.sync_colombia_icetex",
+    "chile_agcid": "app.tasks.opportunity_sync.sync_chile_agcid",
+    "peru_pronabec": "app.tasks.opportunity_sync.sync_peru_pronabec",
 }
 
 
@@ -753,6 +771,45 @@ def sync_portugal_camoes(
     return _execute_source_task(self, "portugal_camoes", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_colombia_icetex",
+    max_retries=3,
+)
+def sync_colombia_icetex(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "colombia_icetex", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_chile_agcid",
+    max_retries=3,
+)
+def sync_chile_agcid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "chile_agcid", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_peru_pronabec",
+    max_retries=3,
+)
+def sync_peru_pronabec(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "peru_pronabec", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -983,6 +1040,9 @@ def _collector(source_code: str) -> Any:
         "austria_oead": AustriaOeadErnstMachSource,
         "morocco_amci": MoroccoAmciScholarshipSource,
         "portugal_camoes": PortugalCamoesScholarshipSource,
+        "colombia_icetex": ColombiaIcetexBecaExtranjerosSource,
+        "chile_agcid": ChileAgcidScholarshipSource,
+        "peru_pronabec": PeruPronabecAlianzaPacificoSource,
     }[source_code]()
 
 

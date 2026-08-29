@@ -162,6 +162,9 @@ class Settings(BaseSettings):
     austria_oead_base_url: str = "https://oead.at"
     morocco_amci_base_url: str = "https://www.amci.ma"
     portugal_camoes_base_url: str = "https://www.instituto-camoes.pt"
+    colombia_icetex_base_url: str = "https://web.icetex.gov.co"
+    chile_agcid_base_url: str = "https://www.agcid.gob.cl"
+    peru_pronabec_base_url: str = "https://www.pronabec.gob.pe"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -244,6 +247,9 @@ class Settings(BaseSettings):
         "austria_oead_base_url",
         "morocco_amci_base_url",
         "portugal_camoes_base_url",
+        "colombia_icetex_base_url",
+        "chile_agcid_base_url",
+        "peru_pronabec_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

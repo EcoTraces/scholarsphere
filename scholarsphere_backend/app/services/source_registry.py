@@ -205,6 +205,24 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "colombia_icetex": {
+        "source_name": "Beca Colombia Extranjeros (ICETEX)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "chile_agcid": {
+        "source_name": "Becas para Extranjeros (AGCID, Chile)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "peru_pronabec": {
+        "source_name": "Beca Alianza del Pacífico (PRONABEC, Peru)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -243,6 +261,9 @@ def _base_urls() -> dict[str, str]:
         "austria_oead": settings.austria_oead_base_url,
         "morocco_amci": settings.morocco_amci_base_url,
         "portugal_camoes": settings.portugal_camoes_base_url,
+        "colombia_icetex": settings.colombia_icetex_base_url,
+        "chile_agcid": settings.chile_agcid_base_url,
+        "peru_pronabec": settings.peru_pronabec_base_url,
     }
 
 
@@ -297,6 +318,9 @@ async def seed_opportunity_sources(
         "austria_oead": now + timedelta(hours=24),
         "morocco_amci": now + timedelta(hours=24),
         "portugal_camoes": now + timedelta(hours=24),
+        "colombia_icetex": now + timedelta(hours=24),
+        "chile_agcid": now + timedelta(hours=24),
+        "peru_pronabec": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

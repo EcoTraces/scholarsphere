@@ -10,6 +10,8 @@ from app.services.national_scholarship_programs import (
     AustraliaDfatAwardsSource,
     AustriaOeadErnstMachSource,
     BelgiumAresScholarshipSource,
+    ChileAgcidScholarshipSource,
+    ColombiaIcetexBecaExtranjerosSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
     IndiaIccrSource,
@@ -18,6 +20,7 @@ from app.services.national_scholarship_programs import (
     JapanMextScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
+    PeruPronabecAlianzaPacificoSource,
     PortugalCamoesScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
@@ -708,6 +711,135 @@ async def test_portugal_camoes_collect_normalizes_real_fixture(
 
 def test_portugal_camoes_never_attempts_deadline_extraction() -> None:
     assert PortugalCamoesScholarshipSource.deadline_keywords == ()
+
+
+# --- Colombia ICETEX: real fixture, fetched 2026-08-29 ----------------------
+
+
+@pytest.mark.asyncio
+async def test_colombia_icetex_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = ColombiaIcetexBecaExtranjerosSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("colombia_icetex_beca_extranjeros.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "colombia-icetex-beca-extranjeros"
+    # The current application cycle's own title, correctly picked out via
+    # the `data-analytics-asset-title` anchor rather than the page's
+    # hidden accessibility h1 or the historical-cycles accordion reusing
+    # the same shared class.
+    assert opportunity.title == "Beca Colombia Extranjeros 2026-2"
+    assert opportunity.country == "Colombia"
+    assert opportunity.provider_name == (
+        "ICETEX - Instituto Colombiano de Crédito Educativo y Estudios "
+        "Técnicos en el Exterior (Colombia)"
+    )
+    assert opportunity.description is not None
+    assert "especialización y maestría" in opportunity.description
+    # No explicit funding-coverage language on the page - correctly null
+    # rather than guessed from the "Beca" (scholarship) name alone.
+    assert opportunity.funding_type is None
+    # A real deadline is stated on the page ("5 de junio de 2026") but in
+    # Spanish month-name form, which the shared date-literal parser only
+    # recognizes in English - correctly null rather than mis-parsed.
+    assert opportunity.deadline is None
+
+
+def test_colombia_icetex_never_attempts_deadline_extraction() -> None:
+    assert ColombiaIcetexBecaExtranjerosSource.deadline_keywords == ()
+
+
+# --- Chile AGCID: real fixture, fetched 2026-08-29 --------------------------
+
+
+@pytest.mark.asyncio
+async def test_chile_agcid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = ChileAgcidScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("chile_agcid_becas_extranjeros.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "chile-agcid-becas-extranjeros"
+    assert opportunity.title == "Becas para extranjeros"
+    assert opportunity.country == "Chile"
+    assert opportunity.provider_name == (
+        "Agencia Chilena de Cooperación Internacional para el Desarrollo "
+        "(AGCID), Chile"
+    )
+    assert opportunity.description is not None
+    assert "Alianza del Pacífico" in opportunity.description
+    # The page bundles several sub-programs with conflicting funding
+    # formulas (one explicitly excludes airfare, another explicitly
+    # includes it) and an explicit disclaimer that terms are reference
+    # only pending each call's official publication - correctly null
+    # rather than asserting either sub-program's formula for the whole
+    # page.
+    assert opportunity.funding_type is None
+    assert opportunity.deadline is None
+
+
+def test_chile_agcid_never_attempts_deadline_extraction() -> None:
+    assert ChileAgcidScholarshipSource.deadline_keywords == ()
+
+
+# --- Peru PRONABEC: real fixture, fetched 2026-08-29 -------------------------
+
+
+@pytest.mark.asyncio
+async def test_peru_pronabec_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = PeruPronabecAlianzaPacificoSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("peru_pronabec_alianza_pacifico.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "peru-pronabec-alianza-pacifico"
+    # The page has no <h1> at all - correctly falls back to the <title>
+    # tag, split on the en dash separator.
+    assert opportunity.title == "Beca Alianza del Pacífico"
+    assert opportunity.country == "Peru"
+    assert opportunity.provider_name == (
+        "Programa Nacional de Becas y Crédito Educativo (PRONABEC), "
+        "Ministry of Education, Peru"
+    )
+    assert opportunity.description is not None
+    assert "50 vacantes" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    # The real schedule for foreign applicants is stated on the page
+    # ("Del 29/5/2026 al 4/6/2026") but in numeric DD/MM/YYYY form, which
+    # the shared date-literal parser cannot recognize - correctly null.
+    assert opportunity.deadline is None
+
+
+def test_peru_pronabec_never_attempts_deadline_extraction() -> None:
+    assert PeruPronabecAlianzaPacificoSource.deadline_keywords == ()
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

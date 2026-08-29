@@ -850,3 +850,188 @@ class PortugalCamoesScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().portugal_camoes_base_url
+
+
+class ColombiaIcetexBecaExtranjerosSource(_SingleProgramSource):
+    """Beca Colombia Extranjeros - ICETEX (Instituto Colombiano de Crédito
+    Educativo y Estudios Técnicos en el Exterior), Colombia's national
+    student-financing agency. Confirmed 2026-08-29 (both via `curl` and
+    this backend's actual httpx path, with no spoofed user agent needed -
+    200, real HTML, ~163KB): `robots.txt` is fully permissive
+    (`Disallow:` empty for `*`).
+
+    ICETEX's site (built on Liferay) puts a hidden accessibility
+    `<h1 class="hide-accessible">Navegación</h1>` inside a skip-link
+    `<nav>` before the real content - the same class of bug already
+    documented for India ICCR. It also reuses a single
+    `.journal-content-article` CSS class for at least 8 unrelated blocks
+    on this page alone (empty wrappers, a "Contraste/Reducir letra" a11y
+    toolbar, the site footer address block, and - critically - a
+    "Historial" accordion holding the *previous* three application
+    cycles' full text alongside the current one), so neither `h1` nor
+    `.journal-content-article` alone is a safe selector. The one stable
+    anchor is a CMS-level attribute Liferay stamps on the actual article
+    content, keyed to the article's own title rather than any one
+    cycle: `[data-analytics-asset-title='Beca Colombia Extranjeros']`.
+    That element is unique on the page and, in document order, contains
+    only the *current* cycle's block (checked 2026-08-29: "Beca Colombia
+    Extranjeros 2026-2") - the three historical cycles live in a
+    collapsed accordion `<div class="camp_html_acordeon">` reusing the
+    same shared class but a different DOM branch, so this selector
+    naturally excludes them.
+
+    A companion page, `/becas/programa-de-reciprocidad-para-extranjeros-
+    en-colombia`, was considered first but rejected: after resolving the
+    same hidden-h1 issue there too, its real content is a single 330-
+    character paragraph with no funding or deadline information at all -
+    a thin landing page, not a usable source on its own. A second
+    candidate link from that page, `/ies/convocatoria`, was also checked
+    and rejected - it turned out to be an unrelated governance notice
+    (an election of a public-university representative to ICETEX's board),
+    not a scholarship page.
+
+    The current cycle's page text does state a real deadline
+    ("La convocatoria estará abierta hasta el próximo 5 de junio de
+    2026") but written in Spanish month-name form
+    ("5 de junio de 2026"), which `extract_confident_date_after`
+    deliberately cannot parse (it only recognizes English month names -
+    the same documented limitation already hit with Belgium ARES's
+    numeric-date deadline). `deadline_keywords = ()` is set for that
+    reason, not because no deadline exists on the page.
+
+    No explicit funding-coverage language (tuition-free, stipend amount,
+    "fully funded", etc.) appears on this page - only a description of
+    what the program lets applicants study and a link to a separate PDF
+    "bases de postulación" document this scraper does not parse -
+    so `funding_type` is left unset (`None`) rather than guessed from the
+    "Beca" (scholarship) name alone.
+    """
+
+    source_code = "colombia_icetex"
+    overview_path = "/becas/beca-colombia-extranjeros"
+    title_selectors = (
+        "[data-analytics-asset-title='Beca Colombia Extranjeros'] h1",
+        "h1",
+    )
+    content_selectors = ("[data-analytics-asset-title='Beca Colombia Extranjeros']",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = (
+        "ICETEX - Instituto Colombiano de Crédito Educativo y Estudios "
+        "Técnicos en el Exterior (Colombia)"
+    )
+    country = "Colombia"
+    external_id = "colombia-icetex-beca-extranjeros"
+
+    def _base_url(self) -> str:
+        return get_settings().colombia_icetex_base_url
+
+
+class ChileAgcidScholarshipSource(_SingleProgramSource):
+    """Becas para Extranjeros - AGCID (Agencia Chilena de Cooperación
+    Internacional para el Desarrollo), Chile's development-cooperation
+    agency. Confirmed 2026-08-29 (both via `curl` and this backend's
+    actual httpx path, no spoofed user agent needed - 200, real HTML,
+    ~50KB): `robots.txt` (standard Joomla pattern, the same class already
+    seen with Portugal Camões) only disallows CMS admin/internal paths,
+    not this page.
+
+    The single `<h1>Becas para extranjeros</h1>` and `<article>` element
+    are both unique on the page, but the article itself describes
+    *several* distinct bilateral/regional sub-programs bundled together
+    - "Programa de Becas República de Chile" (open to a long list of
+    Latin American/Caribbean countries), "Programa de becas ... Alianza
+    del Pacífico" (Colombia, México, Perú only), a "Programa de
+    Integración Transfronteriza" (Perú, Bolivia, Argentina only), and a
+    "Movilidad Académica Manuela Sáenz" (Ecuador, Paraguay only) - each
+    with its own eligible-country list, and the first two even have
+    materially *different* funding coverage from each other (one
+    explicitly excludes airfare, the other explicitly includes
+    round-trip airfare). The page itself also carries an explicit
+    disclaimer that this description is "a modo de referencia en base al
+    procedimiento de convocatorias anteriores" (for reference only,
+    based on *previous* calls' procedures) and that final terms must be
+    confirmed once each call is officially published - the same
+    multi-program shape already handled honestly for South Africa NRF,
+    the Netherlands, and Spain AECID.
+
+    `deadline_keywords = ()` and `funding_type = None` both follow
+    directly from that: applications route through each home country's
+    "Punto Focal" (focal point) rather than a single global deadline,
+    and the two named funding formulas actively conflict with each
+    other, so no single label can honestly describe the whole page.
+    """
+
+    source_code = "chile_agcid"
+    overview_path = "/becas/becas-para-extranjeros"
+    title_selectors = ("h1",)
+    content_selectors = ("article",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = (
+        "Agencia Chilena de Cooperación Internacional para el Desarrollo "
+        "(AGCID), Chile"
+    )
+    country = "Chile"
+    external_id = "chile-agcid-becas-extranjeros"
+
+    def _base_url(self) -> str:
+        return get_settings().chile_agcid_base_url
+
+
+class PeruPronabecAlianzaPacificoSource(_SingleProgramSource):
+    """Beca Alianza del Pacífico - PRONABEC (Programa Nacional de Becas y
+    Crédito Educativo), under Peru's Ministry of Education. Confirmed
+    2026-08-29 (both via `curl` and this backend's actual httpx path -
+    200, real HTML, ~307KB): `robots.txt` (standard WordPress pattern)
+    only disallows `/wp-admin/` and `/inicio/*`, not this path.
+
+    This is a reciprocal student-mobility program among the four Pacific
+    Alliance member states (Chile, Colombia, Mexico, Peru) - each hosts
+    a fixed number of inbound exchange slots for the other three
+    members' nationals. The page states explicitly: "Perú ofrece 50
+    vacantes para ciudadanos extranjeros" (Peru offers 50 slots for
+    foreign citizens), with its own dedicated section and numeric-date
+    schedule "Para extranjeros que quieren aplicar a vacantes en Perú".
+    Eligibility is real but narrow - restricted to Chilean, Colombian,
+    or Mexican nationals only (not a globally open call) - the same
+    honest bilateral/multilateral-partner pattern already used for
+    Portugal Camões (9 named partner countries) rather than skipped for
+    being non-global.
+
+    The page has no `<h1>` at all (a WordPress page-builder layout, the
+    same shape already seen with WMI and Australia Awards) - the real
+    title comes from the `<title>` tag, split on the en dash (`–`,
+    U+2013): "Beca Alianza del Pacífico – PRONABEC | ...".
+
+    `deadline_keywords = ()`: the real inbound-to-Peru schedule given
+    ("Del 29/5/2026 al 4/6/2026") is in `DD/MM/YYYY` numeric form, which
+    `extract_confident_date_after` cannot parse (English month-name
+    literals only) - the same documented limitation already hit with
+    Belgium ARES and Colombia ICETEX.
+
+    `funding_type = "partial_funding"`: the page explicitly lists
+    concrete benefits (food, local transport, interprovincial and
+    international transport, medical insurance) but never states tuition
+    is covered or waived - this is an academic-exchange program where the
+    student stays enrolled at their home institution, so the
+    inherited `fully_funded` default would overstate what the page
+    actually promises.
+    """
+
+    source_code = "peru_pronabec"
+    overview_path = "/beca-alianza-del-pacifico/"
+    title_selectors = ()
+    title_tag_separator = " – "
+    content_selectors = ("#content", "main")
+    deadline_keywords = ()
+    funding_type = "partial_funding"
+    provider_name = (
+        "Programa Nacional de Becas y Crédito Educativo (PRONABEC), "
+        "Ministry of Education, Peru"
+    )
+    country = "Peru"
+    external_id = "peru-pronabec-alianza-pacifico"
+
+    def _base_url(self) -> str:
+        return get_settings().peru_pronabec_base_url

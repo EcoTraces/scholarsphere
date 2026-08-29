@@ -58,12 +58,13 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **549/549
+Test baseline as of this session's own verified run (2026-08-29): **555/555
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
 Australia sources, 3 for the Japan source, 8 for the Belgium/France/
-Austria/Morocco sources, 2 for the Portugal source). Flutter suite not
+Austria/Morocco sources, 2 for the Portugal source, 2 for the Colombia
+source, 2 for the Chile source, 2 for the Peru source). Flutter suite not
 re-run this session (no Flutter SDK available in this environment); one
 small Flutter data-layer addition landed (see Completed Tasks'
 master-prompt entry) but was not compiled or run. Re-run both suites
@@ -1162,3 +1163,76 @@ for the full dated history.
         Thailand), and most of the remaining named European countries
         (Switzerland, Poland, Czech Republic, Croatia, Serbia, Romania,
         Norway, Finland) — none of which have been touched at all yet.
+
+- [x] **(2026-08-29)** South America — a dedicated **first** research
+      pass covering all 9 countries in the region, none of which had any
+      prior research in this registry. 3 real sources added:
+      - **Colombia** (ICETEX Beca Colombia Extranjeros): the site
+        (Liferay) has a hidden accessibility `<h1 class="hide-accessible">
+        Navegación</h1>` before the real content (the same bug class
+        already documented for India ICCR) and reuses one
+        `.journal-content-article` class for 8+ unrelated blocks on the
+        page, including a "Historial" accordion holding the three
+        *previous* application cycles. Solved with the one stable,
+        unique anchor Liferay stamps on the actual article content:
+        `[data-analytics-asset-title='Beca Colombia Extranjeros']`. A
+        thinner companion page (330 characters, no funding/deadline
+        info) and an unrelated governance-notice sub-page were both
+        fetched and rejected first. `funding_type = None` (no explicit
+        funding-coverage language); `deadline_keywords = ()` (the real
+        deadline is stated but in unparseable Spanish month-name form).
+      - **Chile** (AGCID Becas para Extranjeros): a single unique `<h1>`
+        and `<article>`, but the article bundles several distinct
+        bilateral/regional sub-programs with materially different (even
+        conflicting) funding formulas, plus the page's own disclaimer
+        that terms are reference-only pending each call's official
+        republication — the same multi-program shape already handled
+        honestly for South Africa NRF, the Netherlands, and Spain AECID.
+        `deadline_keywords = ()` and `funding_type = None`.
+      - **Peru** (PRONABEC Beca Alianza del Pacífico): a reciprocal
+        student-mobility program among the four Pacific Alliance member
+        states; Peru offers 50 inbound slots for Chilean/Colombian/
+        Mexican nationals specifically (real but narrow eligibility, the
+        same honest bilateral-partner pattern as Portugal Camões). No
+        `<h1>` at all (a WordPress page-builder layout) — title falls
+        back to the `<title>` tag split on the en dash. Real numeric-date
+        schedule for foreign applicants exists but can't be parsed
+        (`DD/MM/YYYY` form) — `deadline_keywords = ()`.
+        `funding_type = "partial_funding"` (food/transport/insurance
+        explicitly covered, tuition never mentioned — an exchange
+        program, not a full scholarship).
+      - **Brazil** was investigated and found genuinely `BLOCKED`, not
+        implemented: the real program (PEC-G, Ministry of Foreign
+        Affairs/Education) has rich real content confirmed via a
+        browser-spoofed `curl` fetch, but this backend's actual
+        unspoofed httpx client is served a JavaScript bot-challenge page
+        (F5/Distil-style `TSPD` cookie challenge) 3/3 attempts — the
+        same class of finding as Cyprus's Azure WAF block, and bypassing
+        it (spoofing a browser identity) is out of scope by the same
+        policy already applied there.
+      - **Argentina, Uruguay, Paraguay** confirmed `NOT_SUITABLE`
+        (Argentina: the real mechanism is a searchable multi-entry
+        database, not a single page, the same shape already set aside
+        for France's Campus Bourses; Uruguay and Paraguay: both
+        residency-restricted — their own pages require existing
+        residency or citizenship, not open to prospective international
+        applicants). **Ecuador and Bolivia** came back
+        `NO_RELIABLE_SOURCE_FOUND` (Ecuador's SENESCYT catalogue is
+        outbound-only; a historical inbound "Prometeo" program has no
+        current-dated source confirming it is still active; Bolivia has
+        no inbound government program identified).
+      - Source count 31 → 34. Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #31-#33, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "South America"
+        section with all 9 findings; Implemented table extended;
+        coverage summary and recommended-next-candidates rewritten to
+        reflect that South America has had its first pass).
+      - Verified: 6 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **555/555** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 21
+        countries/regions now have at least one real source (up from
+        18). Remaining unresearched territory: most of Asia (South
+        Korea, Saudi Arabia, Qatar, Thailand), and the remaining named
+        European countries (Switzerland, Poland, Czech Republic,
+        Croatia, Serbia, Romania, Norway, Finland).

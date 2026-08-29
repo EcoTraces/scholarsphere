@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (18, across multiple sessions)
+## Implemented (22, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -56,6 +56,9 @@ that were actually built this session (in two batches).
 | 28 | OeAD Ernst Mach Grant | Austria | GOVERNMENT | oead.at | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 29 | AMCI Scholarships of the Kingdom of Morocco | Morocco | GOVERNMENT | amci.ma | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 30 | Camões Cooperation Scholarships | Portugal | GOVERNMENT | instituto-camoes.pt | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 31 | Beca Colombia Extranjeros | Colombia | GOVERNMENT | web.icetex.gov.co | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 32 | Becas para Extranjeros | Chile | GOVERNMENT | agcid.gob.cl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 33 | Beca Alianza del Pacífico | Peru | GOVERNMENT | pronabec.gob.pe | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -209,6 +212,100 @@ disqualification), and its recommended classification.
 
 ---
 
+## South America (first research pass, 2026-08-29)
+
+All nine countries were entirely outside this registry before this pass —
+no prior research existed for any of them. Each was checked for a genuine
+*inbound* (foreigners studying in that country) single-flagship government
+program, live-verified via both `curl` and this backend's actual httpx
+path before any implementation decision.
+
+### Colombia — implemented, see source #31 above (live-verified 2026-08-29)
+
+### Chile — implemented, see source #32 above (live-verified 2026-08-29)
+
+### Peru — implemented, see source #33 above (live-verified 2026-08-29)
+
+### Brazil — `BLOCKED` (confirmed by live testing 2026-08-29)
+- The official program is real and well-documented: PEC-G (Programa de
+  Estudantes-Convênio de Graduação), jointly run by the Ministry of
+  Foreign Affairs (MRE) and Ministry of Education (MEC), offering free
+  undergraduate tuition, SUS healthcare, and (in some cases) a MEC/MRE
+  stipend, at `gov.br/mre/.../pec-g/sobre`. A `curl` fetch with a
+  spoofed browser user agent returns the real page (200, ~297KB).
+- However, this backend's actual httpx client (no spoofed user agent,
+  matching production) is served a JavaScript bot-challenge page
+  (an F5/Distil-style `TSPD` cookie challenge) instead of real content,
+  confirmed 3/3 attempts, not a one-off — the same class of finding as
+  Cyprus's Azure WAF block. Bypassing this (spoofing a browser identity)
+  is out of scope, the same policy already applied to Cyprus.
+  A MEC-hosted alternate (`portal.mec.gov.br`) was also attempted but was
+  unreachable through this environment's own network path (`502 Bad
+  Gateway`, 3/3 attempts) — inconclusive on that host specifically, not
+  independently confirmed either way.
+- **Classification**: `BLOCKED` — a real, well-documented program exists,
+  but the production fetch path cannot reach it.
+
+### Argentina — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- Argentina's Ministry of Education does fund international scholarships
+  (`argentina.gob.ar/educacion/becas-internacionales` confirms this
+  explicitly, "para extranjeros y extranjeras en la Argentina"), but that
+  page is a description of the overall program *framework*, not a single
+  flagship opportunity page — it points to a separate searchable listing
+  portal, `campusglobal.educacion.gob.ar/becas/enargentina`, which is a
+  multi-entry directory (the same database shape already set aside for
+  France's Campus Bourses, source #27's note) rather than a single
+  program, and was unreachable through this environment's proxy (`502`)
+  for direct inspection regardless.
+- **Classification**: `NOT_SUITABLE` for the single-flagship pattern —
+  the real mechanism is a searchable multi-entry database, not one page.
+
+### Uruguay — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- AUCI (Agencia Uruguaya de Cooperación Internacional) funds Uruguayan
+  citizens/residents to study *abroad* (outbound, not inbound). ANII
+  (Agencia Nacional de Investigación e Innovación) does have a
+  postgraduate scholarship program, but its own page states eligibility
+  explicitly: "Las becas podrán ser solicitadas por uruguayos o
+  extranjeros **residentes en Uruguay**" (Uruguayans or foreigners
+  **already resident in Uruguay**) — not open to prospective
+  international applicants abroad, and the specific call fetched was
+  already closed (`Llamado cerrado`, closed 2025-10-30).
+- **Classification**: `NOT_SUITABLE` — no program open to global inbound
+  applicants was found.
+
+### Ecuador — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- SENESCYT's scholarship catalogue funds **Ecuadorian professionals to
+  study abroad** (outbound). A historical inbound program for foreign
+  researchers, "Prometeo" (`prometeo.senescyt.gob.ec`), was found only in
+  news coverage and government pages dated 2013-2015 — no current (2026)
+  source confirms it is still active, and per this project's discipline
+  against inferring from third-party summaries or stale coverage, it was
+  not pursued further without a live, current official page.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND` — worth a fresh check in
+  a future pass in case Prometeo (or a successor program) has an active
+  current page.
+
+### Paraguay — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- BECAL ("Becas Don Carlos Antonio López"), Paraguay's national
+  scholarship program, funds postgraduate study both abroad and in
+  Paraguay - but its own eligibility requirements for the in-Paraguay
+  option are explicit: "tener nacionalidad paraguaya o contar con
+  **residencia** en Paraguay" (Paraguayan nationality or existing
+  **residency** in Paraguay) — the same residency-restriction pattern as
+  Uruguay's ANII, not open to prospective international applicants.
+- **Classification**: `NOT_SUITABLE` — no program open to global inbound
+  applicants was found.
+
+### Bolivia — `NO_RELIABLE_SOURCE_FOUND` (researched 2026-08-29)
+- Bolivia's national postgraduate scholarship portal
+  (`becas.planificacion.gob.bo`) requires Bolivian nationality and a
+  degree from a Bolivian (or apostilled foreign) university for its
+  outbound-study-abroad program. No official government program funding
+  foreign nationals to study *in* Bolivia was found.
+- **Classification**: `NO_RELIABLE_SOURCE_FOUND`.
+
+---
+
 ## Country coverage summary
 
 | Country/Region | Status | Notes |
@@ -237,48 +334,75 @@ disqualification), and its recommended classification.
 | Cyprus | BLOCKED | Active anti-bot (Azure WAF) — not bypassed |
 | Wales | NOT_SUITABLE | Corrected 2026-08-29 — the flagship program appears discontinued/decentralized; previous READY_FOR_AUTOMATION note was wrong, never live-tested |
 | UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
+| Colombia | SUPPORTED | Live-verified 2026-08-29 |
+| Chile | SUPPORTED | Live-verified 2026-08-29 |
+| Peru | SUPPORTED | Live-verified 2026-08-29 |
+| Brazil | BLOCKED | Confirmed 2026-08-29 — JS bot-challenge (F5/Distil-style) on the production fetch path, 3/3 attempts |
+| Argentina | NOT_SUITABLE | Confirmed 2026-08-29 — real mechanism is a searchable multi-entry database, not a single program page |
+| Uruguay | NOT_SUITABLE | Confirmed 2026-08-29 — residency-restricted/outbound only |
+| Ecuador | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — outbound program only; historical inbound program's current status unconfirmed |
+| Paraguay | NOT_SUITABLE | Confirmed 2026-08-29 — residency-restricted/outbound only |
+| Bolivia | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — no inbound program found |
 
-**19 of 24 targets have a genuinely integrated provider** (15 fully
-live-verified, 4 implemented-but-live-blocked/partially-blocked with
+**19 of 24 original targets have a genuinely integrated provider** (15
+fully live-verified, 4 implemented-but-live-blocked/partially-blocked with
 documented reasons — 2 of those 4 share the same TLS-certificate-chain
 root cause on the respective government servers, 1 (Eswatini) is the
 same network-timeout pattern as Sierra Leone's MTHE, and 1 (Australia) is
 that same network-timeout pattern on one of its two source pages only —
 none are code defects). **None of the remaining 5 have a credible
-official candidate identified and classified** — the queue that section
-used to describe is now empty; every entry left is either genuinely
-unsuitable, unreachable, or unresourced (see below). **1 has no reliable
+official candidate identified and classified** — every entry left is
+either genuinely unsuitable, unreachable, or unresourced (see the
+"Researched, not yet implemented" section above). **1 has no reliable
 single-source candidate found yet** (UAE). **3 (Canada, Denmark, Wales)
-turned out, on live verification this session, not to have a
-single-flagship program worth automating** — decentralized to individual
-institutions in each case, confirmed directly rather than assumed; see
-their corrected entries above. **1 is actively blocked by anti-bot
-protection** (Cyprus) and will not be pursued further without an
-explicit, informed decision to do so via an authorized channel (e.g.
-contacting the Cyprus government for an API/data-sharing arrangement —
-not a technical bypass).
+turned out, on live verification during this session's research passes,
+not to have a single-flagship program worth automating** — decentralized
+to individual institutions in each case, confirmed directly rather than
+assumed. **1 is actively blocked by anti-bot protection** (Cyprus) and
+will not be pursued further without an explicit, informed decision to do
+so via an authorized channel (e.g. contacting the Cyprus government for
+an API/data-sharing arrangement — not a technical bypass).
+
+**South America, researched for the first time this session, adds 3 more
+live-verified sources** (Colombia, Chile, Peru) entirely outside the
+original 24-target list — see the dedicated section above. Of the other
+6 countries checked: 1 is genuinely `BLOCKED` (Brazil, real program but
+an anti-bot-protected fetch path), 3 are `NOT_SUITABLE` (Argentina - a
+database, not a single page; Uruguay and Paraguay - both
+residency-restricted, not open to global inbound applicants), and 2 have
+`NO_RELIABLE_SOURCE_FOUND` (Ecuador, Bolivia).
 
 ## Recommended next candidates
 
-**The queue is empty.** Two dedicated research passes (2026-08-29)
-live-tested every `READY_FOR_AUTOMATION`/`REQUIRES_CURATED_SOURCE`
-candidate this registry had accumulated across its whole history —
-Belgium, Canada, France, Austria, Morocco, Portugal, plus Denmark and
-Wales's long-standing follow-up items. Every one is now either a real,
-live-verified source or a confirmed, evidence-backed `NOT_SUITABLE` /
-`BLOCKED` / `NO_RELIABLE_SOURCE_FOUND` finding — none are left as stale
-guesses. The 5 entries still under "Researched, not yet implemented"
-above (Canada, Denmark, Wales, Cyprus, UAE) are there because they
-genuinely don't fit this system's single-flagship pattern or can't be
-reached, not because they're unresearched.
+**The original 24-country queue is empty**, and South America (the
+biggest previously-untouched region) has now had its first full research
+pass too (2026-08-29) — see the dedicated section above. Every one of
+its 9 countries is now either a real, live-verified source (Colombia,
+Chile, Peru) or a confirmed, evidence-backed `BLOCKED` / `NOT_SUITABLE` /
+`NO_RELIABLE_SOURCE_FOUND` finding (Brazil, Argentina, Uruguay, Ecuador,
+Paraguay, Bolivia) — none are left as stale guesses. The 2 entries still
+under "Researched, not yet implemented" above (Cyprus, UAE) are there
+because they genuinely can't be reached or don't fit this system's
+single-flagship pattern, not because they're unresearched.
 
 The only way to add more real coverage from here is a **first** research
-pass on countries entirely outside this registry: all of South America
-(9 countries), most of Asia (South Korea, Saudi Arabia, Qatar, Thailand —
-China and India already have narrower partial coverage), and most of the
-remaining named European countries (Switzerland, Poland, Czech Republic,
-Croatia, Serbia, Romania, Norway, Finland) — see the chat history of this
-initiative for the full outstanding list from the original request.
+pass on regions entirely outside this registry: most of Asia (South
+Korea, Saudi Arabia, Qatar, Thailand — China and India already have
+narrower partial coverage), and most of the remaining named European
+countries (Switzerland, Poland, Czech Republic, Croatia, Serbia, Romania,
+Norway, Finland) — see the chat history of this initiative for the full
+outstanding list from the original request.
+
+**Implemented since the seventh pass (South America, a dedicated
+first-pass research effort covering all 9 countries in the region)**:
+Colombia (ICETEX Beca Colombia Extranjeros), Chile (AGCID Becas para
+Extranjeros), and Peru (PRONABEC Beca Alianza del Pacífico), all fully
+live-verified — see `docs/AUTHORITATIVE_SOURCES.md` #31-#33. Brazil was
+investigated in the same pass and found genuinely `BLOCKED` (a real
+program behind an anti-bot-protected fetch path) rather than
+implemented; Argentina, Uruguay, and Paraguay were confirmed
+`NOT_SUITABLE`; Ecuador and Bolivia came back `NO_RELIABLE_SOURCE_FOUND`
+— see their entries in the South America section above.
 
 **Implemented since the first pass**: Italy (MAECI), Greece (IKY), and
 South Africa (NRF, live-blocked by a TLS issue) — see
