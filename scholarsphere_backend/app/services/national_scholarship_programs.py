@@ -558,3 +558,60 @@ class AustraliaDfatAwardsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().australia_awards_base_url
+
+
+class JapanMextScholarshipSource(_SingleProgramSource):
+    """Japanese Government (MEXT/Monbukagakusho) Scholarship - Japan's
+    Ministry of Education, Culture, Sports, Science and Technology, via
+    the official "Study in Japan" government portal.
+
+    Confirmed 2026-08-29: no `robots.txt` file exists on this host at all
+    (the site returns its own branded 404 page for that path rather than
+    a real robots.txt - treated as unrestricted, the standard meaning of
+    a missing robots.txt). The scholarship-overview hub page
+    (`/en/planning/scholarships/`) is a thin navigation page (~225 chars
+    of real content) linking to several distinct scholarship families
+    (MEXT, JASSO, "Other Scholarships") - this adapter targets the
+    specific MEXT sub-page instead (`/mext-scholarships/`), which has
+    real, substantial content (200, ~29KB, 8.4KB of real text: all seven
+    MEXT scholarship types, embassy/university recommendation routes,
+    durations, stipend amounts).
+
+    `title_selectors = ()`: every page under this section shares the
+    same generic `<h1>Scholarships</h1>` (the section-level heading, not
+    the specific program name) - the real title comes from the `<title>`
+    tag, split on the fullwidth vertical bar the site's own template uses
+    (`｜`, U+FF5C - not the ASCII `|`): "Japanese Government (MEXT)
+    Scholarship｜Study in Japan Official Website".
+
+    `deadline_keywords = ()`: applications route through the applicant's
+    home-country Japanese embassy or their university, each on its own
+    schedule - the page itself states this explicitly ("be sure to
+    confirm the latest edition of the application guidelines") and
+    publishes no single global deadline, the same honest pattern already
+    established for Ireland GOI-IES and Sweden SI (source #15, #17).
+
+    Unlike Australia Awards (source #24) above, `funding_type` is *not*
+    left `None` here - the page's own text explicitly confirms full
+    funding ("tuition exempted", a monthly stipend of ¥117,000-242,000,
+    and "round-trip travel expenses (airfare) provided"), so this
+    pattern's inherited `fully_funded` default is left as-is rather than
+    overridden, because it is actually verified by the source text this
+    time.
+    """
+
+    source_code = "japan_mext"
+    overview_path = "/en/planning/scholarships/mext-scholarships/"
+    title_selectors = ()
+    title_tag_separator = "｜"
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = (
+        "Ministry of Education, Culture, Sports, Science and Technology "
+        "(MEXT), Japan"
+    )
+    country = "Japan"
+    external_id = "japan-mext-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().japan_mext_base_url

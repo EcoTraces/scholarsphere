@@ -57,6 +57,7 @@ from app.services.national_scholarship_programs import (
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
+    JapanMextScholarshipSource,
     NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
@@ -189,6 +190,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
             "schedule": crontab(minute=0, hour=7),
         },
+        "sync-japan-mext": {
+            "task": "app.tasks.opportunity_sync.sync_japan_mext",
+            "schedule": crontab(minute=15, hour=7),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -247,6 +252,7 @@ SOURCE_TASK_NAMES = {
     "netherlands_nuffic": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
     "spain_aecid": "app.tasks.opportunity_sync.sync_spain_aecid",
     "australia_dfat_awards": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
+    "japan_mext": "app.tasks.opportunity_sync.sync_japan_mext",
 }
 
 
@@ -639,6 +645,19 @@ def sync_australia_dfat_awards(
     return _execute_source_task(self, "australia_dfat_awards", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_japan_mext",
+    max_retries=3,
+)
+def sync_japan_mext(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "japan_mext", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -863,6 +882,7 @@ def _collector(source_code: str) -> Any:
         "netherlands_nuffic": NetherlandsNufficScholarshipSource,
         "spain_aecid": SpainAecidScholarshipSource,
         "australia_dfat_awards": AustraliaDfatAwardsSource,
+        "japan_mext": JapanMextScholarshipSource,
     }[source_code]()
 
 

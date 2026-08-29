@@ -151,6 +151,7 @@ class Settings(BaseSettings):
     # AustraliaDfatAwardsSource's own docstring for the full reachability
     # findings.
     australia_awards_base_url: str = "https://www.australiaawards.com.au"
+    japan_mext_base_url: str = "https://www.studyinjapan.go.jp"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -227,6 +228,7 @@ class Settings(BaseSettings):
         "netherlands_nuffic_base_url",
         "spain_aecid_base_url",
         "australia_awards_base_url",
+        "japan_mext_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

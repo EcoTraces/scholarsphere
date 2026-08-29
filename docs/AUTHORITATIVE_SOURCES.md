@@ -770,6 +770,58 @@ program.
   (declined-sources table below). Implemented and unit-tested against
   real fixture HTML captured from the successful overview fetch.
 
+## 25. Japanese Government (MEXT) Scholarship (Japan)
+
+- **Organization**: Ministry of Education, Culture, Sports, Science and
+  Technology (MEXT/Monbukagakusho), via the official "Study in Japan"
+  government portal
+- **Route code**: `japan-mext` (`japan_mext` internally)
+- **Official domain / base URL**: `https://www.studyinjapan.go.jp`
+  (`JAPAN_MEXT_BASE_URL`)
+- **Opportunity types**: Scholarship (seven MEXT scholarship types:
+  research students, teacher training, undergraduate, Japanese studies,
+  college of technology, specialized training college, and the Young
+  Leaders Program)
+- **Country coverage**: Japan; applicants apply through their home
+  country's Japanese embassy or a recommending university
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading the official government portal's MEXT sub-page. No
+  `robots.txt` file exists on this host at all (checked 2026-08-29 — the
+  site returns its own branded 404 page for that path, not a real
+  robots.txt), treated as unrestricted per the standard meaning of a
+  missing robots.txt.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - The generic scholarship-overview hub page
+    (`/en/planning/scholarships/`) was **not** used — it is a thin
+    navigation page (~225 chars of real content) linking to several
+    distinct scholarship families (MEXT, JASSO, "Other Scholarships").
+    This adapter targets the MEXT-specific sub-page instead, which has
+    real, substantial content (8.4KB of real text).
+  - `title_selectors = ()`: every page under this site section shares
+    the same generic `<h1>Scholarships</h1>` — the real title comes from
+    the `<title>` tag, split on the site's own fullwidth vertical bar
+    (`｜`, U+FF5C, not the ASCII `|`).
+  - `deadline_keywords = ()` — applications route through the
+    applicant's home-country embassy or university, each on its own
+    schedule; the page states this explicitly and publishes no single
+    global deadline, the same honest pattern already established for
+    Ireland GOI-IES and Sweden SI (sources #15, #17).
+  - `funding_type` is left at this pattern's `fully_funded` default,
+    and unlike Australia Awards above, this is *actually verified* by
+    the source text: "tuition exempted", a monthly stipend of
+    ¥117,000–242,000, and "round-trip travel expenses (airfare)
+    provided" all appear explicitly on the page.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~29KB real
+  HTML. No TLS or network issue. Implemented and unit-tested against real
+  fixture HTML captured from this live fetch.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

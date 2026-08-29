@@ -169,6 +169,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "japan_mext": {
+        "source_name": "Japanese Government (MEXT) Scholarship (Japan)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -201,6 +207,7 @@ def _base_urls() -> dict[str, str]:
         "netherlands_nuffic": settings.netherlands_nuffic_base_url,
         "spain_aecid": settings.spain_aecid_base_url,
         "australia_dfat_awards": settings.australia_awards_base_url,
+        "japan_mext": settings.japan_mext_base_url,
     }
 
 
@@ -249,6 +256,7 @@ async def seed_opportunity_sources(
         "netherlands_nuffic": now + timedelta(hours=24),
         "spain_aecid": now + timedelta(hours=24),
         "australia_dfat_awards": now + timedelta(hours=24),
+        "japan_mext": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

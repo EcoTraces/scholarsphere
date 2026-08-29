@@ -58,15 +58,15 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **536/536
+Test baseline as of this session's own verified run (2026-08-29): **539/539
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
-Australia sources). Flutter suite not re-run this session (no Flutter SDK
-available in this environment); one small Flutter data-layer addition
-landed (see Completed Tasks' master-prompt entry) but was not compiled or
-run. Re-run both suites before trusting these numbers if more than a few
-commits have landed since.
+Australia sources, 3 for the Japan source). Flutter suite not re-run this
+session (no Flutter SDK available in this environment); one small Flutter
+data-layer addition landed (see Completed Tasks' master-prompt entry) but
+was not compiled or run. Re-run both suites before trusting these numbers
+if more than a few commits have landed since.
 
 ---
 
@@ -996,3 +996,53 @@ for the full dated history.
         for the full country-by-country accounting; that gap has not
         materially closed, only the top 2 queued candidates were picked
         up.
+- [x] **(2026-08-29)** Continued the master-prompt country queue with
+      Wales and Japan — but only one of the two turned into a new source.
+      - **Wales — real finding, not implemented.** Live-testing the
+        specific page the registry's prior `READY_FOR_AUTOMATION`
+        classification was based on
+        (`/global-wales-postgraduate-scholarship`) found it now 404s
+        (real "Page not found" content). The site's current replacement
+        page states the program is no longer centrally administered — it
+        now points to each of eight Welsh universities' own scholarship
+        pages individually, plus to Chevening and Commonwealth
+        Scholarships (both already separate sources here). Corroborated
+        by an independent third-party source noting the program's 2024
+        round has closed. **The prior classification was wrong — it was
+        never live-tested before being written down.** Corrected in
+        `docs/COUNTRY_PROVIDER_REGISTRY.md` to `NOT_SUITABLE` rather than
+        silently left as a stale `READY_FOR_AUTOMATION` entry, same
+        discipline as the India ICCR dual-`<h1>` bug and the corrected
+        Firebase bundle-ID note earlier in this project's history. No
+        source built — building one against a defunct/decentralized
+        program would have meant fabricating relevance, not real
+        integration.
+      - **Japan (MEXT Scholarship) — implemented, live-verified.** Targets
+        the MEXT-specific sub-page of the official "Study in Japan"
+        government portal, not its thin navigation hub. `deadline_keywords
+        = ()` (embassy/university-mediated applications, no single global
+        deadline — same honest pattern as Ireland/Sweden). Unlike
+        Australia Awards, `funding_type = "fully_funded"` **is** kept
+        here — actually confirmed by the page's own text ("tuition
+        exempted", a monthly stipend, "round-trip travel expenses
+        (airfare) provided"), not guessed. `title_selectors = ()` since
+        every page on this site section shares the same generic
+        `<h1>Scholarships</h1>`; the real title comes from the `<title>`
+        tag split on the site's own fullwidth vertical bar (`｜`, U+FF5C).
+      - Source count 25 → 26. Docs updated:
+        `docs/AUTHORITATIVE_SOURCES.md` #25, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (Japan moved to implemented; Wales
+        corrected in place, not moved; coverage summary, totals, and
+        recommended-next-candidates list all updated — every previously
+        `READY_FOR_AUTOMATION` candidate is now either implemented or
+        corrected to `NOT_SUITABLE`; the remaining 10 researched
+        countries all genuinely need a second research pass, not just a
+        fetch-and-wire pass).
+      - Verified: 3 new tests (`tests/test_national_scholarship_programs.py`)
+        against real fixture HTML; full backend suite **539/539**
+        (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 13
+        countries/regions now have at least one real source (up from
+        12). South America (9 countries), most of Asia, and most of the
+        remaining named European countries remain completely
+        unresearched.

@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (12, across multiple sessions)
+## Implemented (13, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -50,13 +50,14 @@ that were actually built this session (in two batches).
 | 22 | NL Scholarship (Nuffic) | Netherlands | GOVERNMENT | studyinnl.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 23 | Becas MAEC-AECID | Spain | GOVERNMENT | aecid.es | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 24 | Australia Awards | Australia | GOVERNMENT | australiaawards.com.au | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable from this environment, same network-level pattern as Sierra Leone's MTHE |
+| 25 | Japanese Government (MEXT) Scholarship | Japan | GOVERNMENT | studyinjapan.go.jp | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
 
 ---
 
-## Researched, not yet implemented (9)
+## Researched, not yet implemented (10)
 
 For each: what was found, why it wasn't built this session (time — not a
 disqualification), and its recommended classification.
@@ -75,19 +76,7 @@ disqualification), and its recommended classification.
   pass focused on `educanada.ca`'s actual page structure before deciding
   scraper vs. manual).
 
-### Japan — `RESEARCHED_NOT_IMPLEMENTED`
-- **Government source**: MEXT (Ministry of Education, Culture, Sports,
-  Science and Technology), via the official "Study in Japan" portal
-  `studyinjapan.go.jp`.
-- **Structural note**: applications route through the applicant's home
-  country's Japanese embassy/consulate, not a single online form —
-  deadlines are country-specific, published per-embassy. The central MEXT
-  page describes the program but not a single global deadline.
-- **Classification**: `READY_FOR_AUTOMATION` for the program-description
-  page (single-flagship pattern, matching WMI/Turkey/Ireland/Sweden);
-  deadline would likely be `null` most cycles for the same reason Ireland
-  and Sweden came back `null` this session — genuinely honest, not a
-  defect.
+### Japan — implemented, see source #25 above (live-verified 2026-08-29)
 
 ### Netherlands — implemented, see source #22 above (live-verified 2026-08-29)
 
@@ -174,13 +163,33 @@ disqualification), and its recommended classification.
 
 ### Greece — implemented, see source #20 above
 
-### Wales — `RESEARCHED_NOT_IMPLEMENTED`
+### Wales — `NOT_SUITABLE` (corrected 2026-08-29 — the previous `READY_FOR_AUTOMATION` note was wrong; do not act on it as written)
 - **Source**: Global Wales Programme (partnership between the Welsh
   Government, Universities Wales, the British Council, and HEFCW, funded
   via Taith) — Global Wales Postgraduate Scholarship (up to £10,000),
   `studyinwales.ac.uk`.
-- **Classification**: `READY_FOR_AUTOMATION` — single flagship
-  scholarship with a dedicated official-partnership portal page.
+- **What live testing actually found (2026-08-29)**: the dedicated
+  program page this entry was based on
+  (`/global-wales-postgraduate-scholarship`) now 404s (real "Page not
+  found" content, not a bot block). The site's current replacement page
+  (`/scholarships-and-funding/global-wales-scholarships-international-students`,
+  confirmed reachable, 200) states the program is no longer centrally
+  administered — it now points applicants to each of the eight
+  participating universities' own scholarship pages individually, plus
+  to Chevening and Commonwealth Scholarships (both already separate
+  sources here, #9 and #8). A third-party site independently corroborates
+  this: "Applications for the Global Wales Postgraduate Scholarship 2024
+  have now closed."
+- **Classification**: `NOT_SUITABLE` at the single-flagship level — the
+  program this session's research was based on appears discontinued or
+  at minimum no longer centrally run. The prior `READY_FOR_AUTOMATION`
+  classification was never live-tested before being written down; this
+  is exactly the kind of real bug live verification is meant to catch,
+  same as the India ICCR dual-`<h1>` issue and the stale Firebase
+  bundle-ID note elsewhere in this project's history. Re-open only if a
+  future pass finds Wales has revived a central program, or decides
+  per-university scraping across all eight Welsh institutions is worth
+  the effort this initiative has otherwise avoided.
 
 ### United Arab Emirates — `NO_RELIABLE_SOURCE_FOUND`
 - Researched via `u.ae` (the official UAE government platform) and the
@@ -214,8 +223,8 @@ disqualification), and its recommended classification.
 | Netherlands | SUPPORTED | Live-verified 2026-08-29 |
 | Spain | SUPPORTED | Live-verified 2026-08-29 |
 | Australia | PARTIALLY_SUPPORTED | Overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable, same pattern as Sierra Leone's MTHE |
+| Japan | SUPPORTED | Live-verified 2026-08-29 |
 | Canada | RESEARCHED_NOT_IMPLEMENTED | Institution-mediated, needs deeper research |
-| Japan | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
 | France | RESEARCHED_NOT_IMPLEMENTED | Curated source (database) needed |
 | Portugal | RESEARCHED_NOT_IMPLEMENTED | Curated source needed |
 | Belgium | RESEARCHED_NOT_IMPLEMENTED | ARES ready; VLIR-UOS decentralized |
@@ -223,36 +232,54 @@ disqualification), and its recommended classification.
 | Denmark | NO_RELIABLE_SOURCE_FOUND | Needs a dedicated follow-up search |
 | Morocco | RESEARCHED_NOT_IMPLEMENTED | Curated source; exact domain unconfirmed |
 | Cyprus | BLOCKED | Active anti-bot (Azure WAF) — not bypassed |
-| Wales | RESEARCHED_NOT_IMPLEMENTED | Ready for automation |
+| Wales | NOT_SUITABLE | Corrected 2026-08-29 — the flagship program appears discontinued/decentralized; previous READY_FOR_AUTOMATION note was wrong, never live-tested |
 | UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
 
-**13 of 24 targets have a genuinely integrated provider** (9 fully
+**14 of 24 targets have a genuinely integrated provider** (10 fully
 live-verified, 4 implemented-but-live-blocked/partially-blocked with
 documented reasons — 2 of those 4 share the same TLS-certificate-chain
 root cause on the respective government servers, 1 (Eswatini) is the
 same network-timeout pattern as Sierra Leone's MTHE, and 1 (Australia) is
 that same network-timeout pattern on one of its two source pages only —
-none are code defects). **8 have a credible official candidate identified
+none are code defects). **6 have a credible official candidate identified
 and classified**, ready for a future implementation pass without further
 country-level research. **2 have no reliable single-source candidate
-found yet** (Denmark, UAE). **1 is actively blocked by anti-bot
+found yet** (Denmark, UAE). **1 (Wales) turned out, on live verification,
+not to have a single-flagship program worth automating any more** — see
+its corrected entry above. **1 is actively blocked by anti-bot
 protection** (Cyprus) and will not be pursued further without an
 explicit, informed decision to do so via an authorized channel (e.g.
 contacting the Cyprus government for an API/data-sharing arrangement —
 not a technical bypass).
 
-## Recommended next candidates (highest value, `READY_FOR_AUTOMATION`)
+## Recommended next candidates
 
-In priority order, based on official-domain strength, single-flagship
-simplicity (matching the proven pattern), and geographic spread:
+Every previously-classified `READY_FOR_AUTOMATION` candidate in this
+registry has now been implemented (or, in Wales's case, live-tested and
+found unsuitable). None of the 10 remaining researched-but-not-implemented
+entries are that simple — each needs a real second research pass before
+building an adapter, not just a fetch-and-wire pass:
 
-1. **Wales** (Global Wales) — official partnership portal.
-2. **Japan** (MEXT via Study in Japan) — high applicant interest; expect
-   `null` deadlines most cycles (embassy-mediated), same honest pattern
-   as Ireland/Sweden this session.
-3. **Canada** (EduCanada) — needs a second research pass into its
-   institution-mediated application shape before it fits the
-   single-flagship pattern cleanly.
+1. **Belgium** (ARES) — has a real central application portal for its
+   ~200 scholarships/year (French-speaking universities); the closest
+   remaining candidate to the proven single-flagship shape, but was not
+   itself live-tested this session.
+2. **Canada** (EduCanada) — institution-mediated (Canadian institutions
+   apply on a student's behalf), needs a page-structure investigation
+   before deciding scraper vs. manual.
+3. **France** (Campus France) — the flagship Eiffel program page alone
+   would fit the pattern; "Campus Bourses" (a real searchable multi-
+   listing database) is the bigger, harder win and needs its own
+   discovery-and-parsing design, closer to CSC UK's shape than a single
+   page.
+4. **Austria** (OeAD) and **Morocco** (AMCI/"Maroc Alumni") — both
+   `REQUIRES_CURATED_SOURCE`: multiple named programs (Austria) or an
+   unconfirmed canonical domain (Morocco), respectively.
+
+Countries entirely outside this registry (all of South America, most of
+Asia, most of the remaining named European countries) still need a first
+research pass before they can even reach this list — see the chat history
+of this initiative for the full outstanding list.
 
 **Implemented since the first pass**: Italy (MAECI), Greece (IKY), and
 South Africa (NRF, live-blocked by a TLS issue) — see
@@ -262,3 +289,7 @@ pass**: Netherlands (Nuffic NL Scholarship, fully live-verified) — see
 pass**: Spain (AECID, fully live-verified) and Australia (DFAT Awards,
 overview live-verified — the deadline page itself is unreachable from
 this environment) — see `docs/AUTHORITATIVE_SOURCES.md` #23-#24.
+**Implemented since the fourth pass**: Japan (MEXT Scholarship, fully
+live-verified) — see `docs/AUTHORITATIVE_SOURCES.md` #25. Wales was
+investigated in the same pass and found `NOT_SUITABLE` on live testing
+(see its corrected entry above) rather than implemented.

@@ -11,6 +11,7 @@ from app.services.national_scholarship_programs import (
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
+    JapanMextScholarshipSource,
     NetherlandsNufficScholarshipSource,
     SouthAfricaNrfScholarshipSource,
     SpainAecidScholarshipSource,
@@ -466,6 +467,61 @@ def test_australia_dfat_awards_does_not_assert_a_funding_classification() -> Non
     rather than inheriting _SingleProgramSource's fully_funded default or
     guessing from general knowledge of the real-world program."""
     assert AustraliaDfatAwardsSource.funding_type is None
+
+
+# --- Japan MEXT Scholarship: real fixture, fetched 2026-08-29 --------------
+
+
+@pytest.mark.asyncio
+async def test_japan_mext_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = JapanMextScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("japan_mext_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "japan-mext-scholarship"
+    assert opportunity.title == "Japanese Government (MEXT) Scholarship"
+    assert opportunity.country == "Japan"
+    assert opportunity.provider_name == (
+        "Ministry of Education, Culture, Sports, Science and Technology "
+        "(MEXT), Japan"
+    )
+    # Confirmed by the real fixture's own text ("tuition exempted",
+    # "round-trip travel expenses (airfare) provided", a monthly
+    # stipend) - unlike Australia Awards above, this classification is
+    # actually verified by the source text, not left unasserted.
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.description is not None
+    # Applications route through the applicant's home-country embassy or
+    # university, each on its own schedule - no single global deadline
+    # is published, correctly null rather than guessed.
+    assert opportunity.deadline is None
+
+
+def test_japan_mext_never_attempts_deadline_extraction() -> None:
+    """Same reasoning as Ireland GOI-IES and Sweden SI: applications are
+    embassy/university-mediated with no single centrally published
+    deadline."""
+    assert JapanMextScholarshipSource.deadline_keywords == ()
+
+
+def test_japan_mext_title_uses_fullwidth_separator_not_shared_h1() -> None:
+    """Every page under this section of the site shares the same generic
+    <h1>Scholarships</h1> section heading - relying on it would produce
+    an unhelpfully vague title for every MEXT/JASSO/other-scholarship
+    page alike, so this source forces the <title> tag fallback instead,
+    split on the site's own fullwidth vertical bar (U+FF5C), not the
+    ASCII pipe."""
+    assert JapanMextScholarshipSource.title_selectors == ()
+    assert JapanMextScholarshipSource.title_tag_separator == "｜"
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

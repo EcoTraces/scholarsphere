@@ -28,6 +28,56 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Japan (MEXT Scholarship) source added; Wales corrected to NOT_SUITABLE
+
+Continued the country-coverage queue with Wales and Japan — but only one
+turned into a new source.
+
+**Wales — a real finding, not a new source.** Live-testing the page the
+registry's prior `READY_FOR_AUTOMATION` classification was based on
+(`/global-wales-postgraduate-scholarship`) found it now 404s (real "Page
+not found" content, not a bot block). The site's current replacement page
+states the program is no longer centrally administered — it now points
+to each of eight Welsh universities' own scholarship pages individually,
+plus to Chevening and Commonwealth Scholarships (both already separate
+sources here). Corroborated by an independent third-party note that the
+program's 2024 round has closed. The prior classification was never
+live-tested before being written down — corrected in
+`docs/COUNTRY_PROVIDER_REGISTRY.md` to `NOT_SUITABLE` with the finding
+documented in place, rather than either silently building a source
+against a defunct program or quietly leaving the stale classification for
+a future session to trip over. Same discipline as the India ICCR
+dual-`<h1>` bug and the corrected Firebase bundle-ID note earlier in this
+project's history.
+
+**Japan (MEXT Scholarship) — implemented, fully live-verified.** Targets
+the MEXT-specific sub-page of the official "Study in Japan" government
+portal, not its thin navigation hub. `deadline_keywords = ()` —
+applications are embassy/university-mediated with no single global
+deadline, the same honest pattern as Ireland GOI-IES and Sweden SI.
+Unlike Australia Awards, `funding_type = "fully_funded"` is kept here and
+is actually confirmed by the page's own text ("tuition exempted", a
+monthly stipend, "round-trip travel expenses (airfare) provided"), not
+guessed. `title_selectors = ()` since every page in this site section
+shares the same generic `<h1>Scholarships</h1>`; the real title comes
+from the `<title>` tag split on the site's own fullwidth vertical bar
+(`｜`, U+FF5C, not the ASCII `|`).
+
+Source count 25 → 26. Docs updated: `docs/AUTHORITATIVE_SOURCES.md` #25,
+`docs/COUNTRY_PROVIDER_REGISTRY.md` (Japan moved to implemented; Wales
+corrected in place; coverage summary, totals, and recommended-next-
+candidates list all updated). Every previously `READY_FOR_AUTOMATION`
+candidate in the registry is now either implemented or corrected — the
+10 remaining researched countries all genuinely need a second research
+pass, not just a fetch-and-wire pass.
+
+Verified: 3 new tests against real fixture HTML; full backend suite
+**539/539** (`pytest -q`).
+
+13 of the master prompt's ~40 named countries/regions now have at least
+one real source (up from 12). South America, most of Asia, and most of
+the remaining named European countries remain completely unresearched.
+
 ## [2026-08-29] — Two more country sources: Spain (AECID) and Australia (DFAT Awards)
 
 Continued the master-prompt country-coverage initiative with the top two
