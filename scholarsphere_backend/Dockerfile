@@ -7,10 +7,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+RUN chmod +x docker-entrypoint.sh
 
 RUN useradd --create-home --uid 10001 appuser
 USER appuser
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Deliberately CMD, not ENTRYPOINT: docker-compose.yml's worker/beat
+# services override this with their own `command: celery -A ... worker`/
+# `beat` - an ENTRYPOINT would instead receive those as arguments to this
+# script, which doesn't forward them, silently breaking both services.
+CMD ["./docker-entrypoint.sh"]
 

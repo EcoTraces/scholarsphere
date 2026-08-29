@@ -899,3 +899,50 @@ for the full dated history.
         environment available from this session) — the workflow's YAML
         was validated for well-formedness but the actual deploy has not
         been observed to succeed. Verify on the first real push to `main`.
+- [x] **(2026-08-29)** Free-hosting-tier deployment prep for
+      `scholarsphere_backend/`. Researched the current (2026) free-tier
+      landscape before committing to a stack, since prior knowledge here
+      goes stale fast (Render's own free Postgres now expires after 30
+      days; Fly.io no longer has a real free tier at all; Railway removed
+      its free tier in 2023). Landed on **Render (web service) + Neon
+      (Postgres, permanent free tier) + Upstash (Redis, permanent free
+      tier)**.
+      - New `render.yaml` Blueprint (repo root) defines the
+        `scholarsphere-backend` web service (Docker, free plan,
+        `/health/ready` health check); secrets (`DATABASE_URL`,
+        `REDIS_URL`, `FIREBASE_PROJECT_ID`,
+        `FIREBASE_CREDENTIALS_JSON_BASE64`, `ALLOWED_ORIGINS`) are
+        deliberately `sync: false` so nothing credential-shaped is
+        committed — the user sets them in the Render dashboard.
+      - New `scholarsphere_backend/docker-entrypoint.sh`: optionally
+        decodes a base64 Firebase service-account JSON to a real file
+        (a portable alternative to a platform-specific secret-file
+        feature), optionally runs `alembic upgrade head` on boot (opt-in
+        via `RUN_MIGRATIONS_ON_BOOT`, since Render's free plan has no
+        separate release-phase step), then execs uvicorn bound to `$PORT`
+        (Render injects this; previously hardcoded to 8000, which would
+        have made the service unreachable on Render). `Dockerfile`
+        updated to use it as `CMD` (deliberately not `ENTRYPOINT` —
+        would've broken `docker-compose.yml`'s worker/beat services,
+        which override the container's command entirely).
+      - **Real, documented gap, not silently dropped**: Render's free
+        plan has no Background Worker or Cron Job service type (Cron
+        Jobs specifically need a paid plan, $1/month/job minimum) — so
+        the 22 scheduled Celery tasks in `opportunity_sync.py` (source
+        syncs, link-health checks, reverification, notifications) have
+        no equivalently free always-on host today. The API itself works
+        fully without them; only the *scheduled* background jobs don't
+        run for free. Not worked around by restructuring the scheduling
+        architecture (out of scope, and every existing Celery-based test
+        still needs a real worker to exercise in production regardless).
+      - `scholarsphere_backend/README.md` gained a full "Deploying to a
+        free hosting tier" walkthrough (Neon/Upstash/Firebase/Render
+        setup steps, and why each platform was chosen over the
+        alternatives checked).
+      - **Not built or deployed** — no Docker daemon available in this
+        environment (client only, confirmed again this session) and no
+        Neon/Upstash/Render accounts exist for this project from here.
+        `docker-entrypoint.sh` passed `sh -n` syntax validation and
+        `render.yaml` passed YAML well-formedness validation; neither was
+        exercised against a real build or a real Render deploy. Verify on
+        the first real deploy attempt.

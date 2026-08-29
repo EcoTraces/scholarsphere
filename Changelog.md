@@ -28,6 +28,54 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Free-hosting-tier deployment prep for the backend (Render + Neon + Upstash)
+
+Researched the current (2026) free-tier landscape before picking a stack
+— prior knowledge here goes stale fast: Render's own free Postgres now
+expires after 30 days, Fly.io no longer has a real free tier at all, and
+Railway removed its free tier back in 2023. Landed on **Render** (web
+service) + **Neon** (Postgres — its free tier is explicitly permanent,
+unlike Render's) + **Upstash** (Redis — also a permanent free tier,
+500K commands/month, standard `rediss://` protocol).
+
+New `render.yaml` Blueprint at the repo root defines the
+`scholarsphere-backend` web service (Docker, free plan, `/health/ready`
+health check); every credential-shaped env var
+(`DATABASE_URL`/`REDIS_URL`/`FIREBASE_PROJECT_ID`/
+`FIREBASE_CREDENTIALS_JSON_BASE64`/`ALLOWED_ORIGINS`) is `sync: false` so
+nothing gets committed — set via the Render dashboard instead.
+
+New `scholarsphere_backend/docker-entrypoint.sh`: optionally decodes a
+base64-encoded Firebase service-account JSON to a real file (portable
+across any host, not tied to a platform-specific secret-file feature),
+optionally runs `alembic upgrade head` on boot (`RUN_MIGRATIONS_ON_BOOT`,
+since Render's free plan has no separate release-phase step), then execs
+uvicorn bound to `$PORT` — previously hardcoded to 8000, which would have
+made the service unreachable on Render (it injects its own `$PORT`).
+`Dockerfile` now uses this as `CMD` (deliberately not `ENTRYPOINT`, which
+would have broken `docker-compose.yml`'s worker/beat services that
+override the container's command entirely).
+
+`scholarsphere_backend/README.md` gained a full "Deploying to a free
+hosting tier" walkthrough with the reasoning above and step-by-step Neon/
+Upstash/Firebase/Render setup instructions.
+
+**Real, documented gap:** Render's free plan has no Background Worker or
+Cron Job service type (Cron Jobs need a paid plan, $1/month/job minimum),
+so the 22 scheduled Celery tasks in `opportunity_sync.py` have no
+equivalently free always-on host today. The API itself works fully
+without them — only the *scheduled* background jobs (source syncs,
+link-health checks, reverification, notifications) don't run for free.
+Not worked around by restructuring the scheduling architecture, which was
+out of scope for this change.
+
+**Not built or deployed** — no Docker daemon available in this
+environment (client only) and no Neon/Upstash/Render accounts exist for
+this project from here. `docker-entrypoint.sh` passed shell syntax
+validation and `render.yaml` passed YAML well-formedness validation;
+neither was exercised against a real build or a real Render deploy.
+Verify on the first real deploy attempt.
+
 ## [2026-08-29] — GitHub Pages deployment workflow for the Flutter web build
 
 New `.github/workflows/deploy-pages.yml`: builds `flutter build web

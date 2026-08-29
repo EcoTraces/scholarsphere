@@ -1,0 +1,58 @@
+# Render Blueprint for scholarsphere_backend/'s FastAPI web service.
+#
+# Deploy: Render dashboard -> New -> Blueprint -> point at this repo.
+# Render finds this file at the repo root automatically.
+#
+# Deliberately just the web service, not the full docker-compose.yml
+# stack (Postgres, Redis, Celery worker/beat): Render's free plan has no
+# Background Worker or Cron Job service type (both require a paid plan -
+# see docs/DEPLOYMENT_FREE_TIER.md), and its own free Postgres expires
+# after 30 days, so DATABASE_URL/REDIS_URL below are meant to point at
+# externally hosted free-tier Postgres (e.g. Neon, which never expires)
+# and Redis (e.g. Upstash) instead - see that doc for the full setup.
+# Celery worker/beat (the 22 scheduled scraping/notification/link-health
+# jobs) have no equivalently good free host today and are not covered by
+# this Blueprint; the API itself works without them, just without
+# scheduled background jobs running.
+services:
+  - type: web
+    name: scholarsphere-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./scholarsphere_backend/Dockerfile
+    dockerContext: ./scholarsphere_backend
+    healthCheckPath: /health/ready
+    envVars:
+      - key: APP_ENV
+        value: production
+      # Runs `alembic upgrade head` on every boot before starting uvicorn
+      # (see docker-entrypoint.sh) - Render's free plan has no separate
+      # release-phase/pre-deploy-command step to run it in instead.
+      - key: RUN_MIGRATIONS_ON_BOOT
+        value: "true"
+      # --- Secrets: must be set manually in the Render dashboard
+      # (Environment tab) after the Blueprint creates this service -
+      # `sync: false` means Render will not accept a value from this
+      # file, on purpose, so no credential is ever committed to git.
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      # Base64 of a real Firebase service-account JSON key
+      # (`base64 -i service-account.json | tr -d '\n'`, or
+      # `base64 -w0 service-account.json` on Linux). Decoded to a file at
+      # boot by docker-entrypoint.sh - see its own comment for why this
+      # portable approach was used instead of a platform-specific secret
+      # file. Leave unset only if this deployment instead uses Application
+      # Default Credentials (only correct if it runs on GCP infrastructure
+      # with a service account attached, which Render is not).
+      - key: FIREBASE_CREDENTIALS_JSON_BASE64
+        sync: false
+      # Comma-separated. Must include the GitHub Pages origin serving the
+      # Flutter build (see .github/workflows/deploy-pages.yml), e.g.
+      # https://<owner>.github.io - exact "scheme://host[:port]", no path,
+      # no wildcard.
+      - key: ALLOWED_ORIGINS
+        sync: false
