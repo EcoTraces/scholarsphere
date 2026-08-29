@@ -463,6 +463,18 @@ before any implementation decision.
 - **Classification**: `BLOCKED` — the interactive official site has no
   scrapable content, and the one alternative with real content
   explicitly disallows this project's crawler by name.
+- Update: this backend gained an opt-in headless-browser rendering
+  fallback later in this session (see "Browser-rendering fallback" in
+  `docs/AUTHORITATIVE_SOURCES.md`), which *could* in principle render
+  `knb.kemdiktisaintek.go.id`'s JS shell into real content — its
+  `robots.txt` returns 404 (unrestricted) and it carries no
+  ClaudeBot-disallow, unlike the `.net` alternative. This was **not**
+  attempted: the sandbox this capability was built in could not drive a
+  real browser against any external site (every outbound Chromium
+  navigation failed at the TLS layer, a sandbox-specific limitation —
+  see that doc section), so live-verifying this specific page never
+  happened. Still `BLOCKED` until a session with a working outbound path
+  for browser automation live-tests it.
 
 ### Malaysia — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
 - The Malaysia International Scholarship (MIS), run by the Ministry of
@@ -483,10 +495,10 @@ before any implementation decision.
   ("Vietnam Government Scholarship"), does not support HTTPS at all —
   confirmed by a direct connection attempt (`ConnectError` on every
   `https://` variant tried), while plain `http://` responds normally.
-  This backend's `_validate_url` hard-requires an HTTPS scheme for every
-  external fetch (a security boundary applied uniformly across every
-  source in this codebase, never relaxed for one adapter), so this site
-  is structurally incompatible regardless of content quality. VIED
+  This backend's `validate_https_url` hard-requires an HTTPS scheme for
+  every external fetch (a security boundary applied uniformly across
+  every source in this codebase, never relaxed for one adapter), so this
+  site is structurally incompatible regardless of content quality. VIED
   (Vietnam International Education Development), the other candidate
   organization, appears predominantly focused on funding Vietnamese
   citizens to study *abroad* (e.g. "Project 911"), not inbound.
@@ -503,6 +515,10 @@ before any implementation decision.
   need to enable JavaScript to run this app.").
 - **Classification**: `BLOCKED` — no scrapable content exists anywhere
   on this domain without executing JavaScript.
+- Update: same as Indonesia above — this domain is a candidate for the
+  browser-rendering fallback added later in this session, but it was not
+  attempted (no working outbound browser-automation path in the sandbox
+  that built it). Still `BLOCKED` pending real live-testing.
 
 ### Israel — `BLOCKED` (confirmed by live testing 2026-08-29)
 - The Ministry of Foreign Affairs scholarship page

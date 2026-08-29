@@ -58,7 +58,7 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **575/575
+Test baseline as of this session's own verified run (2026-08-29): **586/586
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -68,9 +68,10 @@ source, 2 for the Chile source, 2 for the Peru source, 2 for the South
 Korea source, 2 for the Saudi Arabia source, 2 for the Qatar source, 2
 for the Switzerland source, 2 for the Poland source, 2 for the Czech
 Republic source, 2 for the Serbia source, 2 for the Romania source, 2 for
-the Hungary source, 2 for the Mexico source). Flutter suite not re-run
-this session (no Flutter SDK available in this environment); one small
-Flutter data-layer addition landed (see Completed Tasks' master-prompt
+the Hungary source, 2 for the Mexico source, 11 for the new browser-
+rendering fallback). Flutter suite not re-run this session (no Flutter
+SDK available in this environment); one small Flutter data-layer
+addition landed (see Completed Tasks' master-prompt
 entry) but was not compiled or run. Re-run both suites before trusting
 these numbers
 if more than a few commits have landed since.
@@ -1483,3 +1484,85 @@ for the full dated history.
         sources, only negative findings (which still have value: future
         sessions won't need to re-research these 8 countries from
         scratch).
+
+- [x] **(2026-08-29)** Browser-rendering fallback for JavaScript-only
+      scraper sources — a real, tested architectural addition, requested
+      explicitly by the user after this session had already hit several
+      genuinely JS-only government sites (Egypt, Indonesia's `.go.id`
+      site) that plain HTTP cannot extract anything from.
+      - New `app/services/browser_rendering.py`: a lazily-launched,
+        reused headless Chromium (Playwright) instance; one isolated
+        browser context/page per fetch, always closed; a semaphore
+        bounding concurrent renders (`browser_render_max_concurrency`,
+        default 2); bounded timeouts throughout, never a fixed `sleep()`
+        (`domcontentloaded` + an optional caller-supplied CSS selector
+        wait, both under `browser_render_timeout_ms`); a response-size
+        cap matching the existing HTTP path; known bot-challenge/CAPTCHA
+        signature detection (Cloudflare interstitial, hCaptcha/
+        reCAPTCHA, "access denied") that raises immediately rather than
+        attempting to solve or bypass anything — same policy as every
+        prior anti-bot finding in this project (Cyprus, Brazil, Israel).
+      - `web_scraper_base.py`: new `looks_javascript_rendered()`
+        heuristic (body-text length + "enable JavaScript"-style
+        markers, tuned well below Colombia ICETEX's real 330-character
+        page so a genuinely thin real page is never misclassified) and
+        a new opt-in `WebScraperSource.allow_browser_rendering` flag
+        (default `False` for every existing source — zero behavior
+        change for all 43 sources already in this registry).
+        `WebScraperSource._fetch_html` tries plain HTTP first always;
+        only a source that explicitly opted in, whose response the
+        heuristic flags, gets a browser-render retry; any render failure
+        falls back to the thin HTTP response rather than crashing the
+        source's (or any sibling source's) sync task.
+      - `app/core/http_client.py`: renamed the private `_validate_url`
+        to public `validate_https_url` so both the HTTP and browser
+        paths share one HTTPS-only check.
+      - Deployment: `Dockerfile` now runs `playwright install --with-deps
+        chromium` (documented, real tradeoff: +~300-400MB on every image
+        built from it — api, worker, and beat alike, since docker-
+        compose.yml builds all three from this one Dockerfile — even
+        though only the worker's scraper tasks would ever use it; noted
+        as a candidate for a future `Dockerfile.worker` split if size
+        becomes a real problem, not attempted here). CI
+        (`.github/workflows/ci.yml`) installs the same browser before
+        running pytest so the real-browser tests actually run there, not
+        just locally.
+      - New settings: `browser_render_timeout_ms`,
+        `browser_render_max_concurrency`, `browser_executable_path`
+        (left unset in every real deployment; only needed to point at a
+        pre-installed browser binary whose revision doesn't match the
+        pinned `playwright` package version, which is exactly this
+        project's own dev sandbox — its preinstalled Chromium is a
+        different revision than what `playwright==1.49.1` expects by
+        default).
+      - Deliberately **not** built (would be premature generality with
+        zero current users): SPA click-through navigation (filters,
+        "Load more," infinite scroll), reverse-engineering a site's own
+        internal JSON/GraphQL API, a persisted per-domain "rendering
+        capability profile," multi-language deduplication. If a future
+        source genuinely needs one of these, design it against that
+        source's real, live-tested page then — not in the abstract.
+      - **No existing source was converted to use this** — none needed
+        it (all 43 already work over plain HTTP) — and the two live
+        JS-only candidates already on record (Egypt, Indonesia's
+        `.go.id`) were deliberately **not** flipped to
+        `allow_browser_rendering = True` and marked working: this
+        session's own sandboxed environment could launch a real headless
+        Chromium (proven against a local self-signed-HTTPS test server)
+        but every attempt to navigate it to a real *external* HTTPS site
+        failed at the TLS layer through the sandbox's own egress proxy
+        (`net::ERR_CONNECTION_RESET`, not reproducible with plain httpx/
+        curl in the same sandbox — a sandbox limitation, not a defect in
+        the new module). Both country-registry entries were updated with
+        this exact finding rather than silently left stale or
+        speculatively marked fixed.
+      - Verified: 11 new tests (`tests/test_browser_rendering.py`) —
+        pure-heuristic unit tests, mocked `WebScraperSource` wiring/
+        fallback tests, and (a genuine, non-mocked proof) a real headless
+        Chromium launch + JavaScript execution + rendered-DOM extraction
+        against a local self-signed-HTTPS server, plus HTTPS-only
+        enforcement and challenge-page-detection tests against the real
+        `fetch_rendered_html`/`_looks_like_a_challenge_page` functions.
+        Full backend suite: **586/586** (`pytest -q`, up from 575).
+        `pip-audit -r requirements.txt`: no known vulnerabilities in the
+        new `playwright` dependency.

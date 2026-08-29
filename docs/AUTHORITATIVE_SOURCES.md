@@ -1698,6 +1698,83 @@ per-provider partnership/manual-entry work, or evaluating specific
 additional named sites for scraping the same way sources 8–12 were (see
 `app/services/web_scraper_base.py`) — not a generic crawler.
 
+## Browser-rendering fallback (JavaScript-only sites)
+
+Every source above works with a plain HTTPS GET (`app/core/
+http_client.py::get_html`) - no source in this registry has ever needed
+more than that. This session's research did, however, run into several
+official government sites that return no usable content without
+executing JavaScript (Egypt's EGYAID/Study-in-Egypt portal and
+Indonesia's `.go.id` KNB site both return a near-empty client-side-app
+shell over plain HTTP - see their entries in
+`docs/COUNTRY_PROVIDER_REGISTRY.md`), so `app/services/
+browser_rendering.py` adds an opt-in, headless-Chromium (Playwright)
+rendering fallback for exactly that case:
+
+- **Opt-in per source, not automatic.** A `WebScraperSource` subclass
+  sets `allow_browser_rendering = True` (and, optionally,
+  `browser_wait_for_selector` naming a CSS selector to wait for) only
+  after live-testing shows its plain-HTTP response really is an
+  unrendered JS shell - the same live-verification discipline every
+  other design choice in this document already follows. No source does
+  this yet as of this section's own addition.
+- **HTTP stays the default and the fast path.** `WebScraperSource.
+  _fetch_html` always tries plain HTTP first; a browser render is only
+  attempted when the response looks like a JS shell
+  (`web_scraper_base.py::looks_javascript_rendered` - conservative by
+  design, tuned well below the thinnest confirmed-real page in this
+  registry, Colombia ICETEX's 330-character reciprocity page, so a
+  legitimately thin real page is never misclassified) *and* the source
+  opted in.
+- **Never treated as more trustworthy than plain HTML.** Rendered
+  content goes through the exact same parsing, the same "never invent a
+  field" discipline, and the same mandatory human-verification gate as
+  every other source - browser rendering solves a technical extraction
+  problem, not the source-authenticity problem, so nothing about the
+  verification workflow changes.
+- **Never bypasses a real block.** If a rendered page matches a known
+  bot-challenge/CAPTCHA signature (Cloudflare's interstitial, hCaptcha/
+  reCAPTCHA, a generic "access denied" page), `fetch_rendered_html`
+  raises immediately rather than attempting to solve or route around
+  it - the exact same policy already applied to Cyprus's Azure WAF,
+  Brazil's F5/Distil challenge, and Israel's active 403 block (see
+  `docs/COUNTRY_PROVIDER_REGISTRY.md`).
+- **Resource-bounded.** One Chromium instance is launched lazily and
+  reused across fetches; each fetch gets an isolated context/page,
+  always closed; a semaphore
+  (`settings.browser_render_max_concurrency`, default 2) caps concurrent
+  renders; navigation and selector-waiting both use bounded timeouts
+  (`settings.browser_render_timeout_ms`), never a fixed `sleep()`.
+- **Verified end to end**, but not yet against a real government site
+  from a session in this project. `tests/test_browser_rendering.py`
+  proves the actual mechanics - real Chromium launch, real JavaScript
+  execution, real rendered-DOM extraction, HTTPS-only enforcement,
+  challenge-page detection, and `WebScraperSource`'s fallback/graceful-
+  degradation wiring - against a local, self-signed-HTTPS test server
+  (127.0.0.1, never leaving the machine); it skips cleanly wherever a
+  browser isn't installed, and CI (`.github/workflows/ci.yml`) installs
+  one so these tests run there too. What has **not** been verified: this
+  session's own outbound network path could launch and drive a real
+  Chromium instance, but every external `https://` navigation attempt
+  through the sandbox's own egress proxy failed at the TLS layer
+  (`net::ERR_CONNECTION_RESET`, distinct from the proxy's ordinary
+  cert-trust accommodations, and not reproducible with plain httpx/curl
+  in the same sandbox) - a sandbox limitation, not a defect in this
+  module. Before actually flipping `allow_browser_rendering = True` on
+  Egypt, Indonesia, or any other JS-only candidate, a session with a
+  working outbound path for browser automation still needs to
+  live-verify it against the real site first, the same as every other
+  source in this document.
+- **Deliberately not built**, because no current source needs it and
+  building it speculatively would be exactly the kind of premature
+  generality this codebase avoids elsewhere: SPA click-through
+  navigation (filters, "Load more", infinite scroll, pagination),
+  reverse-engineering a site's own internal JSON/GraphQL API, a
+  persisted per-domain "rendering capability profile," and multi-
+  language deduplication. If a future source genuinely needs one of
+  these, it should be designed against that source's real, live-tested
+  page - not built in the abstract ahead of any real user.
+
 ## Source registry data model
 
 Each row above is a real `OpportunitySource` database record

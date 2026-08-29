@@ -40,6 +40,45 @@ logger = logging.getLogger(__name__)
 _last_request_at: dict[str, float] = {}
 _host_locks: dict[str, asyncio.Lock] = {}
 
+#: Phrases a JavaScript app's static shell commonly leaves behind for a
+#: client that doesn't execute it - checked case-insensitively.
+_JS_SHELL_MARKERS: tuple[str, ...] = (
+    "you need to enable javascript",
+    "please enable javascript",
+    "javascript is required",
+    "loading...",
+    "loading homepage",
+)
+#: Below this many characters of real body text, a page is treated as an
+#: unrendered JS shell rather than a genuinely thin (but real) page -
+#: chosen well under every real source's own thinnest confirmed real page
+#: in this project (Colombia ICETEX's reciprocity page, ~330 characters)
+#: so a legitimately thin page is never misclassified as JS-only.
+_MIN_REAL_CONTENT_CHARS = 150
+
+
+def looks_javascript_rendered(html: str) -> bool:
+    """True if `html` (a plain-HTTP response) looks like a JavaScript
+    single-page app's unrendered shell rather than real content - used by
+    `WebScraperSource._fetch_html` to decide whether to fall back to
+    `app.services.browser_rendering` for a source that opts in via
+    `allow_browser_rendering`. Deliberately conservative: only flags a
+    page when its own body text is very thin AND either an explicit
+    "enable JavaScript"-style marker is present or there's essentially no
+    text at all - a real, if thin, page like Colombia ICETEX's 330-
+    character reciprocity page must never trigger this.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["script", "style"]):
+        tag.decompose()
+    text = soup.get_text(" ", strip=True)
+    if len(text) >= _MIN_REAL_CONTENT_CHARS:
+        return False
+    lowered = text.lower()
+    if any(marker in lowered for marker in _JS_SHELL_MARKERS):
+        return True
+    return len(text) == 0
+
 
 def _lock_for(host: str) -> asyncio.Lock:
     lock = _host_locks.get(host)
@@ -59,6 +98,21 @@ class WebScraperSource(OpportunitySource):
     #: among the sites currently integrated (DAAD: 2s); subclasses may
     #: raise this but should not lower it below a site's own robots.txt.
     min_request_interval_seconds: float = 2.0
+
+    #: Opt-in only - see app/services/browser_rendering.py's module
+    #: docstring. When True, a plain-HTTP fetch that
+    #: `looks_javascript_rendered` flags as an unrendered JS shell is
+    #: retried once through a headless browser. Every existing source
+    #: leaves this False and is completely unaffected; a source only
+    #: needs it when its own live-testing (documented in
+    #: docs/AUTHORITATIVE_SOURCES.md, same as every other design choice)
+    #: showed the plain-HTTP response really is a JS-only shell.
+    allow_browser_rendering: bool = False
+    #: Optional CSS selector to wait for when browser-rendering this
+    #: source's pages, so the render doesn't return before the page's own
+    #: async content has actually loaded. `None` waits only for
+    #: `domcontentloaded`.
+    browser_wait_for_selector: str | None = None
 
     async def collect_for_import(
         self, *, keyword: str | None = None, page: int = 1, page_size: int = 25
@@ -84,9 +138,37 @@ class WebScraperSource(OpportunitySource):
                 if wait > 0:
                     await asyncio.sleep(wait)
             try:
-                return await get_html(url)
+                html = await get_html(url)
             finally:
                 _last_request_at[host] = monotonic()
+
+        if self.allow_browser_rendering and looks_javascript_rendered(html):
+            html = await self._fetch_rendered_html(url, fallback=html)
+        return html
+
+    async def _fetch_rendered_html(self, url: str, *, fallback: str) -> str:
+        # Imported lazily so every source that never opts into browser
+        # rendering (i.e. every source today) never even imports
+        # playwright, let alone requires it to be installed.
+        from app.services.browser_rendering import fetch_rendered_html
+
+        try:
+            return await fetch_rendered_html(
+                url, wait_for_selector=self.browser_wait_for_selector
+            )
+        except Exception as exc:  # noqa: BLE001
+            # Never let a browser-rendering failure crash this source's
+            # sync task (and, with it, every other source scheduled
+            # alongside it) - fall back to the thin HTTP response, which
+            # this source's own downstream parsing already handles
+            # gracefully (a missing selector yields a safe default, not a
+            # crash - see tests/test_scraper_resilience.py).
+            logger.warning(
+                "browser_render_failed_falling_back_to_http url=%s error=%s",
+                url,
+                exc,
+            )
+            return fallback
 
 
 def absolute_https_url(base: str, href: str | None) -> str | None:

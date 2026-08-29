@@ -47,6 +47,11 @@ __pycache__/
 .pytest_cache/
 *.db
 *.sqlite
+# Self-signed cert generated on first run by
+# scholarsphere_backend/tests/test_browser_rendering.py's local HTTPS
+# test server - throwaway, regenerated per environment, never a real
+# credential.
+scholarsphere_backend/tests/.tmp_test_certs/
 *.sqlite3
 
 # Environment files with real secrets (keep .env.example tracked)

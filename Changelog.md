@@ -28,6 +28,69 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Browser-rendering fallback for JavaScript-only scraper sources
+
+Added an opt-in headless-browser (Playwright/Chromium) rendering fallback
+for scraper sources whose pages return no usable content over plain
+HTTP - requested explicitly after this session's own research had already
+hit several genuinely JS-only government sites (Egypt's Study-in-Egypt
+portal, Indonesia's `.go.id` KNB site) that a plain HTTP fetch cannot
+extract anything from.
+
+### Added
+- `app/services/browser_rendering.py`: a lazily-launched, reused headless
+  Chromium instance; one isolated context/page per fetch, always closed;
+  a semaphore bounding concurrent renders; bounded timeouts throughout
+  (never a fixed `sleep()`); a response-size cap matching the existing
+  HTTP path; known bot-challenge/CAPTCHA signature detection that raises
+  immediately rather than attempting to solve or bypass anything - the
+  same policy as every prior anti-bot finding in this project.
+- `web_scraper_base.py`: a `looks_javascript_rendered()` heuristic and a
+  new opt-in `WebScraperSource.allow_browser_rendering` flag, default
+  `False` for every existing source - zero behavior change for all 43
+  sources already in this registry. Plain HTTP is always tried first;
+  only an opted-in source whose response the heuristic flags gets a
+  browser-render retry, and any render failure falls back to the thin
+  HTTP response rather than crashing the source's sync task.
+- `Dockerfile` now installs Playwright's Chromium (`playwright install
+  --with-deps chromium`) - a real, documented tradeoff of roughly
+  +300-400MB on every image built from it (api, worker, and beat alike),
+  noted as a candidate for a future `Dockerfile.worker` split if that
+  becomes a real problem. CI installs the same browser so the real-
+  browser tests actually run there too.
+- New settings: `browser_render_timeout_ms`, `browser_render_max_concurrency`,
+  `browser_executable_path` (left unset in every real deployment).
+
+### Changed
+- `app/core/http_client.py`: renamed the private `_validate_url` to
+  public `validate_https_url` so both the HTTP and browser paths share
+  one HTTPS-only check.
+
+### Deliberately not built
+SPA click-through navigation (filters, "Load more," infinite scroll),
+reverse-engineering a site's own internal JSON/GraphQL API, a persisted
+per-domain "rendering capability profile," and multi-language
+deduplication - all premature generality with zero current users; see
+`docs/AUTHORITATIVE_SOURCES.md`'s new "Browser-rendering fallback"
+section for the full reasoning.
+
+No existing source was converted to use this - all 43 already work over
+plain HTTP - and the two live JS-only candidates already on record
+(Egypt, Indonesia) were deliberately **not** flipped to
+`allow_browser_rendering = True` and marked working: this session's own
+sandboxed dev environment could launch a real headless Chromium (proven
+against a local self-signed-HTTPS test server) but every attempt to
+navigate it to a real external HTTPS site failed at the TLS layer through
+the sandbox's own egress proxy - a sandbox limitation, not a defect in
+the new module. Both country-registry entries were updated with this
+exact finding.
+
+Verified: 11 new tests (`tests/test_browser_rendering.py`), including a
+genuine, non-mocked real headless-Chromium-launch-plus-JavaScript-
+execution-plus-DOM-extraction test. Full backend suite: **586/586**
+(`pytest -q`, up from 575). `pip-audit`: no known vulnerabilities in the
+new `playwright` dependency.
+
 ## [2026-08-29] — Second beyond-the-original-request pass: 8 more countries researched, zero new sources — an honest null result
 
 A second batch of 8 countries entirely outside the original

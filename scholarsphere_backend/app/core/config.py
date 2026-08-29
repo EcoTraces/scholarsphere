@@ -36,6 +36,23 @@ class Settings(BaseSettings):
     http_max_response_bytes: int = Field(default=5_242_880, gt=0, le=52_428_800)
     max_request_bytes: int = Field(default=1_048_576, gt=0, le=10_485_760)
 
+    # Browser-rendering fallback (app/services/browser_rendering.py) - only
+    # used by sources that opt in via `allow_browser_rendering = True` and
+    # only when the plain HTTP fetch looks like an unrendered JS shell (see
+    # web_scraper_base.py::looks_javascript_rendered). Off by default in the
+    # sense that no source uses it unless it opts in; these settings bound
+    # its resource cost when it does run.
+    browser_render_timeout_ms: int = Field(default=20_000, gt=0, le=60_000)
+    browser_render_max_concurrency: int = Field(default=2, gt=0, le=10)
+    # Left unset in every real deployment - Playwright's own browser
+    # install (`playwright install chromium`, run in the Dockerfile)
+    # manages its own matching browser build at its default location.
+    # Only set this to point at a pre-installed browser binary whose
+    # revision doesn't match this pinned `playwright` package version
+    # (e.g. this project's own dev sandbox, which has a fixed Chromium
+    # build preinstalled outside Playwright's own version-matched cache).
+    browser_executable_path: str | None = None
+
     rate_limit_requests: int = Field(default=300, gt=0)
     rate_limit_window_seconds: int = Field(default=60, gt=0)
 
