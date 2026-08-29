@@ -29,6 +29,7 @@ from app.api.routes.providers import router as providers_router
 from app.api.routes.public_opportunities import router as public_opportunities_router
 from app.api.routes.recommendation_governance import router as recommendation_governance_router
 from app.api.routes.release import router as release_router
+from app.api.routes.scraper_metrics import router as scraper_metrics_router
 from app.api.routes.search_index import router as search_index_router
 from app.api.routes.security import router as security_router
 from app.api.routes.source_registry import router as source_registry_router
@@ -134,6 +135,7 @@ app.include_router(backup_router, prefix=settings.api_v1_prefix)
 app.include_router(release_router, prefix=settings.api_v1_prefix)
 app.include_router(data_lifecycle_router, prefix=settings.api_v1_prefix)
 app.include_router(observability_router, prefix=settings.api_v1_prefix)
+app.include_router(scraper_metrics_router, prefix=settings.api_v1_prefix)
 app.include_router(fraud_investigation_router, prefix=settings.api_v1_prefix)
 app.include_router(collection_router, prefix=settings.api_v1_prefix)
 

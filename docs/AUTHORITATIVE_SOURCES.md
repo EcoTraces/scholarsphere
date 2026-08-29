@@ -1765,15 +1765,190 @@ rendering fallback for exactly that case:
   working outbound path for browser automation still needs to
   live-verify it against the real site first, the same as every other
   source in this document.
-- **Deliberately not built**, because no current source needs it and
-  building it speculatively would be exactly the kind of premature
-  generality this codebase avoids elsewhere: SPA click-through
-  navigation (filters, "Load more", infinite scroll, pagination),
-  reverse-engineering a site's own internal JSON/GraphQL API, a
-  persisted per-domain "rendering capability profile," and multi-
-  language deduplication. If a future source genuinely needs one of
-  these, it should be designed against that source's real, live-tested
-  page - not built in the abstract ahead of any real user.
+### Beyond a single render: SPA interaction, pagination, filters, application-link discovery, verification (2026-08-29)
+
+The bullets above describe the original single-page-render fallback. A
+later pass, in response to an explicit hybrid-discovery-engine
+specification, added the rest of the interaction surface a real SPA
+listing page can need - still nothing any existing source uses yet (see
+the same "no source opts in yet" caveat above), but now genuinely built,
+tested against real Chromium, and available for the next JS-only source
+that needs it:
+
+- **`app/services/browser_interaction.py` (`BrowserInteractionEngine`)** -
+  reusable click/wait-for-selector/extract-URL/capture-content primitives
+  on top of a live Playwright page opened via `browser_rendering.
+  interactive_session`. `wait_for_navigation_or_change` races three real
+  outcomes (a new tab, a URL change including a client-side
+  `history.pushState` route, or an in-page DOM change) under a bounded
+  timeout - never a fixed `sleep()`. Verified against real Chromium with
+  mock pages exercising all three outcomes plus the "nothing happened"
+  case (`tests/test_browser_interaction.py`).
+- **`app/services/pagination_engine.py`** - `paginate_by_url` (no
+  browser needed - a plain async `fetch_page(url)` callable) for
+  `?page=N`-style pagination, and `paginate_by_click` (built on the
+  interaction engine) for a "Next" button or a "Load More" control where
+  the URL never changes - the same function handles both shapes because
+  it deduplicates by key rather than assuming which one a site uses.
+  Bounded by `MAX_PAGES_PER_SOURCE`/`MAX_RECORDS_PER_SOURCE`
+  (`app/core/config.py`), and stops the moment a page yields no new
+  records, an empty page, a disabled/absent "next" control, or a fetch
+  failure - never an unbounded loop. `paginate_by_url` is tested with a
+  plain in-memory fake (`tests/test_pagination_engine.py`);
+  `paginate_by_click` against real Chromium and a stateful local test
+  server serving three linked pages (`tests/test_browser_click_pagination.py`).
+- **`app/services/infinite_scroll_engine.py`** - render → extract →
+  scroll → wait for real DOM growth (`page.wait_for_function`, never a
+  fixed delay) → extract → compare → continue, exactly the workflow
+  named in the spec. Bounded by `MAX_SCROLL_ITERATIONS`/
+  `SCROLL_STAGNATION_LIMIT`/`MAX_RECORDS_PER_SOURCE`. Verified against a
+  real local mock page that appends batches of items on `scroll` events
+  for a bounded number of rounds then stops, proving both the collection
+  and the stagnation-based stop condition (`tests/test_infinite_scroll_engine.py`).
+- **`app/services/filter_engine.py`** - applies a caller-described set of
+  filters (`{"degree": FilterSpec(selector, value)}`) to a rendered page,
+  auto-detecting a `<select>` vs. a clickable control; a filter whose
+  selector isn't present on the page is skipped, never an error.
+  `iter_filter_combinations` generates a bounded cartesian product of
+  caller-supplied options (capped by `max_combinations`) - it never
+  sweeps every possible combination on its own, matching the spec's own
+  "avoid combinatorial explosion" rule. Verified against a real mock
+  page with a `<select>` whose `onchange` visibly updates the page
+  (`tests/test_filter_engine.py`).
+- **`app/services/application_link_discovery.py`** - finds "Apply"-style
+  controls on a rendered page (matched against a broad set of apply-
+  phrase patterns, not just literal button text), reads `href` directly
+  where present, and for a control without one (a JS-driven button),
+  clicks through the interaction engine and records where that led (new
+  tab, URL change, or an in-page modal with no distinct URL). Bounded to
+  at most 5 href-less clicks per page. Never fills in a form, never
+  creates an account, never submits anything - discovery only. Verified
+  against real Chromium mock pages covering all three discovery methods
+  plus the click-count bound (`tests/test_application_link_discovery.py`).
+- **`app/services/application_link_validation.py`** - independently
+  fetches a discovered (or already-known) application URL and classifies
+  it `VALID_OFFICIAL_APPLICATION` / `VALID_AUTHORIZED_EXTERNAL_PORTAL` /
+  `INFORMATION_PAGE_ONLY` / `BROKEN` / `BLOCKED` / `UNKNOWN`, by HTTP
+  status, redirect chain, final domain, and (for a 2xx) whether the page
+  itself looks like an application flow. Only the source's own domain or
+  an explicitly pre-authorized portal domain can ever come back
+  `VALID_*` - an unrecognized-but-reachable domain comes back `UNKNOWN`
+  with `needs_review=True`, never silently treated as verified. No
+  browser needed - tested entirely with `respx`-mocked HTTP responses
+  (`tests/test_application_link_validation.py`).
+- **`app/services/content_completeness.py`** - scores a scraper
+  adapter's extracted-but-not-yet-validated field mapping 0-100 across
+  CRITICAL (title, provider)/IMPORTANT (application URL, deadline,
+  description)/OPTIONAL tiers; `needs_review` is forced True whenever any
+  CRITICAL field is missing regardless of the numeric score - the score
+  alone is never sufficient, per the spec's own rule. Runs on the raw
+  field mapping an adapter builds, before attempting to construct a
+  `NormalizedExternalOpportunity` (whose own schema already guarantees
+  title/provider are non-empty once that construction succeeds - this
+  check is what decides whether that attempt is even worth making).
+  Pure-Python, no browser needed (`tests/test_content_completeness.py`).
+- **`app/services/source_capability_profile.py`** - in-process (not
+  persisted across restarts, same design as the metrics counters below)
+  memory of what's actually been observed about a domain: does it need
+  JavaScript, what pagination shape did it use, does it have a cookie
+  banner, and so on - recorded automatically by every module above as it
+  runs, for *every* source's own domain regardless of whether that
+  source has opted into browser rendering. This is deliberately
+  observability, not automation: nothing reconfigures a source's own
+  fetch behavior on the strength of this evidence by itself -
+  `allow_browser_rendering` stays a human decision made only after the
+  kind of live-testing this whole document already requires. A future
+  session deciding whether to flip that flag on a candidate source can
+  consult this evidence rather than re-discovering it from nothing.
+- **`app/services/scraper_metrics.py`** + **`GET /api/v1/scraper-metrics`**
+  (`app/api/routes/scraper_metrics.py`, staff-gated) - process-wide
+  counters (HTTP/browser attempts and successes, JS-shell detections,
+  pagination/infinite-scroll pages visited, application-link discovery/
+  validation outcomes, cookie banners, console errors, CAPTCHA blocks,
+  timeouts) plus derived ratios; an untouched ratio reads `null`, never a
+  fabricated `0.0`. In-memory only, resets on process restart - this
+  project's existing preference for using its own logging/counters over
+  a heavyweight monitoring platform, extended here rather than replaced.
+- **`app/services/browser_rendering.py`** also gained: configurable
+  headless mode (`PLAYWRIGHT_HEADLESS`, forced back to `true` whenever
+  `APP_ENV=production` - a headed browser needs a display no deployment
+  has), generic cookie/consent-banner detection and (only within a
+  detected cookie/consent container, never page-wide) auto-accept
+  (`AUTO_ACCEPT_REQUIRED_COOKIES`), and structured console-error/page-
+  error/failed-request/HTTP-error capture classified INFO/WARNING/ERROR/
+  CRITICAL (a known third-party analytics/ad-tracker failure is
+  downgraded, never used to fail an otherwise-successful render) - all
+  verified against real Chromium and real mock pages
+  (`tests/test_browser_rendering.py`).
+- **`app/services/scraper_adapters.py`** - `GenericHTMLAdapter`/
+  `GenericJSAdapter`/`GovernmentPortalAdapter`/`UniversityPortalAdapter`/
+  `SPAAdapter` base classes, for a *future* source whose extraction is
+  simple enough to describe declaratively (CSS selectors) rather than
+  needing bespoke parsing code. None of the 43 existing sources has been
+  migrated to these, and none needs to be - "prefer generic behavior
+  first" per the spec, reached for only when it materially reduces
+  bespoke code for a genuinely new source, never forced onto working
+  code. `SPAAdapter` is deliberately left as a named interface, not a
+  generic implementation - an SPA's own click/detail-open flow is
+  inherently site-specific.
+
+**Deliberately still not built**, because no current source needs it and
+building it speculatively would be exactly the kind of premature
+generality this codebase avoids elsewhere: reverse-engineering a site's
+own internal JSON/GraphQL API (the spec's own priority order already
+prefers a documented public API when one exists - none of the JS-only
+candidates on record has one), and multi-language deduplication. If a
+future source genuinely needs one of these, it should be designed
+against that source's real, live-tested page - not built in the abstract
+ahead of any real user.
+
+**Still not independently verified in this session**, for the same
+sandbox-network reason as the original single-render fallback above: none
+of the new interaction/pagination/filter/discovery modules has been run
+against a real external JS-only site, only against local mock pages built
+specifically to exercise each code path. The mock-page tests prove the
+Playwright mechanics genuinely work (real clicks, real DOM/URL changes,
+real scrolling, real form-less link discovery); they can't prove any
+*particular* real site's own markup matches what a concrete adapter would
+need to configure. A session with a working outbound browser-automation
+path still needs to live-test against Egypt/Indonesia (or any other
+JS-only candidate) before a concrete adapter is written for either.
+
+## Requirement matrix (JavaScript/SPA scraping specification)
+
+Tracks the 2026-08-29 hybrid-discovery-engine specification's own
+numbered requirements against what's actually built, in the same
+COMPLETE / PARTIALLY_COMPLETE / BLOCKED_BY_ENVIRONMENT / NOT_APPLICABLE
+vocabulary that spec itself asks for.
+
+| Requirement | Status | Where |
+| --- | --- | --- |
+| Hybrid HTTP-first/browser-fallback architecture | COMPLETE | `web_scraper_base.py::_fetch_html` |
+| Playwright as the rendering framework | COMPLETE | `browser_rendering.py` |
+| Rendering decision engine | COMPLETE | `web_scraper_base.py::looks_javascript_rendered` |
+| Event-driven waits, never fixed `sleep()` | COMPLETE | `browser_rendering.py`, `browser_interaction.py`, `infinite_scroll_engine.py` all use `wait_for_selector`/`wait_for_function`/`wait_for_event` |
+| SPA click/detail-open navigation | COMPLETE (generic engine) | `browser_interaction.py` |
+| Pagination (standard, URL, "Load More") | COMPLETE | `pagination_engine.py` |
+| Infinite scroll | COMPLETE | `infinite_scroll_engine.py` |
+| Dynamic UI filters | COMPLETE (generic engine) | `filter_engine.py` |
+| Dynamic application-link discovery | COMPLETE | `application_link_discovery.py` |
+| Application-link validation/classification | COMPLETE | `application_link_validation.py` |
+| Cookie/consent-banner handling | COMPLETE | `browser_rendering.py::_maybe_accept_cookie_banner` |
+| JS console/page-error monitoring | COMPLETE | `browser_rendering.py`'s `PageEvent` capture + classification |
+| Content-completeness verification | COMPLETE | `content_completeness.py` |
+| Source capability profiling | COMPLETE (observability only, not automation - see above) | `source_capability_profile.py` |
+| Source-specific adapter architecture | COMPLETE (interface only; unused by existing sources) | `scraper_adapters.py` |
+| Metrics tracking | COMPLETE | `scraper_metrics.py` |
+| Metrics reporting | COMPLETE | `GET /api/v1/scraper-metrics` |
+| Headless-mode configurability | COMPLETE | `PLAYWRIGHT_HEADLESS`, forced `true` in production |
+| Browser resource management (reuse, concurrency limits, cleanup) | COMPLETE | `browser_rendering.py`'s shared `_browser`/semaphore/`finally: context.close()` |
+| CAPTCHA/anti-bot handling - never bypass | COMPLETE | `browser_rendering.py::_looks_like_a_challenge_page` (raises, never solves) |
+| API-first priority (Public API → HTTP → Playwright → manual review) | PARTIALLY_COMPLETE | HTTP-before-Playwright is real; there is no separate "check for a public API first" discovery step, because no JS-only candidate on record has ever been found to have one - would be built against a real source that needs it, not speculatively |
+| GraphQL/internal-API reverse-engineering | NOT_APPLICABLE | no current source needs it; would violate this project's own scoping discipline to build without one |
+| Multi-language deduplication | NOT_APPLICABLE | no current source needs it |
+| Docker/Playwright production validation | BLOCKED_BY_ENVIRONMENT | this sandbox's Docker daemon is not running; the `Dockerfile`'s `playwright install --with-deps chromium` step is reviewed by inspection only, never build-tested here |
+| Real JS-only source validation (Egypt, Indonesia, ...) | BLOCKED_BY_ENVIRONMENT | this sandbox's egress proxy fails at the TLS layer for real Chromium navigation to external HTTPS sites (confirmed not a cert-trust issue - plain httpx/curl work fine, only browser-driven TLS breaks); proven against local mock pages instead |
+| "Hybrid Scholarship Discovery and Verification Engine" naming | COMPLETE | this document and `Task.md`/`Changelog.md` describe it that way throughout, never as "a simple web scraper" |
 
 ## Source registry data model
 

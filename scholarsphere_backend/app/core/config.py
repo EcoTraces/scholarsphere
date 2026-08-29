@@ -44,6 +44,22 @@ class Settings(BaseSettings):
     # its resource cost when it does run.
     browser_render_timeout_ms: int = Field(default=20_000, gt=0, le=60_000)
     browser_render_max_concurrency: int = Field(default=2, gt=0, le=10)
+    # Headless is the only correct mode for a scheduled backend task - a
+    # server process has no display. This exists purely so a developer can
+    # flip PLAYWRIGHT_HEADLESS=false in their own local .env to watch a
+    # render happen while debugging a specific source; never set false in
+    # any deployed environment (enforced below).
+    browser_render_headless: bool = Field(
+        default=True, validation_alias="PLAYWRIGHT_HEADLESS"
+    )
+    # Cookie/consent banners that block access to public page content (not
+    # marketing/tracking opt-ins - see app/services/browser_rendering.py's
+    # `_maybe_accept_cookie_banner`) are auto-accepted only when this is
+    # true. Default on: refusing to click past a banner would silently
+    # blind every browser-rendered source behind one.
+    browser_auto_accept_required_cookies: bool = Field(
+        default=True, validation_alias="AUTO_ACCEPT_REQUIRED_COOKIES"
+    )
     # Left unset in every real deployment - Playwright's own browser
     # install (`playwright install chromium`, run in the Dockerfile)
     # manages its own matching browser build at its default location.
@@ -55,6 +71,16 @@ class Settings(BaseSettings):
 
     rate_limit_requests: int = Field(default=300, gt=0)
     rate_limit_window_seconds: int = Field(default=60, gt=0)
+
+    # Pagination/infinite-scroll engines (app/services/pagination_engine.py,
+    # app/services/infinite_scroll_engine.py) - defaults for any source
+    # adapter that doesn't pass its own override. Every loop these engines
+    # run stops at one of these bounds even if a "next"/"load more" control
+    # never disables itself - never an unbounded loop.
+    max_pages_per_source: int = Field(default=50, gt=0, le=500)
+    max_records_per_source: int = Field(default=5000, gt=0, le=100_000)
+    max_scroll_iterations: int = Field(default=50, gt=0, le=500)
+    scroll_stagnation_limit: int = Field(default=3, gt=0, le=20)
 
     grants_gov_base_url: str = "https://api.grants.gov/v1/api"
     simpler_grants_base_url: str = "https://api.simpler.grants.gov"
@@ -304,6 +330,16 @@ class Settings(BaseSettings):
         # service account can skip the Identity Toolkit call.
         if self.app_env == "production" and not self.firebase_check_revoked:
             self.firebase_check_revoked = True
+        return self
+
+    @model_validator(mode="after")
+    def enforce_headless_browser_rendering_in_production(self) -> "Settings":
+        # A headed (non-headless) browser needs a display server that no
+        # production/container deployment has - PLAYWRIGHT_HEADLESS=false
+        # only ever makes sense on a developer's own machine while
+        # debugging a specific source's rendering.
+        if self.app_env == "production" and not self.browser_render_headless:
+            self.browser_render_headless = True
         return self
 
     @model_validator(mode="after")

@@ -58,8 +58,11 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **586/586
-backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
+Test baseline as of this session's own verified run (2026-08-29): **670/670
+backend tests passing** (`pytest -q`; 586 as of the browser-rendering
+fallback earlier the same day, +84 for the Hybrid Scholarship Discovery
+and Verification Engine build-out described below — up from 511 on
+2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
 Australia sources, 3 for the Japan source, 8 for the Belgium/France/
@@ -1566,3 +1569,110 @@ for the full dated history.
         Full backend suite: **586/586** (`pytest -q`, up from 575).
         `pip-audit -r requirements.txt`: no known vulnerabilities in the
         new `playwright` dependency.
+
+- [x] **(2026-08-29)** Hybrid Scholarship Discovery and Verification
+      Engine — the rest of the 27-section spec, built as a continuation
+      of the browser-rendering fallback above, per an explicit
+      "continuation loop" instruction to implement every remaining
+      feasible requirement without pausing for confirmation between
+      phases. Everything below is additive: none of the 43 existing
+      scraper sources changed behavior, and none has been migrated onto
+      any of the new engines — see docs/AUTHORITATIVE_SOURCES.md's
+      "Beyond a single render" section and its requirement matrix for the
+      full per-requirement COMPLETE/PARTIALLY_COMPLETE/
+      BLOCKED_BY_ENVIRONMENT/NOT_APPLICABLE breakdown.
+      - Headless-mode configurability (`PLAYWRIGHT_HEADLESS`, forced back
+        to `true` whenever `APP_ENV=production`) and generic cookie/
+        consent-banner detection + auto-accept
+        (`AUTO_ACCEPT_REQUIRED_COOKIES`, scoped to a detected cookie/
+        consent container only — never a page-wide "Accept"/"Continue"
+        click) added directly to `browser_rendering.py`.
+      - `browser_rendering.py` also gained structured console-error/page-
+        error/failed-request/HTTP-error capture, classified INFO/
+        WARNING/ERROR/CRITICAL — a known third-party analytics/tracker
+        failure is downgraded, never used to fail an otherwise-good
+        render; a same-origin 5xx is CRITICAL.
+      - New `app/services/browser_interaction.py`
+        (`BrowserInteractionEngine`): click/wait-for-selector/extract-
+        URL/capture-content primitives on a live Playwright page, plus
+        `wait_for_navigation_or_change`, which races a new tab, a URL
+        change (including a client-side `history.pushState` route), or
+        an in-page DOM change under a bounded timeout — never
+        `sleep()`. New `browser_rendering.interactive_session` context
+        manager shares the reused-browser/semaphore/HTTPS-only/cookie-
+        banner machinery for anything needing more than one render.
+      - New `app/services/pagination_engine.py`: `paginate_by_url` (no
+        browser needed) for `?page=N` pagination, `paginate_by_click`
+        (one function handling both a "Next" button and a "Load More"
+        control, since it dedupes by key rather than assuming the
+        shape) for click-driven pagination. Bounded by new
+        `MAX_PAGES_PER_SOURCE`/`MAX_RECORDS_PER_SOURCE` settings; stops
+        on an empty page, no new records, a disabled/absent "next"
+        control, or a fetch failure.
+      - New `app/services/infinite_scroll_engine.py`: render → extract →
+        scroll → wait for real DOM growth → extract → compare →
+        continue. Bounded by new `MAX_SCROLL_ITERATIONS`/
+        `SCROLL_STAGNATION_LIMIT` settings.
+      - New `app/services/filter_engine.py`: applies a caller-described
+        filter set (auto-detecting a `<select>` vs. a clickable
+        control; an absent selector is skipped, never an error).
+        `iter_filter_combinations` yields a bounded cartesian product —
+        never an automatic sweep of every combination.
+      - New `app/services/application_link_discovery.py`: finds
+        "Apply"-style controls (broad phrase matching, not just literal
+        button text), reads `href` directly where present, and for a
+        control without one, clicks through the interaction engine and
+        records where that led (new tab / URL change / in-page modal).
+        Bounded to 5 href-less clicks per page. Never fills in a form,
+        never creates an account, never submits anything.
+      - New `app/services/application_link_validation.py`: independently
+        fetches a discovered/known application URL and classifies it
+        `VALID_OFFICIAL_APPLICATION` / `VALID_AUTHORIZED_EXTERNAL_PORTAL`
+        / `INFORMATION_PAGE_ONLY` / `BROKEN` / `BLOCKED` / `UNKNOWN` by
+        HTTP status, redirect chain, final domain, and page content —
+        only the source's own domain or an explicitly pre-authorized
+        portal domain can ever come back `VALID_*`; everything else is
+        `needs_review=True`, never silently treated as verified.
+      - New `app/services/content_completeness.py`: scores a scraper
+        adapter's raw extracted field mapping 0-100 across CRITICAL/
+        IMPORTANT/OPTIONAL tiers, run *before* attempting to construct a
+        `NormalizedExternalOpportunity`; `needs_review` is forced True
+        whenever any CRITICAL field is missing regardless of score.
+      - New `app/services/source_capability_profile.py`: in-process
+        (not persisted) memory of what's actually been observed about a
+        domain — requires JS, pagination shape, cookie banner, and so
+        on — recorded automatically by every module above, for every
+        source's own domain regardless of whether it has opted into
+        browser rendering. Deliberately observability, not automation:
+        nothing reconfigures a source's fetch behavior from this
+        evidence alone — `allow_browser_rendering` stays a human
+        decision made only after live-testing, same as always.
+      - New `app/services/scraper_metrics.py` (process-wide counters +
+        derived ratios — an untouched ratio reads `None`/`null`, never a
+        fabricated `0.0`) and `GET /api/v1/scraper-metrics`
+        (`app/api/routes/scraper_metrics.py`, staff-gated) to read them.
+      - New `app/services/scraper_adapters.py`:
+        `GenericHTMLAdapter`/`GenericJSAdapter`/`GovernmentPortalAdapter`/
+        `UniversityPortalAdapter`/`SPAAdapter` base classes for a
+        *future* source simple enough to describe declaratively — none
+        of the 43 existing sources migrated, none needs to be.
+      - Deliberately **still** not built, as premature generality with
+        zero current users: reverse-engineering a site's own internal
+        JSON/GraphQL API (no JS-only candidate on record has one), and
+        multi-language deduplication.
+      - **Still not independently verified against a real external
+        site** — same sandbox limitation as the original browser-
+        rendering fallback (the egress proxy fails at the TLS layer for
+        real Chromium navigation to external HTTPS sites). Every new
+        module is proven against real Chromium and purpose-built local
+        mock pages, which proves the Playwright mechanics genuinely
+        work; it can't prove what a concrete adapter for Egypt/
+        Indonesia would need to configure against their real markup.
+        Docker also remains unbuildable in this sandbox (daemon not
+        running) — the Dockerfile needed no changes for this pass, but
+        that's still unverified by an actual build here.
+      - Verified: 84 new tests across 12 new test files plus additions
+        to `tests/test_browser_rendering.py` (11 more there). Full
+        backend suite confirmed green after every individual phase, and
+        the complete suite collects and passes at **670/670**
+        (`pytest -q`, up from 586).

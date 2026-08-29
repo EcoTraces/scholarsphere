@@ -34,6 +34,8 @@ from bs4 import BeautifulSoup, Tag
 from app.core.http_client import get_html
 from app.schemas.external_opportunity import NormalizedExternalOpportunity
 from app.services.base_source import OpportunitySource
+from app.services.scraper_metrics import get_metrics
+from app.services.source_capability_profile import get_capability_registry
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +132,7 @@ class WebScraperSource(OpportunitySource):
         return BeautifulSoup(html, "html.parser")
 
     async def _fetch_html(self, url: str) -> str:
+        metrics = get_metrics()
         host = urlsplit(url).hostname or ""
         async with _lock_for(host):
             last = _last_request_at.get(host)
@@ -137,13 +140,23 @@ class WebScraperSource(OpportunitySource):
                 wait = self.min_request_interval_seconds - (monotonic() - last)
                 if wait > 0:
                     await asyncio.sleep(wait)
+            metrics.increment("http_attempts")
             try:
                 html = await get_html(url)
+                metrics.increment("http_successes")
             finally:
                 _last_request_at[host] = monotonic()
 
-        if self.allow_browser_rendering and looks_javascript_rendered(html):
+        needs_js = looks_javascript_rendered(html)
+        if host:
+            get_capability_registry().record(host, requires_javascript=needs_js)
+
+        if self.allow_browser_rendering and needs_js:
+            metrics.increment("javascript_pages")
+            metrics.increment("browser_fallbacks")
             html = await self._fetch_rendered_html(url, fallback=html)
+        else:
+            metrics.increment("static_pages")
         return html
 
     async def _fetch_rendered_html(self, url: str, *, fallback: str) -> str:
@@ -152,10 +165,13 @@ class WebScraperSource(OpportunitySource):
         # playwright, let alone requires it to be installed.
         from app.services.browser_rendering import fetch_rendered_html
 
+        metrics = get_metrics()
         try:
-            return await fetch_rendered_html(
+            html = await fetch_rendered_html(
                 url, wait_for_selector=self.browser_wait_for_selector
             )
+            metrics.increment("browser_successes")
+            return html
         except Exception as exc:  # noqa: BLE001
             # Never let a browser-rendering failure crash this source's
             # sync task (and, with it, every other source scheduled
@@ -163,6 +179,7 @@ class WebScraperSource(OpportunitySource):
             # this source's own downstream parsing already handles
             # gracefully (a missing selector yields a safe default, not a
             # crash - see tests/test_scraper_resilience.py).
+            metrics.increment("browser_failures")
             logger.warning(
                 "browser_render_failed_falling_back_to_http url=%s error=%s",
                 url,
