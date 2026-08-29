@@ -28,6 +28,56 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-29] — Asia: first research pass on South Korea, Saudi Arabia, Qatar, Thailand; 3 sources added
+
+A dedicated **first** research pass on the four remaining named Asian
+countries from the master prompt (China and India already had narrower
+coverage). 3 real sources added:
+
+- **South Korea** (GKS Global Korea Scholarship Program, run by NIIED):
+  the page's only `<h1>` is the site logo, not a title — solved with
+  `<h2 class="title">GKS (Global Korea Scholarship) Program</h2>`, the
+  first of two matches (the second is a sibling "Other Scholarships"
+  tab). Content scoped to `#gks-tab1`, confirmed to hold only the GKS
+  section.
+- **Saudi Arabia** (MOE Government University Scholarships): no `<h1>`,
+  and the `<title>` tag interleaves Arabic and English with the real
+  text in the second segment — since `title_tag_separator` only
+  supports the first segment, this source falls back to a title
+  formatted from `external_id` rather than mis-extracting the Arabic
+  half or special-casing the shared base class.
+- **Qatar** (Qatar Scholarships, run by the Qatar Fund For
+  Development/QFFD): the homepage is a JS-rendered SPA serving only an
+  empty "offline" shell to a non-JS client — used `/en-US/Programs`
+  instead, a server-rendered route with real content. `robots.txt` uses
+  the newer "content-signal" convention but sets no actual value for
+  any use — documented explicitly as a genuine absence of restriction.
+
+All three follow this initiative's established honesty discipline:
+`funding_type = None` wherever the page bundles sub-programs with
+conflicting funding coverage (Saudi Arabia's three explicit tiers,
+Qatar's partner institutions with differing tuition coverage), kept at
+`fully_funded` only where genuinely supported (South Korea's explicit
+"Airfare, language training costs, tuition, and study allowances").
+
+**Thailand** was investigated and found `NOT_SUITABLE`, not implemented:
+the government's real scholarship info lives in a rolling year-dated
+announcement feed (`ops.go.th`), and a second candidate "about" page
+(TICA's own TIPP overview) was real but frozen content from ~2013-2015,
+not the current cycle.
+
+Source count 34 → 37. `docs/AUTHORITATIVE_SOURCES.md` (#34-#36) and
+`docs/COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Asia" section
+covering all 4 findings) fully updated.
+
+Verified: 6 new tests (2 per source) against real fixtures; full backend
+suite **561/561** (`pytest -q`).
+
+24 of the master prompt's ~40 named countries/regions now have at least
+one real source (up from 21). The only remaining unresearched territory:
+the remaining named European countries (Switzerland, Poland, Czech
+Republic, Croatia, Serbia, Romania, Norway, Finland).
+
 ## [2026-08-29] — South America: first research pass across all 9 countries; Colombia, Chile, Peru added
 
 A dedicated **first** research pass on South America — none of its 9

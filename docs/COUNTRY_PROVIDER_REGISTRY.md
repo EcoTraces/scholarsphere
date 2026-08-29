@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (22, across multiple sessions)
+## Implemented (25, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -59,6 +59,9 @@ that were actually built this session (in two batches).
 | 31 | Beca Colombia Extranjeros | Colombia | GOVERNMENT | web.icetex.gov.co | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 32 | Becas para Extranjeros | Chile | GOVERNMENT | agcid.gob.cl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 33 | Beca Alianza del Pacífico | Peru | GOVERNMENT | pronabec.gob.pe | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 34 | GKS (Global Korea Scholarship) Program | South Korea | GOVERNMENT | studyinkorea.go.kr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 35 | Government University Scholarships | Saudi Arabia | GOVERNMENT | moe.gov.sa | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 36 | Qatar Scholarships | Qatar | GOVERNMENT | qatarscholarships.qa | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -306,6 +309,51 @@ path before any implementation decision.
 
 ---
 
+## Asia — remaining named countries (first research pass, 2026-08-29)
+
+The four remaining named Asian countries from the master prompt not yet
+covered by any prior source (China and India already have narrower
+existing coverage). Each was checked for a genuine *inbound* single-
+flagship government program, live-verified via both `curl` and this
+backend's actual httpx path before any implementation decision.
+
+### South Korea — implemented, see source #34 above (live-verified 2026-08-29)
+
+### Saudi Arabia — implemented, see source #35 above (live-verified 2026-08-29)
+
+### Qatar — implemented, see source #36 above (live-verified 2026-08-29)
+
+### Thailand — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
+- Thailand's Ministry of Higher Education, Science, Research and
+  Innovation (MHESI) publishes its international scholarship
+  announcements on `ops.go.th` as a rolling, year-dated news feed (e.g.
+  "Thailand Scholarships (Year 2025) for International Students",
+  "Thailand Scholarships for Austrian Students (ASEA-UNINET) 2026") —
+  the same "multi-entry feed, not one page" shape already set aside for
+  Argentina and France's Campus Bourses. There is no evergreen URL for
+  "this year's" cycle; each year's announcement lives at its own
+  year-slugged path.
+- A second candidate, TICA's (Thailand International Cooperation
+  Agency) own overview page for its flagship Thai International
+  Postgraduate Programme (TIPP) at `tica-thaigov.mfa.go.th`, was also
+  fetched and rejected: its content is real but frozen from around
+  2013–2015 (explicitly discussing "the TIPP programme 2014" and
+  carrying a "Copyright © 2015" footer, despite a 2022 "last updated"
+  timestamp) — stale in the same way already ruled out for Ecuador's
+  Prometeo program, not a current description of the active 2026/2027
+  cycle referenced elsewhere in current search results.
+- Note: this specific host (`ops.go.th`) was intermittently unreachable
+  during initial testing (timeouts on several `curl` and httpx
+  attempts) but succeeded consistently once retried with this backend's
+  actual production request shape (its registered `User-Agent` header
+  and full 40s timeout) — a transient connectivity issue, not a real
+  block, per this project's established retry discipline.
+- **Classification**: `NOT_SUITABLE` for the single-flagship pattern —
+  the real government mechanism is a rolling year-dated announcement
+  feed, and the one evergreen "about" page found is stale.
+
+---
+
 ## Country coverage summary
 
 | Country/Region | Status | Notes |
@@ -343,6 +391,10 @@ path before any implementation decision.
 | Ecuador | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — outbound program only; historical inbound program's current status unconfirmed |
 | Paraguay | NOT_SUITABLE | Confirmed 2026-08-29 — residency-restricted/outbound only |
 | Bolivia | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — no inbound program found |
+| South Korea | SUPPORTED | Live-verified 2026-08-29 |
+| Saudi Arabia | SUPPORTED | Live-verified 2026-08-29 |
+| Qatar | SUPPORTED | Live-verified 2026-08-29 |
+| Thailand | NOT_SUITABLE | Confirmed 2026-08-29 — real mechanism is a year-dated announcement feed; the one evergreen "about" page found is stale (frozen ~2013-2015 content) |
 
 **19 of 24 original targets have a genuinely integrated provider** (15
 fully live-verified, 4 implemented-but-live-blocked/partially-blocked with
@@ -372,26 +424,46 @@ database, not a single page; Uruguay and Paraguay - both
 residency-restricted, not open to global inbound applicants), and 2 have
 `NO_RELIABLE_SOURCE_FOUND` (Ecuador, Bolivia).
 
+**The four remaining named Asian countries (South Korea, Saudi Arabia,
+Qatar, Thailand), also researched for the first time this session, add
+3 more live-verified sources** (South Korea, Saudi Arabia, Qatar) — see
+the dedicated section above. Thailand came back `NOT_SUITABLE` — its
+government's real scholarship information lives in a rolling, year-dated
+announcement feed rather than one evergreen page, and the one candidate
+"about" page found on a different official domain was stale (frozen
+~2013-2015 content, not the currently active cycle).
+
 ## Recommended next candidates
 
-**The original 24-country queue is empty**, and South America (the
-biggest previously-untouched region) has now had its first full research
-pass too (2026-08-29) — see the dedicated section above. Every one of
-its 9 countries is now either a real, live-verified source (Colombia,
-Chile, Peru) or a confirmed, evidence-backed `BLOCKED` / `NOT_SUITABLE` /
-`NO_RELIABLE_SOURCE_FOUND` finding (Brazil, Argentina, Uruguay, Ecuador,
-Paraguay, Bolivia) — none are left as stale guesses. The 2 entries still
-under "Researched, not yet implemented" above (Cyprus, UAE) are there
-because they genuinely can't be reached or don't fit this system's
-single-flagship pattern, not because they're unresearched.
+**The original 24-country queue is empty**, South America has had its
+first full research pass (2026-08-29), and the four remaining named
+Asian countries have too — see the dedicated sections above. Every
+country checked in both passes is now either a real, live-verified
+source or a confirmed, evidence-backed `BLOCKED` / `NOT_SUITABLE` /
+`NO_RELIABLE_SOURCE_FOUND` finding — none are left as stale guesses. The
+2 entries still under "Researched, not yet implemented" above (Cyprus,
+UAE) are there because they genuinely can't be reached or don't fit this
+system's single-flagship pattern, not because they're unresearched.
 
 The only way to add more real coverage from here is a **first** research
-pass on regions entirely outside this registry: most of Asia (South
-Korea, Saudi Arabia, Qatar, Thailand — China and India already have
-narrower partial coverage), and most of the remaining named European
-countries (Switzerland, Poland, Czech Republic, Croatia, Serbia, Romania,
-Norway, Finland) — see the chat history of this initiative for the full
-outstanding list from the original request.
+pass on the remaining named European countries (Switzerland, Poland,
+Czech Republic, Croatia, Serbia, Romania, Norway, Finland) — the last
+unresearched region from the original master-prompt request.
+
+The only way to add more real coverage from here is a **first** research
+pass on the remaining named European countries (Switzerland, Poland,
+Czech Republic, Croatia, Serbia, Romania, Norway, Finland) — the last
+unresearched region from the original master-prompt request.
+
+**Implemented since the eighth pass (the four remaining named Asian
+countries, a dedicated first-pass research effort)**: South Korea (GKS
+Program), Saudi Arabia (MOE Government University Scholarships), and
+Qatar (Qatar Scholarships/QFFD), all fully live-verified — see
+`docs/AUTHORITATIVE_SOURCES.md` #34-#36. Thailand was investigated in
+the same pass and found `NOT_SUITABLE` (a rolling year-dated
+announcement feed rather than one evergreen page, plus one stale
+candidate "about" page from a different domain) rather than implemented
+— see its entry in the Asia section above.
 
 **Implemented since the seventh pass (South America, a dedicated
 first-pass research effort covering all 9 countries in the region)**:

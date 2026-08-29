@@ -58,17 +58,18 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **555/555
+Test baseline as of this session's own verified run (2026-08-29): **561/561
 backend tests passing** (`pytest -q`, up from 511 on 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
 Australia sources, 3 for the Japan source, 8 for the Belgium/France/
 Austria/Morocco sources, 2 for the Portugal source, 2 for the Colombia
-source, 2 for the Chile source, 2 for the Peru source). Flutter suite not
-re-run this session (no Flutter SDK available in this environment); one
-small Flutter data-layer addition landed (see Completed Tasks'
-master-prompt entry) but was not compiled or run. Re-run both suites
-before trusting these numbers
+source, 2 for the Chile source, 2 for the Peru source, 2 for the South
+Korea source, 2 for the Saudi Arabia source, 2 for the Qatar source).
+Flutter suite not re-run this session (no Flutter SDK available in this
+environment); one small Flutter data-layer addition landed (see Completed
+Tasks' master-prompt entry) but was not compiled or run. Re-run both
+suites before trusting these numbers
 if more than a few commits have landed since.
 
 ---
@@ -1235,4 +1236,60 @@ for the full dated history.
         18). Remaining unresearched territory: most of Asia (South
         Korea, Saudi Arabia, Qatar, Thailand), and the remaining named
         European countries (Switzerland, Poland, Czech Republic,
+        Croatia, Serbia, Romania, Norway, Finland).
+
+- [x] **(2026-08-29)** The four remaining named Asian countries — a
+      dedicated **first** research pass (South Korea, Saudi Arabia,
+      Qatar, Thailand; China and India already had narrower coverage).
+      3 real sources added:
+      - **South Korea** (GKS Global Korea Scholarship Program, run by
+        NIIED): the page's only `<h1>` is the site logo, not a title —
+        solved with `<h2 class="title">GKS (Global Korea Scholarship)
+        Program</h2>`, the first of two matches (the second is a
+        sibling "Other Scholarships" tab). Content scoped to
+        `#gks-tab1`, confirmed to hold only the GKS section (the
+        surrounding `main` also contains the other tab's content
+        further down the DOM). `funding_type = "fully_funded"` — the
+        page states "Airfare, language training costs, tuition, and
+        study allowances" explicitly.
+      - **Saudi Arabia** (MOE Government University Scholarships): no
+        `<h1>`, and the `<title>` tag interleaves Arabic and English
+        with the real text in the *second* segment — since
+        `title_tag_separator` only supports the first segment (a
+        deliberate shared-pattern limitation, not special-cased for one
+        source), this source falls back to a title formatted from
+        `external_id`. `funding_type = None` — the page explicitly
+        states three distinct funding tiers (free/partial/paid).
+      - **Qatar** (Qatar Scholarships, run by the Qatar Fund For
+        Development/QFFD): the homepage is a JS-rendered SPA that
+        serves only an empty "offline" shell to a non-JS client — used
+        `/en-US/Programs` instead, a server-rendered route with real
+        content. `robots.txt` uses the newer "content-signal"
+        convention but sets no actual value for any use — documented
+        explicitly as a genuine absence of restriction, not an ordinary
+        permissive robots.txt. `funding_type = None` — the page bundles
+        partner-institution programs with conflicting funding (some
+        full tuition waiver, one explicitly partial tuition).
+      - **Thailand** was investigated and found `NOT_SUITABLE`, not
+        implemented: the government's real scholarship info lives in a
+        rolling year-dated announcement feed (`ops.go.th`), and a
+        second candidate "about" page (TICA's own TIPP overview) was
+        real but frozen content from ~2013-2015, not the current cycle.
+        Note: this host was intermittently unreachable in initial
+        testing but succeeded consistently once retried with this
+        backend's actual production request shape (registered
+        User-Agent, full 40s timeout) — a transient connectivity issue,
+        not a real block.
+      - Source count 34 → 37. Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #34-#36, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Asia" section with
+        all 4 findings; Implemented table extended; coverage summary and
+        recommended-next-candidates rewritten).
+      - Verified: 6 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **561/561** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 24
+        countries/regions now have at least one real source (up from
+        21). The only remaining unresearched territory: the remaining
+        named European countries (Switzerland, Poland, Czech Republic,
         Croatia, Serbia, Romania, Norway, Finland).

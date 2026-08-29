@@ -22,7 +22,10 @@ from app.services.national_scholarship_programs import (
     NetherlandsNufficScholarshipSource,
     PeruPronabecAlianzaPacificoSource,
     PortugalCamoesScholarshipSource,
+    QatarScholarshipsSource,
+    SaudiArabiaMoeScholarshipSource,
     SouthAfricaNrfScholarshipSource,
+    SouthKoreaGksScholarshipSource,
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     TurkiyeBurslariSource,
@@ -840,6 +843,136 @@ async def test_peru_pronabec_collect_normalizes_real_fixture(
 
 def test_peru_pronabec_never_attempts_deadline_extraction() -> None:
     assert PeruPronabecAlianzaPacificoSource.deadline_keywords == ()
+
+
+# --- South Korea GKS: real fixture, fetched 2026-08-29 -----------------------
+
+
+@pytest.mark.asyncio
+async def test_south_korea_gks_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = SouthKoreaGksScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("south_korea_gks_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "south-korea-gks-scholarship"
+    # The page's only <h1> is the site logo, not a title - correctly
+    # picks the first of two h2.title matches (the GKS section, not the
+    # sibling "Other Scholarships" tab).
+    assert opportunity.title == "GKS (Global Korea Scholarship) Program"
+    assert opportunity.country == "South Korea"
+    assert opportunity.provider_name == (
+        "National Institute for International Education (NIIED), "
+        "Ministry of Education, South Korea"
+    )
+    assert opportunity.description is not None
+    assert "Airfare" in opportunity.description
+    # The page states explicit benefits (airfare, language training,
+    # tuition, study allowances) - genuinely supported, same reasoning
+    # as Japan MEXT and Portugal Camões.
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_south_korea_gks_never_attempts_deadline_extraction() -> None:
+    assert SouthKoreaGksScholarshipSource.deadline_keywords == ()
+
+
+# --- Saudi Arabia MOE: real fixture, fetched 2026-08-29 -----------------------
+
+
+@pytest.mark.asyncio
+async def test_saudi_arabia_moe_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = SaudiArabiaMoeScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("saudi_arabia_moe_scholarships.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "saudi-arabia-moe-public-university-scholarships"
+    )
+    # The page has no <h1>, and its <title> tag interleaves Arabic and
+    # English with the real text in the second segment (unsupported by
+    # the shared first-segment-only title_tag_separator) - correctly
+    # falls back to a title formatted from external_id.
+    assert opportunity.title == (
+        "Saudi Arabia Moe Public University Scholarships"
+    )
+    assert opportunity.country == "Saudi Arabia"
+    assert opportunity.provider_name == "Ministry of Education (MOE), Saudi Arabia"
+    assert opportunity.description is not None
+    assert "External scholarships" in opportunity.description
+    # The page states three distinct funding tiers (free/partial/paid) -
+    # correctly null rather than asserting one tier for the whole page.
+    assert opportunity.funding_type is None
+    assert opportunity.deadline is None
+
+
+def test_saudi_arabia_moe_never_attempts_deadline_extraction() -> None:
+    assert SaudiArabiaMoeScholarshipSource.deadline_keywords == ()
+
+
+# --- Qatar Scholarships: real fixture, fetched 2026-08-29 --------------------
+
+
+@pytest.mark.asyncio
+async def test_qatar_scholarships_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = QatarScholarshipsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("qatar_scholarships_programs.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "qatar-scholarships-programs"
+    # No <h1> at all - falls back to the <title> tag split on the
+    # literal newline.
+    assert opportunity.title == "Programs"
+    assert opportunity.country == "Qatar"
+    assert opportunity.provider_name == (
+        "Qatar Fund For Development (QFFD) - Qatar Scholarships"
+    )
+    assert opportunity.description is not None
+    assert "Lusail University" in opportunity.description
+    # The page bundles partner-institution programs with conflicting
+    # funding (some state full tuition waiver, the HBKU/Geneva Graduate
+    # Institute program explicitly states partial tuition) - correctly
+    # null rather than asserting one program's formula for the whole
+    # page, the same reasoning as Chile AGCID.
+    assert opportunity.funding_type is None
+    assert opportunity.deadline is None
+
+
+def test_qatar_scholarships_never_attempts_deadline_extraction() -> None:
+    assert QatarScholarshipsSource.deadline_keywords == ()
 
 
 # --- Cross-cutting: missing title/content fallback ------------------------

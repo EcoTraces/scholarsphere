@@ -67,7 +67,10 @@ from app.services.national_scholarship_programs import (
     NetherlandsNufficScholarshipSource,
     PeruPronabecAlianzaPacificoSource,
     PortugalCamoesScholarshipSource,
+    QatarScholarshipsSource,
+    SaudiArabiaMoeScholarshipSource,
     SouthAfricaNrfScholarshipSource,
+    SouthKoreaGksScholarshipSource,
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     TurkiyeBurslariSource,
@@ -234,6 +237,18 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_peru_pronabec",
             "schedule": crontab(minute=15, hour=9),
         },
+        "sync-south-korea-gks": {
+            "task": "app.tasks.opportunity_sync.sync_south_korea_gks",
+            "schedule": crontab(minute=30, hour=9),
+        },
+        "sync-saudi-arabia-moe": {
+            "task": "app.tasks.opportunity_sync.sync_saudi_arabia_moe",
+            "schedule": crontab(minute=45, hour=9),
+        },
+        "sync-qatar-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_qatar_scholarships",
+            "schedule": crontab(minute=0, hour=10),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -301,6 +316,9 @@ SOURCE_TASK_NAMES = {
     "colombia_icetex": "app.tasks.opportunity_sync.sync_colombia_icetex",
     "chile_agcid": "app.tasks.opportunity_sync.sync_chile_agcid",
     "peru_pronabec": "app.tasks.opportunity_sync.sync_peru_pronabec",
+    "south_korea_gks": "app.tasks.opportunity_sync.sync_south_korea_gks",
+    "saudi_arabia_moe": "app.tasks.opportunity_sync.sync_saudi_arabia_moe",
+    "qatar_scholarships": "app.tasks.opportunity_sync.sync_qatar_scholarships",
 }
 
 
@@ -810,6 +828,47 @@ def sync_peru_pronabec(
     return _execute_source_task(self, "peru_pronabec", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_south_korea_gks",
+    max_retries=3,
+)
+def sync_south_korea_gks(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "south_korea_gks", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_saudi_arabia_moe",
+    max_retries=3,
+)
+def sync_saudi_arabia_moe(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "saudi_arabia_moe", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_qatar_scholarships",
+    max_retries=3,
+)
+def sync_qatar_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "qatar_scholarships", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1043,6 +1102,9 @@ def _collector(source_code: str) -> Any:
         "colombia_icetex": ColombiaIcetexBecaExtranjerosSource,
         "chile_agcid": ChileAgcidScholarshipSource,
         "peru_pronabec": PeruPronabecAlianzaPacificoSource,
+        "south_korea_gks": SouthKoreaGksScholarshipSource,
+        "saudi_arabia_moe": SaudiArabiaMoeScholarshipSource,
+        "qatar_scholarships": QatarScholarshipsSource,
     }[source_code]()
 
 

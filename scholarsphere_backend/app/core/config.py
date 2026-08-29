@@ -165,6 +165,9 @@ class Settings(BaseSettings):
     colombia_icetex_base_url: str = "https://web.icetex.gov.co"
     chile_agcid_base_url: str = "https://www.agcid.gob.cl"
     peru_pronabec_base_url: str = "https://www.pronabec.gob.pe"
+    south_korea_gks_base_url: str = "https://www.studyinkorea.go.kr"
+    saudi_arabia_moe_base_url: str = "https://www.moe.gov.sa"
+    qatar_scholarships_base_url: str = "https://www.qatarscholarships.qa"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -250,6 +253,9 @@ class Settings(BaseSettings):
         "colombia_icetex_base_url",
         "chile_agcid_base_url",
         "peru_pronabec_base_url",
+        "south_korea_gks_base_url",
+        "saudi_arabia_moe_base_url",
+        "qatar_scholarships_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

@@ -1035,3 +1035,153 @@ class PeruPronabecAlianzaPacificoSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().peru_pronabec_base_url
+
+
+class SouthKoreaGksScholarshipSource(_SingleProgramSource):
+    """GKS (Global Korea Scholarship) Program - run by NIIED (National
+    Institute for International Education), under South Korea's Ministry
+    of Education. Confirmed 2026-08-29 (both via `curl` and this
+    backend's actual httpx path, no spoofed user agent needed - 200,
+    real HTML, ~124KB): `robots.txt` (`Allow: /` plus a narrow
+    `Disallow: /Sims/`) does not disallow this path.
+
+    The page's only real `<h1>` is the site logo ("StudyinKorea"), not a
+    page title - the real title comes from `<h2 class="title">GKS
+    (Global Korea Scholarship) Program</h2>`, the first of two matches
+    for that selector (the second, "Other Scholarships", is a sibling
+    tab for unrelated non-GKS programs). Content is scoped to
+    `#gks-tab1`, the specific tab panel confirmed to hold only the GKS
+    section (11,904 characters) - the surrounding `main` element also
+    contains the "Other Scholarships" tab's content later in the DOM
+    (confirmed by locating its heading at character 18,810, well past
+    `#gks-tab1`'s own length), so `main` alone would risk bleeding
+    unrelated content into a longer description.
+
+    `deadline_keywords = ()`: applications route through either a
+    Korean embassy (Embassy Track) or a designated university
+    (University Track), each with its own sub-quota and schedule
+    described only by month, not by any parseable date literal - the
+    same embassy/university-track pattern already established for Japan
+    MEXT. `funding_type` is kept at this pattern's `fully_funded`
+    default - the page explicitly states benefits include "Airfare,
+    language training costs, tuition, and study allowances", the same
+    reasoning already applied to Japan MEXT and Portugal Camões.
+    """
+
+    source_code = "south_korea_gks"
+    overview_path = "/in/plan/scholarship.do"
+    title_selectors = ("h2.title",)
+    content_selectors = ("#gks-tab1",)
+    deadline_keywords = ()
+    provider_name = (
+        "National Institute for International Education (NIIED), "
+        "Ministry of Education, South Korea"
+    )
+    country = "South Korea"
+    external_id = "south-korea-gks-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().south_korea_gks_base_url
+
+
+class SaudiArabiaMoeScholarshipSource(_SingleProgramSource):
+    """Government University Scholarships - Saudi Arabia's Ministry of
+    Education (MOE). Confirmed 2026-08-29 (both via `curl` and this
+    backend's actual httpx path - 200, real HTML, ~108KB): `robots.txt`
+    only disallows `/Lists/`, not this path.
+
+    The page (a SharePoint site) has no `<h1>` at all, and its `<title>`
+    tag interleaves Arabic and English ("وزارة التعليم | \n\tScholarships
+    in Public Universities:") with the real English text in the
+    *second* segment - `title_tag_separator` only supports taking the
+    first segment (by design, so every source shares one simple rule
+    rather than each needing its own split-direction flag), so this
+    source deliberately leaves `title_selectors = ()` and
+    `title_tag_separator` unset, falling through to this pattern's
+    final fallback (a title formatted from `external_id`) rather than
+    mis-extracting the Arabic half or special-casing the shared base
+    class for one source. Content is scoped to `.ms-rtestate-field`,
+    the single SharePoint rich-text field on the page (confirmed unique,
+    ~6.9KB).
+
+    Two deliberate honesty choices, both forced by the page's own text:
+    - `funding_type = None` - the page explicitly states Saudi
+      government scholarships come in three distinct tiers ("free
+      scholarships in which the student gets full benefits", "partial
+      scholarships", and "grants paid for"), so no single funding label
+      can honestly describe the whole opportunity - the same reasoning
+      already applied to Chile AGCID.
+    - `deadline_keywords = ()` - the page states explicitly "The opening
+      date for the scholarship application program is determined
+      according to the requirements of the academic year at
+      universities", i.e. decentralized per-university, no single
+      global deadline - the same pattern already established for the
+      Netherlands (Nuffic).
+    """
+
+    source_code = "saudi_arabia_moe"
+    overview_path = (
+        "/en/education/ResidentsAndvisitors/Pages/"
+        "PublicUniversitiesScholarships.aspx"
+    )
+    title_selectors = ()
+    content_selectors = (".ms-rtestate-field",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = "Ministry of Education (MOE), Saudi Arabia"
+    country = "Saudi Arabia"
+    external_id = "saudi-arabia-moe-public-university-scholarships"
+
+    def _base_url(self) -> str:
+        return get_settings().saudi_arabia_moe_base_url
+
+
+class QatarScholarshipsSource(_SingleProgramSource):
+    """Qatar Scholarships - run by the Qatar Fund For Development (QFFD)
+    in partnership with Qatari higher-education institutions (Lusail
+    University, Hamad Bin Khalifa University/Geneva Graduate Institute,
+    Doha Institute for Graduate Studies). Confirmed 2026-08-29 (both via
+    `curl` and this backend's actual httpx path - 200, real HTML,
+    ~178KB): `robots.txt` declares awareness of the newer
+    "content-signal" convention but sets no actual `search`/`ai-input`/
+    `ai-train` value either way for any use, and contains no classic
+    `Disallow` rule for this path either - by the file's own stated
+    rule ("If the website operator does not include a content signal
+    for a corresponding use, the website operator neither grants nor
+    restricts permission"), this is a documented absence of restriction
+    for this platform's use (structured opportunity-discovery
+    extraction with mandatory human officer review before publication),
+    not a green light to ignore, so it's recorded explicitly here rather
+    than treated as an ordinary permissive `robots.txt`.
+
+    The homepage itself is a JS-rendered single-page app that serves
+    only a near-empty "offline, read-only" shell to a non-JS client -
+    `/en-US/Programs` was used instead, a server-rendered route with
+    real substantial content (~47KB after cleaning). The page has no
+    `<h1>`; `<title>` is "Programs\n\t\t· Qatar Scholarships", split on
+    the literal newline.
+
+    `funding_type = None`: the page describes several partner-
+    institution programs with materially different funding - Lusail
+    University and Doha Institute both state "Full tuition waiver...
+    Monthly stipend... Medical insurance", but the HBKU/Geneva Graduate
+    Institute Executive Diploma explicitly states "**Partial** tuition*
+    ... *Students contribute CHF3,500 toward their tuition" - the same
+    multi-program funding conflict already handled honestly for Chile
+    AGCID. `deadline_keywords = ()`: no deadline-style date literal
+    appears anywhere on the page.
+    """
+
+    source_code = "qatar_scholarships"
+    overview_path = "/en-US/Programs"
+    title_selectors = ()
+    title_tag_separator = "\n"
+    content_selectors = (".page_content",)
+    deadline_keywords = ()
+    funding_type = None
+    provider_name = "Qatar Fund For Development (QFFD) - Qatar Scholarships"
+    country = "Qatar"
+    external_id = "qatar-scholarships-programs"
+
+    def _base_url(self) -> str:
+        return get_settings().qatar_scholarships_base_url

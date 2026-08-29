@@ -1188,6 +1188,161 @@ program.
 
 ---
 
+## 34. GKS (Global Korea Scholarship) Program (South Korea)
+
+- **Organization**: NIIED – National Institute for International
+  Education, under South Korea's Ministry of Education
+- **Route code**: `south-korea-gks` (`south_korea_gks` internally)
+- **Official domain / base URL**: `https://www.studyinkorea.go.kr`
+  (`SOUTH_KOREA_GKS_BASE_URL`)
+- **Opportunity types**: Scholarship (undergraduate, associate, master's,
+  and doctoral degree study, including Korean-language training, at
+  designated Korean universities)
+- **Country coverage**: South Korea
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/in/plan/scholarship.do`. The page's only real `<h1>` is the
+  site logo ("StudyinKorea"), not a title — the real title comes from
+  `<h2 class="title">GKS (Global Korea Scholarship) Program</h2>`, the
+  first of two matches for that selector (the second, "Other
+  Scholarships", is a sibling tab for unrelated programs). Content is
+  scoped to `#gks-tab1`, confirmed to hold only the GKS section
+  (~12KB) — the surrounding `main` element also contains the "Other
+  Scholarships" tab's content later in the DOM. `robots.txt` (`Allow: /`
+  plus a narrow `Disallow: /Sims/`) does not disallow this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ()` — applications route through either a
+    Korean embassy (Embassy Track) or a designated university
+    (University Track), each with its own sub-quota and schedule
+    described only by month, not a parseable date literal — the same
+    embassy/university-track pattern already established for Japan
+    MEXT (source #25).
+  - `funding_type` kept at this pattern's `fully_funded` default — the
+    page explicitly states benefits include "Airfare, language training
+    costs, tuition, and study allowances", genuinely supported by the
+    source text, the same reasoning already applied to Japan MEXT and
+    Portugal Camões.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~124KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 35. Government University Scholarships (Saudi Arabia)
+
+- **Organization**: Ministry of Education (MOE), Saudi Arabia
+- **Route code**: `saudi-arabia-moe` (`saudi_arabia_moe` internally)
+- **Official domain / base URL**: `https://www.moe.gov.sa`
+  (`SAUDI_ARABIA_MOE_BASE_URL`)
+- **Opportunity types**: Scholarship (undergraduate through doctoral
+  study at Saudi public universities, excluding health/medical
+  specialties)
+- **Country coverage**: Saudi Arabia — specifically the "external
+  scholarships" track for non-Saudi students applying from outside the
+  Kingdom (the page also describes a separate "internal scholarships"
+  track for non-Saudi students already resident in the Kingdom, which
+  this platform's inbound-discovery use case does not target)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/en/education/ResidentsAndvisitors/Pages/
+  PublicUniversitiesScholarships.aspx` (a SharePoint site).
+  `robots.txt` only disallows `/Lists/`, not this path.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ()`, no `title_tag_separator` — the page has no
+    `<h1>` at all, and its `<title>` tag interleaves Arabic and English
+    ("وزارة التعليم | \n\tScholarships in Public Universities:") with
+    the real English text in the *second* segment.
+    `title_tag_separator` only supports taking the first segment (by
+    design, so every source shares one simple rule rather than each
+    needing its own split-direction flag) — rather than mis-extracting
+    the Arabic half or special-casing the shared base class for one
+    source, this source deliberately falls through to this pattern's
+    final fallback (a title formatted from `external_id`).
+  - `funding_type = None` — the page explicitly states Saudi government
+    scholarships come in three distinct tiers ("free scholarships in
+    which the student gets full benefits", "partial scholarships", and
+    "grants paid for"), so no single funding label can honestly
+    describe the whole opportunity — the same reasoning already applied
+    to Chile AGCID (source #32).
+  - `deadline_keywords = ()` — the page states explicitly "The opening
+    date for the scholarship application program is determined
+    according to the requirements of the academic year at
+    universities", i.e. decentralized per-university — the same
+    pattern already established for the Netherlands Nuffic (source
+    #22).
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~108KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
+## 36. Qatar Scholarships (Qatar)
+
+- **Organization**: Qatar Fund For Development (QFFD), in partnership
+  with Qatari higher-education institutions (Lusail University, Hamad
+  Bin Khalifa University/Geneva Graduate Institute, Doha Institute for
+  Graduate Studies)
+- **Route code**: `qatar-scholarships` (`qatar_scholarships` internally)
+- **Official domain / base URL**: `https://www.qatarscholarships.qa`
+  (`QATAR_SCHOLARSHIPS_BASE_URL`)
+- **Opportunity types**: Scholarship (undergraduate, executive/
+  professional diploma, and graduate study at partner Qatari
+  institutions)
+- **Country coverage**: Qatar
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/en-US/Programs`. The homepage itself is a JS-rendered
+  single-page app that serves only a near-empty "offline, read-only"
+  shell to a non-JS client, so `/en-US/Programs` was used instead — a
+  server-rendered route with real substantial content (~47KB after
+  cleaning; two other guessed routes, `/Eligibility` and `/Scholarships`,
+  both 404). The page has no `<h1>`; `<title>` is "Programs\n\t\t· Qatar
+  Scholarships", split on the literal newline.
+  `robots.txt` declares awareness of the newer "content-signal"
+  convention but sets no actual `search`/`ai-input`/`ai-train` value
+  either way for any use, and contains no classic `Disallow` rule for
+  this path either — by the file's own stated rule ("If the website
+  operator does not include a content signal for a corresponding use,
+  the website operator neither grants nor restricts permission"), this
+  is a documented absence of restriction for this platform's use
+  (structured opportunity-discovery extraction with mandatory human
+  officer review before publication), recorded explicitly here rather
+  than treated as an ordinary permissive `robots.txt`.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `funding_type = None` — the page describes several partner-
+    institution programs with materially different funding: Lusail
+    University and Doha Institute both state "Full tuition waiver...
+    Monthly stipend... Medical insurance", but the HBKU/Geneva Graduate
+    Institute Executive Diploma explicitly states "**Partial** tuition*
+    ... *Students contribute CHF3,500 toward their tuition" — the same
+    multi-program funding conflict already handled honestly for Chile
+    AGCID (source #32).
+  - `deadline_keywords = ()` — no deadline-style date literal appears
+    anywhere on the page.
+- **LIVE SOURCE TEST: PASSED 2026-08-29.** Verified through this
+  backend's actual HTTP path (httpx, not just `curl`) — 200, ~178KB real
+  HTML, no spoofed user agent required. Implemented and unit-tested
+  against real fixture HTML captured from the httpx fetch.
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

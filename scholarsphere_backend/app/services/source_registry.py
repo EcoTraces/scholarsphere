@@ -223,6 +223,24 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "south_korea_gks": {
+        "source_name": "GKS (Global Korea Scholarship) Program",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "saudi_arabia_moe": {
+        "source_name": "Government University Scholarships (MOE, Saudi Arabia)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "qatar_scholarships": {
+        "source_name": "Qatar Scholarships (QFFD)",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -264,6 +282,9 @@ def _base_urls() -> dict[str, str]:
         "colombia_icetex": settings.colombia_icetex_base_url,
         "chile_agcid": settings.chile_agcid_base_url,
         "peru_pronabec": settings.peru_pronabec_base_url,
+        "south_korea_gks": settings.south_korea_gks_base_url,
+        "saudi_arabia_moe": settings.saudi_arabia_moe_base_url,
+        "qatar_scholarships": settings.qatar_scholarships_base_url,
     }
 
 
@@ -321,6 +342,9 @@ async def seed_opportunity_sources(
         "colombia_icetex": now + timedelta(hours=24),
         "chile_agcid": now + timedelta(hours=24),
         "peru_pronabec": now + timedelta(hours=24),
+        "south_korea_gks": now + timedelta(hours=24),
+        "saudi_arabia_moe": now + timedelta(hours=24),
+        "qatar_scholarships": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
