@@ -939,3 +939,27 @@ testing rather than implemented. **Implemented since the sixth pass**:
 Portugal (Camões Cooperation Scholarships, fully live-verified, the last
 entry this registry had queued) — see `docs/AUTHORITATIVE_SOURCES.md`
 #30.
+
+**Twelfth pass (2026-08-29/30): the exact 40-country target list audited
+end to end.** Cross-referencing the platform's specific 40-country list
+against this registry found 38 of 40 already had a real, live-tested
+finding — the remaining two (China, United States) were researched and
+closed (see the dedicated "United States and China" section above).
+While re-checking, also found and fixed a real reachability bug
+(Eswatini's configured "www." host times out; the bare host doesn't —
+see its entry above) and, separately, did a first real-source pass on
+the **Mastercard Foundation Scholars Program** — a major, legitimate,
+Africa-focused foundation directly relevant to Sierra Leone — which
+turned out to be JavaScript-gated with no server-rendered fallback on
+its actual institution-listing page; not integrated in this pass (see
+`docs/AUTHORITATIVE_SOURCES.md`'s "Sources evaluated and deliberately
+not integrated" table for the full finding). **Recommended next
+candidate**: live-verify and implement the Mastercard Foundation
+listing page from a session with working outbound browser automation
+(this sandbox's Chromium still can't reach real external HTTPS sites —
+confirmed again this pass). **Recommended next body of work beyond
+single candidates**: the platform specification's "multiple source
+types per country" ambition (university + government + embassy +
+foundation sources per country, not just one flagship government
+source) is real and mostly unaddressed — nearly every SUPPORTED country
+in this registry has exactly one source today.

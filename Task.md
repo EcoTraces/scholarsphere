@@ -1763,3 +1763,28 @@ for the full dated history.
       - Verified: 6 new tests (5 for EducationUSA, 1 for Eswatini's real
         content). Full backend suite confirmed green: **676/676**
         (`pytest -q`, up from 670).
+
+- [x] **(2026-08-30)** Next-loop research pass — Mastercard Foundation
+      Scholars Program investigated as a real candidate for a
+      cross-country FOUNDATION-type source (a genuine gap named by the
+      spec: most countries here have exactly one government source, not
+      the university/government/embassy/foundation mix described).
+      Real, major, Africa-focused, directly relevant to Sierra Leone
+      (58,000+ scholarships committed, 62 partner universities);
+      `robots.txt` explicitly allows `ClaudeBot` by name. Not
+      integrated: the program's own overview page has no single
+      deadline/application (decentralized to 62 partner institutions,
+      the same reason Canada/Denmark/Wales were rejected), and the
+      actual per-institution listing page
+      (`.../where-to-apply/`) is a client-side widget with no
+      server-rendered fallback (`curl` returns "Institutions Error
+      loading data. Please try again." instead of the list) — its
+      underlying data API could not be found in the page's static JS.
+      Live-tested Chromium against this exact URL to confirm the
+      sandbox's standing browser-automation limitation still applies
+      (`net::ERR_CONNECTION_RESET`) rather than assuming it. Documented
+      as a strong recommended-next candidate for a session with working
+      outbound browser access, not silently dropped. No code changes
+      this pass — pure research, recorded in
+      `docs/AUTHORITATIVE_SOURCES.md` and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`.

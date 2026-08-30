@@ -91,6 +91,20 @@ execution-plus-DOM-extraction test. Full backend suite: **586/586**
 (`pytest -q`, up from 575). `pip-audit`: no known vulnerabilities in the
 new `playwright` dependency.
 
+## [2026-08-30] — Research pass: Mastercard Foundation Scholars Program (not integrated)
+
+Investigated as a candidate FOUNDATION-type source directly relevant to
+Sierra Leone (58,000+ scholarships committed, 62 partner universities
+across Africa; `robots.txt` explicitly allows `ClaudeBot`). Not
+integrated: the program overview has no single deadline/application
+(decentralized to partner institutions, same reason Canada/Denmark/Wales
+were rejected), and the real per-institution listing page is a
+client-side widget with no server-rendered fallback. Live-tested
+Chromium against the exact URL to reconfirm this sandbox's standing
+external-browser-automation limitation rather than assuming it still
+applies. Documented as a strong candidate for a future session with
+working outbound browser access. No code changes.
+
 ## [2026-08-29] — 40-country audit: United States and China closed, Eswatini reachability fixed
 
 Cross-referenced the platform's exact 40-country target list against
