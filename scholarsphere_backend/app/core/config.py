@@ -234,6 +234,12 @@ class Settings(BaseSettings):
     hungary_stipendium_base_url: str = "https://stipendiumhungaricum.hu"
     mexico_amexcid_base_url: str = "https://www.gob.mx"
 
+    # Twelfth-pass multi-source-type expansion (2026-08-30) - see
+    # docs/COUNTRY_PROVIDER_REGISTRY.md's twelfth-pass note. Not tied to
+    # a single destination country; found while researching additional
+    # sources genuinely eligible for Sierra Leone applicants specifically.
+    world_bank_jjwbgsp_base_url: str = "https://www.worldbank.org"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -329,6 +335,7 @@ class Settings(BaseSettings):
         "romania_mfa_base_url",
         "hungary_stipendium_base_url",
         "mexico_amexcid_base_url",
+        "world_bank_jjwbgsp_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

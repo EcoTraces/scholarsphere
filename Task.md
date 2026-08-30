@@ -58,11 +58,12 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-29): **676/676
+Test baseline as of this session's own verified run (2026-08-30): **677/677
 backend tests passing** (`pytest -q`; 586 as of the browser-rendering
-fallback earlier the same day, +84 for the Hybrid Scholarship Discovery
+fallback on 2026-08-29, +84 for the Hybrid Scholarship Discovery
 and Verification Engine build-out described below, +6 for the 40-country
-audit's United States/Eswatini work — up from 511 on
+audit's United States/Eswatini work, +1 for the World Bank JJ/WBGSP
+source — up from 511 on
 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -1788,3 +1789,39 @@ for the full dated history.
       this pass — pure research, recorded in
       `docs/AUTHORITATIVE_SOURCES.md` and
       `docs/COUNTRY_PROVIDER_REGISTRY.md`.
+
+- [x] **(2026-08-30)** Implemented the **Joint Japan/World Bank Graduate
+      Scholarship Program (JJ/WBGSP)** — a real next step on the same
+      "multiple source types per country" gap, continuing directly from
+      the Mastercard Foundation research above. Also re-tested
+      `sl.usembassy.gov/educational-professional-exchanges/` (Sierra
+      Leone's US Embassy exchanges page, already flagged broken by
+      earlier Fulbright research) — still a persistent "Technical
+      Difficulties" error, 3/3 attempts, not fixed.
+      - JJ/WBGSP is real, major (World Bank Group, funded by the
+        Government of Japan), and — checked directly, not assumed —
+        Sierra Leone is confirmed on the programme's own published
+        eligible-countries list. Unlike Mastercard Foundation, its
+        overview page (`/en/programs/scholarships/jj-wbgsp`) is real
+        static server-rendered HTML with genuine eligibility criteria,
+        funding coverage, and two dated application windows in its own
+        text — no browser rendering needed.
+      - New `WorldBankJJWBGSPScholarshipSource` in
+        `national_scholarship_programs.py` (the `_SingleProgramSource`
+        pattern, `country = None` since it's not tied to one
+        destination, same as Wells Mountain Initiative). Wired
+        end-to-end (config, source registry — its first
+        `international_organization`-typed entry, Celery beat + task,
+        opportunity_sync mapping).
+      - `deadline_keywords` tries "application window #1" before
+        "window #2"/generic "deadline" — the page states both windows'
+        dates together (e.g. "Application Window #1 from January 18 to
+        February 26, 2027"); `extract_confident_date_after` correctly
+        skips the day+month-only opening date for the first full
+        day+month+year literal that follows — verified this actually
+        extracts 2027-02-26, not guessed to work.
+      - Verified: 1 new test against a real fixture captured unmodified
+        from the httpx fetch, plus the hardcoded source count/set in
+        `test_opportunity_import.py` updated for the new source. Full
+        backend suite confirmed green: **677/677** (`pytest -q`, up
+        from 676).

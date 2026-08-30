@@ -91,6 +91,34 @@ execution-plus-DOM-extraction test. Full backend suite: **586/586**
 (`pytest -q`, up from 575). `pip-audit`: no known vulnerabilities in the
 new `playwright` dependency.
 
+## [2026-08-30] — Added Joint Japan/World Bank Graduate Scholarship Program (JJ/WBGSP)
+
+Continuing the "multiple source types per country" gap from the previous
+pass. Implemented a real next candidate found while researching sources
+genuinely eligible for Sierra Leone applicants.
+
+### Added
+- `WorldBankJJWBGSPScholarshipSource` in `national_scholarship_programs.py`
+  - a real, major World Bank Group program (funded by the Government of
+    Japan), not tied to a single destination country. Sierra Leone is
+    confirmed on the programme's own published eligible-countries list,
+    checked directly rather than assumed. Its overview page is real
+    static server-rendered HTML - no browser rendering needed, unlike
+    the Mastercard Foundation candidate from the previous pass. Wired
+    end-to-end; this is the source registry's first
+    `international_organization`-typed entry.
+- 1 new test against a real fixture captured unmodified from the fetch.
+  Full backend suite confirmed green: **677/677** (`pytest -q`, up from 676).
+
+### Changed
+- `tests/test_opportunity_import.py`'s hardcoded source count/set
+  updated for the new source.
+
+Also re-tested `sl.usembassy.gov/educational-professional-exchanges/`
+(Sierra Leone's US Embassy exchanges page) - still a persistent
+"Technical Difficulties" error, not fixed since the original Fulbright
+research flagged it.
+
 ## [2026-08-30] — Research pass: Mastercard Foundation Scholars Program (not integrated)
 
 Investigated as a candidate FOUNDATION-type source directly relevant to

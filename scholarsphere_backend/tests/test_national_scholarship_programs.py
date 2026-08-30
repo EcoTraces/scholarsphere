@@ -37,6 +37,7 @@ from app.services.national_scholarship_programs import (
     SwitzerlandEskasScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
+    WorldBankJJWBGSPScholarshipSource,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -1287,3 +1288,38 @@ async def test_missing_title_and_content_falls_back_safely(
     assert result[0].title == "Ireland Goi Ies Scholarship"
     assert result[0].description is None
     assert result[0].deadline is None
+
+
+# --- World Bank JJ/WBGSP: real fixture, fetched 2026-08-30 -----------------
+
+
+@pytest.mark.asyncio
+async def test_world_bank_jjwbgsp_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = WorldBankJJWBGSPScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("world_bank_jjwbgsp_overview.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "world-bank-jjwbgsp"
+    assert opportunity.title == "Joint Japan/World Bank Graduate Scholarship Program"
+    # Not tied to a single destination country - funds study across 24
+    # universities in the US, Europe, Africa, Oceania, and Japan.
+    assert opportunity.country is None
+    assert opportunity.provider_name == (
+        "World Bank Group - Joint Japan/World Bank Graduate Scholarship Program"
+    )
+    assert opportunity.description is not None
+    assert "developing countries" in opportunity.description
+    # "Application Window #1 from January 18 to February 26, 2027" - the
+    # day+month-only opening date is correctly skipped in favor of the
+    # first full day+month+year literal that follows.
+    assert str(opportunity.deadline) == "2027-02-26"
+    assert opportunity.funding_type == "fully_funded"

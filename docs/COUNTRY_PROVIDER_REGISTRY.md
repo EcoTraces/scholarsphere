@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (33, across multiple sessions)
+## Implemented (34, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -70,6 +70,7 @@ that were actually built this session (in two batches).
 | 42 | Stipendium Hungaricum | Hungary | GOVERNMENT | stipendiumhungaricum.hu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 43 | Becas de Excelencia del Gobierno de México (AMEXCID) | Mexico | GOVERNMENT | gob.mx | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 44 | EducationUSA "Find Financial Aid" Database | United States | GOVERNMENT | educationusa.state.gov | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
+| 45 | Joint Japan/World Bank Graduate Scholarship Program | (not tied to one destination country) | FUNDING_ORGANIZATION | worldbank.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; Sierra Leone confirmed on its own published eligible-countries list |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -963,3 +964,22 @@ types per country" ambition (university + government + embassy +
 foundation sources per country, not just one flagship government
 source) is real and mostly unaddressed — nearly every SUPPORTED country
 in this registry has exactly one source today.
+
+**Thirteenth pass (2026-08-30), same "multiple source types" gap.**
+Two more Sierra-Leone-relevant candidates checked: (1) re-tested
+`sl.usembassy.gov/educational-professional-exchanges/` (the page
+Fulbright research already flagged as broken) — still a persistent
+"Technical Difficulties" error page, 3/3 attempts, not fixed. (2)
+Researched and **implemented** the **Joint Japan/World Bank Graduate
+Scholarship Program (JJ/WBGSP)** — see source #45 in
+`docs/AUTHORITATIVE_SOURCES.md`. A real, major, international-
+organization-type source (the World Bank Group, funded by the
+Government of Japan), genuinely eligible for Sierra Leone applicants
+(confirmed on the programme's own published eligible-countries list,
+not assumed), with a real static server-rendered overview page — no
+browser rendering needed, unlike the Mastercard Foundation candidate
+from the twelfth pass. This is the registry's first `FUNDING_ORGANIZATION`
+/ international-organization-type source alongside the existing
+government-type sources, a small real step on the "multiple source
+types per country" gap. The gap itself remains largely open — most
+countries here still have exactly one source.

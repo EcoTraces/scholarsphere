@@ -82,6 +82,7 @@ from app.services.national_scholarship_programs import (
     SwitzerlandEskasScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
+    WorldBankJJWBGSPScholarshipSource,
 )
 from app.services.educationusa_source import EducationUsaFinancialAidSource
 from app.services.notification_dispatch import (
@@ -289,6 +290,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_educationusa_financial_aid",
             "schedule": crontab(minute=0, hour=12),
         },
+        "sync-world-bank-jjwbgsp": {
+            "task": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
+            "schedule": crontab(minute=15, hour=12),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -375,6 +380,7 @@ SOURCE_TASK_NAMES = {
     "educationusa_financial_aid": (
         "app.tasks.opportunity_sync.sync_educationusa_financial_aid"
     ),
+    "world_bank_jjwbgsp": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
 }
 
 
@@ -1041,6 +1047,19 @@ def sync_educationusa_financial_aid(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
+    max_retries=3,
+)
+def sync_world_bank_jjwbgsp(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "world_bank_jjwbgsp", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1285,6 +1304,7 @@ def _collector(source_code: str) -> Any:
         "hungary_stipendium_hungaricum": HungaryStipendiumHungaricumSource,
         "mexico_amexcid": MexicoAmexcidScholarshipSource,
         "educationusa_financial_aid": EducationUsaFinancialAidSource,
+        "world_bank_jjwbgsp": WorldBankJJWBGSPScholarshipSource,
     }[source_code]()
 
 

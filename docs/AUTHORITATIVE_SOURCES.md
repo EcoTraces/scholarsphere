@@ -1741,6 +1741,64 @@ page).
 
 ---
 
+## 45. Joint Japan/World Bank Graduate Scholarship Program (JJ/WBGSP)
+
+Found while researching multi-source-type coverage for Sierra Leone
+specifically (see docs/COUNTRY_PROVIDER_REGISTRY.md's twelfth-pass note)
+— a second source type (FUNDING_ORGANIZATION / international
+organization) beyond the single flagship government source most
+countries in this registry have.
+
+- **Organization**: World Bank Group, Development Economics Vice
+  Presidency (DEC); funded by the Government of Japan
+- **Route code**: `world-bank-jjwbgsp` (`world_bank_jjwbgsp` internally)
+- **Official domain / base URL**: `https://www.worldbank.org`
+  (`WORLD_BANK_JJWBGSP_BASE_URL`)
+- **Opportunity types**: Scholarship (master's degree, development-related
+  fields, at 44 participating programs across 24 universities in the US,
+  Europe, Africa, Oceania, and Japan)
+- **Country coverage**: Not tied to a single destination country — left
+  `None` rather than guessed, same as Wells Mountain Initiative (source
+  #13). Open to citizens of World Bank member developing countries;
+  **Sierra Leone is confirmed on the programme's own published eligible-
+  countries list** (`/en/programs/scholarships/brief/countries-eligible-
+  for-jjwbgsp-scholarship`), checked directly rather than assumed.
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/en/programs/scholarships/jj-wbgsp`. `robots.txt` is
+  `Allow: /` at the top level with only narrow, unrelated `Disallow:`
+  rules (system paths, retired templates) — none matching this page.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ("h2.lp__lead_lgtitle",)` — the page's actual
+    `<h1>` is the generic "World Bank Scholarships Program" heading
+    shared by every sub-page under this program, not this specific
+    programme's real name.
+  - `content_selectors = (".lp__body_content",)` — the page has five
+    `.lp__body_content` blocks (overview, eligibility, guideline links,
+    selection process, benefits); only the first (the programme's own
+    real lead description) is used, matching `_first_match`'s
+    take-the-first-match behavior.
+  - `deadline_keywords = ("application window #1", "application window
+    #2", "deadline")` — the page states both application windows
+    together (e.g. "Application Window #1 from January 18 to February
+    26, 2027"); `extract_confident_date_after` correctly skips the
+    day+month-only opening date for the first full day+month+year
+    literal that follows, live-verified against the real fetched page.
+- **LIVE SOURCE TEST: PASSED 2026-08-30.** Verified via `curl` and this
+  backend's actual parsing path — 200, ~58KB real server-rendered HTML,
+  no browser rendering needed, no spoofed user agent required.
+  Implemented and unit-tested against a real fixture captured unmodified
+  from the fetch (`tests/fixtures/world_bank_jjwbgsp_overview.html`),
+  confirming the extracted deadline (2027-02-26) matches the page's own
+  stated Window #1 closing date.
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

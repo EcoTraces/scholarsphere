@@ -1508,3 +1508,60 @@ class MexicoAmexcidScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().mexico_amexcid_base_url
+
+
+class WorldBankJJWBGSPScholarshipSource(_SingleProgramSource):
+    """Joint Japan/World Bank Graduate Scholarship Program (JJ/WBGSP) -
+    the World Bank's Development Economics Vice Presidency (DEC), funded
+    by the Government of Japan. Not tied to a single destination country
+    - `country` is left `None` rather than guessed, matching Wells
+    Mountain Initiative's pattern above: it funds master's study at 44
+    participating programs across 24 universities in the US, Europe,
+    Africa, Oceania, and Japan.
+
+    Found while researching multi-source-type coverage for Sierra Leone
+    specifically (see docs/COUNTRY_PROVIDER_REGISTRY.md's twelfth-pass
+    note) - Sierra Leone is confirmed on the programme's own published
+    eligible-countries list
+    (`/en/programs/scholarships/brief/countries-eligible-for-jjwbgsp-scholarship`),
+    not assumed.
+
+    Confirmed 2026-08-30: `robots.txt` is `Allow: /` at the top level
+    with only narrow, unrelated `Disallow:` rules (system paths, retired
+    templates) - none matching this page. `/en/programs/scholarships/
+    jj-wbgsp` returns real, substantial server-rendered HTML (200,
+    ~58KB) with genuine eligibility criteria, funding coverage, and two
+    dated application windows in its own text - no browser rendering
+    needed.
+
+    `title_selectors` targets `h2.lp__lead_lgtitle` specifically - the
+    page's actual `<h1>` is the generic "World Bank Scholarships
+    Program" heading shared by every sub-page under this program
+    (Overview, Japanese Nationals, this page, ...), not this specific
+    programme's real name. `content_selectors` takes the *first*
+    `.lp__body_content` block only - the page has five (one per section:
+    overview, eligibility, guideline links, selection process,
+    benefits); the first one is the programme's own real lead
+    description, not a sidebar or unrelated section.
+
+    `deadline_keywords` tries "application window #1" before "window
+    #2"/generic "deadline" - the page states both windows' dates
+    together (e.g. "Application Window #1 from January 18 to February
+    26, 2027"), and `extract_confident_date_after` correctly skips the
+    day+month-only opening date ("January 18") for the first full
+    day+month+year literal in the following 300 characters ("February
+    26, 2027") - live-verified against the real fetched page, not
+    assumed.
+    """
+
+    source_code = "world_bank_jjwbgsp"
+    overview_path = "/en/programs/scholarships/jj-wbgsp"
+    title_selectors = ("h2.lp__lead_lgtitle",)
+    content_selectors = (".lp__body_content",)
+    deadline_keywords = ("application window #1", "application window #2", "deadline")
+    provider_name = "World Bank Group - Joint Japan/World Bank Graduate Scholarship Program"
+    country = None
+    external_id = "world-bank-jjwbgsp"
+
+    def _base_url(self) -> str:
+        return get_settings().world_bank_jjwbgsp_base_url
