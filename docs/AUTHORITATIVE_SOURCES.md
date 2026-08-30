@@ -1863,6 +1863,79 @@ that does not include Sierra Leone, so not integrated).
 
 ---
 
+## 47. Erasmus Mundus Joint Masters Catalogue (EACEA)
+
+A third addition to the "multiple source types per country" gap, and
+the second real production consumer of `app/services/
+pagination_engine.py`'s `paginate_by_url` after EducationUSA (source
+#44) — a second, independently-verified proof that engine generalizes
+across genuinely different real sites rather than being tuned to one.
+
+- **Organization**: European Education and Culture Executive Agency
+  (EACEA), European Commission
+- **Route code**: `erasmus-mundus-joint-masters`
+  (`erasmus_mundus_joint_masters` internally)
+- **Official domain / base URL**: `https://www.eacea.ec.europa.eu`
+  (`ERASMUS_MUNDUS_BASE_URL`)
+- **Opportunity types**: Scholarship (EU-funded joint master's degrees,
+  delivered by multi-university consortiums, ~220 active programmes
+  across nearly every discipline)
+- **Country coverage**: Not tied to a single destination country — left
+  `None`. Genuinely open to applicants "from all over the world" per the
+  catalogue's own text — not restricted by nationality, so Sierra
+  Leonean applicants are eligible the same as anyone else.
+- **Discovery method**: **Web scraper, paginated-listing pattern**
+  reading `/scholarships/erasmus-mundus-catalogue_en?page=N` (`N`
+  0-indexed) — a real, plain server-rendered listing built with the EU's
+  own ECL (Europa Component Library) design system
+  (`article.ecl-card` per programme), no browser rendering needed.
+- **robots.txt / indexing note**: the page carries `<meta
+  name="robots" content="follow, noindex">` — a page-level *search-
+  engine indexing* directive, not a Robots Exclusion Protocol crawl
+  restriction; it says nothing about whether fetching the content is
+  permitted. The site's actual `robots.txt` scopes its `Disallow:`
+  rules to `User-agent: Googlebot` specifically (no general
+  `User-agent: *` block) — the same "only specific-bot rules present"
+  pattern already documented for Mexico's AMEXCID (source #43).
+- **API / RSS / Sitemap**: None published for this specific listing
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - Each card's own title, its programme website link (used as
+    `official_application_url` — genuinely where an applicant would go),
+    and the EU's own project-record link (used as `official_source_url`
+    — the authoritative EU record this listing came from), plus the
+    card's own short description text (an acronym and "Project
+    overview", exactly what's on the page).
+  - No per-programme deadline is stated on this listing page — each
+    consortium sets its own, and the catalogue's own text only says
+    "most... require applications... between October and January," not
+    a specific date for any one programme — `deadline` stays `None` for
+    every record, never guessed from that generic text.
+  - Does not follow the ~220 external programme links or the EU
+    project-record pages for more detail — out of proportion with what
+    this adapter needs, the same reasoning already documented for
+    EducationUSA's own per-row "More information" links.
+  - **A real, live-observed HTTPS-only enforcement worth noting**: two
+    of the ~220 programmes' own listed websites (RESCO, European
+    Forestry) are plain `http://`, not `https://` — correctly and
+    silently dropped by the shared `absolute_https_url` check, never
+    "fixed" by guessing a scheme. Confirmed directly in the real
+    fixtures, not assumed - see
+    `tests/test_erasmus_mundus_source.py`'s explicit assertions on this.
+- **LIVE SOURCE TEST: PASSED 2026-08-30.** Verified through this
+  backend's actual HTTP path (httpx) — 200, real ECL-rendered HTML, no
+  spoofed user agent required, on three separate real fetches (page 0,
+  page 1, and a genuinely-past-the-last-page response, `?page=15` → 0
+  cards). Implemented and unit-tested against all three real fixture
+  pages, captured unmodified from the httpx fetches
+  (`tests/fixtures/erasmus_mundus_catalogue_*.html`).
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

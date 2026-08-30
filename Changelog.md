@@ -91,6 +91,33 @@ execution-plus-DOM-extraction test. Full backend suite: **586/586**
 (`pytest -q`, up from 575). `pip-audit`: no known vulnerabilities in the
 new `playwright` dependency.
 
+## [2026-08-30] — Added Erasmus Mundus Joint Masters Catalogue
+
+Continuing the "multiple source types per country" gap. The second real
+production consumer of `pagination_engine.paginate_by_url` after
+EducationUSA, independently proving that engine generalizes across
+genuinely different real sites.
+
+### Added
+- `ErasmusMundusJointMastersSource` in new `erasmus_mundus_source.py` -
+  ~220 EU-funded joint master's programmes, genuinely open worldwide by
+  nationality, real server-rendered `?page=N` listing built with the
+  EU's own ECL design system. No browser rendering needed. Wired
+  end-to-end.
+- 5 new tests against three real fixture pages (page 0, page 1, and a
+  genuinely-past-the-last-page response). Full backend suite confirmed
+  green: **684/684** (`pytest -q`, up from 679).
+
+### Changed
+- `tests/test_opportunity_import.py`'s hardcoded source count/set
+  updated for the new source.
+
+A real, live-observed proof of this project's HTTPS-only discipline:
+two of the ~220 programmes' own listed websites use plain `http://`
+rather than `https://` and are correctly, silently dropped by the
+shared HTTPS-only check rather than "fixed" by guessing a scheme -
+confirmed directly in the real fixtures.
+
 ## [2026-08-30] — Added Rotary Peace Fellowships
 
 Continuing the "multiple source types per country" gap. Researched (but

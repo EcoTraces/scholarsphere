@@ -58,12 +58,13 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-30): **679/679
+Test baseline as of this session's own verified run (2026-08-30): **684/684
 backend tests passing** (`pytest -q`; 586 as of the browser-rendering
 fallback on 2026-08-29, +84 for the Hybrid Scholarship Discovery
 and Verification Engine build-out described below, +6 for the 40-country
 audit's United States/Eswatini work, +1 for the World Bank JJ/WBGSP
-source, +2 for the Rotary Peace Fellowships source — up from 511 on
+source, +2 for the Rotary Peace Fellowships source, +5 for the Erasmus
+Mundus Joint Masters Catalogue source — up from 511 on
 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -1864,3 +1865,43 @@ for the full dated history.
         plus the crawl-delay assertion) against a real captured fixture,
         plus the hardcoded source count/set updated. Full backend suite
         confirmed green: **679/679** (`pytest -q`, up from 677).
+
+- [x] **(2026-08-30)** Implemented the **Erasmus Mundus Joint Masters
+      Catalogue** (EACEA) — a third addition to the "multiple source
+      types per country" gap, and the second real production consumer
+      of `pagination_engine.paginate_by_url` after EducationUSA,
+      independently proving that engine generalizes across genuinely
+      different real sites rather than being tuned to one.
+      - Real, ~220 EU-funded joint master's programmes, genuinely open
+        to applicants "from all over the world" per the catalogue's own
+        text — not restricted by nationality. A real, plain
+        server-rendered `?page=N` listing built with the EU's own ECL
+        design system — no browser rendering needed.
+      - Noted and correctly did *not* treat as a blocker: the page
+        carries a page-level `<meta name="robots" content="follow,
+        noindex">` search-engine-indexing directive, which is a
+        different concern from the Robots Exclusion Protocol's
+        `robots.txt` crawl permission — the site's actual `robots.txt`
+        scopes its `Disallow:` rules to `Googlebot` specifically, the
+        same "only specific-bot rules" pattern already seen for
+        Mexico's AMEXCID.
+      - New `ErasmusMundusJointMastersSource` in a new
+        `erasmus_mundus_source.py` (the paginated-listing pattern, same
+        shape as `educationusa_source.py`), wired end-to-end.
+      - **A real, live-observed proof of this project's HTTPS-only
+        discipline actually working**: two of the ~220 programmes' own
+        listed websites (RESCO, European Forestry) use plain `http://`
+        rather than `https://`, and are correctly, silently dropped by
+        the shared `absolute_https_url` check rather than "fixed" by
+        guessing a scheme — found while writing the test (my own first
+        draft assumed all 20 cards per page would survive; the real
+        fixtures proved otherwise, and the test was corrected to match
+        reality rather than the reverse).
+      - No per-programme deadline is stated on this listing page (each
+        consortium sets its own) — `deadline` stays `None` for every
+        record, never guessed from the catalogue's generic "October and
+        January" text.
+      - Verified: 5 new tests against three real fixture pages (page 0,
+        page 1, and a genuinely-past-the-last-page response), plus the
+        hardcoded source count/set updated. Full backend suite confirmed
+        green: **684/684** (`pytest -q`, up from 679).

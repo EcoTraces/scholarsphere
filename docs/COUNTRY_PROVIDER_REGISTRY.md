@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (35, across multiple sessions)
+## Implemented (36, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -72,6 +72,7 @@ that were actually built this session (in two batches).
 | 44 | EducationUSA "Find Financial Aid" Database | United States | GOVERNMENT | educationusa.state.gov | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 45 | Joint Japan/World Bank Graduate Scholarship Program | (not tied to one destination country) | FUNDING_ORGANIZATION | worldbank.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; Sierra Leone confirmed on its own published eligible-countries list |
 | 46 | Rotary Peace Fellowships | (not tied to one destination country) | FUNDING_ORGANIZATION | rotary.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; open worldwide, no nationality restriction |
+| 47 | Erasmus Mundus Joint Masters Catalogue | (not tied to one destination country) | INTERNATIONAL_ORGANIZATION | eacea.ec.europa.eu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; open worldwide, ~220 programmes, paginated listing |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -1004,3 +1005,17 @@ today, verified against the real page, but documented as a real risk
 rather than silently assumed durable. 35 sources now implemented; the
 "multiple source types per country" gap keeps narrowing but remains
 largely open.
+
+**Fifteenth pass (2026-08-30), continuing the same gap.** Researched and
+**implemented** the **Erasmus Mundus Joint Masters Catalogue** — see
+source #47 in `docs/AUTHORITATIVE_SOURCES.md`. Real, genuinely open
+worldwide by nationality (~220 EU-funded joint master's programmes), a
+real paginated listing built with the EU's own ECL design system — the
+second real production consumer of `app/services/pagination_engine.py`'s
+`paginate_by_url` after EducationUSA, proving that engine generalizes
+across independently-verified real sites. One real finding worth
+recording: two of the ~220 programmes' own listed websites use plain
+`http://` rather than `https://` and are correctly, silently dropped by
+this project's standing HTTPS-only enforcement rather than "fixed" by
+guessing a scheme — confirmed directly in the real fixtures, not
+assumed. 36 sources now implemented.

@@ -240,6 +240,7 @@ class Settings(BaseSettings):
     # sources genuinely eligible for Sierra Leone applicants specifically.
     world_bank_jjwbgsp_base_url: str = "https://www.worldbank.org"
     rotary_peace_fellowship_base_url: str = "https://www.rotary.org"
+    erasmus_mundus_base_url: str = "https://www.eacea.ec.europa.eu"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -338,6 +339,7 @@ class Settings(BaseSettings):
         "mexico_amexcid_base_url",
         "world_bank_jjwbgsp_base_url",
         "rotary_peace_fellowship_base_url",
+        "erasmus_mundus_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

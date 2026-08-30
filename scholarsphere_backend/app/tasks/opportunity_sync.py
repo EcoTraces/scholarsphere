@@ -86,6 +86,7 @@ from app.services.national_scholarship_programs import (
     WorldBankJJWBGSPScholarshipSource,
 )
 from app.services.educationusa_source import EducationUsaFinancialAidSource
+from app.services.erasmus_mundus_source import ErasmusMundusJointMastersSource
 from app.services.notification_dispatch import (
     default_preferences,
     event_title,
@@ -299,6 +300,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_rotary_peace_fellowship",
             "schedule": crontab(minute=30, hour=12),
         },
+        "sync-erasmus-mundus-joint-masters": {
+            "task": "app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters",
+            "schedule": crontab(minute=45, hour=12),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -388,6 +393,9 @@ SOURCE_TASK_NAMES = {
     "world_bank_jjwbgsp": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
     "rotary_peace_fellowship": (
         "app.tasks.opportunity_sync.sync_rotary_peace_fellowship"
+    ),
+    "erasmus_mundus_joint_masters": (
+        "app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters"
     ),
 }
 
@@ -1083,6 +1091,21 @@ def sync_rotary_peace_fellowship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters",
+    max_retries=3,
+)
+def sync_erasmus_mundus_joint_masters(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "erasmus_mundus_joint_masters", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1329,6 +1352,7 @@ def _collector(source_code: str) -> Any:
         "educationusa_financial_aid": EducationUsaFinancialAidSource,
         "world_bank_jjwbgsp": WorldBankJJWBGSPScholarshipSource,
         "rotary_peace_fellowship": RotaryPeaceFellowshipSource,
+        "erasmus_mundus_joint_masters": ErasmusMundusJointMastersSource,
     }[source_code]()
 
 
