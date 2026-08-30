@@ -28,6 +28,35 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-08-30] — Added UAEU Scholarships, Fellowships, and Graduate Assistantships
+
+Closes the United Arab Emirates line item in the country registry
+(previously `NO_RELIABLE_SOURCE_FOUND` at the national-government level)
+and this project's first genuinely `UNIVERSITY`-typed source.
+
+### Added
+- `UaeuScholarshipsSource` in new `uaeu_scholarships_source.py` - reads
+  UAEU's own College of Graduate Studies scholarships page, a real,
+  server-rendered, `robots.txt`-unrestricted page. Extracts all 13 real
+  accordion-item programmes (fellowships, assistantships, department PhD
+  studentships), deliberately unfiltered by nationality eligibility -
+  matching this project's standing "AI's role: none, today" policy.
+  Wired end-to-end, including the new `"university"` `source_type` value
+  on the existing free-text source-type column.
+- 3 new tests against a real fixture captured unmodified from the fetch.
+  Full backend suite confirmed green: **687/687** (`pytest -q`, up from
+  684).
+
+### Changed
+- `tests/test_opportunity_import.py`'s hardcoded source count/set
+  updated for the new source (48 → 49).
+
+One real fragility recorded honestly: the page's Tailwind accordion
+widget is reused site-wide for both navigation and this scholarships
+content (27 accordion items total, only 13 of them real programmes) -
+correctly scoped via a CMS-id-prefix selector (`[id^="faqs-section"]`)
+rather than the widget's own CSS class.
+
 ## [2026-08-29] — Browser-rendering fallback for JavaScript-only scraper sources
 
 Added an opt-in headless-browser (Playwright/Chromium) rendering fallback

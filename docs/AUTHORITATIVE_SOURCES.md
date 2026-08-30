@@ -1934,6 +1934,80 @@ across genuinely different real sites rather than being tuned to one.
   pages, captured unmodified from the httpx fetches
   (`tests/fixtures/erasmus_mundus_catalogue_*.html`).
 
+## 48. UAEU Scholarships, Fellowships, and Graduate Assistantships (United Arab Emirates University)
+
+Closes two gaps at once: the United Arab Emirates line item in the
+40-country target list (the only prior UAE finding, government
+scholarships, came back `NO_RELIABLE_SOURCE_FOUND` — predominantly
+outbound for Emiratis, not inbound), and this project's first genuinely
+**university**-typed source (`source_type = "university"`, a new but
+valid value on the existing free-text `source_type` column — every other
+web-scraped source so far is government/international-organization/
+funding-organization-typed).
+
+- **Organization**: United Arab Emirates University (UAEU), College of
+  Graduate Studies
+- **Route code**: `uaeu-scholarships` (`uaeu_scholarships` internally)
+- **Official domain / base URL**: `https://www.uaeu.ac.ae`
+  (`UAEU_BASE_URL`)
+- **Opportunity types**: Scholarship (a mix of fellowships, research/
+  teaching/administrative assistantships, and department-specific PhD
+  studentships — 13 distinct programmes at the time of writing)
+- **Country coverage**: United Arab Emirates
+- **Discovery method**: **Web scraper, single-page structured-widget
+  pattern** reading `/en/cgs/scholarship.shtml` — real, plain
+  server-rendered HTML (200, ~169KB), no browser rendering needed. The
+  page's real content lives inside a Tailwind-based accordion widget
+  (`.aegov-accordion` / `.accordion-item`) that the site reuses for
+  *both* page-navigation menus *and* this scholarships list — the widget
+  class alone isn't a unique-enough selector (27 total accordion-items
+  on the page; only 13 are real scholarship/fellowship/assistantship
+  entries). Scoped correctly via `[id^="faqs-section"]`, a CSS
+  attribute-prefix selector matching the CMS-generated container id's
+  stable prefix (the random hash suffix after it changes on every
+  republish, confirmed by inspecting the real fetched markup).
+- **robots.txt / indexing note**: `User-agent: *` is allowed with only a
+  handful of narrow, unrelated `Disallow:` rules (specific admin/legal
+  pages) — none matching this page.
+- **API / RSS / Sitemap**: None published for this specific listing
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - Extracts **every** accordion item as its own opportunity record,
+    deliberately **not filtered by nationality eligibility**: several
+    titles explicitly state "(All nationalities)"; others just as
+    explicitly state a restriction ("UAE nationals", "UAEU Alumni only")
+    directly in their own real title text — this adapter extracts that
+    text verbatim rather than acting on it, matching this project's
+    standing "AI's role: none, today" eligibility policy
+    (`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §10). A human verification
+    officer reads the real title/description before approving any
+    record, exactly like every other scraped source in this project.
+  - Each item's own "Details"/similar link (several are PDFs, not HTML
+    pages) is stored as both `official_source_url` and
+    `official_application_url` without being fetched itself — reading a
+    programme's own PDF guidelines is out of scope for this adapter,
+    matching how EducationUSA's and Erasmus Mundus's own per-row "more
+    information" links also aren't followed.
+  - No per-programme deadline is stated in a consistently parseable form
+    across all 13 items — `deadline` stays `None` for every record,
+    never guessed.
+  - A real page artifact (multiple internal spaces, and a non-breaking
+    space `\xa0`) inside several titles is preserved verbatim by the
+    shared `clean_text` utility, never silently "fixed" beyond what that
+    utility already does for every other source — confirmed directly in
+    `tests/test_uaeu_scholarships_source.py`'s explicit assertion on
+    this.
+- **LIVE SOURCE TEST: PASSED 2026-08-30.** Verified through this
+  backend's actual HTTP path (httpx) — 200, real server-rendered HTML, no
+  spoofed user agent required. Implemented and unit-tested against the
+  real fixture page, captured unmodified from the httpx fetch
+  (`tests/fixtures/uaeu_scholarship.html`); extraction verified to yield
+  exactly the 13 real programmes present on the live page at fetch time.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

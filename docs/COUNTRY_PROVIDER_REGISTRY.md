@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (36, across multiple sessions)
+## Implemented (37, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -73,6 +73,7 @@ that were actually built this session (in two batches).
 | 45 | Joint Japan/World Bank Graduate Scholarship Program | (not tied to one destination country) | FUNDING_ORGANIZATION | worldbank.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; Sierra Leone confirmed on its own published eligible-countries list |
 | 46 | Rotary Peace Fellowships | (not tied to one destination country) | FUNDING_ORGANIZATION | rotary.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; open worldwide, no nationality restriction |
 | 47 | Erasmus Mundus Joint Masters Catalogue | (not tied to one destination country) | INTERNATIONAL_ORGANIZATION | eacea.ec.europa.eu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; open worldwide, ~220 programmes, paginated listing |
+| 48 | UAEU Scholarships, Fellowships, and Graduate Assistantships | United Arab Emirates | UNIVERSITY | uaeu.ac.ae | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; first UNIVERSITY-typed source, 13 programmes extracted verbatim |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -211,7 +212,7 @@ disqualification), and its recommended classification.
   per-university scraping across all eight Welsh institutions is worth
   the effort this initiative has otherwise avoided.
 
-### United Arab Emirates — `NO_RELIABLE_SOURCE_FOUND`
+### United Arab Emirates — `SUPPORTED` (university-level, source #48)
 - Researched via `u.ae` (the official UAE government platform) and the
   Ministry of Presidential Affairs' Scholarship Office. Both are
   overwhelmingly focused on funding **Emirati nationals to study abroad**,
@@ -219,10 +220,15 @@ disqualification), and its recommended classification.
   government-linked universities (UAEU, Khalifa University) do offer
   scholarships to international students, but there is no single central
   government portal for *inbound* international-student funding.
-- **Classification**: `NOT_SUITABLE` at the national-government level;
-  a future pass could evaluate UAEU/Khalifa University directly as
-  `UNIVERSITY`-type providers instead of `GOVERNMENT`, if that's a
-  priority.
+- **Classification**: `NOT_SUITABLE` at the national-government level —
+  unchanged. Closed at the `UNIVERSITY`-provider level instead, per this
+  section's own earlier note: **UAEU Scholarships, Fellowships, and
+  Graduate Assistantships** (source #48 in
+  `docs/AUTHORITATIVE_SOURCES.md`) is now implemented and live-verified —
+  this project's first genuinely `UNIVERSITY`-typed source, extracting 13
+  real programmes from UAEU's own College of Graduate Studies page.
+  Khalifa University remains a candidate for a future pass if a second
+  UAE university-level source is wanted.
 
 ---
 
@@ -740,7 +746,7 @@ checking the full implementation against that exact list.
 | Denmark | NOT_SUITABLE | Confirmed by a dedicated follow-up search 2026-08-29 — decentralized to individual universities |
 | Cyprus | BLOCKED | Active anti-bot (Azure WAF) — not bypassed |
 | Wales | NOT_SUITABLE | Corrected 2026-08-29 — the flagship program appears discontinued/decentralized; previous READY_FOR_AUTOMATION note was wrong, never live-tested |
-| UAE | NO_RELIABLE_SOURCE_FOUND | Predominantly outbound (for Emiratis), not inbound |
+| UAE | SUPPORTED (university-level) | Live-verified 2026-08-30 — UAEU College of Graduate Studies, source #48; national-government level remains predominantly outbound (for Emiratis), not inbound |
 | Colombia | SUPPORTED | Live-verified 2026-08-29 |
 | Chile | SUPPORTED | Live-verified 2026-08-29 |
 | Peru | SUPPORTED | Live-verified 2026-08-29 |
@@ -1019,3 +1025,20 @@ recording: two of the ~220 programmes' own listed websites use plain
 this project's standing HTTPS-only enforcement rather than "fixed" by
 guessing a scheme — confirmed directly in the real fixtures, not
 assumed. 36 sources now implemented.
+
+**Sixteenth pass (2026-08-30), closing the UAE line item.** Researched
+and **implemented** **UAEU Scholarships, Fellowships, and Graduate
+Assistantships** — see source #48 in `docs/AUTHORITATIVE_SOURCES.md` and
+the corrected United Arab Emirates section above (previously
+`NO_RELIABLE_SOURCE_FOUND`; that finding's own text already flagged
+UAEU/Khalifa University as the right follow-up, at the `UNIVERSITY`-
+provider level rather than `GOVERNMENT`). Real, server-rendered,
+`robots.txt`-unrestricted page; the one real fragility worth recording is
+that the page's Tailwind accordion widget is reused site-wide for both
+navigation and this scholarships content, requiring a CMS-id-prefix
+selector (`[id^="faqs-section"]`) rather than the widget's own CSS class
+to correctly scope to just the 13 real programmes rather than 27
+accordion items total (14 of which are unrelated nav menus). This
+project's first genuinely `UNIVERSITY`-typed source — every other
+web-scraped source until now has been government/international-
+organization/funding-organization-typed. 37 sources now implemented.

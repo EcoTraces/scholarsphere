@@ -58,13 +58,14 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-30): **684/684
+Test baseline as of this session's own verified run (2026-08-30): **687/687
 backend tests passing** (`pytest -q`; 586 as of the browser-rendering
 fallback on 2026-08-29, +84 for the Hybrid Scholarship Discovery
 and Verification Engine build-out described below, +6 for the 40-country
 audit's United States/Eswatini work, +1 for the World Bank JJ/WBGSP
 source, +2 for the Rotary Peace Fellowships source, +5 for the Erasmus
-Mundus Joint Masters Catalogue source — up from 511 on
+Mundus Joint Masters Catalogue source, +3 for the UAEU Scholarships
+source — up from 511 on
 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -1905,3 +1906,49 @@ for the full dated history.
         page 1, and a genuinely-past-the-last-page response), plus the
         hardcoded source count/set updated. Full backend suite confirmed
         green: **684/684** (`pytest -q`, up from 679).
+
+- [x] **(2026-08-30)** Implemented **UAEU Scholarships, Fellowships, and
+      Graduate Assistantships** — closes the United Arab Emirates line
+      item in the country registry (previously `NO_RELIABLE_SOURCE_FOUND`
+      at the national-government level; that finding's own text already
+      flagged UAEU as the right follow-up) and this project's first
+      genuinely `UNIVERSITY`-typed source — every other web-scraped
+      source until now has been government/international-organization/
+      funding-organization-typed.
+      - Real, server-rendered page (`/en/cgs/scholarship.shtml`, 200,
+        ~169KB), `robots.txt`-unrestricted (`User-agent: *` allowed, only
+        narrow unrelated admin/legal `Disallow:` rules) — no browser
+        rendering needed.
+      - One real fragility found and handled correctly: the page's
+        Tailwind accordion widget (`.aegov-accordion`/`.accordion-item`)
+        is reused site-wide for both page-navigation menus and this
+        scholarships list — 27 total accordion items, only 13 of them
+        real programmes. Scoped via a CMS-id-prefix attribute selector
+        (`[id^="faqs-section"]`), stable in practice even though the
+        hash suffix after it changes on every republish, rather than a
+        hardcoded full id or the shared widget class alone.
+      - Extracts all 13 real accordion items (fellowships, research/
+        teaching/administrative assistantships, department-specific PhD
+        studentships) as their own records, deliberately **not filtered
+        by nationality eligibility** — several titles say "(All
+        nationalities)", others explicitly say "UAE nationals"/"UAEU
+        Alumni only" in their own real title text, extracted verbatim
+        for human review rather than acted on, matching this project's
+        standing "AI's role: none, today" eligibility policy
+        (`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §10).
+      - Each item's own detail link (several are PDFs, not HTML) is
+        stored as both `official_source_url` and
+        `official_application_url` without being fetched itself, matching
+        how EducationUSA's and Erasmus Mundus's own per-row links also
+        aren't followed.
+      - New `UaeuScholarshipsSource` in a new
+        `uaeu_scholarships_source.py`, wired end-to-end including the new
+        `"university"` `source_type` value on the existing free-text
+        source-type column.
+      - Verified: 3 new tests against a real fixture captured unmodified
+        from the fetch, plus the hardcoded source count/set updated (48
+        → 49). Full backend suite confirmed green: **687/687** (`pytest
+        -q`, up from 684 — the one other failure seen in a full-suite run,
+        `test_click_reveals_new_tab_destination`, is the already-documented
+        flaky real-Chromium test under system load; re-run in isolation
+        and passed).

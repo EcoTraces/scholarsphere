@@ -307,6 +307,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "uaeu_scholarships": {
+        "source_name": "UAEU Scholarships, Fellowships, and Graduate Assistantships",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -362,6 +368,7 @@ def _base_urls() -> dict[str, str]:
         "world_bank_jjwbgsp": settings.world_bank_jjwbgsp_base_url,
         "rotary_peace_fellowship": settings.rotary_peace_fellowship_base_url,
         "erasmus_mundus_joint_masters": settings.erasmus_mundus_base_url,
+        "uaeu_scholarships": settings.uaeu_base_url,
     }
 
 
@@ -433,6 +440,7 @@ async def seed_opportunity_sources(
         "world_bank_jjwbgsp": now + timedelta(hours=24),
         "rotary_peace_fellowship": now + timedelta(hours=24),
         "erasmus_mundus_joint_masters": now + timedelta(hours=24),
+        "uaeu_scholarships": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
