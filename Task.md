@@ -58,12 +58,12 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-30): **677/677
+Test baseline as of this session's own verified run (2026-08-30): **679/679
 backend tests passing** (`pytest -q`; 586 as of the browser-rendering
 fallback on 2026-08-29, +84 for the Hybrid Scholarship Discovery
 and Verification Engine build-out described below, +6 for the 40-country
 audit's United States/Eswatini work, +1 for the World Bank JJ/WBGSP
-source — up from 511 on
+source, +2 for the Rotary Peace Fellowships source — up from 511 on
 2026-08-23 — 7 for
 differential Storage access, 6 for link-health monitoring, 3 for the
 Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
@@ -1825,3 +1825,42 @@ for the full dated history.
         `test_opportunity_import.py` updated for the new source. Full
         backend suite confirmed green: **677/677** (`pytest -q`, up
         from 676).
+
+- [x] **(2026-08-30)** Implemented **Rotary Peace Fellowships**, and
+      researched (but did not integrate) the **Aga Khan Foundation
+      International Scholarship Programme** — continuing the same
+      "multiple source types per country" gap.
+      - Aga Khan ISP is real and legitimate, but its own published
+        country scope (Bangladesh, India, Pakistan, Afghanistan,
+        Tajikistan, Kyrgyzstan, Syria, Egypt, Kenya, Tanzania, Uganda,
+        Madagascar, Mozambique) does not include Sierra Leone — rejected
+        on eligibility grounds, not a technical one, matching this
+        project's "never invent eligibility" rule applied honestly in
+        both directions.
+      - Rotary Peace Fellowships is real, genuinely open worldwide by
+        nationality (no country restriction stated anywhere on its own
+        page), real static server-rendered content — no browser
+        rendering needed. `robots.txt` allows crawling with
+        `Crawl-delay: 10`, respected via a source-specific
+        `min_request_interval_seconds = 10.0` (well above this
+        project's usual 2-second default).
+      - New `RotaryPeaceFellowshipSource` in
+        `national_scholarship_programs.py`, wired end-to-end. One
+        fragility recorded honestly rather than silently risked: the
+        page has no semantic content wrapper (no `<article>`, no
+        descriptive `class`/`id`), only Tailwind utility-class
+        combinations — the description selector works today (verified
+        against the real page, first-match-is-correct among 3 matching
+        elements) but is more brittle than most sources here; documented
+        in both the class docstring and `docs/AUTHORITATIVE_SOURCES.md`
+        so a future `description=None` isn't mistaken for a real content
+        change without checking the live markup first.
+      - `deadline_keywords` kept active rather than disabled even though
+        the page's own text currently states only a month+year for the
+        next cycle (no day) — correctly resolves to `deadline=None`
+        today, but will pick up a real date automatically once the page
+        states one.
+      - Verified: 2 new tests (normalization against a real fixture,
+        plus the crawl-delay assertion) against a real captured fixture,
+        plus the hardcoded source count/set updated. Full backend suite
+        confirmed green: **679/679** (`pytest -q`, up from 677).

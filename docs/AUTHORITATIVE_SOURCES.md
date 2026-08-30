@@ -1799,6 +1799,70 @@ countries in this registry have.
 
 ---
 
+## 46. Rotary Peace Fellowships (Rotary International)
+
+A second addition to the same "multiple source types per country" gap
+as source #45. Genuinely open worldwide by nationality (unlike Aga Khan
+Foundation's International Scholarship Programme, also researched this
+pass — real and legitimate, but restricted to a named list of countries
+that does not include Sierra Leone, so not integrated).
+
+- **Organization**: The Rotary Foundation (Rotary International)
+- **Route code**: `rotary-peace-fellowship` (`rotary_peace_fellowship`
+  internally)
+- **Official domain / base URL**: `https://www.rotary.org`
+  (`ROTARY_PEACE_FELLOWSHIP_BASE_URL`)
+- **Opportunity types**: Fellowship (master's degree or professional
+  development certificate, peace and development studies, at one of
+  eight Rotary Peace Centers worldwide)
+- **Country coverage**: Not tied to a single destination country — left
+  `None`, same as Wells Mountain Initiative (source #13) and World Bank
+  JJ/WBGSP (source #45)
+- **Discovery method**: **Web scraper, single-flagship-program pattern**
+  reading `/get-involved/our-programs/peace-fellowships` (the resolved
+  target of a 301 redirect from `/en/our-programs/peace-fellowships`,
+  fetched directly to skip the extra hop). `robots.txt` allows
+  `User-agent: *` with only narrow system-path `Disallow:` rules (none
+  matching this page) and states `Crawl-delay: 10` — respected via
+  `min_request_interval_seconds = 10.0`, well above this project's usual
+  2-second default.
+- **API / RSS / Sitemap**: None published
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices, and one honestly-recorded fragility**:
+  - `title_selectors = ("h1.typography-h1",)` — unique on the page
+    (exactly one match) and reads like a real, intentional design-
+    system class Rotary reuses across pages.
+  - `content_selectors = ("div.flex.flex-col.gap-2",)` — this page has
+    **no semantic content wrapper** (no `<article>`, no `id`/descriptive
+    `class` on the body-copy container), only Tailwind utility-class
+    combinations. This selector matches 3 elements; `_first_match`'s
+    `select_one` takes the first, which is the correct lead paragraph
+    today (live-verified against the real fetched page) — but a future
+    CSS/utility refactor could silently break it without the page's
+    visible content changing. Recorded honestly rather than silently
+    risked: if a future resync finds `description=None` for this
+    source, re-inspect the live page's markup before assuming a genuine
+    content change (a broken selector fails safe to `None`, never a
+    crash or fabricated content).
+  - `deadline_keywords` kept active rather than disabled (`()`) even
+    though the page's own text at the time of writing states only a
+    month+year for the next application cycle ("available online in
+    February 2027", no day) — `extract_confident_date_after` correctly
+    returns `None` for that today; a future cycle stating an exact date
+    will be picked up automatically without another code change.
+- **LIVE SOURCE TEST: PASSED 2026-08-30.** Verified via `curl` (following
+  the real 301 redirect) and this backend's actual parsing path — 200,
+  ~287KB real server-rendered HTML, no browser rendering needed, no
+  spoofed user agent required. Implemented and unit-tested against a
+  real fixture captured unmodified from the fetch
+  (`tests/fixtures/rotary_peace_fellowships.html`).
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research
@@ -1816,6 +1880,7 @@ record of what was checked, not just what was added:
 | Fulbright Program | Researched 2026-08-22. The US-student-facing site (`us.fulbrightonline.org`) is the wrong audience for this platform; the foreign-student program is administered per-country through ~160 individual US embassy pages with no single list of open calls; the one Sierra-Leone-specific page checked (`sl.usembassy.gov/educational-professional-exchanges/`) returned a generic "Technical Difficulties" error page rather than real content — no single stable page to scrape reliably |
 | China Scholarship Council (CSC) / `csc.edu.cn` / `studyinchina.csc.edu.cn` | Researched 2026-08-29 — `BLOCKED`, see `docs/COUNTRY_PROVIDER_REGISTRY.md`'s China entry. A real, major, legitimate official program (the Chinese Government Scholarship), but every page checked — including `robots.txt` itself — returns HTTP 412 or an obfuscated JavaScript anti-bot challenge page ("系统繁忙，请稍后再试" / "system busy, try again later"), not real content. Never bypassed. |
 | Mastercard Foundation Scholars Program (`mastercardfdn.org`) | Researched 2026-08-30 — real, major (58,000+ scholarships committed, 62 partner universities across Africa and internationally), directly relevant to Sierra Leone. `robots.txt` explicitly `Allow: /` for `ClaudeBot` by name. The program's own overview page is real, static, server-rendered content, but — same reason Canada/Denmark/Wales were rejected — has no single deadline or application path: "the application process and decision-making are managed individually by each partner" institution. The actual per-institution listing (`.../where-to-apply/`, "Search the listings below") is a client-side widget with **no server-rendered fallback** — a plain fetch returns literally "Institutions Error loading data. Please try again." instead of the list. Its underlying data API could not be located in the page's own static JS (no inline endpoint URL, and the referenced `kachow.js` bundle is a small unrelated utility script, not the widget itself) without executing the page's JS, which this sandbox cannot do against external sites (same `net::ERR_CONNECTION_RESET` proxy-TLS limitation documented for the original browser-rendering fallback work — re-confirmed live against this exact URL, 2026-08-30). **Not integrated, but a strong candidate for a future session with a working outbound browser-automation path**: enable `allow_browser_rendering` on a listing-page adapter for `/where-to-apply/`, live-verify the rendered institution list's structure, and confirm robots.txt still allows it before implementing. |
+| Aga Khan Foundation International Scholarship Programme (ISP) | Researched 2026-08-30 — real, legitimate, long-running programme for gifted students from developing countries with no other means of financing postgraduate study. Rejected on eligibility grounds, not a technical one: the programme's own published country scope (Bangladesh, India, Pakistan, Afghanistan, Tajikistan, Kyrgyzstan, Syria, Egypt, Kenya, Tanzania, Uganda, Madagascar, Mozambique) does not include Sierra Leone — this platform's own "never invent eligibility" rule cuts both ways: a source that explicitly excludes Sierra Leone from its stated country list is exactly the "clearly ineligible" case, not integrated on that basis rather than a reachability/JS-rendering issue. |
 
 DAAD, Chevening, and Commonwealth Scholarships were in this table until
 2026-08-22 for the same reason as the rows above (no public API) — they are

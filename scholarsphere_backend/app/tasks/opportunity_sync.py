@@ -80,6 +80,7 @@ from app.services.national_scholarship_programs import (
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
+    RotaryPeaceFellowshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -294,6 +295,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
             "schedule": crontab(minute=15, hour=12),
         },
+        "sync-rotary-peace-fellowship": {
+            "task": "app.tasks.opportunity_sync.sync_rotary_peace_fellowship",
+            "schedule": crontab(minute=30, hour=12),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -381,6 +386,9 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_educationusa_financial_aid"
     ),
     "world_bank_jjwbgsp": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
+    "rotary_peace_fellowship": (
+        "app.tasks.opportunity_sync.sync_rotary_peace_fellowship"
+    ),
 }
 
 
@@ -1060,6 +1068,21 @@ def sync_world_bank_jjwbgsp(
     return _execute_source_task(self, "world_bank_jjwbgsp", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_rotary_peace_fellowship",
+    max_retries=3,
+)
+def sync_rotary_peace_fellowship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "rotary_peace_fellowship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1305,6 +1328,7 @@ def _collector(source_code: str) -> Any:
         "mexico_amexcid": MexicoAmexcidScholarshipSource,
         "educationusa_financial_aid": EducationUsaFinancialAidSource,
         "world_bank_jjwbgsp": WorldBankJJWBGSPScholarshipSource,
+        "rotary_peace_fellowship": RotaryPeaceFellowshipSource,
     }[source_code]()
 
 

@@ -1565,3 +1565,65 @@ class WorldBankJJWBGSPScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().world_bank_jjwbgsp_base_url
+
+
+class RotaryPeaceFellowshipSource(_SingleProgramSource):
+    """Rotary Peace Fellowships - The Rotary Foundation (Rotary
+    International). Not tied to a single destination country -
+    `country` is left `None`, same as Wells Mountain Initiative and
+    World Bank JJ/WBGSP above: fellows study at one of eight Rotary
+    Peace Centers worldwide. Genuinely open worldwide - unlike Aga Khan
+    Foundation's ISP (also researched this pass but restricted to a
+    named list of countries that does not include Sierra Leone, so not
+    integrated), Rotary states no nationality restriction anywhere on
+    its own page.
+
+    Confirmed 2026-08-30: `robots.txt` allows `User-agent: *` with only
+    narrow system-path `Disallow:` rules (none matching this page) and
+    states `Crawl-delay: 10` - respected via
+    `min_request_interval_seconds = 10.0` below, well above this
+    project's usual 2-second default. The configured URL
+    (`/en/our-programs/peace-fellowships`) 301-redirects to
+    `/get-involved/our-programs/peace-fellowships`, which this adapter
+    fetches directly - `app.core.http_client.get_html` already follows
+    redirects, but fetching the resolved URL directly avoids the extra
+    hop on every sync.
+
+    `content_selectors` is a real, if fragile, finding worth recording
+    honestly: this page has no semantic content wrapper (no `<article>`,
+    no `id`/descriptive `class` on the body-copy container) - only
+    Tailwind utility-class combinations. `div.flex.flex-col.gap-2`
+    matches 3 elements on the page; `_first_match`'s `select_one` takes
+    the first, which is the correct lead paragraph today, verified
+    directly against the real fetched page - but a future CSS/utility
+    refactor could silently break this without changing the page's
+    visible content. If a resync ever finds `description=None` for this
+    source going forward, that fragility is why - re-inspect the live
+    page's markup before assuming a genuine content change.
+
+    Similarly, `title_selectors = ("h1.typography-h1",)` is unique
+    (exactly one match) and looks like a real, intentional design-system
+    class Rotary reuses for every page's H1, so more likely to remain
+    stable than the content selector above.
+
+    `deadline_keywords` is kept active (not `()`, unlike AMEXCID) even
+    though the page's own text at the time of writing states only a
+    month+year for the next cycle ("available online in February 2027",
+    no day) - `extract_confident_date_after` correctly returns `None`
+    for that today (no full day+month+year literal), but a future cycle
+    that does state an exact date will be picked up automatically
+    without needing another code change.
+    """
+
+    source_code = "rotary_peace_fellowship"
+    overview_path = "/get-involved/our-programs/peace-fellowships"
+    title_selectors = ("h1.typography-h1",)
+    content_selectors = ("div.flex.flex-col.gap-2",)
+    deadline_keywords = ("application timeline", "apply by", "deadline")
+    provider_name = "The Rotary Foundation (Rotary International) - Rotary Peace Fellowships"
+    country = None
+    external_id = "rotary-peace-fellowship"
+    min_request_interval_seconds = 10.0
+
+    def _base_url(self) -> str:
+        return get_settings().rotary_peace_fellowship_base_url

@@ -91,6 +91,33 @@ execution-plus-DOM-extraction test. Full backend suite: **586/586**
 (`pytest -q`, up from 575). `pip-audit`: no known vulnerabilities in the
 new `playwright` dependency.
 
+## [2026-08-30] — Added Rotary Peace Fellowships
+
+Continuing the "multiple source types per country" gap. Researched (but
+did not integrate) the Aga Khan Foundation International Scholarship
+Programme - real and legitimate, but its own published country list
+does not include Sierra Leone, rejected on eligibility grounds. Then
+researched and implemented Rotary Peace Fellowships instead - genuinely
+open worldwide, real static content.
+
+### Added
+- `RotaryPeaceFellowshipSource` in `national_scholarship_programs.py` -
+  real, worldwide (no nationality restriction), static server-rendered
+  content. `robots.txt`-compliant `Crawl-delay: 10` respected via a
+  source-specific 10-second minimum request interval. Wired end-to-end.
+- 2 new tests against a real fixture captured unmodified from the fetch.
+  Full backend suite confirmed green: **679/679** (`pytest -q`, up from 677).
+
+### Changed
+- `tests/test_opportunity_import.py`'s hardcoded source count/set
+  updated for the new source.
+
+One fragility recorded honestly rather than silently risked: the page
+has no semantic content wrapper, only Tailwind utility-class
+combinations, so the description selector is more brittle than most
+sources here - verified working today, documented in both the source's
+own docstring and `docs/AUTHORITATIVE_SOURCES.md`.
+
 ## [2026-08-30] — Added Joint Japan/World Bank Graduate Scholarship Program (JJ/WBGSP)
 
 Continuing the "multiple source types per country" gap from the previous

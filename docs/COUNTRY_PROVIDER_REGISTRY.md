@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (34, across multiple sessions)
+## Implemented (35, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -71,6 +71,7 @@ that were actually built this session (in two batches).
 | 43 | Becas de Excelencia del Gobierno de México (AMEXCID) | Mexico | GOVERNMENT | gob.mx | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 44 | EducationUSA "Find Financial Aid" Database | United States | GOVERNMENT | educationusa.state.gov | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-29 |
 | 45 | Joint Japan/World Bank Graduate Scholarship Program | (not tied to one destination country) | FUNDING_ORGANIZATION | worldbank.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; Sierra Leone confirmed on its own published eligible-countries list |
+| 46 | Rotary Peace Fellowships | (not tied to one destination country) | FUNDING_ORGANIZATION | rotary.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; open worldwide, no nationality restriction |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
@@ -983,3 +984,23 @@ from the twelfth pass. This is the registry's first `FUNDING_ORGANIZATION`
 government-type sources, a small real step on the "multiple source
 types per country" gap. The gap itself remains largely open — most
 countries here still have exactly one source.
+
+**Fourteenth pass (2026-08-30), continuing the same gap.** Two more
+foundation-type candidates researched: (1) **Aga Khan Foundation
+International Scholarship Programme** — real and legitimate, but its
+own published country scope does not include Sierra Leone (Bangladesh,
+India, Pakistan, Afghanistan, Tajikistan, Kyrgyzstan, Syria, Egypt,
+Kenya, Tanzania, Uganda, Madagascar, Mozambique) — not integrated on
+eligibility grounds, not a technical one; see
+`docs/AUTHORITATIVE_SOURCES.md`'s "Sources evaluated and deliberately
+not integrated" table. (2) Researched and **implemented** **Rotary
+Peace Fellowships** — see source #46 in `docs/AUTHORITATIVE_SOURCES.md`.
+Real, genuinely open worldwide by nationality (unlike Aga Khan's ISP),
+real static server-rendered content, `robots.txt`-compliant
+(`Crawl-delay: 10`, respected). One honestly-recorded fragility: the
+page has no semantic content wrapper, only Tailwind utility classes, so
+its description selector is more brittle than most sources here — works
+today, verified against the real page, but documented as a real risk
+rather than silently assumed durable. 35 sources now implemented; the
+"multiple source types per country" gap keeps narrowing but remains
+largely open.

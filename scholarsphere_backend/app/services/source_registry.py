@@ -295,6 +295,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "rotary_peace_fellowship": {
+        "source_name": "Rotary Peace Fellowships (The Rotary Foundation)",
+        "source_type": "funding_organization",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -348,6 +354,7 @@ def _base_urls() -> dict[str, str]:
         "mexico_amexcid": settings.mexico_amexcid_base_url,
         "educationusa_financial_aid": settings.educationusa_base_url,
         "world_bank_jjwbgsp": settings.world_bank_jjwbgsp_base_url,
+        "rotary_peace_fellowship": settings.rotary_peace_fellowship_base_url,
     }
 
 
@@ -417,6 +424,7 @@ async def seed_opportunity_sources(
         "mexico_amexcid": now + timedelta(hours=24),
         "educationusa_financial_aid": now + timedelta(hours=24),
         "world_bank_jjwbgsp": now + timedelta(hours=24),
+        "rotary_peace_fellowship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

@@ -35,6 +35,7 @@ from app.services.national_scholarship_programs import (
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
+    RotaryPeaceFellowshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -1323,3 +1324,42 @@ async def test_world_bank_jjwbgsp_collect_normalizes_real_fixture(
     # first full day+month+year literal that follows.
     assert str(opportunity.deadline) == "2027-02-26"
     assert opportunity.funding_type == "fully_funded"
+
+
+# --- Rotary Peace Fellowships: real fixture, fetched 2026-08-30 ------------
+
+
+@pytest.mark.asyncio
+async def test_rotary_peace_fellowship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = RotaryPeaceFellowshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("rotary_peace_fellowships.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "rotary-peace-fellowship"
+    assert opportunity.title == "Peace Fellowships"
+    # Not tied to a single destination country - fellows study at one of
+    # eight Rotary Peace Centers worldwide.
+    assert opportunity.country is None
+    assert opportunity.provider_name == (
+        "The Rotary Foundation (Rotary International) - Rotary Peace Fellowships"
+    )
+    assert opportunity.description is not None
+    assert "170 funded fellowships" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # The page's own text at fetch time states only a month+year for the
+    # next cycle ("available online in February 2027", no day) - never
+    # guessed into a fabricated exact date.
+    assert opportunity.deadline is None
+
+
+def test_rotary_peace_fellowship_respects_the_sites_crawl_delay() -> None:
+    assert RotaryPeaceFellowshipSource.min_request_interval_seconds == 10.0
