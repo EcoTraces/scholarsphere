@@ -243,6 +243,45 @@ class Settings(BaseSettings):
     erasmus_mundus_base_url: str = "https://www.eacea.ec.europa.eu"
     uaeu_base_url: str = "https://www.uaeu.ac.ae"
 
+    # Premium Application-Preparation Platform - payment provider
+    # abstraction (app/services/payment_provider.py). Left unset by
+    # default: an empty `payment_provider` selects `NullPaymentProvider`,
+    # which clearly reports "not configured" on every call rather than
+    # fabricating a successful transaction - see that module's docstring.
+    # The real provider (Stripe/Paystack/Flutterwave/...) and its
+    # credentials are supplied later; nothing here assumes which one.
+    payment_provider: str = ""
+    payment_env: str = "test"
+    payment_secret_key: SecretStr = SecretStr("")
+    payment_public_key: str = ""
+    payment_webhook_secret: SecretStr = SecretStr("")
+    payment_currency: str = "USD"
+    payment_api_base_url: str = ""
+
+    # The flagship "Complete Premium Application Package" - seeded once at
+    # startup (app/services/premium_plan_seed.py) if no plan with this
+    # code exists yet, then fully admin-editable afterward (price
+    # included). These two env vars only control the *seed*, never a
+    # runtime price override - the database row is the single source of
+    # truth from that point on.
+    premium_plan_id: str = "complete_premium"
+    premium_price_cents: int = Field(default=10_000, ge=0)
+
+    # AI provider abstraction (app/services/ai_provider.py). Left unset by
+    # default: an empty `ai_provider` selects `NullAIProvider`, which
+    # clearly reports "AI generation is not configured" rather than
+    # fabricating document content - see that module's docstring.
+    ai_provider: str = ""
+    ai_api_key: SecretStr = SecretStr("")
+    ai_model: str = ""
+    ai_api_base_url: str = ""
+    ai_request_timeout_seconds: float = Field(default=60.0, gt=0, le=180)
+    # Configurable AI-usage ceilings (app/services/usage_limits.py) - the
+    # database `usage_limits` table can override these per feature; these
+    # are only the defaults applied when no row exists yet for a feature.
+    ai_usage_daily_limit_default: int = Field(default=20, gt=0)
+    ai_usage_monthly_limit_default: int = Field(default=200, gt=0)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -348,6 +387,16 @@ class Settings(BaseSettings):
         if not value.lower().startswith("https://"):
             raise ValueError("External API endpoints must use HTTPS")
         return value.rstrip("/")
+
+    @field_validator("payment_api_base_url", "ai_api_base_url")
+    @classmethod
+    def require_https_when_set(cls, value: str) -> str:
+        # Unlike require_https above, these two are legitimately blank
+        # (no provider configured yet) - only enforce HTTPS once a real
+        # value is actually supplied.
+        if value and not value.lower().startswith("https://"):
+            raise ValueError("External API endpoints must use HTTPS")
+        return value.rstrip("/") if value else value
 
     @model_validator(mode="after")
     def enforce_revocation_checking_in_production(self) -> "Settings":

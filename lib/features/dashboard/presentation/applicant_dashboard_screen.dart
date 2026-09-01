@@ -26,6 +26,7 @@ class ApplicantDashboardScreen extends StatefulWidget {
     required this.openCalendar,
     required this.openDocuments,
     required this.openSettings,
+    required this.openPremium,
     required this.onSignOut,
   });
 
@@ -42,6 +43,7 @@ class ApplicantDashboardScreen extends StatefulWidget {
   final VoidCallback openCalendar;
   final VoidCallback openDocuments;
   final VoidCallback openSettings;
+  final VoidCallback openPremium;
   final VoidCallback onSignOut;
 
   @override
@@ -162,6 +164,7 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
     openCalendar: widget.openCalendar,
     openProfile: widget.openProfile,
     openSettings: widget.openSettings,
+    openPremium: widget.openPremium,
   );
 
   void _openOpportunities() {
@@ -378,6 +381,7 @@ class _SideNavigation extends StatelessWidget {
     required this.openCalendar,
     required this.openProfile,
     required this.openSettings,
+    required this.openPremium,
   });
   final UserAccount user;
   final bool compact;
@@ -391,6 +395,7 @@ class _SideNavigation extends StatelessWidget {
   final VoidCallback openCalendar;
   final VoidCallback openProfile;
   final VoidCallback openSettings;
+  final VoidCallback openPremium;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -442,6 +447,11 @@ class _SideNavigation extends StatelessWidget {
                   'Dashboard',
                   openDashboard,
                   true,
+                ),
+                _nav(
+                  Icons.workspace_premium_outlined,
+                  'Premium',
+                  openPremium,
                 ),
                 _nav(
                   Icons.explore_outlined,

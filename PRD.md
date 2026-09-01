@@ -123,6 +123,32 @@ production `ScholarSphereApp` (`lib/app/app.dart`) instantiates the
 | Collection | Manual opportunity intake ledger | Administrator, Security roles | Every collected record forced into pending verification | ✅ Implemented |
 | Analytics | Opportunity view events | All (write), staff (read counts) | — | ✅ Implemented |
 
+### 3.1a Premium Application-Preparation Platform (2026-09-01)
+
+A paid tier layered on top of the free feature set above, not a
+replacement for any of it — see Architecture.md §9 for the full design.
+
+| Feature | Description | Backend | Flutter |
+|---|---|---|---|
+| Payment architecture | Provider-independent `PaymentProvider` interface; real Stripe adapter (Payment Intents/Refunds/Subscriptions/webhook signature verification); `NullPaymentProvider` default that never fabricates a successful transaction | ✅ Implemented, tested | ✅ Checkout initiation + status; no client-side card-entry SDK yet |
+| Entitlements | Server-authoritative, database-backed (never a JWT claim or client flag); plan feature-list snapshotted at grant time; expiry-aware | ✅ Implemented, tested | ✅ Read via `PremiumStatus`; `PremiumFeatureGate` widget (UI convenience only) |
+| Configurable plans | Admin-editable price/currency/feature-list; flagship "Complete Premium Application Package" ($100 default, fully admin-editable) seeded once at startup | ✅ Implemented, tested | ✅ Real pricing/feature list on the landing screen |
+| Applicant background data | Structured education/work-experience/project/publication/award/leadership/skill/reference facts — the only source AI generation may read from | ✅ Implemented, tested | ⬛ No screen yet (API-only) |
+| Application preparation | Category-driven workspace (9 applicant categories), requirement matching against real opportunity text, documented readiness score, auto-generated checklist | ✅ Implemented, tested | ⬛ No screen yet (API-only) |
+| CV / ATS | Deterministic CV assembly from real background data, optional AI wording polish (never adds facts), rule-based ATS analysis with an explicit "does not guarantee acceptance" disclaimer, PDF/DOCX export | ✅ Implemented, tested | ⬛ No screen yet (API-only) |
+| SOP / Study Plan / Research Proposal / Fellowship prep | AI-generated, strictly grounded in real applicant facts + their own questionnaire answers — never fabricates an award, degree, publication, or citation | ✅ Implemented, tested | ⬛ No screen yet (API-only) |
+| Document versioning | Append-only version history; restore copies into a new version, never rewinds in place | ✅ Implemented, tested | ⬛ No screen yet (API-only) |
+| Usage limits | Configurable per-feature daily/monthly AI-request ceilings | ✅ Implemented, tested | ⬛ No UI |
+| Admin dashboard | Plan CRUD, payments/refunds, revenue, AI usage, usage-limit config | ✅ Implemented, tested | ⬛ No UI |
+| Premium landing/pricing/checkout | Real plan/price/feature display, checkout initiation, "You have Premium" status | ✅ | ✅ Implemented (`lib/features/premium/`) |
+
+**AI provider**: same "never fabricate, provider-independent, honest
+not-configured state" pattern as payments — see Architecture.md §9.2.
+Neither a payment nor an AI provider has real credentials configured in
+any environment this project has had access to; both are fully
+implemented and tested against the honest "not configured" failure mode
+(`NullPaymentProvider`/`NullAIProvider`), never a fabricated success.
+
 ### 3.2 Partial — real backend exists but has a known wiring gap
 
 **Resolved 2026-08-21** (see `Changelog.md`): the search-index/dashboard/
@@ -171,8 +197,13 @@ out (backend route + screen) or delete them — see Task.md.
   exists; no route reads it yet).
 - A Super-Administrator-editable source registry UI (adding an 8th
   opportunity source today requires a code change).
-- Payments — not present anywhere in the codebase.
-- AI/LLM-assisted extraction — not present anywhere in the codebase.
+- A second real payment provider adapter (Paystack/Flutterwave) — the
+  `PaymentProvider` interface supports adding one without touching any
+  calling code (see §3.1a), but only the Stripe reference adapter exists
+  today, and no provider has real credentials configured yet.
+- A client-side payment SDK integration in Flutter (e.g. `flutter_stripe`)
+  for the card-entry step of checkout — tied to whichever provider is
+  eventually chosen, so deliberately not added speculatively.
 
 ---
 

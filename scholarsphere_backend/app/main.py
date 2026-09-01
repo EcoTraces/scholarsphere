@@ -5,8 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api.routes.analytics import router as analytics_router
+from app.api.routes.applicant_background import router as applicant_background_router
 from app.api.routes.applicant_documents import router as applicant_documents_router
 from app.api.routes.applicant_profiles import router as applicant_profiles_router
+from app.api.routes.application_preparation import router as application_preparation_router
 from app.api.routes.applications import router as applications_router
 from app.api.routes.audit import router as audit_router
 from app.api.routes.backup import router as backup_router
@@ -22,6 +24,10 @@ from app.api.routes.moderation import router as moderation_router
 from app.api.routes.moderation import warnings_router as moderation_warnings_router
 from app.api.routes.notifications import router as notifications_router
 from app.api.routes.observability import router as observability_router
+from app.api.routes.premium_admin import router as premium_admin_router
+from app.api.routes.premium_billing import router as premium_billing_router
+from app.api.routes.premium_documents import router as premium_documents_router
+from app.api.routes.premium_webhooks import router as premium_webhooks_router
 from app.api.routes.privacy import router as privacy_router
 from app.api.routes.provider_analytics import router as provider_analytics_router
 from app.api.routes.provider_opportunities import router as provider_opportunities_router
@@ -42,6 +48,7 @@ from app.core.errors import install_error_handling
 from app.core.rate_limit import install_rate_limiting
 from app.core.security_headers import install_security_headers
 from app.db.session import AsyncSessionFactory, dispose_engine
+from app.services.premium_plan_seed import seed_default_plan
 
 settings = get_settings()
 
@@ -76,6 +83,9 @@ def ensure_firebase_ready_in_production(current_settings) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_firebase_ready_in_production(settings)
+    async with AsyncSessionFactory() as session:
+        async with session.begin():
+            await seed_default_plan(session)
     yield
     await app.state.rate_limiter.close()
     await dispose_engine()
@@ -138,6 +148,12 @@ app.include_router(observability_router, prefix=settings.api_v1_prefix)
 app.include_router(scraper_metrics_router, prefix=settings.api_v1_prefix)
 app.include_router(fraud_investigation_router, prefix=settings.api_v1_prefix)
 app.include_router(collection_router, prefix=settings.api_v1_prefix)
+app.include_router(applicant_background_router, prefix=settings.api_v1_prefix)
+app.include_router(application_preparation_router, prefix=settings.api_v1_prefix)
+app.include_router(premium_billing_router, prefix=settings.api_v1_prefix)
+app.include_router(premium_documents_router, prefix=settings.api_v1_prefix)
+app.include_router(premium_admin_router, prefix=settings.api_v1_prefix)
+app.include_router(premium_webhooks_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["health"])

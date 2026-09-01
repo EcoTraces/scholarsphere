@@ -401,3 +401,110 @@ Recorded here because they're non-obvious and easy to accidentally violate:
    change must call a real endpoint, never patch a local model and hope a
    background job persists it (fixed 2026-08-21 — see the search-index/
    expired-opportunity background-job note above).
+
+---
+
+## 9. Premium Application-Preparation Platform (2026-09-01)
+
+A paid tier built as a layer on the existing architecture — new tables,
+new services, new routes under the existing FastAPI app and SQLAlchemy
+session pattern, a new `lib/features/premium/` slice following the
+existing demo/api repository pattern — never a parallel stack. See
+Database.md §2.14 for the schema and PRD.md §3.1a for feature status.
+
+### 9.1 Payment abstraction
+
+`app/services/payment_provider.py` defines a `PaymentProvider` interface
+(`initialize_payment`/`verify_payment`/`get_transaction`/`refund_payment`/
+`create_subscription`/`cancel_subscription`/`verify_webhook_signature`/
+`parse_webhook_event`) that every route/service depends on — no calling
+code imports a specific provider's SDK. Two implementations exist:
+`NullPaymentProvider` (the default whenever `PAYMENT_PROVIDER` is unset —
+every method raises a clear "not configured" error rather than
+fabricating a successful transaction) and `StripePaymentProvider` (a real
+integration against Stripe's documented REST API — Payment Intents,
+Refunds, Subscriptions, and its published HMAC-SHA256 webhook-signature
+algorithm with replay-window protection). A second real provider
+(Paystack/Flutterwave, directly relevant given this platform's Sierra
+Leone-focused user base) is a new class implementing the same interface
+plus one line in `PROVIDER_REGISTRY` — never a change to calling code.
+
+**Idempotency is a database-level guarantee, not an application-level
+check.** `payment_events.UNIQUE(provider, provider_event_id)` rejects a
+duplicate webhook delivery before any entitlement logic runs;
+`entitlements.UNIQUE(source_payment_id)` is a second, independent
+backstop even if the first were ever bypassed. `app/services/
+payment_service.py::grant_entitlement_for_payment` additionally handles
+the resulting `IntegrityError` via `session.begin_nested()`/savepoint
+rather than letting a race condition surface as a 500.
+
+**Entitlement is never a boolean flag.** `Entitlement.feature_keys`
+snapshots the plan's feature list *at grant time* — a later admin price
+or feature-list edit never retroactively changes what an already-paying
+user has. `app/core/entitlements.py::require_entitlement` is a
+database-backed FastAPI dependency (mirroring `require_roles`/
+`require_permissions`'s shape exactly) — entitlements are dynamic (can
+expire or be revoked at any time) and must never be cached into a JWT
+claim the way role/permission claims are (see Architecture Decision 7
+above — the same "never trust a token for something that can change
+independently" principle applied to a second domain).
+
+**Two real concurrency bugs were found and fixed building this** (see
+Task.md's 2026-09-01 entry for the full diagnosis): raising a route's
+`HTTPException` inside `async with session.begin()` silently rolled back
+a deliberately-persisted `failed`-status `Payment` row (any unhandled
+exception exiting that block rolls back the whole thing — the fix
+captures the error and re-raises after the block commits); and
+`require_entitlement`'s own database read opened SQLAlchemy's "autobegin"
+transaction before the route body's explicit `async with session.begin()`
+ran, colliding with it — fixed by closing the dependency's own
+transaction immediately after checking the feature, and specifically
+*before* that rollback (rollback expires every already-loaded ORM
+attribute, unlike commit, so checking after would trigger an illegal
+lazy-reload outside the async greenlet context). Both are documented as
+general lessons: a FastAPI dependency that reads the database and a route
+body that explicitly opens its own transaction can collide, and the fix
+belongs in the dependency, checked before any expiring operation.
+
+### 9.2 AI abstraction and the no-fabrication boundary
+
+`app/services/ai_provider.py` mirrors the payment abstraction's shape
+exactly: an `AIProvider` interface, `NullAIProvider` default (raises
+"not configured" rather than returning placeholder text), and real
+`OpenAIProvider`/`AnthropicProvider` adapters. Every network call goes
+through the existing shared `app/core/http_client.py` (HTTPS-only,
+timeout, bounded retry — Coding_Rules.md §4's "never call httpx directly"
+rule applies here too), which gained a small, backward-compatible
+`timeout_seconds` override so AI calls can use a longer budget than the
+40-second default every other external call shares.
+
+**The no-fabrication rule is enforced by design, not by prompt wording
+alone.** `app/services/document_generation.py` splits into two
+deliberately different paths: a CV's structured content is assembled
+*deterministically* from the applicant's own `ApplicantBackgroundEntry`
+rows (no AI involved by default — AI's only role is an explicit opt-in,
+narrowly-scoped wording polish that is instructed to add no new fact);
+narrative documents (SOP, personal statement, study plan, research
+proposal, fellowship essays) do need generated prose, so their prompt is
+built entirely from a verbatim "facts block" of the applicant's own real
+data plus their own free-text answers, with a system prompt that
+explicitly forbids inventing any fact, award, degree, publication,
+citation, or statistic. Requirement matching, the readiness score, and
+ATS analysis are all deterministic and rule-based specifically so they
+work identically — and can never hallucinate — whether or not an AI
+provider is configured at all.
+
+### 9.3 Applicant background data — a genuine, pre-existing gap this closes
+
+Before this platform, `ApplicantProfile` only carried summary fields
+(`highest_qualification`, `degree_field`, `work_experience_years` as a
+bare float) — there was no structured education-history/work-history/
+project/publication/award data model anywhere in the codebase. Real,
+non-fabricated AI document generation needs one, so
+`applicant_background_entries` was added: one table with a `category`
+discriminator (education/work_experience/project/publication/award/
+leadership_community/skill/reference) and a `details` JSON payload for
+category-specific fields, rather than eight near-identical tables — the
+same "one flexible JSON payload, read/written as a unit" shape
+`ApplicationGuidancePlan.items` already uses elsewhere in this codebase
+(Database.md §2.14).

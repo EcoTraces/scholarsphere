@@ -1,8 +1,8 @@
 # ScholarSphere — Database Documentation
 
-**Last verified against the codebase:** 2026-08-21. Sourced directly from
-`scholarsphere_backend/app/models/*.py` (26 files) and
-`scholarsphere_backend/alembic/versions/*.py` (31 migrations). No table or
+**Last verified against the codebase:** 2026-09-01. Sourced directly from
+`scholarsphere_backend/app/models/*.py` (33 files) and
+`scholarsphere_backend/alembic/versions/*.py` (33 migrations). No table or
 field below is invented.
 
 ---
@@ -246,6 +246,73 @@ manual/provider/API/RSS/feed/web/user-sourced records.
 **`platform_configurations`** — PK **is** `version` (int). Versioned
 platform config — `feature_flags`, `security_policy`, etc. as JSON.
 
+### 2.14 Premium Application-Preparation Platform (2026-09-01)
+
+14 new tables, one migration (`20260901_33_premium.py`). None duplicate an
+existing table — checked against SS2 above first (e.g. `Payment` is a
+transaction attempt, not a duplicate of `collection_ledger_entries`, which
+is opportunity-provenance, not billing).
+
+**Billing** (`app/models/premium_billing.py`):
+- **`premium_plans`** — admin-configurable package (price/currency/feature
+  list as JSON) — no hardcoded "$100" anywhere in application code, per
+  the platform spec. Seeded once at startup
+  (`app/services/premium_plan_seed.py`) with the flagship "Complete
+  Premium Application Package"; fully editable afterward.
+- **`payments`** — one row per checkout attempt, created *before* the
+  applicant reaches the payment provider. `UNIQUE(idempotency_key)`.
+  `status` only ever advances via server-side verification.
+- **`payment_events`** — one row per provider webhook/callback actually
+  processed. `UNIQUE(provider, provider_event_id)` — the real
+  duplicate-webhook defense; a second delivery fails this constraint
+  before any entitlement logic runs.
+- **`subscriptions`** — not used by the one-time flagship plan, but a
+  real, tested path for a future recurring plan.
+- **`refunds`** — FK `payment_id`→`payments` (RESTRICT).
+- **`entitlements`** — the actual, server-authoritative premium grant.
+  `feature_keys` snapshots the plan's features *at grant time* (a later
+  admin edit to a plan never retroactively changes what an already-paying
+  user has). `UNIQUE(source_payment_id)` — the second half of the
+  duplicate-webhook defense: even past `payment_events`' own constraint, a
+  second entitlement for the same payment fails here too.
+- **`ai_usage_records`** / **`usage_limits`** — every AI request attempted
+  (not just successes), and admin-configurable per-feature daily/monthly
+  ceilings.
+
+**Application preparation** (`app/models/application_preparation.py`):
+- **`premium_workspaces`** — the premium layer on top of one tracked
+  `applications` row. FK `application_id`→`applications` (CASCADE),
+  `UNIQUE(application_id)` — one workspace per tracked application, not a
+  parallel opportunity-tracking concept.
+- **`requirement_matches`** — real requirements extracted from the target
+  opportunity's own description text, classified against real applicant
+  data (never asserts eligibility the data can't support — an ambiguous
+  requirement is `needs_verification`, not guessed into `match`).
+- **`personalized_checklist_items`** — generated from a category-driven
+  workflow registry (`app/services/category_workflow.py`), distinct from
+  the free-tier `guidance_plans`.
+
+**Applicant background** (`app/models/applicant_background.py`):
+- **`applicant_background_entries`** — one table with a `category`
+  discriminator (education/work_experience/project/publication/award/
+  leadership_community/skill/reference) and a `details` JSON payload for
+  category-specific fields, rather than eight near-identical tables — the
+  same "one flexible JSON payload" shape `guidance_plans.items` already
+  uses. This is the *only* source of fact AI document generation is
+  allowed to read from (see `app/services/document_generation.py`).
+
+**Premium documents** (`app/models/premium_documents.py`):
+- **`premium_documents`** — one row per document being built (a CV, an
+  SOP, a study plan, ...). `workspace_id` nullable — a general-purpose CV
+  is reusable across several tracked opportunities.
+- **`premium_document_versions`** — append-only version history.
+  `UNIQUE(document_id, version_number)`. "Never silently overwrite user
+  content" is enforced structurally: an edit always inserts a new row.
+
+All `user_id` columns here follow the existing convention (SS1): a plain
+Firebase-uid string, never a FK into a users table that doesn't exist on
+the Postgres side.
+
 ---
 
 ## 3. Relationships
@@ -397,8 +464,10 @@ point at different tables depending on `entity_type`.
 | `20260911_29_observability` | Observability |
 | `20260912_30_fraud_investigation` | Fraud investigation |
 | `20260913_31_collection` | Collection ledger |
+| `20260914_32_link_health` | External-opportunity link-health column |
+| `20260901_33_premium` | Premium Application-Preparation Platform (SS2.14) |
 
-All 31 revisions chain and compile cleanly against the PostgreSQL dialect
+All 33 revisions chain and compile cleanly against the PostgreSQL dialect
 (validated offline via `alembic upgrade head --sql`, per
 `docs/PRODUCTION_SECURITY_AUDIT.md` §14). Run `alembic current` to check
 what's actually applied to a given database.

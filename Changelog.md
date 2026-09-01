@@ -28,6 +28,99 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-01] — Premium Application-Preparation Platform (backend complete, Flutter landing/checkout slice)
+
+A full Premium tier integrated into ScholarSphere's existing architecture
+rather than a separate project: application-strategy/requirement-matching/
+readiness-scoring, a CV builder with deterministic (never AI-fabricated)
+content assembly and optional AI wording polish, SOP/study-plan/research-
+proposal/fellowship document builders with strictly grounded AI
+generation, ATS analysis, document versioning, PDF/DOCX export, and a
+provider-independent payment system with real (though not yet
+credentialed) Stripe integration. See Task.md's matching dated entry for
+the full breakdown, including two real concurrency/transaction bugs found
+and fixed during the build.
+
+### Added
+- `app/services/payment_provider.py` — `PaymentProvider` interface;
+  `NullPaymentProvider` (default, never fabricates a successful
+  transaction); `StripePaymentProvider` (real Payment Intents/Refunds/
+  Subscriptions integration + Stripe's documented webhook-signature
+  algorithm, HMAC-SHA256 with replay-window protection).
+- `app/services/payment_service.py` — checkout, server-side verification,
+  idempotent webhook processing (two independent DB uniqueness
+  constraints), refunds with entitlement revocation, hash-chained audit
+  logging via the existing `append_audit_record`.
+- `app/services/ai_provider.py` — `AIProvider` interface;
+  `NullAIProvider` (default); real `OpenAIProvider`/`AnthropicProvider`
+  adapters, request shape verified against each provider's documented
+  API.
+- `app/services/document_generation.py` — deterministic CV assembly from
+  real `ApplicantBackgroundEntry` data (new: education/work_experience/
+  project/publication/award/leadership_community/skill/reference, one
+  consolidated table); grounded AI narrative generation for SOP/personal
+  statement/motivation letter/study plan/research proposal/fellowship
+  essays, with a system prompt that explicitly forbids inventing any
+  fact.
+- `app/services/requirement_matching.py`, `readiness_score.py`,
+  `ats_analysis.py` — deterministic, rule-based, AI-independent; readiness
+  score's weights are fully documented and returned with every response;
+  ATS score always carries an explicit "does not guarantee acceptance"
+  disclaimer.
+- `app/services/category_workflow.py` — a single registry mapping all 9
+  required applicant categories to their document/checklist workflow, not
+  branching logic scattered through routes.
+- `app/services/document_versioning.py`, `document_export.py` — append-
+  only version history; ATS-compatible PDF (`reportlab`) and DOCX
+  (`python-docx`) export by construction (single-column, no tables/
+  images).
+- `app/services/usage_limits.py`, `premium_plan_seed.py`.
+- 14 new database tables across `app/models/premium_billing.py`,
+  `application_preparation.py`, `applicant_background.py`,
+  `premium_documents.py`; one migration
+  (`alembic/versions/20260901_33_premium.py`). See Database.md §2.14.
+- New routes: `applicant_background.py`, `application_preparation.py`,
+  `premium_billing.py`, `premium_documents.py`, `premium_admin.py`,
+  `premium_webhooks.py` — all wired into `app/main.py`, including a
+  startup seed of the flagship "Complete Premium Application Package"
+  plan.
+- `app/core/entitlements.py` — `require_entitlement()`, a
+  database-backed route dependency mirroring `require_roles`/
+  `require_permissions`, never a JWT-cached claim.
+- `PAYMENT_*`/`AI_*`/`PREMIUM_*` settings in `app/core/config.py` and
+  `.env.example`, all optional-to-boot with a clear "not configured"
+  failure mode rather than a fabricated success.
+- `lib/features/premium/` — domain models, `ApiPremiumRepository`/
+  `DemoPremiumRepository`, `PremiumFeatureGate` (reusable locked-feature
+  widget), `PremiumLandingScreen` (real pricing/checkout, wired into
+  `app.dart` and a new applicant-dashboard sidebar entry). The individual
+  document-builder screens are not yet built - see Task.md.
+- 50 new backend tests, including every "Critical test" named in the
+  platform spec by name (free user denied, paid user allowed, expired
+  entitlement denied, failed payment creates no entitlement, duplicate
+  webhook creates no duplicate entitlement). Full backend suite confirmed
+  green: **737/737** (`pytest -q`, up from 687). `pip-audit`: no known
+  vulnerabilities in the two new dependencies.
+
+### Fixed
+- A route raising `HTTPException` *inside* `async with session.begin()`
+  was silently rolling back a deliberately-persisted `failed`-status
+  `Payment` row (an unhandled exception always rolls back the whole
+  block) - `premium_billing.py::checkout` now captures the error and
+  re-raises it after the block commits.
+- `require_entitlement`'s FastAPI dependency reading the database before
+  the route body opened its own explicit transaction was colliding with
+  that transaction (SQLAlchemy's "autobegin"); fixed by closing the
+  dependency's own transaction immediately after checking the feature -
+  and specifically checking it *before* that rollback, since rollback
+  expires already-loaded ORM attributes and a later read would otherwise
+  trigger an illegal lazy-load outside the async greenlet context. This
+  would have affected every real production request through an
+  entitlement-gated route, not just this session's tests.
+- `app/core/http_client.py` — added a small, backward-compatible
+  `timeout_seconds` override to `post_json`/`get_json` so AI-generation
+  calls can use a longer budget without bypassing the shared HTTP client.
+
 ## [2026-08-30] — Added UAEU Scholarships, Fellowships, and Graduate Assistantships
 
 Closes the United Arab Emirates line item in the country registry

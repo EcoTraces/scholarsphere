@@ -58,8 +58,10 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-30): **687/687
-backend tests passing** (`pytest -q`; 586 as of the browser-rendering
+Test baseline as of this session's own verified run (2026-09-01): **737/737
+backend tests passing** (`pytest -q`; +39 for the Premium
+Application-Preparation Platform build-out described below, up from
+687/687 on 2026-08-30; 586 as of the browser-rendering
 fallback on 2026-08-29, +84 for the Hybrid Scholarship Discovery
 and Verification Engine build-out described below, +6 for the 40-country
 audit's United States/Eswatini work, +1 for the World Bank JJ/WBGSP
@@ -79,8 +81,11 @@ the Hungary source, 2 for the Mexico source, 11 for the new browser-
 rendering fallback). Flutter suite not re-run this session (no Flutter
 SDK available in this environment); one small Flutter data-layer
 addition landed (see Completed Tasks' master-prompt
-entry) but was not compiled or run. Re-run both suites before trusting
-these numbers
+entry), plus (2026-09-01) a new `lib/features/premium/` slice
+(domain/data/presentation + `app.dart` wiring) for the Premium
+landing/pricing/checkout screen and feature-gating widget — none of it
+compiled, `flutter analyze`'d, or `flutter test`'d in this session for
+the same reason. Re-run both suites before trusting these numbers
 if more than a few commits have landed since.
 
 ---
@@ -1952,3 +1957,233 @@ for the full dated history.
         `test_click_reveals_new_tab_destination`, is the already-documented
         flaky real-Chromium test under system load; re-run in isolation
         and passed).
+
+- [~] **(2026-09-01)** Implemented the **Premium Application-Preparation
+      Platform** — backend architecture complete and fully tested;
+      Flutter frontend has a real, working landing/pricing/checkout slice
+      wired end-to-end, but the individual document-builder screens (CV/
+      SOP/study plan/research proposal/fellowship editors, ATS analyzer
+      UI, requirement-matcher UI, admin dashboard UI) are **not yet
+      built** - marked in-progress, not done. See PRD.md/Architecture.md
+      for the full design; this entry covers what was actually shipped.
+
+      **Payment architecture** (app/services/payment_provider.py):
+      - Provider-independent `PaymentProvider` interface
+        (initializePayment/verifyPayment/getTransaction/refundPayment/
+        createSubscription/cancelSubscription/handleWebhook, matching the
+        spec's own method names). `NullPaymentProvider` (the default when
+        `PAYMENT_PROVIDER` is unset) raises a clear "not configured" error
+        on every call rather than fabricating a successful transaction -
+        never claims a payment succeeded because a frontend request says
+        so.
+      - `StripePaymentProvider` — a real, complete integration against
+        Stripe's actual documented REST API (Payment Intents, Refunds,
+        Subscriptions, and its published webhook-signature algorithm:
+        HMAC-SHA256 over `"{timestamp}.{payload}"`, `hmac.compare_digest`,
+        a 300-second replay-window check). Correct code today; still
+        needs a real `PAYMENT_SECRET_KEY`/`PAYMENT_WEBHOOK_SECRET` to
+        reach Stripe's servers - that's expected, not a gap, per the
+        user's own "credentials supplied later" instruction. Adding a
+        second provider (Paystack/Flutterwave - directly relevant given
+        this platform's Sierra Leone-focused user base) is a new class
+        implementing the same interface, not a change to any calling
+        code.
+      - `app/services/payment_service.py` orchestrates the real flow:
+        `initiate_checkout` creates a `Payment` row (status=pending)
+        *before* the applicant reaches the provider; `process_webhook_event`
+        verifies the signature, then relies on two independent real
+        database-uniqueness constraints for duplicate-webhook protection
+        (`PaymentEvent.UNIQUE(provider, provider_event_id)` and
+        `Entitlement.UNIQUE(source_payment_id)`) rather than
+        application-level checking alone; `grant_entitlement_for_payment`
+        snapshots the plan's feature list *at grant time* so a later admin
+        price/feature edit never retroactively changes what an
+        already-paying user has; `refund_payment` calls the real provider
+        refund API and revokes the entitlement only once the provider
+        confirms success.
+      - A genuine bug found and fixed during this build, not just
+        theorized: raising the route's `HTTPException` *inside*
+        `async with session.begin()` was silently rolling back the
+        deliberately-persisted `failed`-status `Payment` row (an
+        unhandled exception exiting that block always rolls back) -
+        `app/api/routes/premium_billing.py::checkout` now captures the
+        error and re-raises it *after* the block commits, so a failed
+        checkout attempt is still visible on the admin dashboard.
+      - A second real bug found and fixed: `app/core/entitlements.py`'s
+        `require_entitlement` FastAPI dependency runs (and reads) before
+        the route body, on the same request-scoped session - a plain read
+        still opens SQLAlchemy's "autobegin" transaction, which collided
+        with a route body's own explicit `async with session.begin()`.
+        Fixed by rolling back inside the dependency once its own check is
+        done - and *specifically* checking `has_feature()` **before**
+        that rollback, since `rollback()` expires every already-loaded
+        ORM attribute (unlike `commit()`, there is no
+        "expire on rollback = False" option), so reading
+        `entitlement.feature_keys` afterward from that plain,
+        non-async function would otherwise trigger an illegal
+        greenlet-less lazy-reload. This affects every real request in
+        production (not just the test session-reuse pattern that
+        surfaced it), so it was a genuine, would-have-shipped bug.
+      - Idempotency/entitlement-lifecycle logic first proved directly at
+        the service layer via a standalone script exercising the real
+        SQLite schema (checkout → webhook success → duplicate webhook →
+        refund → entitlement revocation, all assertions passing) before a
+        single route was written - caught the two bugs above early.
+
+      **AI architecture** (app/services/ai_provider.py):
+      - `AIProvider` interface with `NullAIProvider` (default; raises
+        "AI generation is not configured" rather than fabricating
+        document content), `OpenAIProvider` (real Chat Completions API
+        shape) and `AnthropicProvider` (real Messages API shape) - both
+        verified against a mocked HTTP layer for the exact real request
+        shape each provider's documented API expects (model/messages/
+        system field placement, `Authorization: Bearer`/`x-api-key`
+        header, token-usage field names). All network calls go through
+        the existing shared `app/core/http_client.py` (HTTPS-only,
+        timeout, bounded retry) - a small, backward-compatible
+        `timeout_seconds` override parameter was added to
+        `post_json`/`get_json` so AI calls can use a longer budget than
+        the 40s every other external call shares, without bypassing the
+        shared client.
+
+      **No-fabrication document generation**
+      (app/services/document_generation.py) - two deliberately different
+      paths:
+      - **CV content** is assembled *deterministically* from the
+        applicant's own `ApplicantBackgroundEntry`/`ApplicantProfile`
+        rows - no AI involved by default. AI's only role is an explicit
+        opt-in, per-field wording *polish* (`ai_polish_text`), instructed
+        to add no new fact/number/date/claim not already in the original
+        text - "AI may improve wording but must remain faithful to
+        user-provided facts," taken literally.
+      - **Narrative documents** (SOP, personal statement, motivation
+        letter, study plan, research proposal, fellowship essays) do need
+        generated prose, so they go through the AI provider - but the
+        prompt is built entirely from a real "facts block" (a verbatim
+        dump of the applicant's own background/profile data) plus their
+        own free-text answers to a structured questionnaire. The system
+        prompt explicitly forbids inventing any fact, award, degree,
+        publication, job, project, research finding, citation, or
+        statistic; a thin section is written honestly rather than padded.
+      - `ApplicantBackgroundEntry` (new: education/work_experience/
+        project/publication/award/leadership_community/skill/reference,
+        one consolidated table with a category discriminator) is the
+        *only* source of fact this pipeline is allowed to read from -
+        there was previously no structured work-history/education-history
+        data model at all beyond `ApplicantProfile`'s summary fields, so
+        this closes that real gap rather than generating from nothing.
+
+      **Requirement matching, readiness score, ATS analysis** - all three
+      are deterministic, rule-based, and work identically whether or not
+      an AI provider is configured (never AI-dependent for a correctness-
+      sensitive score):
+      - `app/services/requirement_matching.py` extracts real
+        requirement-shaped sentences from the target opportunity's own
+        description text and classifies each against real profile/
+        background data into MATCH/PARTIAL_MATCH/MISSING/
+        NEEDS_VERIFICATION - nationality/citizenship requirements always
+        resolve to `needs_verification` (free-text list-parsing isn't
+        reliable enough to assert eligibility either way), matching this
+        project's existing "AI's role: none, today" eligibility policy.
+      - `app/services/readiness_score.py` computes a fully documented,
+        weighted score (profile 15% / background 10% / documents 40% /
+        requirements 20% / checklist 15%) live from current data on every
+        request - never a stored, staleness-prone guess.
+      - `app/services/ats_analysis.py` scores structure/formatting/
+        readability/keyword-coverage and always returns a disclaimer that
+        the score "does not guarantee that any application will be
+        accepted" - the spec's own explicit requirement, enforced as a
+        field on every response, not just prose.
+
+      **Category workflows** (app/services/category_workflow.py) - a
+      single `CATEGORY_WORKFLOWS` registry mapping each of the 9 required
+      applicant categories (undergraduate/postgraduate/PhD/fellowship/
+      research scholarship/professional scholarship/exchange-mobility/
+      short-course-training/internship) to its own document-kind list and
+      checklist items - adding or changing a category's workflow is a
+      registry edit, never new branching logic scattered through routes.
+
+      **Document versioning, export** - `PremiumDocumentVersion` is
+      append-only (an edit always inserts a new version row; "restore"
+      copies an old version's content into a new one, never rewinds in
+      place); PDF export (`reportlab`) and DOCX export (`python-docx`,
+      new dependencies, `pip-audit`-clean) are single-column/no-tables/
+      no-images by construction, so a CV export is ATS-compatible by
+      construction, not just by claim.
+
+      **Database**: 14 new tables, one migration
+      (`20260901_33_premium.py`) - see Database.md §2.14 for the full
+      per-table breakdown and why none duplicate an existing table.
+
+      **Admin dashboard** (app/api/routes/premium_admin.py, RBAC-gated
+      administrator/superAdministrator): plan CRUD (price/features/
+      active-state, no redeploy needed), payments list with status
+      filter, refund issuance, revenue summary, AI usage breakdown by
+      feature/status, admin-configurable usage-limit overrides.
+
+      **Flutter** (`lib/features/premium/`) - domain models
+      (`PremiumPlan`/`PremiumEntitlement`/`PremiumStatus`/
+      `PremiumPayment`/`CheckoutResult`), the standard dual `Api`/`Demo`
+      repository pair, a `PremiumFeatureGate` reusable locked-state
+      widget (explicitly documented as UI convenience only - the real
+      authorization boundary is always the backend's own
+      `require_entitlement` check, matching this app's existing
+      `AccessControlPolicy` convention), and a real
+      `PremiumLandingScreen` (loading/error/retry/empty states, "You have
+      Premium" banner when entitled, real price/feature list per plan,
+      checkout initiation showing either real next steps or a clear
+      "no payment provider configured yet" message). Wired into
+      `app.dart` and a new sidebar entry in the applicant dashboard - no
+      new router or state-management package added, per Coding_Rules.md
+      §1. **Not built yet**: the individual builder screens themselves
+      (CV/SOP/study plan/research proposal/fellowship editors), the ATS
+      analyzer UI, the requirement-matcher/readiness/checklist UI, the
+      billing-history page, the admin dashboard UI, and the usage
+      dashboard - all real, working backend routes exist for every one of
+      these already (see above); only their Flutter presentation layer is
+      still to build. **Not compiled, `flutter analyze`'d, or
+      `flutter test`'d this session** (no Flutter SDK available in this
+      environment, same limitation noted throughout this file) - written
+      carefully against this codebase's own established patterns
+      (verified line-by-line against `guidance`'s real
+      domain/data/presentation files) and a manual brace/paren-balance
+      check, but genuinely unverified beyond that.
+
+      **Security review performed**: server-side-only entitlement
+      checks (never a JWT claim, never a client flag); webhook signature
+      verification with replay-window protection; secrets never logged or
+      exposed to the frontend (`PAYMENT_SECRET_KEY`/`PAYMENT_WEBHOOK_SECRET`/
+      `AI_API_KEY` are all `SecretStr`); every mutating premium route
+      requires `get_current_user` plus (where applicable)
+      `require_entitlement`; admin routes require
+      `administrator`/`superAdministrator`; PII-adjacent applicant
+      background data has the same owner-only access pattern as
+      `ApplicantDocument`/`ApplicantProfile`, no new staff read path
+      added.
+
+      **Verified**: 50 new backend tests (payment critical-path routes,
+      webhook idempotency/signature-forgery unit tests with real computed
+      HMACs, AI-provider request-shape tests, usage-limit enforcement,
+      applicant-background CRUD/ownership, application-preparation
+      workflow incl. the two CRITICAL "free user denied"/"expired
+      entitlement denied" tests, premium-documents CV grounding/ATS/
+      export/versioning, admin plan CRUD/refund/revenue). Explicitly
+      includes every "Critical test" the platform spec named by name:
+      FREE USER → denied, PAID USER → allowed, EXPIRED ENTITLEMENT →
+      denied, FAILED PAYMENT → no entitlement, DUPLICATE WEBHOOK → no
+      duplicate entitlement. Full backend suite confirmed green:
+      **737/737** (`pytest -q`, up from 687). `pip-audit`: no known
+      vulnerabilities in `reportlab`/`python-docx`.
+
+      **Deliberately not built / requires a decision or credential**:
+      a second payment provider adapter (no provider chosen yet - the
+      user said credentials come later); a real payment SDK integration
+      in Flutter (e.g. `flutter_stripe`) for the client-side card-entry
+      step, since that's a new dependency tied to whichever provider is
+      eventually chosen; the individual document-builder Flutter screens
+      listed above; PlatformConfiguration-style feature-flag wiring for
+      individual future plans (the architecture supports adding a
+      "CV / ATS only" plan today via the admin API, but no second plan
+      has been created); a `plan_code`-scoped `UsageLimit` UI (the
+      per-feature-global override is wired and tested; per-plan overrides
+      use the same schema but have no admin UI yet).
