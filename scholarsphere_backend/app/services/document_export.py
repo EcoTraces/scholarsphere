@@ -10,6 +10,8 @@ essays) render their ``content["body"]`` text as simple paragraphs.
 from __future__ import annotations
 
 import io
+import re
+from xml.sax.saxutils import escape as _xml_escape
 
 from docx import Document as DocxDocument
 from docx.shared import Pt
@@ -21,6 +23,40 @@ from reportlab.platypus import ListFlowable, ListItem, Paragraph, SimpleDocTempl
 from app.models.premium_documents import DocumentKind
 
 _CV_KINDS = frozenset({DocumentKind.cv_academic, DocumentKind.cv_professional, DocumentKind.cv_scholarship})
+
+_UNSAFE_FILENAME_CHARS = re.compile(r'[^A-Za-z0-9._-]+')
+
+
+def safe_export_filename(title: str, *, version_number: int, fmt: str) -> str:
+    """A ``Content-Disposition`` header value is a real injection surface -
+
+    ``title`` is free-text the applicant themselves chose
+    (``DocumentCreateRequest.title``, up to 500 characters, no character
+    restriction at the schema layer) and was previously interpolated
+    directly into the header with no sanitization, so a title containing a
+    quote or a control character could corrupt the header or (depending on
+    the ASGI server's own leniency) attempt response-splitting. Collapse
+    anything outside a safe filename charset to underscores instead.
+    """
+    cleaned = _UNSAFE_FILENAME_CHARS.sub("_", title).strip("_") or "document"
+    return f"{cleaned[:100]}_v{version_number}.{fmt}"
+
+
+def _pdf_text(value: str) -> str:
+    """ReportLab's ``Paragraph`` parses its text as a small XML dialect
+
+    (it understands ``<br/>``/``<b>``/etc.) - passed through raw, any
+    applicant-written text containing a bare ``<``, ``>``, or ``&``
+    (a GPA comparison, "A & B University", generic-type syntax, ...) is
+    completely ordinary prose but invalid markup, and previously crashed
+    every export of that document with an unhandled ``ValueError`` from
+    ReportLab's parser. Escaping first makes literal text always render
+    as literal text; call this on every piece of user-controlled text
+    before it reaches ``Paragraph()``, including this module's own
+    ``<br/>`` line-break markup, which must be inserted *after*
+    escaping so the tag itself survives unescaped.
+    """
+    return _xml_escape(value)
 
 
 def _cv_sections(content: dict) -> list[tuple[str, list[dict]]]:
@@ -45,6 +81,10 @@ def _entry_text(entry: dict) -> str:
     return f"{header}: {description}" if description else header
 
 
+def _pdf_entry_text(entry: dict) -> str:
+    return _pdf_text(_entry_text(entry))
+
+
 def export_cv_pdf(title: str, content: dict) -> bytes:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -53,29 +93,29 @@ def export_cv_pdf(title: str, content: dict) -> bytes:
     )
     styles = getSampleStyleSheet()
     heading_style = ParagraphStyle("CVHeading", parent=styles["Heading2"], spaceBefore=10, spaceAfter=4)
-    story = [Paragraph(content.get("full_name") or title, styles["Title"])]
+    story = [Paragraph(_pdf_text(content.get("full_name") or title), styles["Title"])]
     contact = content.get("contact") or {}
     contact_line = " | ".join(v for v in contact.values() if v)
     if contact_line:
-        story.append(Paragraph(contact_line, styles["Normal"]))
+        story.append(Paragraph(_pdf_text(contact_line), styles["Normal"]))
     if content.get("summary"):
         story.append(Spacer(1, 8))
         story.append(Paragraph("Summary", heading_style))
-        story.append(Paragraph(content["summary"], styles["Normal"]))
+        story.append(Paragraph(_pdf_text(content["summary"]), styles["Normal"]))
     for label, entries in _cv_sections(content):
         if not entries:
             continue
         story.append(Paragraph(label, heading_style))
         story.append(
             ListFlowable(
-                [ListItem(Paragraph(_entry_text(entry), styles["Normal"])) for entry in entries],
+                [ListItem(Paragraph(_pdf_entry_text(entry), styles["Normal"])) for entry in entries],
                 bulletType="bullet",
             )
         )
     skills = content.get("skills") or []
     if skills:
         story.append(Paragraph("Skills", heading_style))
-        story.append(Paragraph(", ".join(skills), styles["Normal"]))
+        story.append(Paragraph(_pdf_text(", ".join(skills)), styles["Normal"]))
     doc.build(story)
     return buffer.getvalue()
 
@@ -112,12 +152,15 @@ def export_narrative_pdf(title: str, content: dict) -> bytes:
         topMargin=1 * inch, bottomMargin=1 * inch,
     )
     styles = getSampleStyleSheet()
-    story = [Paragraph(title, styles["Title"]), Spacer(1, 12)]
+    story = [Paragraph(_pdf_text(title), styles["Title"]), Spacer(1, 12)]
     body = content.get("body", "")
     for paragraph in body.split("\n\n"):
         cleaned = paragraph.strip()
         if cleaned:
-            story.append(Paragraph(cleaned.replace("\n", "<br/>"), styles["Normal"]))
+            # Escape first, then insert the line-break tag - the tag
+            # itself must survive unescaped, only the applicant's own
+            # text needs escaping.
+            story.append(Paragraph(_pdf_text(cleaned).replace("\n", "<br/>"), styles["Normal"]))
             story.append(Spacer(1, 8))
     doc.build(story)
     return buffer.getvalue()

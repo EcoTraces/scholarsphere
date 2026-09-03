@@ -5,6 +5,15 @@ row (admin-editable) overrides the environment-variable defaults per
 feature; both are enforced together (daily and monthly), and every AI
 request attempted - not just successful ones - is recorded via
 ``record_usage`` for the admin "AI usage" dashboard.
+
+Limits can be global (``plan_code`` null) or scoped to a specific plan -
+the admin route (``PUT /premium/admin/usage-limits``) accepts a
+``plan_code`` and previously had no effect at all once saved (a real,
+silently-dead admin control): ``check_usage_allowed`` now looks up the
+caller's own active entitlements' plan codes and applies the *most
+restrictive* applicable limit (any matching plan-specific row, or the
+global row, or the environment-variable default, in that order per
+bound) rather than only ever reading the global row.
 """
 
 from __future__ import annotations
@@ -16,7 +25,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
-from app.models.premium_billing import AIUsageRecord, AIUsageStatus, UsageLimit
+from app.models.premium_billing import AIUsageRecord, AIUsageStatus, Entitlement, EntitlementStatus, PremiumPlan, UsageLimit
 from app.services.parsing import utc_now
 
 
@@ -27,16 +36,34 @@ class UsageLimitExceededError(Exception):
         self.limit = limit
 
 
+async def _active_plan_codes(session: AsyncSession, user_id: str) -> set[str]:
+    rows = await session.execute(
+        select(PremiumPlan.code)
+        .join(Entitlement, Entitlement.plan_id == PremiumPlan.id)
+        .where(Entitlement.user_id == user_id, Entitlement.status == EntitlementStatus.active)
+    )
+    return {code for (code,) in rows.all()}
+
+
 async def _effective_limits(
-    session: AsyncSession, feature: str, settings: Settings
+    session: AsyncSession, feature: str, settings: Settings, user_id: str
 ) -> tuple[int, int]:
-    row = await session.scalar(
-        select(UsageLimit).where(UsageLimit.feature == feature, UsageLimit.plan_code.is_(None))
-    )
-    daily = row.limit_per_day if row and row.limit_per_day is not None else settings.ai_usage_daily_limit_default
-    monthly = (
-        row.limit_per_month if row and row.limit_per_month is not None else settings.ai_usage_monthly_limit_default
-    )
+    plan_codes = await _active_plan_codes(session, user_id)
+    rows = (
+        await session.scalars(
+            select(UsageLimit).where(
+                UsageLimit.feature == feature,
+                UsageLimit.plan_code.is_(None) | UsageLimit.plan_code.in_(plan_codes)
+                if plan_codes
+                else UsageLimit.plan_code.is_(None),
+            )
+        )
+    ).all()
+
+    daily_candidates = [row.limit_per_day for row in rows if row.limit_per_day is not None]
+    monthly_candidates = [row.limit_per_month for row in rows if row.limit_per_month is not None]
+    daily = min(daily_candidates) if daily_candidates else settings.ai_usage_daily_limit_default
+    monthly = min(monthly_candidates) if monthly_candidates else settings.ai_usage_monthly_limit_default
     return daily, monthly
 
 
@@ -61,7 +88,7 @@ async def check_usage_allowed(
     Called *before* an AI request is attempted, never after.
     """
     settings = settings or get_settings()
-    daily_limit, monthly_limit = await _effective_limits(session, feature, settings)
+    daily_limit, monthly_limit = await _effective_limits(session, feature, settings, user_id)
     now = utc_now()
     daily_count = await _count_since(session, user_id, feature, now - timedelta(days=1))
     if daily_count >= daily_limit:

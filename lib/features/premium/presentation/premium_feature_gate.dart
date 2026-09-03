@@ -27,8 +27,12 @@ class PremiumFeatureGate extends StatelessWidget {
   final Widget child;
   final VoidCallback onUnlockPremium;
 
-  bool get _unlocked =>
-      status?.entitlement?.hasFeature(featureKey) ?? false;
+  // Checks the union of every active entitlement, not just the most
+  // recent one (PremiumStatus.hasFeature) - a caller who bought two
+  // separate narrower packages must see both as unlocked here, matching
+  // the real backend authorization check
+  // (app/core/entitlements.py::has_any_feature).
+  bool get _unlocked => status?.hasFeature(featureKey) ?? false;
 
   @override
   Widget build(BuildContext context) {

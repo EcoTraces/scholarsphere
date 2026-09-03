@@ -20,11 +20,16 @@ def _aware(value: datetime) -> datetime:
     return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
-async def get_active_entitlement(session: AsyncSession, user_id: str) -> Entitlement | None:
-    """The caller's current active, unexpired entitlement, or None.
+async def get_active_entitlements(session: AsyncSession, user_id: str) -> list[Entitlement]:
+    """Every one of the caller's currently active, unexpired entitlements -
 
-    Server-side and database-backed only - this is the entire point of
-    the entitlement system described in the platform spec's "Payment
+    not just the most recent. A user can legitimately hold more than one
+    at a time once individual feature packages exist alongside the
+    flagship plan (the platform spec's own "Possible future packages: CV/
+    ATS, SOP, Study Plan, ..." section) - buying a second package must
+    never silently take away access already paid for in a first one.
+    Server-side and database-backed only - the entire point of the
+    entitlement system described in the platform spec's "Payment
     Security" section: premium access is never derived from a JWT claim,
     a query parameter, or any client-supplied flag. The only writer of an
     ``active`` ``Entitlement`` row is
@@ -32,22 +37,53 @@ async def get_active_entitlement(session: AsyncSession, user_id: str) -> Entitle
     only runs after a payment provider has server-side-verified a real
     transaction (see that module's docstring).
     """
-    entitlement = await session.scalar(
-        select(Entitlement)
-        .where(Entitlement.user_id == user_id)
-        .where(Entitlement.status == EntitlementStatus.active)
-        .order_by(Entitlement.granted_at.desc())
-        .limit(1)
-    )
-    if entitlement is None:
-        return None
-    if entitlement.expires_at is not None and _aware(entitlement.expires_at) <= utc_now():
-        return None
-    return entitlement
+    entitlements = (
+        await session.scalars(
+            select(Entitlement)
+            .where(Entitlement.user_id == user_id)
+            .where(Entitlement.status == EntitlementStatus.active)
+            .order_by(Entitlement.granted_at.desc())
+        )
+    ).all()
+    now = utc_now()
+    return [
+        entitlement
+        for entitlement in entitlements
+        if entitlement.expires_at is None or _aware(entitlement.expires_at) > now
+    ]
+
+
+async def get_active_entitlement(session: AsyncSession, user_id: str) -> Entitlement | None:
+    """The single most-recently-granted active entitlement, or None -
+
+    intended for simple "am I premium at all" / status-display purposes
+    only (e.g. the billing page's headline banner). Never use this for an
+    authorization decision about a *specific* feature: use
+    ``get_active_entitlements`` (plural) plus ``has_any_feature`` instead,
+    since a user can hold more than one active entitlement at once (see
+    that function's docstring) and this single-row view would silently
+    hide features a genuinely paying user still has.
+    """
+    entitlements = await get_active_entitlements(session, user_id)
+    return entitlements[0] if entitlements else None
 
 
 def has_feature(entitlement: Entitlement | None, feature: PremiumFeature) -> bool:
+    """Checks a single entitlement only - see ``get_active_entitlement``'s
+
+    docstring for why this must never be used as the real authorization
+    check for a specific feature. Kept for status-display call sites.
+    """
     return entitlement is not None and feature.value in entitlement.feature_keys
+
+
+def has_any_feature(entitlements: list[Entitlement], feature: PremiumFeature) -> bool:
+    """The real authorization check: true if *any* of the caller's active
+
+    entitlements grants this feature, regardless of which plan or how
+    recently it was purchased.
+    """
+    return any(feature.value in entitlement.feature_keys for entitlement in entitlements)
 
 
 def require_entitlement(
@@ -67,13 +103,13 @@ def require_entitlement(
         user: Annotated[AuthenticatedUser, Depends(get_current_user)],
         session: Annotated[AsyncSession, Depends(get_db)],
     ) -> AuthenticatedUser:
-        entitlement = await get_active_entitlement(session, user.uid)
+        entitlements = await get_active_entitlements(session, user.uid)
         # Checked before the rollback below, deliberately: rollback()
         # expires every attribute already loaded on this Session (SQLAlchemy
         # has no "expire on rollback = False" option, unlike commit), so
         # reading entitlement.feature_keys afterward - from this plain,
         # non-async helper - would trigger an implicit, illegal lazy-reload.
-        allowed = has_feature(entitlement, feature)
+        allowed = has_any_feature(entitlements, feature)
         # This dependency runs (and reads) before the route body, on the
         # same request-scoped session - a plain read still opens
         # SQLAlchemy's "autobegin" transaction, which would otherwise

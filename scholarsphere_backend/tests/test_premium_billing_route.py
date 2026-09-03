@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -21,6 +22,7 @@ from app.core.auth import AuthenticatedUser, get_current_user
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.audit_log import AuditRecord, AuditResult
 from app.models.premium_billing import (
     BillingInterval,
     Entitlement,
@@ -30,9 +32,11 @@ from app.models.premium_billing import (
     PaymentStatus,
     PremiumFeature,
     PremiumPlan,
+    Refund,
+    RefundStatus,
 )
 from app.services import payment_service
-from app.services.payment_provider import PaymentIntentResult, RefundResult, WebhookEvent
+from app.services.payment_provider import PaymentIntentResult, PaymentProviderError, RefundResult, WebhookEvent
 
 
 @pytest_asyncio.fixture
@@ -118,6 +122,11 @@ class FailingInitProvider(StubProvider):
         from app.services.payment_provider import PaymentProviderError
 
         raise PaymentProviderError("The payment provider rejected the checkout request.")
+
+
+class FailingRefundProvider(StubProvider):
+    async def refund_payment(self, **kwargs):
+        raise PaymentProviderError("The refund request was rejected.")
 
 
 async def _seed_plan(session: AsyncSession) -> PremiumPlan:
@@ -336,3 +345,70 @@ async def test_refund_revokes_entitlement(session: AsyncSession, monkeypatch) ->
 
     await session.refresh(entitlement)
     assert entitlement.status == "revoked"
+
+
+@pytest.mark.asyncio
+async def test_failed_refund_attempt_still_leaves_an_audit_trail(
+    session: AsyncSession, monkeypatch
+) -> None:
+    """Regression test: a `PaymentProviderError` raised by the payment
+
+    provider's own `refund_payment` call used to propagate with no trace
+    left behind at all - no `Refund` row, no audit record - unlike every
+    other failure path in this module (e.g. `initiate_checkout`'s own
+    failure handling), so an admin's failed refund attempt was invisible
+    to any later audit. The entitlement/payment must also be left
+    untouched, since the refund never actually succeeded.
+    """
+    plan = await _seed_plan(session)
+    payment = Payment(
+        id=uuid.uuid4(),
+        user_id="applicant-1",
+        plan_id=plan.id,
+        amount_cents=10000,
+        currency="USD",
+        status=PaymentStatus.success,
+        provider="StubProvider",
+        provider_transaction_id="pi_refund_fail_test",
+        idempotency_key=str(uuid.uuid4()),
+    )
+    session.add(payment)
+    await session.flush()
+    entitlement = Entitlement(
+        id=uuid.uuid4(),
+        user_id="applicant-1",
+        plan_id=plan.id,
+        feature_keys=[f.value for f in PremiumFeature],
+        source_payment_id=payment.id,
+        status=EntitlementStatus.active,
+    )
+    session.add(entitlement)
+    await session.commit()
+
+    provider = FailingRefundProvider()
+    monkeypatch.setattr(payment_service, "get_payment_provider", lambda: provider)
+    overrides(session, uid="admin-1", role="administrator")
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            f"/api/v1/premium/admin/payments/{payment.id}/refund",
+            json={"amount_cents": 10000, "reason": "Applicant requested a refund."},
+        )
+        assert response.status_code == 503
+
+    refunds = (await session.scalars(select(Refund).where(Refund.payment_id == payment.id))).all()
+    assert len(refunds) == 1
+    assert refunds[0].status == RefundStatus.failed
+
+    audits = (
+        await session.scalars(
+            select(AuditRecord).where(AuditRecord.entity_id == str(refunds[0].id))
+        )
+    ).all()
+    assert len(audits) == 1
+    assert audits[0].result == AuditResult.failure
+
+    await session.refresh(payment)
+    await session.refresh(entitlement)
+    assert payment.status == PaymentStatus.success
+    assert entitlement.status == EntitlementStatus.active

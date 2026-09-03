@@ -22,9 +22,16 @@ _REQUIREMENT_SIGNAL_RE = re.compile(
 )
 _WORK_YEARS_RE = re.compile(r"(\d+)\s*\+?\s*years?\s+of\s+(?:relevant\s+)?(?:work\s+)?experience", re.IGNORECASE)
 _DEGREE_KEYWORDS = {
-    "bachelor": ("bachelor", "undergraduate", "bsc", "ba "),
-    "master": ("master", "postgraduate", "msc", "ma "),
+    "bachelor": ("bachelor", "undergraduate", "bsc", "ba"),
+    "master": ("master", "postgraduate", "msc", "ma"),
     "phd": ("phd", "doctoral", "doctorate"),
+}
+# Plain substring matching on short abbreviations like "ba"/"ma" false-positives
+# inside ordinary words ("diploma", "alba", "database"), so each keyword is
+# matched as a whole word (`\b...\b`) instead.
+_DEGREE_KEYWORD_PATTERNS = {
+    level: re.compile(r"\b(?:" + "|".join(re.escape(keyword) for keyword in keywords) + r")\b", re.IGNORECASE)
+    for level, keywords in _DEGREE_KEYWORDS.items()
 }
 
 
@@ -100,15 +107,15 @@ def classify_requirement(
             return RequirementMatchStatus.partial_match, "Passport application is in progress."
         return RequirementMatchStatus.missing, "Passport on file is expired."
 
-    for level, keywords in _DEGREE_KEYWORDS.items():
-        if any(keyword in text for keyword in keywords):
+    for level, pattern in _DEGREE_KEYWORD_PATTERNS.items():
+        if pattern.search(text):
             qualification = (profile.highest_qualification if profile else "").lower()
             if not qualification:
                 return (
                     RequirementMatchStatus.missing,
                     "No highest qualification on file to compare against this requirement.",
                 )
-            if level in qualification or any(k in qualification for k in keywords):
+            if pattern.search(qualification):
                 return RequirementMatchStatus.match, "Your recorded qualification matches this level."
             return (
                 RequirementMatchStatus.needs_verification,

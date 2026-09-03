@@ -6,10 +6,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import AuthenticatedUser, get_current_user
-from app.core.entitlements import PREMIUM_FEATURE_REQUIRED_DETAIL, get_active_entitlement, has_feature
+from app.core.entitlements import (
+    PREMIUM_FEATURE_REQUIRED_DETAIL,
+    get_active_entitlements,
+    has_any_feature,
+)
 from app.db.session import get_db
 from app.models.applicant_background import ApplicantBackgroundEntry
 from app.models.applicant_profile import ApplicantProfile
+from app.models.application import Application
 from app.models.application_preparation import PremiumWorkspace
 from app.models.external_opportunity import ExternalOpportunity
 from app.models.premium_billing import AIUsageStatus, PremiumFeature
@@ -24,7 +29,7 @@ from app.schemas.premium_documents import (
     VersionRead,
 )
 from app.services.ai_provider import AIProviderError, get_ai_provider
-from app.services.ats_analysis import analyze_ats
+from app.services.ats_analysis import analyze_ats, extract_target_keywords
 from app.services.document_generation import (
     CV_KINDS,
     KIND_FEATURE_MAP,
@@ -32,7 +37,7 @@ from app.services.document_generation import (
     build_cv_content,
     generate_narrative_document,
 )
-from app.services.document_export import export_document
+from app.services.document_export import export_document, safe_export_filename
 from app.services.document_versioning import (
     CannotDeleteLatestVersionError,
     VersionNotFoundError,
@@ -61,8 +66,8 @@ async def _require_owned_document(
 async def _require_feature(
     session: AsyncSession, user: AuthenticatedUser, feature: PremiumFeature
 ) -> None:
-    entitlement = await get_active_entitlement(session, user.uid)
-    if not has_feature(entitlement, feature):
+    entitlements = await get_active_entitlements(session, user.uid)
+    if not has_any_feature(entitlements, feature):
         raise HTTPException(status_code=402, detail=PREMIUM_FEATURE_REQUIRED_DETAIL)
 
 
@@ -199,6 +204,16 @@ async def generate_cv(
     facts - see document_generation.py's module docstring) and requires
     the separate ``ai_document_improvement`` feature.
     """
+    # A failed AI polish attempt must still leave an `AIUsageRecord` behind
+    # (the spec's own "track every AI request attempted, not just
+    # successes" requirement, and what the admin usage dashboard reads) -
+    # raising the HTTPException *inside* `async with session.begin()` would
+    # roll that record back along with everything else (an unhandled
+    # exception exiting the block always rolls back - the same class of bug
+    # already fixed once in premium_billing.py::checkout), so the error is
+    # captured here and only raised after the block commits normally.
+    pending_error: HTTPException | None = None
+    version: PremiumDocumentVersion | None = None
     async with session.begin():
         document = await _require_owned_document(session, document_id, user.uid)
         if document.kind not in CV_KINDS:
@@ -246,7 +261,7 @@ async def generate_cv(
                     status=AIUsageStatus.success,
                 )
             except UsageLimitExceededError as error:
-                raise HTTPException(status_code=429, detail=str(error)) from error
+                pending_error = HTTPException(status_code=429, detail=str(error))
             except AIProviderError as error:
                 await record_usage(
                     session,
@@ -257,12 +272,17 @@ async def generate_cv(
                     tokens_used=None,
                     status=AIUsageStatus.failed,
                 )
-                raise HTTPException(status_code=503, detail=str(error)) from error
+                pending_error = HTTPException(status_code=503, detail=str(error))
 
-        version = await create_version(
-            session, document, content=content, created_by=user.uid, is_ai_generated=is_ai_generated
-        )
-        return VersionRead.model_validate(version)
+        if pending_error is None:
+            version = await create_version(
+                session, document, content=content, created_by=user.uid, is_ai_generated=is_ai_generated
+            )
+
+    if pending_error is not None:
+        raise pending_error
+    assert version is not None
+    return VersionRead.model_validate(version)
 
 
 @router.post("/{document_id}/generate/narrative", response_model=VersionRead)
@@ -272,6 +292,12 @@ async def generate_narrative(
     user: Annotated[AuthenticatedUser, any_authenticated],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> VersionRead:
+    # See generate_cv's identical comment above: a failed AI attempt must
+    # still leave an AIUsageRecord behind, so the HTTPException is captured
+    # and only raised after the transaction commits, never from inside
+    # `async with session.begin()`.
+    pending_error: HTTPException | None = None
+    version: PremiumDocumentVersion | None = None
     async with session.begin():
         document = await _require_owned_document(session, document_id, user.uid)
         if document.kind in CV_KINDS:
@@ -327,25 +353,30 @@ async def generate_narrative(
                 tokens_used=None,
                 status=AIUsageStatus.failed,
             )
-            raise HTTPException(status_code=503, detail=str(error)) from error
+            pending_error = HTTPException(status_code=503, detail=str(error))
 
-        await record_usage(
-            session,
-            user_id=user.uid,
-            feature=document.kind.value,
-            provider=type(ai_provider).__name__,
-            model=getattr(ai_provider, "_model", ""),
-            tokens_used=None,
-            status=AIUsageStatus.success,
-        )
-        version = await create_version(
-            session,
-            document,
-            content={"body": body},
-            created_by=user.uid,
-            is_ai_generated=True,
-        )
-        return VersionRead.model_validate(version)
+        if pending_error is None:
+            await record_usage(
+                session,
+                user_id=user.uid,
+                feature=document.kind.value,
+                provider=type(ai_provider).__name__,
+                model=getattr(ai_provider, "_model", ""),
+                tokens_used=None,
+                status=AIUsageStatus.success,
+            )
+            version = await create_version(
+                session,
+                document,
+                content={"body": body},
+                created_by=user.uid,
+                is_ai_generated=True,
+            )
+
+    if pending_error is not None:
+        raise pending_error
+    assert version is not None
+    return VersionRead.model_validate(version)
 
 
 @router.post(
@@ -367,6 +398,15 @@ async def analyze_document_ats(
             raise HTTPException(status_code=404, detail="Version was not found.")
 
         target_keywords: list[str] = []
+        if document.workspace_id is not None:
+            workspace = await session.get(PremiumWorkspace, document.workspace_id)
+            if workspace is not None:
+                application = await session.get(Application, workspace.application_id)
+                target_keywords = extract_target_keywords(
+                    workspace.target_program,
+                    workspace.target_university,
+                    application.opportunity_title if application else None,
+                )
         analysis = analyze_ats(version.content, target_keywords=target_keywords or None)
         version.ats_score = analysis.score
         version.ats_analysis = {
@@ -410,7 +450,7 @@ async def export_document_version(
         raise HTTPException(status_code=404, detail="Version was not found.")
 
     data, content_type = export_document(document.kind, document.title, version.content, fmt)
-    filename = f"{document.title.replace(' ', '_')}_v{version_number}.{fmt}"
+    filename = safe_export_filename(document.title, version_number=version_number, fmt=fmt)
     return Response(
         content=data,
         media_type=content_type,

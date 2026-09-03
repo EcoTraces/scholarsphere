@@ -107,9 +107,14 @@ class _PremiumLandingScreenState extends State<PremiumLandingScreen> {
                                       : constraints.maxWidth,
                                   child: _PlanCard(
                                     plan: plan,
-                                    isOwned:
-                                        status.entitlement != null &&
-                                        status.entitlement!.planId == plan.id,
+                                    // Checks every active entitlement, not
+                                    // just the most recent one - a plan
+                                    // bought earlier must still show as
+                                    // owned even after a different plan
+                                    // was purchased more recently.
+                                    isOwned: status.entitlements.any(
+                                      (entitlement) => entitlement.planId == plan.id,
+                                    ),
                                     inFlight: _checkoutInFlight,
                                     onUnlock: () => _unlock(plan),
                                   ),

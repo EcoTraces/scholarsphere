@@ -44,7 +44,12 @@ class DemoPremiumRepository implements PremiumRepository {
           ];
 
   final List<PremiumPlan> _plans;
-  PremiumEntitlement? _entitlement;
+  // A list, not a single nullable field: a demo/test caller can complete
+  // more than one demo payment (e.g. two separate narrower packages), and
+  // the demo repository should exercise that the same way the real
+  // backend does - the union of every active entitlement, not just the
+  // most recent one (see PremiumFeatureGate's own doc comment on why).
+  final List<PremiumEntitlement> _entitlements = [];
   final List<PremiumPayment> _payments = [];
   int _paymentCounter = 0;
 
@@ -53,11 +58,18 @@ class DemoPremiumRepository implements PremiumRepository {
       _plans.where((plan) => plan.isActive).toList();
 
   @override
-  Future<PremiumStatus> getMyStatus() async => PremiumStatus(
-    isPremium: _entitlement != null,
-    entitlement: _entitlement,
-    availablePlans: await listPlans(),
-  );
+  Future<PremiumStatus> getMyStatus() async {
+    final unlocked = <String>{
+      for (final entitlement in _entitlements) ...entitlement.featureKeys,
+    };
+    return PremiumStatus(
+      isPremium: _entitlements.isNotEmpty,
+      entitlement: _entitlements.isEmpty ? null : _entitlements.last,
+      entitlements: List.unmodifiable(_entitlements),
+      unlockedFeatures: unlocked.toList(),
+      availablePlans: await listPlans(),
+    );
+  }
 
   @override
   Future<CheckoutResult> checkout(String planCode) async {
@@ -112,13 +124,15 @@ class DemoPremiumRepository implements PremiumRepository {
       provider: payment.provider,
     );
     final plan = _plans.firstWhere((plan) => plan.id == payment.planId);
-    _entitlement = PremiumEntitlement(
-      id: 'demo-entitlement-1',
-      planId: plan.id,
-      featureKeys: plan.features,
-      status: EntitlementStatus.active,
-      grantedAt: DateTime.now(),
-      expiresAt: null,
+    _entitlements.add(
+      PremiumEntitlement(
+        id: 'demo-entitlement-${_entitlements.length + 1}',
+        planId: plan.id,
+        featureKeys: plan.features,
+        status: EntitlementStatus.active,
+        grantedAt: DateTime.now(),
+        expiresAt: null,
+      ),
     );
   }
 }

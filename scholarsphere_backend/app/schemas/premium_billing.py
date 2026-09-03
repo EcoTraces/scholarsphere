@@ -87,8 +87,23 @@ class EntitlementRead(BaseModel):
 
 
 class MyPremiumStatusRead(BaseModel):
+    """``entitlement`` is the single most-recently-granted active
+
+    entitlement, for simple display purposes (a headline "plan name"/
+    expiry banner) - it is NOT necessarily the caller's complete premium
+    access. A user can hold more than one active entitlement at once
+    (e.g. a "CV/ATS" package bought earlier plus a "SOP" package bought
+    later) - ``entitlements`` lists all of them, and
+    ``unlocked_features`` is the real union of every feature key any of
+    them grants. Any UI deciding whether to show a specific feature as
+    locked must check ``unlocked_features``, never assume ``entitlement``
+    alone covers everything the caller has paid for.
+    """
+
     is_premium: bool
     entitlement: EntitlementRead | None
+    entitlements: list[EntitlementRead]
+    unlocked_features: list[str]
     available_plans: list[PremiumPlanRead]
 
 

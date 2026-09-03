@@ -50,6 +50,10 @@ class ApiPremiumRepository implements PremiumRepository {
     return PremiumStatus(
       isPremium: body['is_premium'] as bool,
       entitlement: entitlementJson == null ? null : _toEntitlement(entitlementJson),
+      entitlements: (body['entitlements'] as List<dynamic>)
+          .map((json) => _toEntitlement(json as Map<String, dynamic>))
+          .toList(),
+      unlockedFeatures: (body['unlocked_features'] as List<dynamic>).cast<String>(),
       availablePlans: (body['available_plans'] as List<dynamic>)
           .map((json) => _toPlan(json as Map<String, dynamic>))
           .toList(),

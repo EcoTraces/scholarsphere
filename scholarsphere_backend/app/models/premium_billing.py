@@ -329,8 +329,11 @@ class AIUsageRecord(Base):
 class UsageLimit(Base):
     """Admin-configurable AI usage ceiling per feature - global by default
 
-    (``plan_code`` null); a future per-plan override is supported by the
-    schema without a migration by setting ``plan_code``.
+    (``plan_code`` null), or scoped to one plan by setting ``plan_code``.
+    Both are actually enforced: ``check_usage_allowed``
+    (app/services/usage_limits.py) looks up the caller's own active
+    entitlements' plan codes and applies the most restrictive matching
+    row, not just the global one.
     """
 
     __tablename__ = "usage_limits"

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import AuthenticatedUser, get_current_user
 from app.core.config import get_settings
-from app.core.entitlements import get_active_entitlement
+from app.core.entitlements import get_active_entitlements
 from app.db.session import get_db
 from app.models.premium_billing import Payment, PremiumPlan
 from app.schemas.premium_billing import (
@@ -46,7 +46,7 @@ async def my_premium_status(
     user: Annotated[AuthenticatedUser, any_authenticated],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> MyPremiumStatusRead:
-    entitlement = await get_active_entitlement(session, user.uid)
+    entitlements = await get_active_entitlements(session, user.uid)
     plans = (
         await session.scalars(
             select(PremiumPlan)
@@ -54,9 +54,14 @@ async def my_premium_status(
             .order_by(PremiumPlan.sort_order)
         )
     ).all()
+    unlocked_features = sorted(
+        {feature for entitlement in entitlements for feature in entitlement.feature_keys}
+    )
     return MyPremiumStatusRead(
-        is_premium=entitlement is not None,
-        entitlement=EntitlementRead.model_validate(entitlement) if entitlement else None,
+        is_premium=bool(entitlements),
+        entitlement=EntitlementRead.model_validate(entitlements[0]) if entitlements else None,
+        entitlements=[EntitlementRead.model_validate(e) for e in entitlements],
+        unlocked_features=unlocked_features,
         available_plans=[PremiumPlanRead.model_validate(plan) for plan in plans],
     )
 

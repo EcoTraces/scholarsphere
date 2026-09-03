@@ -327,11 +327,42 @@ async def refund_payment(
         raise InvalidRefundError("Refund amount must be between 1 and the original payment amount.")
 
     active_provider = provider or get_payment_provider()
-    result = await active_provider.refund_payment(
-        provider_transaction_id=payment.provider_transaction_id or "",
-        amount_cents=amount_cents,
-        reason=reason,
-    )
+    try:
+        result = await active_provider.refund_payment(
+            provider_transaction_id=payment.provider_transaction_id or "",
+            amount_cents=amount_cents,
+            reason=reason,
+        )
+    except PaymentProviderError as error:
+        # Mirrors initiate_checkout's own failure handling above: a
+        # provider-level failure must still leave a real record behind (a
+        # `Refund` row and an audit entry) rather than vanishing with only
+        # the exception itself as evidence - the admin who attempted the
+        # refund, and anyone auditing the payment later, needs to see that
+        # it was tried and why it failed.
+        refund = Refund(
+            id=uuid.uuid4(),
+            payment_id=payment.id,
+            amount_cents=amount_cents,
+            reason=reason,
+            status=RefundStatus.failed,
+            created_by=actor_id,
+        )
+        session.add(refund)
+        await session.flush()
+        await append_audit_record(
+            session,
+            actor_id=actor_id,
+            actor_role="administrator",
+            action=AuditAction.paymentProcessed,
+            entity_type="refund",
+            entity_id=str(refund.id),
+            result=AuditResult.failure,
+            correlation_id=correlation_id,
+            failure_reason=str(error),
+            new_value=f"refund status=failed payment={payment.id}",
+        )
+        raise
     status = (
         RefundStatus.succeeded
         if result.status == "succeeded"

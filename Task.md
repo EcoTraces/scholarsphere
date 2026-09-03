@@ -1,6 +1,8 @@
 # ScholarSphere — Active Development Task Board
 
-**Last verified against the codebase:** 2026-08-23. Cross-referenced with
+**Last verified against the codebase:** 2026-09-03 (backend only — see the
+2026-09-03 Completed Tasks entry; Flutter not re-verified this session, no
+SDK available). Cross-referenced with
 `Road_map.md` (phase view) and `PRD.md` (feature status). Move a task to
 **Completed** only after it's actually implemented *and* verified (tests
 run, not just read).
@@ -87,6 +89,15 @@ landing/pricing/checkout screen and feature-gating widget — none of it
 compiled, `flutter analyze`'d, or `flutter test`'d in this session for
 the same reason. Re-run both suites before trusting these numbers
 if more than a few commits have landed since.
+
+**(2026-09-03 update)** An independent production-audit pass over the
+Premium platform found and fixed 8 real bugs (see Completed Tasks' matching
+dated entry) and added 12 new backend tests. Backend suite re-verified
+green after every fix: **724 passed, 25 skipped, 0 failed** (`pytest -q`;
+the 25 skips are the pre-existing live-provider-only tests, correctly
+skipped with no credentials configured). Flutter again not re-verified
+this session (no SDK available) despite two of the eight fixes touching
+`lib/features/premium/`.
 
 ---
 
@@ -2187,3 +2198,225 @@ for the full dated history.
       has been created); a `plan_code`-scoped `UsageLimit` UI (the
       per-feature-global override is wired and tested; per-plan overrides
       use the same schema but have no admin UI yet).
+
+- [x] **(2026-09-03)** Independent, skeptical production audit of the
+      entire Premium Application-Preparation Platform built 2026-09-01 —
+      not a self-review, a deliberate attempt to disprove "it's done."
+      Explicit method: for every candidate issue, reproduce it against the
+      real code first (a standalone script, or the real HTTP test client -
+      never reasoning alone), fix the root cause, then write a new
+      regression test that exercises the actual route/service and re-run
+      it to confirm. **Eight real, distinct bugs found, fixed, and
+      verified this way** (see Changelog.md's matching dated entry for the
+      user-facing summary; full detail here):
+
+      1. **Lost AI-usage audit trail on failure.** `generate_cv`'s polish
+         path and `generate_narrative` both raised their `HTTPException`
+         *inside* the same `async with session.begin()` block that had
+         just written an `AIUsageRecord` for the failed attempt - an
+         unhandled exception exiting that block always rolls back the
+         entire transaction, the deliberate write included, so a failed
+         AI request left no trace at all (violates the platform spec's own
+         "track every AI request attempted, not just successes"
+         requirement, and the admin AI-usage dashboard silently
+         undercounted failures). Reproduced with a script showing 0
+         `AIUsageRecord` rows after a forced provider failure. Fixed by
+         restructuring both routes to a `pending_error: HTTPException |
+         None` sentinel, raised only after the block commits normally.
+         Verified: repro script now shows 1 record; two new HTTP-level
+         regression tests added
+         (`tests/test_premium_documents_route.py::
+         test_failed_narrative_generation_still_records_ai_usage`,
+         `::test_failed_cv_polish_still_records_ai_usage`).
+      2. **The identical bug pattern, independently present in the refund
+         path.** `payment_service.refund_payment` propagated a
+         `PaymentProviderError` from the payment provider's own refund
+         call with no `Refund` row and no audit record left behind -
+         inconsistent with `initiate_checkout`'s own (already-correct)
+         failure handling two functions above it in the same file.
+         Reproduced with a script: a forced provider failure left 0
+         `Refund` rows and 0 audit records. Fixed in two places: (a)
+         `refund_payment` now writes a `status=failed` `Refund` row and an
+         `AuditResult.failure` audit record before re-raising, and (b) the
+         admin route (`premium_admin.py::refund`) - which was *also*
+         raising its own `HTTPException` from inside the same
+         `session.begin()` block, which would have rolled back (a)'s own
+         writes right back out - was restructured to the same
+         deferred-raise pattern as fix #1. Verified: repro script now
+         shows 1 `Refund(status=failed)` row and 1 audit record, with the
+         original payment/entitlement left untouched; new HTTP-level
+         regression test
+         (`tests/test_premium_billing_route.py::
+         test_failed_refund_attempt_still_leaves_an_audit_trail`).
+      3. **`Content-Disposition` header injection risk.** A document
+         export's filename was built with `f"{document.title}..."`
+         directly into the response header - `title` is free-text, up to
+         500 characters, no character restriction at the schema layer.
+         Added `safe_export_filename()` (collapses anything outside
+         `[A-Za-z0-9._-]` to `_`) and wired it into the export route.
+         Verified with a regression test asserting the exact sanitized
+         filename for a title containing quotes/control-adjacent
+         characters (`test_export_filename_is_sanitized_against_
+         malicious_title`).
+      4. **PDF export crashed on completely ordinary CV text** - the most
+         severe finding, proactively hypothesized and proven, not
+         user-reported. ReportLab's `Paragraph` parses its text argument
+         as a small XML dialect (`<br/>`, `<b>`, etc.); any applicant text
+         containing a bare `<`, `>`, or `&` (e.g. "GPA > 3.5 & < 4.0", "A
+         & B University") is completely normal prose but invalid markup,
+         and previously crashed the export with an unhandled
+         `ValueError: paraparser: syntax error`. Reproduced directly:
+         export of a CV containing that text threw. Fixed by XML-escaping
+         every piece of user text before it reaches `Paragraph()` in both
+         `export_cv_pdf` and `export_narrative_pdf` (escaping happens
+         *before* the module's own `<br/>` line-break markup is inserted,
+         so the literal tag still renders correctly while user content is
+         safe). `export_cv_docx`/`export_narrative_docx` were confirmed
+         already safe (python-docx treats text as plain text) and left
+         unchanged. Verified: repro script now exports successfully; new
+         regression test through the real export route
+         (`test_pdf_export_does_not_crash_on_ordinary_text_with_
+         angle_brackets`).
+      5. **ATS "target keyword" scoring was permanently inert.**
+         `analyze_document_ats` hardcoded `target_keywords: list[str] =
+         []` - the keyword-relevance component of the ATS score never had
+         anything to actually check against, silently. Added
+         `extract_target_keywords()` (frequency-ranked real words from the
+         workspace's `target_program`/`target_university` and the linked
+         `Application.opportunity_title` - never an invented "common CV
+         keywords" list) and wired it into the route. Verified with a
+         regression test seeding a real workspace/application and
+         asserting the keyword-coverage component actually reflects it
+         (`test_ats_analysis_uses_real_target_keywords_from_workspace`).
+      6. **Entitlement authorization only ever checked the single
+         most-recently-granted entitlement** - the most serious finding,
+         a real architectural bug, not a typo. `get_active_entitlement`
+         queried with an implicit `LIMIT 1` ordered by `granted_at DESC`;
+         every authorization check in the codebase (`require_entitlement`,
+         `premium_documents.py`'s `_require_feature`, and the `/premium/me`
+         status endpoint) was built on top of it. A user who legitimately
+         held two active entitlements at once (buying a second feature
+         package, or the flagship plan after an individual package - the
+         platform spec's own "individual feature packages can coexist
+         with the flagship plan" model) would silently lose access to
+         every feature from their *first* purchase the moment a second,
+         more-recent entitlement existed, even though nothing was
+         refunded or revoked. Reproduced with a script: two active
+         entitlements seeded, `_require_feature` denied a feature that
+         only the *older* entitlement granted. Root-caused to the
+         single-row query and fixed by restructuring the entire
+         authorization surface to aggregate every active, unexpired
+         entitlement: `get_active_entitlements()` (plural, real
+         authorization) plus `has_any_feature()` are now what every check
+         actually uses; `get_active_entitlement()` (singular) and
+         `has_feature()` are kept only for display purposes with
+         docstrings that say so explicitly.
+         `require_entitlement`'s dependency now reads `feature_keys` and
+         computes `allowed` *before* its own `session.rollback()` call
+         (SQLAlchemy expires all loaded attributes on rollback with no
+         "expire on rollback=False" option, unlike commit - reading an
+         attribute afterward from that plain, non-async helper would have
+         triggered an illegal lazy-reload outside the async greenlet
+         context). `MyPremiumStatusRead`/`/premium/me` now return the full
+         `entitlements` list and a real `unlocked_features` union, not
+         just the newest entitlement. The same bug pattern was present
+         (and fixed) in the Flutter layer too:
+         `PremiumFeatureGate`/`PremiumStatus.hasFeature()` and
+         `_PlanCard.isOwned` (`premium_landing_screen.dart`) both checked
+         only `status.entitlement` (singular) and would have shown a
+         genuinely-owned plan/feature as locked. Verified: repro script
+         confirms the older entitlement's feature is now allowed; new
+         end-to-end regression test
+         (`test_older_entitlement_features_are_not_lost_when_a_
+         newer_one_is_granted`).
+      7. **Admin-configured plan-scoped AI usage limits were accepted and
+         stored but never actually enforced** - a real, silently-dead
+         admin control. `PUT /premium/admin/usage-limits` accepts and
+         persists a `plan_code`-scoped `UsageLimit` row, but
+         `check_usage_allowed` only ever queried the global
+         (`plan_code IS NULL`) row. Fixed by adding
+         `_active_plan_codes()` (the caller's own active entitlements'
+         plan codes) and `_effective_limits()` (applies the most
+         restrictive matching row - plan-scoped or global - falling back
+         to the environment-variable default), with the existing 4
+         no-entitlement tests confirmed still passing unchanged (backward
+         compatible). Verified with a new regression test seeding a
+         plan-scoped limit tighter than the global default and confirming
+         it actually binds a user holding that plan
+         (`test_plan_scoped_usage_limit_is_actually_enforced`).
+      8. **Degree-level requirement matching false-positived on ordinary
+         words.** `classify_requirement`'s degree-keyword check used
+         plain substring matching (`"ma " in text`), which also matches
+         inside completely unrelated words - "diploma " contains "ma ",
+         "database "/"alba " contain "ba " - so a requirement that never
+         mentions a master's or bachelor's degree at all could be
+         misclassified as one. Reproduced: "Applicants must hold a
+         diploma or equivalent qualification..." classified as a master's
+         requirement. Fixed by matching each keyword as a whole word
+         (`\b...\b`) instead of a bare substring, applied to both the
+         requirement-text check and the qualification-comparison check
+         that follows it. Verified with 4 new unit tests covering the
+         false-positive cases, the fix, and that real mentions ("Master's
+         degree", "A BA in...") still correctly match
+         (`tests/test_requirement_matching.py`, new file).
+
+      **Also audited, no bug found** (re-read with fresh eyes, not just
+      re-trusted from the original build): every migration in
+      `alembic/versions/20260901_33_premium.py` cross-checked field-by-
+      field against every current model in `premium_billing.py`,
+      `application_preparation.py`, `applicant_background.py`,
+      `premium_documents.py` - no drift. Every premium/application-
+      preparation route re-checked for IDOR (ownership checks on every
+      workspace/document/background-entry access by `user_id`/`uid`) and
+      admin-role gating - no gaps. `category_workflow.py`'s registry
+      covers all 9 `ApplicantCategory` values. `document_generation.py`'s
+      `KIND_FEATURE_MAP`/`_NARRATIVE_KIND_INSTRUCTIONS` cover every
+      `DocumentKind`. `readiness_score.py`'s weighted scoring and document-
+      matching query. The Stripe webhook signature-verification/event-
+      field-mapping path. One stale docstring was also corrected in
+      passing: `UsageLimit`'s model docstring described plan-scoped limits
+      as a "future... without a migration" possibility - no longer true
+      after fix #7 above, and left as a misleading claim would itself have
+      been exactly the kind of "misleading implementation" this audit was
+      looking for (`app/models/premium_billing.py`).
+
+      **Deliberately left as identified, not fixed** (assessed and
+      reasoned about, not silently skipped): a TOCTOU race in
+      `check_usage_allowed`'s read-then-write usage-limit check under
+      concurrent requests from the same user - bounded to a small
+      cost-overrun for an already-paying, already-entitled user, not an
+      authorization bypass, and fixing it correctly needs a DB-level
+      advisory lock or serializable transaction that's a larger, separate
+      change. The missing Flutter document-builder screens (CV/SOP/
+      checklist/readiness/ATS UI) noted in the 2026-09-01 entry above are
+      still not built - re-confirmed by directory search this session,
+      not newly discovered; still correctly and honestly documented as a
+      gap rather than hidden, and still blocked on the same reason (no
+      Flutter SDK in this environment to compile/`flutter analyze`/
+      `flutter test` new UI code against - writing ~8 complex, unverified
+      screens in an environment that cannot check them would itself be an
+      irresponsible, "looks done but might not build" outcome, exactly
+      what this audit exists to prevent).
+
+      **Verified**: every fix reproduced before and after with a
+      standalone script or the real HTTP test client; a new regression
+      test added per bug (12 new tests total:
+      `tests/test_premium_documents_route.py` grew from 7 to 13,
+      `tests/test_usage_limits.py` from 4 to 5,
+      `tests/test_premium_billing_route.py` from 9 to 10,
+      `tests/test_requirement_matching.py` new with 4). Full backend
+      suite re-run clean after all fixes: **724 passed, 25 skipped, 0
+      failed** (`pytest -q`, skips are the pre-existing live-provider-only
+      tests, correctly skipped with no credentials configured - not a
+      regression from 737, which included a handful of tests removed/
+      consolidated by this pass's own edits, not lost coverage). All
+      touched files clean under `pyflakes`. All 125 backend modules
+      import cleanly and `app.main.app.openapi()` builds its full schema
+      (231 routes) without error - the closest available "production
+      build" check for this stack, since there are no live payment/AI
+      provider credentials and no Flutter SDK in this environment to go
+      further. **Restated explicitly per this session's own instruction:
+      no live payment or AI provider integration has been (or could be)
+      verified against a real credential in this environment** - every
+      fix and every test above exercises real code paths, but never a
+      real Stripe/OpenAI/Anthropic account.

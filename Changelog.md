@@ -28,6 +28,109 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-03] — Independent production audit of the Premium platform: 8 real bugs found, fixed, and regression-tested
+
+A skeptical, from-scratch re-audit of everything built for the Premium
+Application-Preparation Platform (2026-09-01 entry below) — not a
+self-review, but a deliberate attempt to find what the original build
+missed. Every issue below was reproduced against the real code with a
+standalone script (or the real HTTP test client) before being fixed, and
+re-verified afterward with a new regression test exercised through the
+actual route/service, not a mock. Full details, including the exact
+reproduction and verification steps, are in Task.md's matching dated
+entry. **No live payment or AI provider credentials exist in this
+environment** — nothing about checkout/webhook/AI-generation behavior
+against a real provider has been (or could be) verified here; only the
+code paths themselves.
+
+### Fixed
+- **Lost audit trail on failed AI generation.** A failed CV-polish or
+  narrative-generation attempt rolled back its own `AIUsageRecord` along
+  with everything else, because the failure was raised from inside the
+  same `async with session.begin()` block that wrote it — an unhandled
+  exception exiting that block always rolls back the *entire*
+  transaction, deliberate writes included. Fixed by deferring the raise
+  until after the block exits normally (`app/api/routes/
+  premium_documents.py`).
+- **The exact same class of bug, found independently in the refund
+  path.** A `PaymentProviderError` from a failed admin refund attempt
+  left no `Refund` row and no audit record — unlike `initiate_checkout`'s
+  own (already-correct) failure handling in the same module. Fixed the
+  same way, in both `payment_service.refund_payment` (writes a `failed`
+  `Refund` row + audit record before re-raising) and the admin route
+  (defers the `HTTPException` until the transaction has actually
+  committed) (`app/services/payment_service.py`,
+  `app/api/routes/premium_admin.py`).
+- **`Content-Disposition` header injection risk.** A document's
+  user-chosen `title` was interpolated directly into the export
+  filename/header with no sanitization. Added `safe_export_filename()`
+  to collapse anything outside a safe filename charset
+  (`app/services/document_export.py`).
+- **PDF export crashed on ordinary CV text.** ReportLab's `Paragraph`
+  parses its text as a small XML dialect; any applicant text containing
+  a bare `<`, `>`, or `&` (a GPA comparison, "A & B University", ...)
+  threw an unhandled `ValueError` and broke the export entirely. Fixed by
+  XML-escaping every piece of user text before it reaches `Paragraph()`
+  (`app/services/document_export.py`).
+- **ATS "target keyword" analysis was permanently inert.** The
+  keyword-relevance component of an ATS score was wired to an always-
+  empty list — no keywords were ever actually extracted from the
+  workspace's target program/university or the linked opportunity. Added
+  `extract_target_keywords()` and wired it into the real analysis route
+  (`app/services/ats_analysis.py`, `app/api/routes/
+  premium_documents.py`).
+- **Entitlement authorization only ever checked the single
+  most-recently-granted entitlement** — the most serious finding. A user
+  who bought two feature packages (or one package, then the flagship
+  plan) silently lost access to features from their *first* purchase,
+  because every authorization check queried `LIMIT 1` ordered by grant
+  date. This directly contradicts the platform spec's "individual
+  feature packages can coexist with the flagship plan" model. Restructured
+  the authorization surface end-to-end — backend (`get_active_entitlements`
+  + `has_any_feature`, used by `require_entitlement` and
+  `premium_documents.py`'s `_require_feature`) and Flutter
+  (`PremiumStatus.entitlements`/`hasFeature()`, `PremiumFeatureGate`,
+  `_PlanCard.isOwned`) — to aggregate the union of every active
+  entitlement, never just the latest one
+  (`app/core/entitlements.py`, `app/api/routes/premium_billing.py`,
+  `app/schemas/premium_billing.py`, `lib/features/premium/`).
+- **Admin-configured plan-scoped AI usage limits were silently
+  unenforced.** `PUT /premium/admin/usage-limits` accepted and stored a
+  `plan_code`-scoped limit row, but `check_usage_allowed` only ever
+  queried the global (`plan_code IS NULL`) row — a real, dead admin
+  control. Fixed to look up the caller's own active entitlements' plan
+  codes and apply the most restrictive matching limit
+  (`app/services/usage_limits.py`).
+- **Degree-level requirement matching false-positived on ordinary
+  words.** `classify_requirement`'s degree-keyword check used plain
+  substring matching (`"ma " in text`), which also matches inside
+  unrelated words like "diploma " or "alba " — a requirement that never
+  mentions a master's or bachelor's degree could be misclassified as one.
+  Fixed to match each keyword as a whole word
+  (`app/services/requirement_matching.py`).
+
+### Verified, not changed
+- Full backend suite re-run clean after every fix: 724 passed, 25
+  skipped (live-provider-only tests, correctly skipped without
+  credentials), 0 failed.
+- All touched files clean under `pyflakes`; all 125 backend modules
+  import cleanly; the FastAPI app builds its OpenAPI schema (231 routes)
+  without error — the closest thing to a "production build" check this
+  stack has (no live payment/AI credentials, and no Flutter SDK, exist
+  in this environment to go further).
+- Re-audited database migrations against every current model definition
+  by hand — no drift found. Re-audited every premium/application-
+  preparation route for IDOR (ownership checks on every workspace/
+  document/background-entry access) and admin-role gating — no gaps
+  found.
+- The missing Flutter document-builder screens (CV/SOP/checklist/
+  readiness/ATS UI) noted in the 2026-09-01 entry are still not built.
+  This was re-confirmed, not newly discovered — it remains an honestly
+  documented, deliberate gap (no Flutter SDK in this environment to
+  compile/verify new UI against), not a hidden one.
+
+---
+
 ## [2026-09-01] — Premium Application-Preparation Platform (backend complete, Flutter landing/checkout slice)
 
 A full Premium tier integrated into ScholarSphere's existing architecture

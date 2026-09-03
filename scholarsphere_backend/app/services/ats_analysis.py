@@ -166,3 +166,26 @@ def analyze_ats(content: dict, *, target_keywords: list[str] | None = None) -> A
         issues=issues,
         strengths=strengths,
     )
+
+
+def extract_target_keywords(*texts: str | None, limit: int = 15) -> list[str]:
+    """Derives a small set of significant real words from the applicant's
+
+    own target strings (a workspace's target university/program, the
+    linked opportunity's real title) - never invented, never fetched from
+    a generic "common CV keywords" list. Used to give ``keyword_score`` an
+    actual target to check the CV against, rather than always skipping
+    that component of the score. Ranked by frequency across the supplied
+    texts so a word repeated in both the opportunity title and the target
+    program (e.g. "Data Science") is prioritized.
+    """
+    counts: Counter[str] = Counter()
+    for text in texts:
+        if not text:
+            continue
+        for match in _WORD_RE.finditer(text):
+            word = match.group(0)
+            if word.lower() in _STOPWORDS:
+                continue
+            counts[word] += 1
+    return [word for word, _ in counts.most_common(limit)]

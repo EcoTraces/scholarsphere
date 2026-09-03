@@ -63,12 +63,26 @@ class PremiumStatus {
   const PremiumStatus({
     required this.isPremium,
     required this.entitlement,
+    required this.entitlements,
+    required this.unlockedFeatures,
     required this.availablePlans,
   });
 
-  final bool isPremium;
+  /// The single most-recently-granted active entitlement, for simple
+  /// display purposes only (a headline plan name/expiry banner). A
+  /// caller can hold more than one active entitlement at once (e.g. a
+  /// "CV/ATS" package bought earlier plus a "SOP" package bought later)
+  /// - use [unlockedFeatures] to check whether a specific feature is
+  /// unlocked, never `entitlement?.hasFeature(...)` alone, which would
+  /// silently miss a feature granted by an older, still-active
+  /// entitlement.
   final PremiumEntitlement? entitlement;
+  final List<PremiumEntitlement> entitlements;
+  final bool isPremium;
+  final List<String> unlockedFeatures;
   final List<PremiumPlan> availablePlans;
+
+  bool hasFeature(String featureKey) => unlockedFeatures.contains(featureKey);
 }
 
 enum PaymentStatus {

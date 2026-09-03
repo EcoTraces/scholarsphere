@@ -107,6 +107,15 @@ async def refund(
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> RefundRead:
     correlation_id = getattr(request.state, "correlation_id", "admin-refund")
+    # A `PaymentProviderError` here isn't raised immediately: `refund_payment`
+    # itself already writes a failed `Refund` row and an audit record before
+    # re-raising, and an unhandled exception exiting `session.begin()` always
+    # rolls back the *entire* transaction - including those deliberate
+    # failure-tracking writes - so the HTTPException is deferred until after
+    # the block commits normally (the same pattern already used in
+    # premium_documents.py's generate_cv/generate_narrative).
+    pending_error: HTTPException | None = None
+    refund_record: Refund | None = None
     async with session.begin():
         payment = await session.get(Payment, payment_id)
         if payment is None:
@@ -121,10 +130,14 @@ async def refund(
                 correlation_id=correlation_id,
             )
         except payment_service.InvalidRefundError as error:
-            raise HTTPException(status_code=409, detail=str(error)) from error
+            pending_error = HTTPException(status_code=409, detail=str(error))
         except PaymentProviderError as error:
-            raise HTTPException(status_code=503, detail=str(error)) from error
-        return RefundRead.model_validate(refund_record)
+            pending_error = HTTPException(status_code=503, detail=str(error))
+
+    if pending_error is not None:
+        raise pending_error
+    assert refund_record is not None
+    return RefundRead.model_validate(refund_record)
 
 
 @router.get("/revenue", response_model=AdminRevenueSummary)
