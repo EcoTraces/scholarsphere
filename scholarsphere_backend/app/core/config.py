@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     )
     redis_url: str = "redis://localhost:6379/0"
     firebase_project_id: str = "scholarsphere-d44f5"
+    # Matches lib/firebase_options.dart's storageBucket. Needed so the
+    # Admin SDK can generate signed download URLs for applicant documents
+    # shared with a provider (see app/services/document_storage.py) -
+    # unset previously, which is why that capability never existed.
+    firebase_storage_bucket: str = "scholarsphere-d44f5.firebasestorage.app"
     firebase_credentials_path: Path | None = None
     # Revocation checking calls the Identity Toolkit API, which needs a real
     # service-account credential (firebase_credentials_path or ADC). Keep
@@ -31,8 +36,51 @@ class Settings(BaseSettings):
     http_max_response_bytes: int = Field(default=5_242_880, gt=0, le=52_428_800)
     max_request_bytes: int = Field(default=1_048_576, gt=0, le=10_485_760)
 
+    # Browser-rendering fallback (app/services/browser_rendering.py) - only
+    # used by sources that opt in via `allow_browser_rendering = True` and
+    # only when the plain HTTP fetch looks like an unrendered JS shell (see
+    # web_scraper_base.py::looks_javascript_rendered). Off by default in the
+    # sense that no source uses it unless it opts in; these settings bound
+    # its resource cost when it does run.
+    browser_render_timeout_ms: int = Field(default=20_000, gt=0, le=60_000)
+    browser_render_max_concurrency: int = Field(default=2, gt=0, le=10)
+    # Headless is the only correct mode for a scheduled backend task - a
+    # server process has no display. This exists purely so a developer can
+    # flip PLAYWRIGHT_HEADLESS=false in their own local .env to watch a
+    # render happen while debugging a specific source; never set false in
+    # any deployed environment (enforced below).
+    browser_render_headless: bool = Field(
+        default=True, validation_alias="PLAYWRIGHT_HEADLESS"
+    )
+    # Cookie/consent banners that block access to public page content (not
+    # marketing/tracking opt-ins - see app/services/browser_rendering.py's
+    # `_maybe_accept_cookie_banner`) are auto-accepted only when this is
+    # true. Default on: refusing to click past a banner would silently
+    # blind every browser-rendered source behind one.
+    browser_auto_accept_required_cookies: bool = Field(
+        default=True, validation_alias="AUTO_ACCEPT_REQUIRED_COOKIES"
+    )
+    # Left unset in every real deployment - Playwright's own browser
+    # install (`playwright install chromium`, run in the Dockerfile)
+    # manages its own matching browser build at its default location.
+    # Only set this to point at a pre-installed browser binary whose
+    # revision doesn't match this pinned `playwright` package version
+    # (e.g. this project's own dev sandbox, which has a fixed Chromium
+    # build preinstalled outside Playwright's own version-matched cache).
+    browser_executable_path: str | None = None
+
     rate_limit_requests: int = Field(default=300, gt=0)
     rate_limit_window_seconds: int = Field(default=60, gt=0)
+
+    # Pagination/infinite-scroll engines (app/services/pagination_engine.py,
+    # app/services/infinite_scroll_engine.py) - defaults for any source
+    # adapter that doesn't pass its own override. Every loop these engines
+    # run stops at one of these bounds even if a "next"/"load more" control
+    # never disables itself - never an unbounded loop.
+    max_pages_per_source: int = Field(default=50, gt=0, le=500)
+    max_records_per_source: int = Field(default=5000, gt=0, le=100_000)
+    max_scroll_iterations: int = Field(default=50, gt=0, le=500)
+    scroll_stagnation_limit: int = Field(default=3, gt=0, le=20)
 
     grants_gov_base_url: str = "https://api.grants.gov/v1/api"
     simpler_grants_base_url: str = "https://api.simpler.grants.gov"
@@ -85,6 +133,13 @@ class Settings(BaseSettings):
     reliefweb_base_url: str = "https://api.reliefweb.int/v2"
     reliefweb_appname: str = ""
 
+    # EducationUSA "Find Financial Aid" database (US Department of State) -
+    # see app/services/educationusa_source.py and
+    # docs/AUTHORITATIVE_SOURCES.md #44. Closes the United States gap: the
+    # sources above are federal grants/jobs/humanitarian postings, not
+    # international-student scholarships.
+    educationusa_base_url: str = "https://educationusa.state.gov"
+
     # Web-scraper sources (app/services/web_scraper_base.py and its
     # subclasses) - no official API/RSS/dataset exists for these
     # organizations (see docs/AUTHORITATIVE_SOURCES.md), so this backend
@@ -121,11 +176,19 @@ class Settings(BaseSettings):
     ireland_hea_base_url: str = "https://hea.ie"
     india_iccr_base_url: str = "https://iccr.gov.in"
     sweden_si_base_url: str = "https://si.se"
-    # Confirmed unreachable from every environment this project has had
-    # access to (connection timeout, both http/https - see
-    # docs/AUTHORITATIVE_SOURCES.md #18), the same failure pattern as
-    # mthe_sl_base_url above. Kept configured for future re-testing.
-    eswatini_slas_base_url: str = "https://www.slas.gov.sz"
+    # The "www." host timed out in every environment this project has had
+    # access to until 2026-08-29, when the bare (non-www) host was found
+    # to be reachable (200, real content - see docs/AUTHORITATIVE_SOURCES.md
+    # #18 and docs/COUNTRY_PROVIDER_REGISTRY.md's Eswatini entry). The real
+    # page content is a domestic student-loan portal for Eswatini
+    # nationals ("Ministry of Labour and Social Security" / "Student
+    # Loan" / "Apply Now" / "Loan Repayment") with no "scholarship" or
+    # "SADC" text anywhere on the page - EswatiniSlasSource's own
+    # keyword-matching (app/services/embassy_announcements.py) correctly
+    # finds nothing on it, so fixing reachability alone does not make
+    # this source produce records; recorded honestly as reachable-but-
+    # likely-unsuitable rather than claimed as newly working.
+    eswatini_slas_base_url: str = "https://slas.gov.sz"
 
     # Second-batch country-expansion sources (2026-08-23).
     italy_esteri_base_url: str = "https://www.esteri.it"
@@ -134,6 +197,90 @@ class Settings(BaseSettings):
     italy_studyinitaly_base_url: str = "https://studyinitaly.esteri.it"
     greece_iky_base_url: str = "https://www.iky.gr"
     south_africa_nrf_base_url: str = "https://www.nrf.ac.za"
+
+    # Third-batch country-expansion source (2026-08-29). Nuffic's "Study
+    # in NL" portal - the NL Scholarship program was rebranded from
+    # "Holland Scholarship"; hollandscholarship.nl now 301-redirects here.
+    netherlands_nuffic_base_url: str = "https://www.studyinnl.org"
+    spain_aecid_base_url: str = "https://www.aecid.es"
+    # dfat.gov.au itself (the deadline-bearing authoritative domain) is
+    # unreachable from this environment - a separate, DFAT-affiliated
+    # informational site is used as the overview page instead. See
+    # AustraliaDfatAwardsSource's own docstring for the full reachability
+    # findings.
+    australia_awards_base_url: str = "https://www.australiaawards.com.au"
+    japan_mext_base_url: str = "https://www.studyinjapan.go.jp"
+
+    # Fourth-batch country-expansion sources (2026-08-29), from a
+    # dedicated research pass rather than a fetch-and-wire pass - see
+    # docs/COUNTRY_PROVIDER_REGISTRY.md for what was checked and why
+    # Canada/Denmark were investigated but not integrated.
+    belgium_ares_base_url: str = "https://www.ares-ac.be"
+    france_campusfrance_base_url: str = "https://www.campusfrance.org"
+    austria_oead_base_url: str = "https://oead.at"
+    morocco_amci_base_url: str = "https://www.amci.ma"
+    portugal_camoes_base_url: str = "https://www.instituto-camoes.pt"
+    colombia_icetex_base_url: str = "https://web.icetex.gov.co"
+    chile_agcid_base_url: str = "https://www.agcid.gob.cl"
+    peru_pronabec_base_url: str = "https://www.pronabec.gob.pe"
+    south_korea_gks_base_url: str = "https://www.studyinkorea.go.kr"
+    saudi_arabia_moe_base_url: str = "https://www.moe.gov.sa"
+    qatar_scholarships_base_url: str = "https://www.qatarscholarships.qa"
+    switzerland_sbfi_base_url: str = "https://www.sbfi.admin.ch"
+    poland_nawa_base_url: str = "https://nawa.gov.pl"
+    czech_republic_msmt_base_url: str = "https://msmt.gov.cz"
+    serbia_welcometoserbia_base_url: str = "https://welcometoserbia.gov.rs"
+    romania_mfa_base_url: str = "https://scholarships.studyinromania.gov.ro"
+    hungary_stipendium_base_url: str = "https://stipendiumhungaricum.hu"
+    mexico_amexcid_base_url: str = "https://www.gob.mx"
+
+    # Twelfth-pass multi-source-type expansion (2026-08-30) - see
+    # docs/COUNTRY_PROVIDER_REGISTRY.md's twelfth-pass note. Not tied to
+    # a single destination country; found while researching additional
+    # sources genuinely eligible for Sierra Leone applicants specifically.
+    world_bank_jjwbgsp_base_url: str = "https://www.worldbank.org"
+    rotary_peace_fellowship_base_url: str = "https://www.rotary.org"
+    erasmus_mundus_base_url: str = "https://www.eacea.ec.europa.eu"
+    uaeu_base_url: str = "https://www.uaeu.ac.ae"
+
+    # Premium Application-Preparation Platform - payment provider
+    # abstraction (app/services/payment_provider.py). Left unset by
+    # default: an empty `payment_provider` selects `NullPaymentProvider`,
+    # which clearly reports "not configured" on every call rather than
+    # fabricating a successful transaction - see that module's docstring.
+    # The real provider (Stripe/Paystack/Flutterwave/...) and its
+    # credentials are supplied later; nothing here assumes which one.
+    payment_provider: str = ""
+    payment_env: str = "test"
+    payment_secret_key: SecretStr = SecretStr("")
+    payment_public_key: str = ""
+    payment_webhook_secret: SecretStr = SecretStr("")
+    payment_currency: str = "USD"
+    payment_api_base_url: str = ""
+
+    # The flagship "Complete Premium Application Package" - seeded once at
+    # startup (app/services/premium_plan_seed.py) if no plan with this
+    # code exists yet, then fully admin-editable afterward (price
+    # included). These two env vars only control the *seed*, never a
+    # runtime price override - the database row is the single source of
+    # truth from that point on.
+    premium_plan_id: str = "complete_premium"
+    premium_price_cents: int = Field(default=10_000, ge=0)
+
+    # AI provider abstraction (app/services/ai_provider.py). Left unset by
+    # default: an empty `ai_provider` selects `NullAIProvider`, which
+    # clearly reports "AI generation is not configured" rather than
+    # fabricating document content - see that module's docstring.
+    ai_provider: str = ""
+    ai_api_key: SecretStr = SecretStr("")
+    ai_model: str = ""
+    ai_api_base_url: str = ""
+    ai_request_timeout_seconds: float = Field(default=60.0, gt=0, le=180)
+    # Configurable AI-usage ceilings (app/services/usage_limits.py) - the
+    # database `usage_limits` table can override these per feature; these
+    # are only the defaults applied when no row exists yet for a feature.
+    ai_usage_daily_limit_default: int = Field(default=20, gt=0)
+    ai_usage_monthly_limit_default: int = Field(default=200, gt=0)
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -192,6 +339,7 @@ class Settings(BaseSettings):
         "eu_funding_api_url",
         "usajobs_base_url",
         "reliefweb_base_url",
+        "educationusa_base_url",
         "cscuk_base_url",
         "chevening_base_url",
         "daad_base_url",
@@ -207,12 +355,48 @@ class Settings(BaseSettings):
         "italy_studyinitaly_base_url",
         "greece_iky_base_url",
         "south_africa_nrf_base_url",
+        "netherlands_nuffic_base_url",
+        "spain_aecid_base_url",
+        "australia_awards_base_url",
+        "japan_mext_base_url",
+        "belgium_ares_base_url",
+        "france_campusfrance_base_url",
+        "austria_oead_base_url",
+        "morocco_amci_base_url",
+        "portugal_camoes_base_url",
+        "colombia_icetex_base_url",
+        "chile_agcid_base_url",
+        "peru_pronabec_base_url",
+        "south_korea_gks_base_url",
+        "saudi_arabia_moe_base_url",
+        "qatar_scholarships_base_url",
+        "switzerland_sbfi_base_url",
+        "poland_nawa_base_url",
+        "czech_republic_msmt_base_url",
+        "serbia_welcometoserbia_base_url",
+        "romania_mfa_base_url",
+        "hungary_stipendium_base_url",
+        "mexico_amexcid_base_url",
+        "world_bank_jjwbgsp_base_url",
+        "rotary_peace_fellowship_base_url",
+        "erasmus_mundus_base_url",
+        "uaeu_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
         if not value.lower().startswith("https://"):
             raise ValueError("External API endpoints must use HTTPS")
         return value.rstrip("/")
+
+    @field_validator("payment_api_base_url", "ai_api_base_url")
+    @classmethod
+    def require_https_when_set(cls, value: str) -> str:
+        # Unlike require_https above, these two are legitimately blank
+        # (no provider configured yet) - only enforce HTTPS once a real
+        # value is actually supplied.
+        if value and not value.lower().startswith("https://"):
+            raise ValueError("External API endpoints must use HTTPS")
+        return value.rstrip("/") if value else value
 
     @model_validator(mode="after")
     def enforce_revocation_checking_in_production(self) -> "Settings":
@@ -224,6 +408,16 @@ class Settings(BaseSettings):
         # service account can skip the Identity Toolkit call.
         if self.app_env == "production" and not self.firebase_check_revoked:
             self.firebase_check_revoked = True
+        return self
+
+    @model_validator(mode="after")
+    def enforce_headless_browser_rendering_in_production(self) -> "Settings":
+        # A headed (non-headless) browser needs a display server that no
+        # production/container deployment has - PLAYWRIGHT_HEADLESS=false
+        # only ever makes sense on a developer's own machine while
+        # debugging a specific source's rendering.
+        if self.app_env == "production" and not self.browser_render_headless:
+            self.browser_render_headless = True
         return self
 
     @model_validator(mode="after")

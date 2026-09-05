@@ -23,6 +23,8 @@ class AuditAction(str, enum.Enum):
     dataExported = "dataExported"
     accountDeleted = "accountDeleted"
     apiRequest = "apiRequest"
+    paymentProcessed = "paymentProcessed"
+    entitlementChanged = "entitlementChanged"
 
 
 class AuditResult(str, enum.Enum):

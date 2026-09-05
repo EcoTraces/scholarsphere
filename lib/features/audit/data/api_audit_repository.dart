@@ -88,10 +88,7 @@ class ApiAuditRepository implements AuditRepository {
 
   @override
   Future<String> exportCsv(UserRole requesterRole, AuditQuery query) async {
-    final body = await _get(
-      '/audit/records/export',
-      _queryParameters(query),
-    );
+    final body = await _get('/audit/records/export', _queryParameters(query));
     return (body as Map<String, dynamic>)['csv'] as String;
   }
 
@@ -126,7 +123,9 @@ class ApiAuditRepository implements AuditRepository {
       });
     } on LiveBackendException catch (error) {
       if (error.statusCode == 422) {
-        throw const AuditFailure('Audit retention cannot be less than 365 days.');
+        throw const AuditFailure(
+          'Audit retention cannot be less than 365 days.',
+        );
       }
       rethrow;
     }

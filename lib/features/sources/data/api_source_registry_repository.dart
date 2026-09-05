@@ -99,7 +99,9 @@ class ApiSourceRegistryRepository implements SourceRegistryRepository {
 
   @override
   Future<SourceRecord?> approvedSourceFor(String location) async {
-    final body = await _get('/source-registry/approved', {'location': location});
+    final body = await _get('/source-registry/approved', {
+      'location': location,
+    });
     if (body == null) return null;
     return _toRecord(body as Map<String, dynamic>);
   }
@@ -125,7 +127,10 @@ class ApiSourceRegistryRepository implements SourceRegistryRepository {
   @override
   Future<SourceRecord> recordCorrection(String sourceId) async {
     try {
-      final body = await _post('/source-registry/$sourceId/correction', const {});
+      final body = await _post(
+        '/source-registry/$sourceId/correction',
+        const {},
+      );
       return _toRecord(body as Map<String, dynamic>);
     } on LiveBackendException catch (error) {
       if (error.statusCode == 404) {
@@ -163,29 +168,39 @@ class ApiSourceRegistryRepository implements SourceRegistryRepository {
 
   // Keep in sync with app/schemas/source_registry.py's wire map.
   static String _typeToWire(OpportunitySourceType type) => switch (type) {
-    OpportunitySourceType.officialUniversityWebsite => 'officialUniversityWebsite',
-    OpportunitySourceType.officialGovernmentPortal => 'officialGovernmentPortal',
+    OpportunitySourceType.officialUniversityWebsite =>
+      'officialUniversityWebsite',
+    OpportunitySourceType.officialGovernmentPortal =>
+      'officialGovernmentPortal',
     OpportunitySourceType.embassyWebsite => 'embassyWebsite',
     OpportunitySourceType.foundationWebsite => 'foundationWebsite',
-    OpportunitySourceType.internationalOrganization => 'internationalOrganization',
-    OpportunitySourceType.officialApplicationPortal => 'officialApplicationPortal',
+    OpportunitySourceType.internationalOrganization =>
+      'internationalOrganization',
+    OpportunitySourceType.officialApplicationPortal =>
+      'officialApplicationPortal',
     OpportunitySourceType.approvedApi => 'approvedApi',
     OpportunitySourceType.approvedRssFeed => 'approvedRssFeed',
-    OpportunitySourceType.verifiedProviderSubmission => 'verifiedProviderSubmission',
+    OpportunitySourceType.verifiedProviderSubmission =>
+      'verifiedProviderSubmission',
     OpportunitySourceType.trustedSecondarySource => 'trustedSecondarySource',
     OpportunitySourceType.communitySubmission => 'communitySubmission',
   };
 
   static OpportunitySourceType _typeFromWire(String value) => switch (value) {
-    'officialUniversityWebsite' => OpportunitySourceType.officialUniversityWebsite,
-    'officialGovernmentPortal' => OpportunitySourceType.officialGovernmentPortal,
+    'officialUniversityWebsite' =>
+      OpportunitySourceType.officialUniversityWebsite,
+    'officialGovernmentPortal' =>
+      OpportunitySourceType.officialGovernmentPortal,
     'embassyWebsite' => OpportunitySourceType.embassyWebsite,
     'foundationWebsite' => OpportunitySourceType.foundationWebsite,
-    'internationalOrganization' => OpportunitySourceType.internationalOrganization,
-    'officialApplicationPortal' => OpportunitySourceType.officialApplicationPortal,
+    'internationalOrganization' =>
+      OpportunitySourceType.internationalOrganization,
+    'officialApplicationPortal' =>
+      OpportunitySourceType.officialApplicationPortal,
     'approvedApi' => OpportunitySourceType.approvedApi,
     'approvedRssFeed' => OpportunitySourceType.approvedRssFeed,
-    'verifiedProviderSubmission' => OpportunitySourceType.verifiedProviderSubmission,
+    'verifiedProviderSubmission' =>
+      OpportunitySourceType.verifiedProviderSubmission,
     'trustedSecondarySource' => OpportunitySourceType.trustedSecondarySource,
     'communitySubmission' => OpportunitySourceType.communitySubmission,
     _ => throw LiveBackendException('Unknown opportunity source type: $value'),

@@ -99,14 +99,11 @@ class ApiFraudInvestigationRepository implements FraudInvestigationRepository {
   @override
   Future<FraudCase> addEvidence(String caseId, FraudEvidence evidence) async {
     try {
-      final body = await _post(
-        '/fraud-investigation/cases/$caseId/evidence',
-        {
-          'type': evidence.type,
-          'location': evidence.location,
-          'summary': evidence.summary,
-        },
-      );
+      final body = await _post('/fraud-investigation/cases/$caseId/evidence', {
+        'type': evidence.type,
+        'location': evidence.location,
+        'summary': evidence.summary,
+      });
       return _toCase(body as Map<String, dynamic>);
     } on LiveBackendException catch (error) {
       if (error.statusCode == 404) {
@@ -196,7 +193,9 @@ class ApiFraudInvestigationRepository implements FraudInvestigationRepository {
       });
     } on LiveBackendException catch (error) {
       if (error.statusCode == 409) {
-        throw const FraudInvestigationFailure('Watchlist entry already exists.');
+        throw const FraudInvestigationFailure(
+          'Watchlist entry already exists.',
+        );
       }
       rethrow;
     }

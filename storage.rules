@@ -7,12 +7,16 @@ rules_version = '2';
 //
 // Applicant personal documents (passport, transcripts, financial documents,
 // etc.) are far more sensitive than provider registration paperwork, so
-// they stay strictly owner-only for both read and write - no staff role
-// gets blanket read access here, unlike provider-documents above. Sharing
-// a document with a specific provider (ApplicantDocument.grantProviderAccess
-// in the backend) is recorded in Postgres, not enforced by these Storage
-// rules; there is no per-provider read path through Storage today - see
-// the backend's Documents implementation notes for the accepted follow-up.
+// they stay strictly owner-only for both read and write here - no staff
+// role, and no shared-with provider, gets a Storage-rule read grant,
+// unlike provider-documents above. Sharing a document with a specific
+// provider (ApplicantDocument.grantProviderAccess in the backend) is
+// recorded in Postgres, not enforced by widening these rules; a granted
+// provider instead reads the file through a signed URL the backend mints
+// on demand (GET /applicant-documents/{id}/download-url, gated on that
+// same Postgres record - see app/services/document_storage.py), so this
+// rule can stay the narrowest possible grant and the backend remains the
+// one auditable choke point for third-party access.
 // Deletion is allowed here (unlike provider-documents' append-only
 // evidence) because DocumentRepository.remove() is a real, owner-driven
 // action.

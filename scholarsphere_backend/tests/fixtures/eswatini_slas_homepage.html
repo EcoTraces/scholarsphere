@@ -1,0 +1,1079 @@
+
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head><title>
+
+</title>
+
+
+    
+
+    <!-- CSS library start-->
+    <link href="Style/jquery-ui.css" rel="stylesheet" />
+    <!-- CSS library end-->
+
+    <!-- jquery and it's plug in start -->
+    <script src="Scripts/jquery-1.7.1.min.js"></script>
+    <script src="Scripts/jquery-ui.js"></script>
+    <!-- jquery and it's plug in end -->
+
+    <script>
+        $(document).tooltip();
+    </script>
+
+    <!-- End new -->
+
+    <style type="text/css">
+        .tooltip {
+            display: none;
+            font-size: 10pt;
+            position: absolute;
+            border: 1px solid #000000;
+            background-color: blue;
+            padding: 2px 6px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .website {
+        }
+    </style>
+
+    <script type="text/javascript">
+        //$(window).load(function () {
+        //    alert("outer");
+
+        //});
+
+
+        $(document).ready(function () {
+            //alert("inner");
+
+            $(".website").blur(function () {
+                // alert("blur");
+
+                if ($("#TextPassCodeDiv").css('display') == "block") {
+                    //  alert($("#TextPassCodeDiv").css('display'));
+                    $("#TextPassCodeDiv").css('display', 'none');
+                }
+                else {
+                    //  alert($("#TextPassCodeDiv").css('display'));
+                    // $("#TextPassCodeDiv").css('display', 'block');
+                }
+
+            });
+
+            $(".website").focus(function () {
+                // alert("focus");
+                $("#TextPassCodeDiv").css('display', 'block');
+            });
+
+        });
+
+        // **************   Final For ToolTip
+
+    </script>
+
+    <!-- End of Toot Tip related -->
+
+    <!-- Style Sheet Links -->
+    <link href="Style/form_MC.css" rel="stylesheet" /><link href="Style/grid_MC.css" rel="stylesheet" /><link href="Style/style_MC.css" rel="stylesheet" /><link href="Style/StyleCustom.css" rel="stylesheet" />
+    <!-- End Style Sheet Links -->
+
+    <!-- date picker -->
+
+    <link href="datepicker/jquery-ui.css" rel="stylesheet" />
+    <script src="datepicker/jquery-1.12.4.js"></script>
+    <script src="datepicker/jquery-ui.js"></script>
+
+    <!-- notification -->
+    
+    <script src="notification/notify.js"></script>
+
+</head>
+
+<body>
+
+    <!-- Script -->
+
+    <script type="text/javascript">
+
+        function ShowSuccess(message) {
+            $.notify(message, "success");
+        }
+
+        function ShowError(message) {
+            $.notify(message, "error");
+        }
+
+        function ShowWarning(message) {
+            $.notify(message, "warn");
+        }
+
+        function ShowInfo(message) {
+            $.notify(message, "info");
+        }
+
+        function CloseTab() {
+            window.close();
+            // alert('dd');
+            return false;
+        }
+
+        function LogOut() {
+            __doPostBack('LogOut', 'SLAF');
+            return false;
+        }
+
+        function GotoPage(pageName) {
+            window.location.href = '/' + pageName;
+            return false;
+        }
+        function CloseMessage() {
+            //alert('hello');
+            window.setInterval(function () { document.getElementById('MessageDiv').style.display = "none"; }, 1000000);
+
+            ResponsiveFunction(); // for responsive
+        }
+
+        function CrossMessage() {
+            document.getElementById('MessageDiv').style.display = "none";
+        }
+
+        window.onload = CloseMessage;
+
+        // Work for responsive
+
+        window.onresize = function (event) {
+            ResponsiveFunction();
+        };
+
+        function ResponsiveFunction() {
+
+            /*************      For Banner Image        **********/
+
+            var browserWidth = document.body.offsetWidth;
+            var bannerImgWidth_Original = 641;
+            var bannerHeight_Original = 143;
+            var bannerImgWidth_Current = 641;
+            var bannerHeight_Current = 143;
+            var default_Layout_Width = 990;
+
+            //alert(browserWidth);
+
+            if (browserWidth <= default_Layout_Width) {
+                // alert("inner");
+                bannerImgWidth_Current = ((bannerImgWidth_Original * browserWidth) / default_Layout_Width);
+                bannerHeight_Current = ((bannerHeight_Original * bannerImgWidth_Current) / bannerImgWidth_Original);
+            }
+
+            //alert(bannerImgWidth_Current);
+            //alert(bannerHeight_Current);
+
+            if (browserWidth < bannerImgWidth_Original) {
+                document.getElementById('BannerImgID').width = browserWidth - parseInt(10);
+                document.getElementById('BannerImgID').height = ((bannerHeight_Original * (browserWidth - parseInt(10))) / bannerImgWidth_Original);
+            }
+            else {
+
+                document.getElementById('BannerImgID').width = bannerImgWidth_Current;
+                document.getElementById('BannerImgID').height = bannerHeight_Current;
+            }
+
+            /*************      For Current Model Image        **********/
+
+            var currentModelImgWidth_Original = 498;
+            var currentModelImgHeight_Original = 436;
+            var currentModelImgWidth_Current = 498;
+            var currentModelImgHeight_Current = 436;
+            var currentModelImg_default_Layout_Width = 910;
+
+            // alert(browserWidth);
+
+            if (browserWidth <= currentModelImg_default_Layout_Width) {
+                // alert("inner");
+                currentModelImgWidth_Current = ((currentModelImgWidth_Original * browserWidth) / currentModelImg_default_Layout_Width);
+                currentModelImgHeight_Current = ((currentModelImgHeight_Original * currentModelImgWidth_Current) / currentModelImgWidth_Original);
+            }
+
+            // alert(currentModelImgWidth_Current);
+            // alert(currentModelImgHeight_Current);
+
+            document.getElementById('imgCurrentModel').width = currentModelImgWidth_Current;
+            document.getElementById('imgCurrentModel').height = currentModelImgHeight_Current;
+
+            /*************     For Future Model Image       **********/
+
+            var futureModelImgWidth_Original = 530;
+            var futureModelImgHeight_Original = 386;
+            var futureModelImgWidth_Current = 530;
+            var futureModelImgHeight_Current = 386;
+            var futureModelImg_default_Layout_Width = 910;
+
+            //  alert(browserWidth);
+            // alert(futureModelImg_default_Layout_Width);
+
+            if (browserWidth <= futureModelImg_default_Layout_Width) {
+                //   alert("inner");
+                futureModelImgWidth_Current = ((futureModelImgWidth_Original * browserWidth) / futureModelImg_default_Layout_Width);
+                futureModelImgHeight_Current = ((futureModelImgHeight_Original * futureModelImgWidth_Current) / futureModelImgWidth_Original);
+            }
+
+            // alert(bannerImgWidth_Current);
+            // alert(bannerHeight_Current);
+
+            document.getElementById('imgFutureModel').width = futureModelImgWidth_Current;
+            document.getElementById('imgFutureModel').height = futureModelImgHeight_Current;
+
+        }
+
+        /*      ****************        2 function for Loan Calculator    **************************  */
+
+        function CalculateLoan(ta, ca, la, e, crtl) {
+            //alert(e.charCode);
+            // alert(e.which);
+            var x = (e.charCode) ? e.charCode : ((e.which) ? e.which : e.keyCode);
+            var str = crtl.value;
+            if ((x >= 48 && x <= 57) || x == 9 || x == 8 || x == 37 || x == 46 || x == 39 || x == 2 || x == 9 || x == 58 || x == 44) {
+
+                // Check if already a "." there
+                if (e.charCode == 46) {
+                    var pos = crtl.value.indexOf('.');
+                    if (pos > 0) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        function ShowResult(ta, ca, la) {
+
+            var tamount = document.getElementById(ta).value;
+            var camount = document.getElementById(ca).value;
+
+            var minusResult = parseFloat(tamount) - parseFloat(camount);
+
+            // IF Minus result is Negetive then not show the keystroke.
+            if (minusResult < 0) {
+                document.getElementById(la).value = ""
+            }
+            else {
+                if (!isNaN(minusResult)) {
+                    document.getElementById(la).value = minusResult
+                }
+            }
+        }
+
+    </script>
+
+    <!-- End Script -->
+
+    <style type="text/css">
+
+</style>
+
+    <style>
+        ul.a {
+            list-style-type: circle;
+        }
+
+        ul.b {
+            list-style-type: disc;
+        }
+
+        ul.c {
+            list-style-type: square;
+        }
+
+        ol.d {
+            list-style-type: armenian;
+        }
+
+        ol.e {
+            list-style-type: cjk-ideographic;
+        }
+
+        ol.f {
+            list-style-type: decimal;
+        }
+
+        ol.g {
+            list-style-type: decimal-leading-zero;
+        }
+
+        ol.h {
+            list-style-type: georgian;
+        }
+
+        ol.i {
+            list-style-type: hebrew;
+        }
+
+        ol.j {
+            list-style-type: hiragana;
+        }
+
+        ol.k {
+            list-style-type: hiragana-iroha;
+        }
+
+        ol.l {
+            list-style-type: katakana;
+        }
+
+        ol.m {
+            list-style-type: katakana-iroha;
+        }
+
+        ol.n {
+            list-style-type: lower-alpha;
+        }
+
+        ol.o {
+            list-style-type: lower-greek;
+        }
+
+        ol.p {
+            list-style-type: lower-latin;
+        }
+
+        ol.q {
+            list-style-type: lower-roman;
+        }
+
+        ol.r {
+            list-style-type: upper-alpha;
+        }
+
+        ol.s {
+            list-style-type: upper-greek;
+        }
+
+        ol.t {
+            list-style-type: upper-latin;
+        }
+
+        ol.u {
+            list-style-type: upper-roman;
+        }
+
+        ol.v {
+            list-style-type: none;
+        }
+
+        ol.w {
+            list-style-type: inherit;
+        }
+    </style>
+
+
+    <!-- Header -->
+
+    <!-- table width="990" class="siteWidth" border="0" align="center" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                <div class="topButton_Div topnav">
+                    <a href="/ApplicationView.aspx" id="btnHome1" class="selected">HOME</a>
+                    <a href="/StudyLoanCalculator.aspx" id="btnLoanCalculator1" class="">LOAN CALCULATOR</a>
+
+                    <a href="#" id="btnLogout1" class="floatRight" onclick="javascript: return GotoPage(&#39;Logout.aspx&#39;);">LOGOUT</a>
+                    <a href="#" id="btnLogin1" class="floatRight" onclick="javascript: return GotoPage(&#39;Login.aspx&#39;);">LOGIN HERE</a>
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td height="155" valign="top">
+                <div class="logo_male_circumcision_project" onclick="location.href='#'">
+                    <img id="BannerImgID" src="images/logo_SLAF.png" width="641" height="143" />
+                </div>
+            </td>
+        </tr>
+    </table-->
+
+    <!-- Start DIV Header -->
+
+    <div class="headerDiv_parent" style="display: block;">
+
+        
+
+        <div style="clear: both;"></div>
+
+        <div class="headerDiv_bottom" style="border: 0px solid #F00;">
+
+            <div class="logo_male_circumcision_project bannerWidth" onclick="location.href='#'">
+
+                <!-- Login -->
+                
+
+                
+                <!-- Logo -->
+                
+
+                <img id="" src="/images/logo_SLAF.png" width="990" height="143" />
+
+                <div style="clear: both;"></div>
+
+
+            </div>
+
+            <div style="clear: both;"></div>
+        </div>
+
+        <div style="clear: both;"></div>
+    </div>
+    <div style="clear: both;"></div>
+
+    <!-- End Header -->
+
+    <!-- start new menu -->
+
+    <div id="menuwrapper">
+        <div id="menucontainer" class="width_100Percent_910">
+            <ul>
+                <li class="page_item page-item-205 current_page_item"><a href="/" id="btnHome">Home</a></li>
+                <li class="page_item page-item-7 page_item_has_children"><a href="/AboutUS.aspx" id="btnAboutUS" class="">About Us</a>
+                    <ul class="children">
+                        <li class="page_item page-item-14"><a href="/AboutUS/History.aspx">History</a></li>
+                        <li class="page_item page-item-37"><a href="/AboutUS/Objective.aspx">Objective</a></li>
+
+                    </ul>
+                </li>
+                <li class="page_item page-item-17 page_item_has_children"><a href="#">Loan Process</a>
+                    <ul class="children">
+                        
+                        <li class="page_item page-item-51"><a href="/LoanProcess/ApplicationRequirements.aspx">Loan Application Process</a></li>
+                        
+                    </ul>
+                </li>
+                <li class="page_item page-item-19 page_item_has_children"><a href="#">Loan Repayment</a>
+                    <ul class="children">
+                        <li class="page_item page-item-210"><a href="/LoanRepayment/Repayments.aspx">Repayments</a></li>
+                        <li class="page_item page-item-210"><a href="/LoanRepayment/HowToRepay.aspx">How To Repay</a></li>
+                    </ul>
+                </li>
+
+                
+
+                
+
+                
+                
+                
+
+                <li class="page_item page-item-300 page_item_has_children"><a href="/ContactUS.aspx" id="btnContactUS">Contact Us</a>
+                    
+                </li>
+
+                <li class="page_item page-item-7 page_item_has_children"><a href="#" id="A2" class="">Help Us</a>
+                    <ul class="children">
+                        
+                        <li class="page_item page-item-287"><a href="/StudentInformationEntry.aspx">Notify Us</a></li>
+                    </ul>
+                </li>
+
+                <li class="page_item page-item-7 page_item_has_children" style="float: right;"><a href="#" id="btnLogin" class="">Login</a>
+                    <ul class="children">
+                        <li class="page_item page-item-287"><a href="/Login.aspx">Student Login</a></li>
+                        <li class="page_item page-item-287"><a href="/InstitutionLogin.aspx">Institution Login</a></li>
+                    </ul>
+                </li>
+
+                <li class="page_item page-item-300 page_item_has_children" style="float: right;">
+                    
+                </li>
+
+            </ul>
+            <div style="clear: both;"></div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div style="clear: both;"></div>
+
+    <!-- Content Round Frame -->
+
+    <div class="round_right" style="">
+        <table width="990" class="siteWidth" border="0" align="center" cellpadding="0" cellspacing="0">
+            <tr id="roundTopForApplicationHomePage" style="display:none;">
+	<td class="tbl_tl">&nbsp;</td>
+	<td class="tbl_t">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="10">
+                        <tr>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <!-- Page Title -->
+                                            <div id="PageTitleDiv" class="pageTitle">
+                                                <h1>
+                                                    <span id="lblPageTitle"></span>
+
+                                                    
+                                                </h1>
+                                                <div style="clear: both;"></div>
+                                            </div>
+
+                                        </td>
+                                        <td align="right" class="login_status">
+
+                                            <div id="ShowStatusDIV" style="display:none;">
+
+                                                <div class="labelReference">Application Reference Number &nbsp;:&nbsp;</div>
+                                                <div class="labelReferenceResult">
+                                                    <span id="lblApplicationReferenceNumber"></span>
+                                                </div>
+                                                <div style="clear: both;"></div>
+
+                                                <div class="labelReference">Application Status &nbsp;:&nbsp;</div>
+                                                <div class="labelReferenceResult">
+                                                    <span id="lblApplicationStatus"></span>
+                                                </div>
+                                                <div style="clear: both;"></div>
+
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+	<td class="tbl_tr">&nbsp;</td>
+</tr>
+
+            <tr>
+                <td class="tbl_l">&nbsp;</td>
+
+                <td class="tbl_body">
+
+                    <div style="clear: both;"></div>
+
+                    <!-- Show Error Message -->
+
+                    <div id="MessageDiv" style="display: none;">
+
+                        <table class="form_theme">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="padding: 0 0 0 0; margin: 0 0 0 0;" class="tbl_bor_top_left"></td>
+                                                    <td class="tbl_bor_top_middle"></td>
+                                                    <td style="padding: 0 0 0 0; margin: 0 0 0 0;" class="tbl_bor_top_right"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 0 0 0 0; margin: 0 0 0 0;" class="tbl_bor_middle_left"></td>
+                                                    <td class="tbl_bor_middle_middle">
+
+                                                        <!-- start Content -->
+                                                        <div id="MessageTextDivID" class="messageTextDIV" style="">
+                                                            <span id="lblMessage" class="showMessage"></span>
+                                                        </div>
+
+                                                        <div class="messageDivRight">
+                                                            <img onclick="CrossMessage()" width="18" class="crossImage" src="/Images/cross.png" />
+                                                        </div>
+
+                                                        <div style="clear: both;"></div>
+                                                        <!-- End Content -->
+
+                                                    </td>
+                                                    <td style="padding: 0 0 0 0; margin: 0 0 0 0;" class="tbl_bor_middle_right"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 0 0 0 0; margin: 0 0 0 0;" class="tbl_bor_bottom_left"></td>
+                                                    <td class="tbl_bor_bottom_middle"></td>
+                                                    <td style="padding: 0 0 0 0; margin: 0 0 0 0;" class="tbl_bor_bottom_right"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                    <div style="clear: both;"></div>
+
+                    <!-- Content From Page -->
+
+                    <form method="post" action="" id="form1">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKMTY1NDU2MTA1Mg9kFgJmD2QWCAIFDxYCHgRocmVmBQEvZAIHDxYCHgdWaXNpYmxlaBYCAgMPFgIfAWhkAgsPFgIfAWhkAgwPFgIeBXN0eWxlBQ1kaXNwbGF5Om5vbmU7FgICAQ9kFgICAw8WAh8CBQ1kaXNwbGF5Om5vbmU7ZGRK3uJB7Yjt/WVF0MretxrSCYs5cSNufZal3vApKhM/9w==" />
+
+
+<script src="/ScriptResource.axd?d=TtTOrV0TTmAKFN8o6i-ugjfkWDoNmVLC67x-bCbfvzYvnwR8cJz6zBkNWC7x6CLij8mO1NpQy_dUOPrcy6UN8x_RHLTVWg194ZtxI3QqToAQJkQEMpryrO-DlYbOVud2If9pwwtPfPtr0RSIOT9FfZF7T5OV1C0EySKD5QKTY-jKb9k_bL60PnCRpC6k8zx60&amp;t=ca758f3" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+                        
+
+                        <div>
+                            
+
+    <script src="Scripts/jquery.min.js"></script>
+    <script src="Scripts/jquery-ui.min.js"></script>
+    <script src="Scripts/jquery.ui.touch-punch.min.js"></script>
+    <script src="Scripts/parallax_classic.js"></script>
+
+    <link href="Style/parallax_classic.css" rel="stylesheet" />
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        #bannerBg {
+            background: url(preview_images/responsive/opportuneResponsive.jpg) center top no-repeat;
+        }
+
+        #containingDiv {
+            width: 910px;
+            margin: 0 auto;
+            /*padding: 140px 0 0 0;*/
+        }
+
+        #bottomText {
+            width: 100%;
+            font: 18px 'Lato', sans-serif;
+            color: #333333;
+            border-top: 1px solid #cccccc;
+            padding: 10px 0 0 0;
+            margin-top: 100px;
+            text-align: center;
+        }
+
+        @media screen and (min-width:1200px) {
+            #bannerBg {
+                background: url(preview_images/responsive/opportuneResponsive.jpg) center top no-repeat;
+            }
+
+            #containingDiv {
+                width: 910px;
+                min-height: 50px;
+                /*height: 364px;*/
+                margin: 0 auto;
+                padding: 0px 0 0 0;
+            }
+
+            #bottomText {
+                width: 100%;
+                font: 18px 'Lato', sans-serif;
+                color: #333333;
+                border-top: 1px solid #cccccc;
+                padding: 10px 0 0 0;
+                margin-top: 100px;
+                text-align: center;
+            }
+        }
+
+        @media screen and (max-width:767px) {
+            #bannerBg {
+                background: url(preview_images/responsive/opportuneResponsive767.jpg) center top no-repeat;
+            }
+
+            #containingDiv {
+                width: 100%;
+                margin: 0 auto;
+                /*padding: 60px 0 0 0;*/
+            }
+
+            #bottomText {
+                width: 100%;
+                font: 14px 'Lato', sans-serif;
+                color: #333333;
+                border-top: 1px solid #cccccc;
+                padding: 10px 0 0 0;
+                margin-top: 50px;
+                text-align: center;
+            }
+        }
+    </style>
+
+
+
+    <script>
+        jQuery(function () {
+
+            jQuery('#parallax_classic_bullets').parallax_classic({
+                skin: 'bullets',
+                width: 910,
+                height: 364,
+                defaultExitOFF: true,
+                autoPlay: 6,
+                responsive: true,
+                autoHideBottomNav: true,
+                showPreviewThumbs: true,
+                autoHideNavArrows: true,
+                showCircleTimer: true,
+                myloaderTime: .5,
+                scrollSlideDuration: 1.5,
+                scrollSlideEasing: 'easeInQuint',
+                thumbsWrapperMarginBottom: -45
+            });
+
+
+        });
+    </script>
+
+    <div class="contentPaddingLeft">
+
+        <!-- Landing Page -->
+        <div class="studentInfo" id="StudentInformation">
+
+
+            <!-- Start Slider  -->
+            <div class="sliderDivStyle width_100Percent_910" style="">
+
+                <div id="containingDiv">
+
+                    <div class="parallax_classic bullets sliderLittle div_Width_90Percent_575" style="">
+                        <div id="parallax_classic_bullets">
+                            <div class="myloader" style="left: 451.5px; top: 163.5px; display: none;"></div>
+
+                            <!-- CONTENT -->
+                            <ul class="parallax_classic_list">
+                                <li data-text-id="#parallax_classic_photoText1" data-link="#" data-bottom-thumb="images.jpg">
+                                    <img src="/Images/Banner/slider1.jpg" width="910" height="364" alt="">
+                                </li>
+                                <li data-link="#" data-bottom-thumb="images.jpg">
+                                    <img src="/Images/Banner/slider2.jpg" width="910" height="364" alt="">
+                                </li>
+
+                                <li data-text-id="#parallax_classic_photoText3" data-bottom-thumb="images.jpg">
+                                    <img src="/Images/Banner/slider3.jpg" width="910" height="364" alt="">
+                                </li>
+
+                                <li data-bottom-thumb="images.jpg">
+                                    <img src="/Images/Banner/slider4.jpg" width="910" height="364" alt=""></li>
+
+                            </ul>
+
+                            <div style="clear: both;"></div>
+                        </div>
+                        <div style="clear: both;"></div>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+            <div style="clear: both;"></div>
+            <!-- END Slider  -->
+
+            <!-- Start 3 Block  -->
+
+            <div id="Parent3Block" style="border: 0px solid #F00; width: 100%;">
+
+                <!-- Loan Apply -->
+
+                <div class="littleBlock_LoanApply margin_auto_910 div_Width_95Percent_575" style="">
+
+                    <table class="form_theme">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td class="tbl_bor_top_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_top_middle"></td>
+                                                <td class="tbl_bor_top_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_middle_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_middle_middle">
+
+                                                    <!-- start Content -->
+
+                                                    <div class="studentLoanDiv registerLink">
+                                                        <h3>Student Loan</h3>
+                                                        <br>
+                                                        Do you need a loan? Fill and submit an easy application steps here.
+                                                <br>
+                                                        <a class="loanButton" href="/WelcomeToApplication.aspx">Apply Now</a>
+
+                                                    </div>
+                                                    <div style="clear: both;"></div>
+
+                                                    <!-- End Content -->
+
+                                                </td>
+                                                <td class="tbl_bor_middle_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_bottom_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_bottom_middle"></td>
+                                                <td class="tbl_bor_bottom_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                    <div style="clear: both;"></div>
+                </div>
+
+                <div class="clearDiv910"></div>
+                <!-- Loan View -->
+
+                <div class="littleBlock_LoanView margin_auto_910 div_Width_95Percent_575" style="">
+                    <table class="form_theme">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td class="tbl_bor_top_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_top_middle"></td>
+                                                <td class="tbl_bor_top_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_middle_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_middle_middle">
+
+                                                    <!-- start Content -->
+
+                                                    <div class="studentLoanDiv LoginLink">
+                                                        <h3>View Application</h3>
+                                                        <br>
+                                                        Check your application status.<br>
+                                                        &nbsp;<br>
+                                                        <a class="loanButton" href="/Login.aspx">Check Now</a>
+
+                                                    </div>
+                                                    <div style="clear: both;"></div>
+
+                                                    <!-- End Content -->
+
+                                                </td>
+                                                <td class="tbl_bor_middle_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_bottom_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_bottom_middle"></td>
+                                                <td class="tbl_bor_bottom_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="clearDiv910"></div>
+
+                <!-- Resource Download -->
+
+                <div class="littleBlock_Resource margin_auto_910 div_Width_95Percent_575" style="">
+
+                    <table class="form_theme">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td class="tbl_bor_top_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_top_middle"></td>
+                                                <td class="tbl_bor_top_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_middle_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_middle_middle">
+
+                                                    <!-- start Content -->
+
+                                                    <div class="studentLoanDiv LoginLink">
+                                                        <h3>View Statement</h3>
+                                                        <br>
+                                                        Check your statement.<br>
+                                                        &nbsp;<br>
+                                                        <a class="loanButton" href="/LoginByPIN.aspx">View Now</a>
+
+                                                    </div>
+                                                    <div style="clear: both;"></div>
+
+                                                    <!-- End Content -->
+
+                                                </td>
+                                                <td class="tbl_bor_middle_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_middle_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+
+                                                <td class="tbl_bor_middle_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tbl_bor_bottom_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                                <td class="tbl_bor_bottom_middle"></td>
+                                                <td class="tbl_bor_bottom_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                    <div style="clear: both;"></div>
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+            <div style="clear: both;"></div>
+          
+
+
+            <!-- END 3 Block  -->
+
+            <!-- Start News and Notice  -->
+
+          
+            <div style="clear: both;"></div>
+
+            <!-- End News and Notice  -->
+
+            <!-- Outer Round Frame -->
+
+            <!-- End Outer Round Frame -->
+
+            <div style="clear: both;"></div>
+        </div>
+        <div style="clear: both;"></div>
+
+    </div>
+
+
+                        </div>
+                        
+                    </form>
+
+                    <!-- End Content From Page  -->
+
+                </td>
+
+                <td class="tbl_r">&nbsp;</td>
+            </tr>
+            <tr>
+                <td class="tbl_bl"></td>
+                <td class="tbl_b"></td>
+                <td class="tbl_br"></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- End Content Round Frame -->
+
+    <!-- Footer -->
+
+    <!--table width="990" class="siteWidth" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-top: 20px; margin-bottom: 5px;">
+        <tr>
+            <td class="footer_left">&nbsp;</td>
+            <td class="footer_bg">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td>Copyright &copy; 2013 Student Loan Administration Fund. All rights reserved.</td>
+                        <td>
+                            <div class="powered_by" onclick="location.href=">
+                                Powered By:
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="footer_right">&nbsp;</td>
+        </tr>
+    </table-->
+
+
+    <!-- End Footer -->
+
+    <div class="siteWidth footerDIV" style="margin: auto; display: block;">
+
+        <table class="form_theme">
+            <tr>
+                <td>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td class="tbl_bor_top_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                            <td class="tbl_bor_top_middle"></td>
+                            <td class="tbl_bor_top_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+
+                        </tr>
+                        <tr>
+                            <td class="tbl_bor_middle_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                            <td class="tbl_bor_middle_middle">
+
+                                <!-- start Content -->
+                                <div class="copyRight" style="">
+                                    
+                                    Copyright © Ministry of Labour and Social Security.
+                                </div>
+
+                                <div class="clearDiv910"></div>
+
+                                <div class="poweredBy" style="">
+                                    <div onclick="location.href='http://www.dnet.co.sz'" class="powered_by">
+                                        <div style="float: left;">
+                                            Powered By:
+                                        <div style="float: right;" class="poweredByInner" style="">
+                                            <img src="/images/logo_datanet.png" border="0" />
+                                        </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="clear: both;"></div>
+
+                                    <!-- End Content -->
+                            </td>
+                            <td class="tbl_bor_middle_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                        </tr>
+                        <tr>
+                            <td class="tbl_bor_bottom_left" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                            <td class="tbl_bor_bottom_middle"></td>
+                            <td class="tbl_bor_bottom_right" style="padding: 0 0 0 0; margin: 0 0 0 0;"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- ToolTip Test -->
+
+    
+</body>
+
+</html>

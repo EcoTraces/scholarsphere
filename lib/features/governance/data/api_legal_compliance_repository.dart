@@ -247,15 +247,16 @@ class ApiLegalComplianceRepository implements LegalComplianceRepository {
     _ => throw LiveBackendException('Unknown legal request type: $value'),
   };
 
-  static LegalRequestStatus _requestStatusFromWire(String value) => switch (value) {
-    'submitted' => LegalRequestStatus.submitted,
-    'validated' => LegalRequestStatus.validated,
-    'inReview' => LegalRequestStatus.inReview,
-    'actioned' => LegalRequestStatus.actioned,
-    'rejected' => LegalRequestStatus.rejected,
-    'closed' => LegalRequestStatus.closed,
-    _ => throw LiveBackendException('Unknown legal request status: $value'),
-  };
+  static LegalRequestStatus _requestStatusFromWire(String value) =>
+      switch (value) {
+        'submitted' => LegalRequestStatus.submitted,
+        'validated' => LegalRequestStatus.validated,
+        'inReview' => LegalRequestStatus.inReview,
+        'actioned' => LegalRequestStatus.actioned,
+        'rejected' => LegalRequestStatus.rejected,
+        'closed' => LegalRequestStatus.closed,
+        _ => throw LiveBackendException('Unknown legal request status: $value'),
+      };
 
   Future<dynamic> _get(String path) async {
     final headers = await _headers();

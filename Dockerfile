@@ -5,7 +5,7 @@ RUN flutter pub get
 COPY . .
 RUN flutter analyze && flutter test && flutter build web --release
 
-FROM nginx:1.27-alpine
+FROM nginx:1.30-alpine
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/build/web /usr/share/nginx/html
 EXPOSE 8080

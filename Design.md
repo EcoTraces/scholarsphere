@@ -189,6 +189,18 @@ Architecture.md §3 / PRD.md §2. Representative screens per area:
 | Support Officer | `SupportAgentScreen`, `HelpCentreScreen` |
 | Security Administrator | `SecurityAdministratorDashboardScreen`, `SecurityPrivacyCenterScreen` |
 | Administrator / Super Administrator | `AdministrationDashboardScreen`, `OperationsConsoleScreen`, `AuditLogScreen`, `DataGovernanceScreen`, `SourceRegistryScreen`, `RecommendationControlsScreen` |
+| Premium (2026-09-01) | `PremiumLandingScreen` (pricing/checkout/status) — implemented. `PremiumFeatureGate` (reusable locked-feature card, real components from SS5, not a generic AI-dashboard look). **Not yet built**: CV/SOP/study-plan/research-proposal/fellowship builder screens, ATS analyzer, requirement matcher, checklist, billing history, admin premium dashboard — all have real, tested backend routes already (PRD.md §3.1a) waiting on their presentation layer. |
+
+Premium-specific design notes, following the same principles as SS1
+rather than a competing style: pricing/feature lists always render the
+plan's *real* price and feature list from the backend (never a hardcoded
+"$100" in a widget); a locked feature shows `PremiumFeatureGate`'s
+lock icon + "Premium Feature" label + "Unlock Premium" button (status is
+never color-only, per SS4); an ATS score is always shown with its
+disclaimer text visible, never just a bare number implying a guarantee; a
+checkout failure/not-configured state is shown as specific, actionable
+text (matching SS1's existing error-state convention), never a generic
+"something went wrong."
 
 ---
 

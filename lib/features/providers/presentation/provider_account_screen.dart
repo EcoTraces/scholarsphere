@@ -284,7 +284,8 @@ class _RegistrationFormState extends State<_RegistrationForm> {
         ),
         SubmitBlockedHint(
           visible: !_formValid && !_uploading,
-          message: 'Complete the required fields and upload a supporting '
+          message:
+              'Complete the required fields and upload a supporting '
               'document to submit.',
         ),
       ],
@@ -323,9 +324,7 @@ class _RegistrationFormState extends State<_RegistrationForm> {
     final values = _fields.map(
       (key, value) => MapEntry(
         key,
-        key == 'phone'
-            ? _normalizePhone(value.text.trim())
-            : value.text.trim(),
+        key == 'phone' ? _normalizePhone(value.text.trim()) : value.text.trim(),
       ),
     );
     values['document'] = _documentPath.text.trim();
@@ -354,9 +353,7 @@ class _RegistrationFormState extends State<_RegistrationForm> {
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
                 child: Icon(
-                  uploaded
-                      ? Icons.check_circle
-                      : Icons.upload_file_outlined,
+                  uploaded ? Icons.check_circle : Icons.upload_file_outlined,
                   key: ValueKey(uploaded),
                   color: uploaded ? ValidationPalette.success : null,
                 ),

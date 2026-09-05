@@ -47,15 +47,18 @@ class ApiDataLifecycleRepository implements DataLifecycleRepository {
   @override
   Future<void> saveRule(UserAccount actor, RetentionRule rule) async {
     try {
-      await _put('/data-lifecycle/rules/${_entityTypeToWire(rule.entityType)}', {
-        'active_duration_seconds': rule.activeDuration.inSeconds,
-        'archive_duration_seconds': rule.archiveDuration.inSeconds,
-        'delete_from_backups_after_seconds':
-            rule.deleteFromBackupsAfter.inSeconds,
-        'archive_expired_records': rule.archiveExpiredRecords,
-        'retain_rejected_for_fraud_prevention':
-            rule.retainRejectedForFraudPrevention,
-      });
+      await _put(
+        '/data-lifecycle/rules/${_entityTypeToWire(rule.entityType)}',
+        {
+          'active_duration_seconds': rule.activeDuration.inSeconds,
+          'archive_duration_seconds': rule.archiveDuration.inSeconds,
+          'delete_from_backups_after_seconds':
+              rule.deleteFromBackupsAfter.inSeconds,
+          'archive_expired_records': rule.archiveExpiredRecords,
+          'retain_rejected_for_fraud_prevention':
+              rule.retainRejectedForFraudPrevention,
+        },
+      );
     } on LiveBackendException catch (error) {
       if (error.statusCode == 422) {
         throw StateError('Retention policy is invalid.');
@@ -185,9 +188,7 @@ class ApiDataLifecycleRepository implements DataLifecycleRepository {
   RetentionRule _toRule(Map<String, dynamic> json) => RetentionRule(
     entityType: _entityTypeFromWire(json['entity_type'] as String),
     activeDuration: Duration(seconds: json['active_duration_seconds'] as int),
-    archiveDuration: Duration(
-      seconds: json['archive_duration_seconds'] as int,
-    ),
+    archiveDuration: Duration(seconds: json['archive_duration_seconds'] as int),
     deleteFromBackupsAfter: Duration(
       seconds: json['delete_from_backups_after_seconds'] as int,
     ),

@@ -13,10 +13,13 @@ from app.models.provider import Provider
 from app.schemas.applicant_document import (
     ApplicantDocumentCreate,
     ApplicantDocumentRead,
+    DocumentDownloadUrlRead,
     GrantProviderAccessRequest,
+    SharedApplicantDocumentRead,
     document_owner_uid,
     type_from_wire,
 )
+import app.services.document_storage as document_storage
 from app.services.parsing import utc_now
 
 router = APIRouter(prefix="/applicant-documents", tags=["applicant documents"])
@@ -37,6 +40,81 @@ async def list_my_documents(
         )
     ).all()
     return [ApplicantDocumentRead.model_validate(row) for row in rows]
+
+
+@router.get("/shared-with-me", response_model=list[SharedApplicantDocumentRead])
+async def list_documents_shared_with_me(
+    user: Annotated[AuthenticatedUser, any_authenticated],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[SharedApplicantDocumentRead]:
+    """Documents an applicant has granted this caller's provider access to.
+
+    Scoped to the `opportunityProvider` role, matching storage.rules'
+    owner-only stance for applicant-documents (no staff bypass here,
+    unlike provider-documents). A user who owns no Provider record simply
+    sees an empty list rather than an error.
+    """
+    if user.role != "opportunityProvider":
+        return []
+    provider_ids = (
+        await session.scalars(
+            select(Provider.id).where(Provider.user_id == user.uid)
+        )
+    ).all()
+    if not provider_ids:
+        return []
+    owned_ids = {str(provider_id) for provider_id in provider_ids}
+    rows = (
+        await session.scalars(
+            select(ApplicantDocument).order_by(ApplicantDocument.uploaded_at.desc())
+        )
+    ).all()
+    shared = [
+        row
+        for row in rows
+        if owned_ids.intersection(row.shared_with_provider_ids)
+    ]
+    return [SharedApplicantDocumentRead.model_validate(row) for row in shared]
+
+
+@router.get("/{document_id}/download-url", response_model=DocumentDownloadUrlRead)
+async def get_document_download_url(
+    document_id: UUID,
+    user: Annotated[AuthenticatedUser, any_authenticated],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> DocumentDownloadUrlRead:
+    """Mint a short-lived signed Storage URL for the owner or a granted provider.
+
+    Everyone else gets 404, matching this router's existing
+    owner-scoped-access convention (remove_document, grant_provider_access)
+    of not distinguishing "not found" from "not yours" in the response.
+    """
+    document = await session.get(ApplicantDocument, document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    authorized = document.user_id == user.uid
+    if not authorized and user.role == "opportunityProvider":
+        provider_ids = (
+            await session.scalars(
+                select(Provider.id).where(Provider.user_id == user.uid)
+            )
+        ).all()
+        owned_ids = {str(provider_id) for provider_id in provider_ids}
+        authorized = bool(owned_ids.intersection(document.shared_with_provider_ids))
+    if not authorized:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    try:
+        url = document_storage.generate_download_url(document.storage_path)
+    except document_storage.DocumentDownloadUrlError as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Document download is temporarily unavailable.",
+        ) from error
+    return DocumentDownloadUrlRead(
+        url=url, expires_in_minutes=document_storage.DEFAULT_EXPIRES_IN_MINUTES
+    )
 
 
 @router.post("", response_model=ApplicantDocumentRead)
@@ -106,9 +184,11 @@ async def grant_provider_access(
     withdrawn. This closes the gap noted in a previous revision of this
     docstring ("Privacy has no real consent backend to gate against") -
     that backend now exists (app/models/privacy.py), so this endpoint no
-    longer has an excuse to skip the check. Differential Storage access for
-    providers (as opposed to this Postgres-level grant) remains a separate,
-    not-yet-built follow-up - see storage.rules.
+    longer has an excuse to skip the check. This grant only records
+    authorization in Postgres; storage.rules stays owner-only. The granted
+    provider actually reads the file through
+    GET /applicant-documents/{id}/download-url instead, which checks this
+    same shared_with_provider_ids list before minting a signed URL.
     """
     async with session.begin():
         document = await session.get(ApplicantDocument, document_id)

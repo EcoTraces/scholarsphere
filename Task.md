@@ -1,6 +1,8 @@
 # ScholarSphere — Active Development Task Board
 
-**Last verified against the codebase:** 2026-08-23. Cross-referenced with
+**Last verified against the codebase:** 2026-09-03 (backend only — see the
+2026-09-03 Completed Tasks entry; Flutter not re-verified this session, no
+SDK available). Cross-referenced with
 `Road_map.md` (phase view) and `PRD.md` (feature status). Move a task to
 **Completed** only after it's actually implemented *and* verified (tests
 run, not just read).
@@ -58,11 +60,44 @@ credible official candidate identified but not yet implemented, 2 have no
 reliable source found, and 1 (Cyprus) is blocked by active anti-bot
 protection that was deliberately not bypassed.
 
-Test baseline as of this session's own verified run (2026-08-23): **511/511
-backend tests passing** (`pytest -q`, up from 448 at the start of the
-scraper-tier work — 63 new tests total). Flutter suite not re-run this
-session (no Flutter files changed). Re-run both suites before
-trusting these numbers if more than a few commits have landed since.
+Test baseline as of this session's own verified run (2026-09-01): **737/737
+backend tests passing** (`pytest -q`; +39 for the Premium
+Application-Preparation Platform build-out described below, up from
+687/687 on 2026-08-30; 586 as of the browser-rendering
+fallback on 2026-08-29, +84 for the Hybrid Scholarship Discovery
+and Verification Engine build-out described below, +6 for the 40-country
+audit's United States/Eswatini work, +1 for the World Bank JJ/WBGSP
+source, +2 for the Rotary Peace Fellowships source, +5 for the Erasmus
+Mundus Joint Masters Catalogue source, +3 for the UAEU Scholarships
+source — up from 511 on
+2026-08-23 — 7 for
+differential Storage access, 6 for link-health monitoring, 3 for the
+Netherlands source, 4 for the discovery-summary endpoint, 5 for the Spain/
+Australia sources, 3 for the Japan source, 8 for the Belgium/France/
+Austria/Morocco sources, 2 for the Portugal source, 2 for the Colombia
+source, 2 for the Chile source, 2 for the Peru source, 2 for the South
+Korea source, 2 for the Saudi Arabia source, 2 for the Qatar source, 2
+for the Switzerland source, 2 for the Poland source, 2 for the Czech
+Republic source, 2 for the Serbia source, 2 for the Romania source, 2 for
+the Hungary source, 2 for the Mexico source, 11 for the new browser-
+rendering fallback). Flutter suite not re-run this session (no Flutter
+SDK available in this environment); one small Flutter data-layer
+addition landed (see Completed Tasks' master-prompt
+entry), plus (2026-09-01) a new `lib/features/premium/` slice
+(domain/data/presentation + `app.dart` wiring) for the Premium
+landing/pricing/checkout screen and feature-gating widget — none of it
+compiled, `flutter analyze`'d, or `flutter test`'d in this session for
+the same reason. Re-run both suites before trusting these numbers
+if more than a few commits have landed since.
+
+**(2026-09-03 update)** An independent production-audit pass over the
+Premium platform found and fixed 8 real bugs (see Completed Tasks' matching
+dated entry) and added 12 new backend tests. Backend suite re-verified
+green after every fix: **724 passed, 25 skipped, 0 failed** (`pytest -q`;
+the 25 skips are the pre-existing live-provider-only tests, correctly
+skipped with no credentials configured). Flutter again not re-verified
+this session (no SDK available) despite two of the eight fixes touching
+`lib/features/premium/`.
 
 ---
 
@@ -90,21 +125,13 @@ None outstanding. Both items below were resolved and verified this session
       fix. Blocked on credentials.
 - [ ] Add Firebase Admin Storage existence check for provider-document
       paths before accepting them into a `Provider` record (currently
-      validates path *shape* only). Requires adding `firebase-admin`'s
-      Storage SDK usage to the backend (no `storageBucket` is configured on
-      the Firebase app today — see `app/core/auth.py::initialize_firebase`).
-- [ ] Add differential Storage access for provider-granted applicant
-      documents. **Reviewed again this session, no change made:** the
-      Postgres-level grant is consent-gated (`applicant_documents.py`), but
-      `storage.rules` still scopes `applicant-documents/` to owner-only, so
-      a provider granted access in Postgres still cannot fetch the actual
-      file. This fails *safe*, not open — a granted provider is wrongly
-      denied, not an ungranted one wrongly allowed — so it is a
-      completeness gap, not a security hole, and was left as a scoped
-      follow-up rather than an unplanned mid-session feature build (it
-      needs a signed-URL-issuing download route plus a
-      provider-facing "list documents shared with me" endpoint). Files:
-      `storage.rules`, a new provider-facing read route.
+      validates path *shape* only). **Partially unblocked (2026-08-29):**
+      `Settings.firebase_storage_bucket` now exists and
+      `initialize_firebase()` passes `storageBucket` (added for the
+      differential-Storage-access feature below), so the Admin SDK's
+      Storage client can now actually be constructed — the existence
+      check itself (calling it from `providers.py`'s submission route)
+      is still not implemented.
 - [ ] **DECISION REQUIRED:** decide whether `eligibility_rules`,
       `integrations`, `data_transfer`, `platforms` get real backends or get
       deleted — currently dead code (domain model + demo repository, no
@@ -336,12 +363,53 @@ None outstanding. Both items below were resolved and verified this session
       alone. See `docs/PRODUCTION_READINESS.md` for the full checklist.
 - [!] Android/iOS/macOS release builds sign with the debug key, not a real
       release keystore. Blocked on the team's signing credentials.
-- [ ] `firebase-admin`'s transitive `uuid` dependency carries a moderate
-      CVE (GHSA-w5hq-g745-h8pq) with no patched release yet — tracked, not
-      actionable today; re-check `npm audit` monthly.
+- [x] **(2026-08-29)** `firebase-admin`'s transitive `uuid` dependency's
+      moderate CVE (GHSA-w5hq-g745-h8pq, fixed at 11.1.1/12.0.1/13.0.1
+      depending on major line) is resolved — `functions/node_modules/uuid`
+      is now `14.0.1`, well past every fixed threshold, and
+      `npm audit --json` in `functions/` reports zero vulnerabilities at
+      any severity (checked directly, not just this line's stale claim).
+      No code change was needed; this note was simply never updated after
+      a `firebase-admin` bump pulled in a patched `uuid` transitively. See
+      `Changelog.md`.
 - [ ] `storage.rules`'s new provider-document rules have been reasoned
       about but never deployed and exercised against a real Firebase
       Storage bucket in any environment this project has had access to.
+- [!] **(2026-08-29)** GitHub reported 11 Dependabot alerts (3 high, 4
+      moderate, 4 low) on the default branch when this session's previous
+      push landed. **Could not be read directly** — this environment has
+      no `gh` CLI, the GitHub MCP server has no Dependabot-alerts tool, and
+      the Security/Dependabot tab needs authenticated repo access
+      `WebFetch` can't reach; ask a maintainer to export the alert list
+      (Security → Dependabot alerts) if exact CVE IDs are needed. Instead,
+      every dependency manifest in the repo was audited directly against
+      public advisory databases: `pip-audit` (backend, `requirements.txt`)
+      **0 findings**; `npm audit --json` including dev deps (`functions/`)
+      **0 findings** (also disproves this file's own now-corrected `uuid`
+      CVE note above); an OSV.dev batch query (ecosystem `Pub`, confirmed
+      correct against OSV's own ecosystem list) over all 73 pub.dev-hosted
+      packages in `pubspec.lock` **0 findings**; the Android Gradle files
+      declare no explicit dependency versions (delegated entirely to the
+      Flutter Gradle plugin), so there is no separate Gradle dependency
+      graph to audit; no `Podfile.lock` (iOS) or `Gemfile` exists. That
+      leaves the three Docker base images as the only remaining ecosystem
+      Dependabot tracks here — and the likely real source, since 11
+      OS-package-level findings is a typical count for a stale Alpine/
+      Debian base, not application code. Couldn't be scanned directly (no
+      Docker daemon available in this environment, and downloading a
+      third-party scanner like Trivy from GitHub releases is blocked by
+      this session's repo-scoping proxy), but registry inspection
+      (`registry-1.docker.io` — not proxy-restricted) confirmed
+      `nginx:1.27-alpine` (root `Dockerfile`) was 3 stable-branch releases
+      behind current (`1.30-alpine` now resolves to the same digest as
+      nginx's own `stable-alpine` tag) — **bumped to `nginx:1.30-alpine`**.
+      `python:3.12-slim` (`scholarsphere_backend/Dockerfile`) and
+      `ghcr.io/cirruslabs/flutter:stable` (build stage) are both already
+      floating "latest patch" tags that self-update on the next `docker
+      build` without a text change, so left as-is. **Not verified against
+      the actual alert list** — re-check the Security tab after this
+      lands and after the next scheduled rebuild to confirm the count
+      actually drops; do not mark this resolved from reasoning alone.
 
 ## Completed Tasks
 
@@ -720,3 +788,1635 @@ for the full dated history.
       - **Not committed** — left for explicit review/approval per this
         increment's instructions, unlike the previous increment where
         committing and pushing was explicitly requested.
+- [x] **(2026-08-29)** Differential Storage access for provider-granted
+      applicant documents — the Backend Tasks gap immediately above this
+      line is now closed. Two new routes:
+      `GET /applicant-documents/{id}/download-url` (owner or a granted
+      provider gets a 15-minute v4 signed Storage URL via the Admin SDK;
+      everyone else 404; signing failure honestly 503s, never a fabricated
+      URL) and `GET /applicant-documents/shared-with-me` (provider-facing
+      listing, `storage_path` deliberately omitted). New
+      `app/services/document_storage.py` wraps the Admin SDK signing call
+      behind a monkeypatchable function, matching
+      `app/services/firebase_users.py`'s pattern. Added
+      `Settings.firebase_storage_bucket` (previously unset, so signing was
+      never actually possible before — `initialize_firebase()` now passes
+      `storageBucket`). `storage.rules` and the `grant_provider_access`
+      docstring updated to describe the new arrangement instead of the old
+      "not-yet-built follow-up" note; the rule itself is unchanged
+      (deliberately still owner-only — the backend stays the one auditable
+      choke point for third-party access). See `Changelog.md` for full
+      detail. Verified: 7 new tests
+      (`tests/test_applicant_documents_route.py`); full backend suite
+      **518/518** (`pytest -q`). Flutter not touched — the provider-side
+      "download a shared document" UI is a separate, not-yet-built
+      follow-up.
+- [x] **(2026-08-29)** Global scholarship-discovery master-prompt initiative
+      — audited against the existing discovery/verification pipeline
+      first (per the prompt's own Phase 1/2 instructions), found it
+      already implements the large majority of the spec (official vs.
+      application-URL separation, hard verification gate, deduplication,
+      confidence scoring, change history, scheduled Celery-beat loop with
+      bounded retries, a 22-country research inventory). Picked three
+      concrete, testable gaps rather than attempting all 60 sections or
+      dozens of countries at once (would require skipping this project's
+      own live-verification rigor):
+      1. **Link-health monitoring** (spec gap — deadline expiry existed,
+         periodic application-link reachability did not). New
+         `ExternalOpportunity.link_checked_at` column (migration
+         `20260914_32`), `app/services/link_health.py`, and
+         `app.tasks.opportunity_sync.check_link_health` (daily, bounded to
+         100 published+verified opportunities per run, oldest-checked
+         first). An unreachable link demotes `verified` →
+         `reverification_required` and logs a `VerificationHistory` entry
+         and flips `VerificationReview.application_link_checked = False`
+         — mirrors `detect_expired_opportunities`'s existing pattern
+         exactly, never deletes the opportunity or its link. 6 new tests.
+      2. **Netherlands** (Nuffic NL Scholarship) — the top
+         `READY_FOR_AUTOMATION` candidate in
+         `docs/COUNTRY_PROVIDER_REGISTRY.md`. Live-verified 2026-08-29
+         through this backend's actual httpx path (not just `curl`, per
+         this project's own India-ICCR/South-Africa-NRF lesson about TLS
+         chain differences between the two): 200, real HTML,
+         `<h1 class="page-header__title">NL Scholarship</h1>`.
+         `hollandscholarship.nl` (the program's old public name/domain)
+         301-redirects to `studyinnl.org/finances/nl-scholarship`,
+         confirmed current by the page's own `<title>`. Two honesty
+         choices forced by the page's own text, not a formatting quirk:
+         `funding_type = "partial_funding"` (page states outright "not a
+         full-tuition scholarship", fixed €5,000) and
+         `deadline_keywords = ()` (page says closing dates are set by each
+         of ~30 participating institutions individually, same reasoning as
+         South Africa NRF). 3 new tests against a real fixture; source
+         count 22 → 23. Docs updated:
+         `docs/AUTHORITATIVE_SOURCES.md` #22, `docs/
+         COUNTRY_PROVIDER_REGISTRY.md` (moved out of "researched, not
+         implemented", coverage summary and recommended-next-candidates
+         list updated).
+      3. **Admin discovery dashboard** — spec's admin-visibility gap
+         (`GET /sources` and `GET /verification-summary` already existed;
+         no source/country/link-health aggregate view did). New
+         `GET /external-opportunities/discovery-summary`
+         (`DiscoverySummary` schema): source totals/active/recent-errors,
+         opportunity totals by publication status, duplicate-review
+         backlog, opportunities-by-country breakdown, and
+         never-link-checked/broken-links counts from the task above. 4 new
+         tests. **Flutter**: added the data-layer piece only
+         (`LiveDiscoverySummary` + `ApiVerificationRepository
+         .getDiscoverySummary()` in `api_verification_repository.dart`,
+         mirroring `getSummary()`'s exact existing pattern) — did **not**
+         wire this into `administration_dashboard_screen.dart` or
+         `verification_officer_dashboard_screen.dart` (884–1151 lines
+         each): this environment has no Flutter SDK to compile or run
+         against, and blind edits to files that size with no way to catch
+         a mistake would be irresponsible. UI wiring is a real, scoped
+         follow-up for an environment that can run `flutter analyze`/
+         `flutter test`.
+      - Verified: 13 new backend tests; full backend suite **531/531**
+        (`pytest -q`). Flutter: data-layer addition only, **not compiled
+        or run** — no Flutter SDK available in this environment; flag any
+        issue found when it's next built.
+      - **Genuinely still open** (not attempted, listed honestly rather
+        than silently dropped): the other ~10 `READY_FOR_AUTOMATION`
+        countries in the registry (Spain, Australia, Wales, Japan, ...);
+        every country outside that inventory the master prompt named
+        (most of Asia, all of South America, the Middle East); true
+        live-search-driven multilingual discovery (this system's proven
+        pattern is one hand-vetted adapter per researched source, not a
+        search-engine-query crawler — recommended to keep, not replace,
+        given real anti-bot/ToS walls already hit); a manual review queue
+        UI beyond the existing verification queue; and the admin
+        dashboard's actual UI wiring, per the Flutter caveat above.
+- [x] **(2026-08-29)** GitHub Pages deployment prep for the Flutter web
+      build. New `.github/workflows/deploy-pages.yml`: builds
+      `flutter build web --release` with
+      `--base-href "/${{ github.event.repository.name }}/"` (required for
+      a GitHub Pages project site served under `/scholarsphere/`, not
+      root — the app's routing is in-memory, a single `MaterialApp` with a
+      `NavigatorKey` and no `GoRouter`/path-based routes, per
+      `lib/app/app.dart`, so no server-side rewrite rules are needed
+      beyond that), adds `.nojekyll` and a defensive `index.html` ->
+      `404.html` fallback, then deploys via the official
+      `actions/upload-pages-artifact` + `actions/deploy-pages` actions
+      (trigger: push to `main` touching `lib/`, `web/`, `assets/`,
+      `pubspec.{yaml,lock}`, or the workflow itself; also
+      `workflow_dispatch`).
+      - **Real, unavoidable manual steps this alone does not satisfy**
+        (documented in the workflow's own comments and
+        `.env.example`, not silently assumed done):
+        1. **Enable Pages with source "GitHub Actions"** in this repo's
+           Settings → Pages. Confirmed not yet done —
+           `https://ecotraces.github.io/scholarsphere/` currently 404s.
+        2. **Deploy `scholarsphere_backend/` somewhere publicly
+           reachable over HTTPS**, then set it as the `SCHOLARSPHERE_API_BASE_URL`
+           repo Actions variable (Settings → Secrets and variables →
+           Actions → Variables) — it's a compile-time `--dart-define`
+           (see `api_opportunity_repository.dart`), baked into the JS
+           bundle, not read at runtime. Left unset, the deployed site
+           falls back to `http://localhost:8000/api/v1`, which is
+           unreachable from a visitor's browser — a real, working
+           preview needs this set. This backend is not deployed anywhere
+           by this workflow or by this repository today.
+        3. **Add the Pages origin to `ALLOWED_ORIGINS`** on whatever
+           deploys the backend (`.env.example` updated with the exact
+           format) — otherwise the deployed frontend's API calls are
+           blocked by CORS.
+        4. **Add the Pages origin to Firebase Console's Authorized
+           domains** (Authentication → Settings → Authorized domains) —
+           required for Google Sign-In's redirect/popup flow to work from
+           `ecotraces.github.io`; console-only, cannot be done from this
+           environment, same category as the existing bundle-ID/
+           Google-Sign-In items already tracked in Bugs and Issues below.
+      - Not run end-to-end (no live GitHub Actions execution or Pages
+        environment available from this session) — the workflow's YAML
+        was validated for well-formedness but the actual deploy has not
+        been observed to succeed. Verify on the first real push to `main`.
+- [x] **(2026-08-29)** Free-hosting-tier deployment prep for
+      `scholarsphere_backend/`. Researched the current (2026) free-tier
+      landscape before committing to a stack, since prior knowledge here
+      goes stale fast (Render's own free Postgres now expires after 30
+      days; Fly.io no longer has a real free tier at all; Railway removed
+      its free tier in 2023). Landed on **Render (web service) + Neon
+      (Postgres, permanent free tier) + Upstash (Redis, permanent free
+      tier)**.
+      - New `render.yaml` Blueprint (repo root) defines the
+        `scholarsphere-backend` web service (Docker, free plan,
+        `/health/ready` health check); secrets (`DATABASE_URL`,
+        `REDIS_URL`, `FIREBASE_PROJECT_ID`,
+        `FIREBASE_CREDENTIALS_JSON_BASE64`, `ALLOWED_ORIGINS`) are
+        deliberately `sync: false` so nothing credential-shaped is
+        committed — the user sets them in the Render dashboard.
+      - New `scholarsphere_backend/docker-entrypoint.sh`: optionally
+        decodes a base64 Firebase service-account JSON to a real file
+        (a portable alternative to a platform-specific secret-file
+        feature), optionally runs `alembic upgrade head` on boot (opt-in
+        via `RUN_MIGRATIONS_ON_BOOT`, since Render's free plan has no
+        separate release-phase step), then execs uvicorn bound to `$PORT`
+        (Render injects this; previously hardcoded to 8000, which would
+        have made the service unreachable on Render). `Dockerfile`
+        updated to use it as `CMD` (deliberately not `ENTRYPOINT` —
+        would've broken `docker-compose.yml`'s worker/beat services,
+        which override the container's command entirely).
+      - **Real, documented gap, not silently dropped**: Render's free
+        plan has no Background Worker or Cron Job service type (Cron
+        Jobs specifically need a paid plan, $1/month/job minimum) — so
+        the 22 scheduled Celery tasks in `opportunity_sync.py` (source
+        syncs, link-health checks, reverification, notifications) have
+        no equivalently free always-on host today. The API itself works
+        fully without them; only the *scheduled* background jobs don't
+        run for free. Not worked around by restructuring the scheduling
+        architecture (out of scope, and every existing Celery-based test
+        still needs a real worker to exercise in production regardless).
+      - `scholarsphere_backend/README.md` gained a full "Deploying to a
+        free hosting tier" walkthrough (Neon/Upstash/Firebase/Render
+        setup steps, and why each platform was chosen over the
+        alternatives checked).
+      - **Not built or deployed** — no Docker daemon available in this
+        environment (client only, confirmed again this session) and no
+        Neon/Upstash/Render accounts exist for this project from here.
+        `docker-entrypoint.sh` passed `sh -n` syntax validation and
+        `render.yaml` passed YAML well-formedness validation; neither was
+        exercised against a real build or a real Render deploy. Verify on
+        the first real deploy attempt.
+- [x] **(2026-08-29)** Two more country sources from the master-prompt
+      queue: **Spain** (AECID) and **Australia** (DFAT Awards) — the top
+      two `READY_FOR_AUTOMATION` candidates in
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`. Same live-verification
+      discipline as every prior source in this initiative (fetched via
+      both `curl` and this backend's actual httpx path, robots.txt
+      checked, real HTML captured as test fixtures — never written from
+      assumption).
+      - **Spain (AECID)**: live-verified, no issues. Deliberately targets
+        AECID's specific international-applicant sub-page (`Becas para
+        ciudadanos de países de América Latina, África y Asia`), not its
+        generic scholarships hub (which mostly serves Spanish nationals —
+        irrelevant to this platform). Same `deadline_keywords = ()`
+        pattern as South Africa NRF/Netherlands: the page lists several
+        named sub-programs, each with its own distinct closing date.
+        `funding_type = "partial_funding"` — no "fully funded" language
+        found on the page.
+      - **Australia (DFAT Awards)**: **partially live-verified**. The
+        overview site (`australiaawards.com.au`) is fully reachable and
+        implemented; the authoritative deadline page (`dfat.gov.au`) is
+        **not** — every attempt (multiple user agents, `curl` and httpx)
+        hung at the TLS-handshake stage until timeout, the same
+        "connects, then nothing responds" pattern already documented for
+        Sierra Leone's MTHE, not a WAF challenge (no challenge content
+        was ever returned). `deadline_path` deliberately left unset
+        rather than pointed at an unverified host. `funding_type = None`
+        — no funding-coverage language found on the reachable pages;
+        Australia Awards are widely known to be comprehensively funded
+        in practice, but that's outside knowledge the adapter's own
+        source text doesn't support asserting, so it was left honestly
+        unclassified rather than guessed.
+      - Source count 23 → 25. Docs updated: `docs/AUTHORITATIVE_SOURCES.md`
+        #23-#24, `docs/COUNTRY_PROVIDER_REGISTRY.md` (both moved out of
+        "researched, not implemented"; coverage summary, totals, and
+        recommended-next-candidates list all updated — Wales, Japan, and
+        Canada are now the top queued candidates).
+      - Verified: 5 new tests (`tests/test_national_scholarship_programs.py`)
+        against real fixture HTML; full backend suite **536/536**
+        (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 12
+        countries/regions now have at least one real, integrated source
+        (up from 10) — still a small fraction of the ~40 the original
+        prompt named. South America (9 countries), most of Asia, and
+        most of the remaining European countries in that list remain
+        completely unresearched. See the chat response to "have you
+        implemented all the countries i provided" earlier this session
+        for the full country-by-country accounting; that gap has not
+        materially closed, only the top 2 queued candidates were picked
+        up.
+- [x] **(2026-08-29)** Continued the master-prompt country queue with
+      Wales and Japan — but only one of the two turned into a new source.
+      - **Wales — real finding, not implemented.** Live-testing the
+        specific page the registry's prior `READY_FOR_AUTOMATION`
+        classification was based on
+        (`/global-wales-postgraduate-scholarship`) found it now 404s
+        (real "Page not found" content). The site's current replacement
+        page states the program is no longer centrally administered — it
+        now points to each of eight Welsh universities' own scholarship
+        pages individually, plus to Chevening and Commonwealth
+        Scholarships (both already separate sources here). Corroborated
+        by an independent third-party source noting the program's 2024
+        round has closed. **The prior classification was wrong — it was
+        never live-tested before being written down.** Corrected in
+        `docs/COUNTRY_PROVIDER_REGISTRY.md` to `NOT_SUITABLE` rather than
+        silently left as a stale `READY_FOR_AUTOMATION` entry, same
+        discipline as the India ICCR dual-`<h1>` bug and the corrected
+        Firebase bundle-ID note earlier in this project's history. No
+        source built — building one against a defunct/decentralized
+        program would have meant fabricating relevance, not real
+        integration.
+      - **Japan (MEXT Scholarship) — implemented, live-verified.** Targets
+        the MEXT-specific sub-page of the official "Study in Japan"
+        government portal, not its thin navigation hub. `deadline_keywords
+        = ()` (embassy/university-mediated applications, no single global
+        deadline — same honest pattern as Ireland/Sweden). Unlike
+        Australia Awards, `funding_type = "fully_funded"` **is** kept
+        here — actually confirmed by the page's own text ("tuition
+        exempted", a monthly stipend, "round-trip travel expenses
+        (airfare) provided"), not guessed. `title_selectors = ()` since
+        every page on this site section shares the same generic
+        `<h1>Scholarships</h1>`; the real title comes from the `<title>`
+        tag split on the site's own fullwidth vertical bar (`｜`, U+FF5C).
+      - Source count 25 → 26. Docs updated:
+        `docs/AUTHORITATIVE_SOURCES.md` #25, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (Japan moved to implemented; Wales
+        corrected in place, not moved; coverage summary, totals, and
+        recommended-next-candidates list all updated — every previously
+        `READY_FOR_AUTOMATION` candidate is now either implemented or
+        corrected to `NOT_SUITABLE`; the remaining 10 researched
+        countries all genuinely need a second research pass, not just a
+        fetch-and-wire pass).
+      - Verified: 3 new tests (`tests/test_national_scholarship_programs.py`)
+        against real fixture HTML; full backend suite **539/539**
+        (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 13
+        countries/regions now have at least one real source (up from
+        12). South America (9 countries), most of Asia, and most of the
+        remaining named European countries remain completely
+        unresearched.
+- [x] **(2026-08-29)** A dedicated research pass — not a fetch-and-wire
+      pass — on the remaining queue: Belgium (ARES), Canada (EduCanada),
+      France (Campus France), Austria (OeAD), Morocco (AMCI/"Maroc
+      Alumni"), and Denmark's long-standing "needs a dedicated follow-up
+      search" item. 4 of 6 turned into real, live-verified sources; 2
+      (Canada, Denmark) were confirmed genuinely unsuitable rather than
+      left as stale guesses.
+      - **Belgium (ARES)**: the general `/bourses-de-mobilite` hub is a
+        category page linking to ~8 distinct instruments, not a single
+        flagship — this adapter targets the specific "Bourses de
+        formations internationales" sub-page instead, which has a real
+        currently-open call and a real deadline ("18.09.2026"). That
+        deadline is deliberately **not** extracted — it's in `DD.MM.YYYY`
+        numeric form, which `app/services/parsing.py`'s shared date
+        regex doesn't match (by design, to avoid guessing at date
+        formats); extending that shared regex is a cross-cutting change
+        out of scope for one adapter.
+      - **France (Campus France Eiffel)**: a genuinely clean single
+        flagship page with a real, parseable deadline ("January 8,
+        2026") — `deadline_keywords` actually extracts it this time.
+        Applications are institution-mediated, the same standard shape
+        as DAAD/Japan MEXT (already implemented), confirmed distinct
+        from Canada's SICS program (see below) by directly reading both
+        pages rather than assuming they're the same shape.
+      - **Austria (OeAD Ernst Mach Grant)**: same multi-program-hub
+        shape as South Africa NRF/Spain AECID — the page covers 6 named
+        sub-grants (Ukraine, worldwide, Fachhochschule, Follow-Up,
+        ASEA-UNINET, ASEA-UNINET Short-term), each with its own deadline
+        and, for one, its own distinct monthly amount ("715 euros/month"
+        for Ukraine only) — `deadline_keywords = ()` deliberately.
+      - **Morocco (AMCI)**: resolved the prior uncertainty about "Maroc
+        Alumni"'s canonical URL — the real official page is
+        `amci.ma/cooperation-academique`. `robots.txt` itself 403s but
+        the content page doesn't (same "monitored, not blocked" case as
+        the Swedish Institute). Embassy-mediated, `deadline_keywords =
+        ()`, same pattern as Japan MEXT.
+      - **Canada — confirmed NOT_SUITABLE, not implemented.** Live-fetched
+        EduCanada's actual scholarship pages: the international-applicant
+        section is a directory of several distinct named programs, and
+        its broadest one (Study in Canada Scholarships) states outright
+        "Only Canadian post-secondary institutions are eligible to apply
+        on this call... Direct applications from individuals are not
+        accepted." Unlike France's Eiffel program, there is no path for
+        an individual applicant to initiate anything — institutions
+        select students proactively. Corrected in
+        `docs/COUNTRY_PROVIDER_REGISTRY.md` from its prior vaguer
+        "institution-mediated, needs deeper research" note to a specific,
+        evidence-backed `NOT_SUITABLE`.
+      - **Denmark — confirmed NOT_SUITABLE, not implemented.** The
+        dedicated follow-up search this entry itself called for was
+        done: confirmed directly that Danish government scholarships are
+        "administered by the Danish universities, who each select the
+        students" — genuinely decentralized, no single national awarding
+        body. Corrected from `NO_RELIABLE_SOURCE_FOUND` (implying more
+        searching might help) to `NOT_SUITABLE` (the decentralization is
+        now a confirmed fact, not a research gap).
+      - No monetary/"fully funded" language was found on any of the 4
+        new sources' actual pages, so `funding_type = None` on all four
+        — not guessed from general reputation (Eiffel and Ernst Mach are
+        both well-known generous programs in reality, but that's outside
+        knowledge these adapters' own source text doesn't support
+        asserting).
+      - Source count 26 → 30. Docs updated:
+        `docs/AUTHORITATIVE_SOURCES.md` #26-#29 (full detail per source),
+        `docs/COUNTRY_PROVIDER_REGISTRY.md` (all 6 countries' entries
+        corrected/updated with what was actually found; coverage
+        summary, totals, and recommended-next-candidates list all
+        updated — only Portugal remains as a genuine queued candidate).
+      - Verified: 8 new tests (`tests/test_national_scholarship_programs.py`)
+        against real fixture HTML — all passed on the first run; full
+        backend suite **547/547** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 17
+        countries/regions now have at least one real source (up from
+        13), across 3 confirmed-unsuitable corrections (Canada, Denmark,
+        Wales) that replaced stale guesses with real findings. South
+        America (9 countries), most of Asia, and most of the remaining
+        named European countries are still completely unresearched.
+- [x] **(2026-08-29)** Portugal (Camões Cooperation Scholarships) —
+      the last country this registry had queued from the original
+      research. Neither the "Bolsas do Camões, I.P." hub nor its
+      "Bolsas da Cooperação" child (both fetched and confirmed to be
+      thin, content-free navigation pages) were used; this adapter
+      targets the specific "Formação em Portugal" leaf page instead,
+      with real substantial content: 9 named eligible partner countries
+      (Angola, Cabo Verde, Colômbia, Etiópia, Guiné-Bissau, Moçambique,
+      São Tomé e Príncipe, Senegal, Timor-Leste) and a real funding table
+      with actual euro amounts. Unlike Belgium/Austria/Morocco earlier
+      in this same research initiative, `funding_type = "fully_funded"`
+      **is** kept here — genuinely supported by the source text (a
+      maintenance subsidy, a tuition subsidy up to
+      €1,306.25–2,612.50/year, a housing subsidy, and an installation
+      subsidy, each with real figures), the same reasoning already
+      applied to Japan's MEXT Scholarship. `deadline_keywords = ()` —
+      embassy-mediated applications, same pattern as Japan MEXT and
+      Morocco AMCI.
+      - Source count 30 → 31. Docs updated:
+        `docs/AUTHORITATIVE_SOURCES.md` #30, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (Portugal moved to implemented;
+        coverage summary, totals, and the recommended-next-candidates
+        section all updated — **the queue this registry has tracked
+        since 2026-08-23 is now genuinely empty**: every candidate this
+        registry ever identified is either a real source or a confirmed,
+        evidence-backed non-candidate, none left as stale guesses).
+      - Verified: 2 new tests (`tests/test_national_scholarship_programs.py`)
+        against a real fixture; full backend suite **549/549**
+        (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 18
+        countries/regions now have at least one real source (up from
+        17). The only way to add more from here is a **first** research
+        pass on countries entirely outside this registry — all of South
+        America, most of Asia (South Korea, Saudi Arabia, Qatar,
+        Thailand), and most of the remaining named European countries
+        (Switzerland, Poland, Czech Republic, Croatia, Serbia, Romania,
+        Norway, Finland) — none of which have been touched at all yet.
+
+- [x] **(2026-08-29)** South America — a dedicated **first** research
+      pass covering all 9 countries in the region, none of which had any
+      prior research in this registry. 3 real sources added:
+      - **Colombia** (ICETEX Beca Colombia Extranjeros): the site
+        (Liferay) has a hidden accessibility `<h1 class="hide-accessible">
+        Navegación</h1>` before the real content (the same bug class
+        already documented for India ICCR) and reuses one
+        `.journal-content-article` class for 8+ unrelated blocks on the
+        page, including a "Historial" accordion holding the three
+        *previous* application cycles. Solved with the one stable,
+        unique anchor Liferay stamps on the actual article content:
+        `[data-analytics-asset-title='Beca Colombia Extranjeros']`. A
+        thinner companion page (330 characters, no funding/deadline
+        info) and an unrelated governance-notice sub-page were both
+        fetched and rejected first. `funding_type = None` (no explicit
+        funding-coverage language); `deadline_keywords = ()` (the real
+        deadline is stated but in unparseable Spanish month-name form).
+      - **Chile** (AGCID Becas para Extranjeros): a single unique `<h1>`
+        and `<article>`, but the article bundles several distinct
+        bilateral/regional sub-programs with materially different (even
+        conflicting) funding formulas, plus the page's own disclaimer
+        that terms are reference-only pending each call's official
+        republication — the same multi-program shape already handled
+        honestly for South Africa NRF, the Netherlands, and Spain AECID.
+        `deadline_keywords = ()` and `funding_type = None`.
+      - **Peru** (PRONABEC Beca Alianza del Pacífico): a reciprocal
+        student-mobility program among the four Pacific Alliance member
+        states; Peru offers 50 inbound slots for Chilean/Colombian/
+        Mexican nationals specifically (real but narrow eligibility, the
+        same honest bilateral-partner pattern as Portugal Camões). No
+        `<h1>` at all (a WordPress page-builder layout) — title falls
+        back to the `<title>` tag split on the en dash. Real numeric-date
+        schedule for foreign applicants exists but can't be parsed
+        (`DD/MM/YYYY` form) — `deadline_keywords = ()`.
+        `funding_type = "partial_funding"` (food/transport/insurance
+        explicitly covered, tuition never mentioned — an exchange
+        program, not a full scholarship).
+      - **Brazil** was investigated and found genuinely `BLOCKED`, not
+        implemented: the real program (PEC-G, Ministry of Foreign
+        Affairs/Education) has rich real content confirmed via a
+        browser-spoofed `curl` fetch, but this backend's actual
+        unspoofed httpx client is served a JavaScript bot-challenge page
+        (F5/Distil-style `TSPD` cookie challenge) 3/3 attempts — the
+        same class of finding as Cyprus's Azure WAF block, and bypassing
+        it (spoofing a browser identity) is out of scope by the same
+        policy already applied there.
+      - **Argentina, Uruguay, Paraguay** confirmed `NOT_SUITABLE`
+        (Argentina: the real mechanism is a searchable multi-entry
+        database, not a single page, the same shape already set aside
+        for France's Campus Bourses; Uruguay and Paraguay: both
+        residency-restricted — their own pages require existing
+        residency or citizenship, not open to prospective international
+        applicants). **Ecuador and Bolivia** came back
+        `NO_RELIABLE_SOURCE_FOUND` (Ecuador's SENESCYT catalogue is
+        outbound-only; a historical inbound "Prometeo" program has no
+        current-dated source confirming it is still active; Bolivia has
+        no inbound government program identified).
+      - Source count 31 → 34. Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #31-#33, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "South America"
+        section with all 9 findings; Implemented table extended;
+        coverage summary and recommended-next-candidates rewritten to
+        reflect that South America has had its first pass).
+      - Verified: 6 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **555/555** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 21
+        countries/regions now have at least one real source (up from
+        18). Remaining unresearched territory: most of Asia (South
+        Korea, Saudi Arabia, Qatar, Thailand), and the remaining named
+        European countries (Switzerland, Poland, Czech Republic,
+        Croatia, Serbia, Romania, Norway, Finland).
+
+- [x] **(2026-08-29)** The four remaining named Asian countries — a
+      dedicated **first** research pass (South Korea, Saudi Arabia,
+      Qatar, Thailand; China and India already had narrower coverage).
+      3 real sources added:
+      - **South Korea** (GKS Global Korea Scholarship Program, run by
+        NIIED): the page's only `<h1>` is the site logo, not a title —
+        solved with `<h2 class="title">GKS (Global Korea Scholarship)
+        Program</h2>`, the first of two matches (the second is a
+        sibling "Other Scholarships" tab). Content scoped to
+        `#gks-tab1`, confirmed to hold only the GKS section (the
+        surrounding `main` also contains the other tab's content
+        further down the DOM). `funding_type = "fully_funded"` — the
+        page states "Airfare, language training costs, tuition, and
+        study allowances" explicitly.
+      - **Saudi Arabia** (MOE Government University Scholarships): no
+        `<h1>`, and the `<title>` tag interleaves Arabic and English
+        with the real text in the *second* segment — since
+        `title_tag_separator` only supports the first segment (a
+        deliberate shared-pattern limitation, not special-cased for one
+        source), this source falls back to a title formatted from
+        `external_id`. `funding_type = None` — the page explicitly
+        states three distinct funding tiers (free/partial/paid).
+      - **Qatar** (Qatar Scholarships, run by the Qatar Fund For
+        Development/QFFD): the homepage is a JS-rendered SPA that
+        serves only an empty "offline" shell to a non-JS client — used
+        `/en-US/Programs` instead, a server-rendered route with real
+        content. `robots.txt` uses the newer "content-signal"
+        convention but sets no actual value for any use — documented
+        explicitly as a genuine absence of restriction, not an ordinary
+        permissive robots.txt. `funding_type = None` — the page bundles
+        partner-institution programs with conflicting funding (some
+        full tuition waiver, one explicitly partial tuition).
+      - **Thailand** was investigated and found `NOT_SUITABLE`, not
+        implemented: the government's real scholarship info lives in a
+        rolling year-dated announcement feed (`ops.go.th`), and a
+        second candidate "about" page (TICA's own TIPP overview) was
+        real but frozen content from ~2013-2015, not the current cycle.
+        Note: this host was intermittently unreachable in initial
+        testing but succeeded consistently once retried with this
+        backend's actual production request shape (registered
+        User-Agent, full 40s timeout) — a transient connectivity issue,
+        not a real block.
+      - Source count 34 → 37. Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #34-#36, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Asia" section with
+        all 4 findings; Implemented table extended; coverage summary and
+        recommended-next-candidates rewritten).
+      - Verified: 6 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **561/561** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 24
+        countries/regions now have at least one real source (up from
+        21). The only remaining unresearched territory: the remaining
+        named European countries (Switzerland, Poland, Czech Republic,
+        Croatia, Serbia, Romania, Norway, Finland).
+
+- [x] **(2026-08-29)** The eight remaining named European countries — a
+      dedicated **first** research pass, the last unresearched region
+      from the original master-prompt request (Switzerland, Poland,
+      Czech Republic, Croatia, Serbia, Romania, Norway, Finland). 5 real
+      sources added:
+      - **Switzerland** (SBFI ESKAS - Swiss Government Excellence
+        Scholarships): `funding_type = "partial_funding"` — a concrete
+        monthly amount (CHF 2450) is stated but tuition coverage is
+        never mentioned, unlike Japan MEXT/Portugal Camões/GKS.
+      - **Poland** (NAWA "Poland My First Choice"): hidden accessibility
+        `<h1 class="sr-only">` before the real `<h1 class="header">` —
+        the same bug class as India ICCR and Colombia ICETEX. NAWA runs
+        several other named programmes each restricted to narrower
+        partner-country lists; this one has the broadest eligible list.
+      - **Czech Republic** (MŠMT Government Scholarships): a headless
+        Next.js-over-WordPress build whose React wrapper divs carry
+        auto-generated `id="S:N"` streaming-boundary ids — deliberately
+        not used as a selector (a deployment artifact, not a stable
+        anchor); scoped instead to `.global-msmt`, a real custom class.
+        Unusually, `deadline_keywords` is **left at the base class's
+        default** (not overridden to `()`) — this page has a genuine,
+        singular, cleanly extractable deadline ("by 30 September 2026 at
+        the latest"), confirmed by running the real extractor against
+        the real fixture and getting back `2026-09-30`. The first
+        source in this whole initiative where deadline extraction is
+        actually used, not disabled.
+      - **Serbia** ("World in Serbia"): no `<h1>` — the page's only
+        heading is a plain `<h2>Scholarships</h2>`, generic but honest.
+        `funding_type = "fully_funded"` — explicit free tuition,
+        accommodation, food, monthly allowance, and health insurance.
+      - **Romania** (MFA Government Scholarships): a genuinely
+        interesting deadline-extraction near-miss — the page states a
+        real, parseable deadline ("31 March 2026") but the shared
+        `extract_confident_date_after` function only searches after a
+        keyword's *first* occurrence, and this page's first "deadline"
+        mention is an unrelated, dateless one earlier in the eligibility
+        section — confirmed directly against the real fixture that
+        extraction correctly (if unluckily) returns nothing, so
+        `deadline_keywords = ()` was set deliberately.
+      - **Croatia** was investigated and found `NOT_SUITABLE`, not
+        implemented: every source is a year-dated "Call for
+        Applications" page with its own numeric ID (seven different
+        such pages found spanning 2020/2021 through 2026/2027), no
+        evergreen "about" page independent of a specific year, plus
+        nomination-only eligibility via partner institutions.
+      - **Norway** was investigated and found `NO_RELIABLE_SOURCE_FOUND`:
+        its two historical inbound programs (the "Quota Scheme" and
+        NORSTIP) are both confirmed defunct/cancelled across multiple
+        independent sources; Lånekassen's remaining support requires
+        Norwegian citizenship or existing permanent residence.
+      - **Finland** was investigated and found `NOT_SUITABLE`: the one
+        national program (EDUFI Fellowship) states on its own official
+        page that it "will end at the end of 2025. New applications
+        cannot be submitted after 17.10.2025" — already past by this
+        session's date, despite several third-party aggregators still
+        listing it as "active in 2026." Finland's own study-abroad
+        portal confirms no replacement exists.
+      - Source count 37 → 41 (5 added: Switzerland, Poland, Czech
+        Republic, Serbia, Romania). Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #37-#41, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Europe" section
+        with all 8 findings; Implemented table extended; coverage
+        summary and recommended-next-candidates rewritten — **no named
+        country or region from the original master-prompt request
+        remains unresearched**).
+      - Verified: 10 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **571/571** (`pytest -q`).
+      - **Master-prompt country coverage after this increment**: 29
+        countries/regions now have at least one real source (up from
+        24). Every region named in the original master-prompt request
+        has now had at least one full research pass.
+
+- [x] **(2026-08-29)** Beyond the original master-prompt request — with
+      every named country/region researched, the user asked to choose
+      new countries entirely outside that request. Picked 8 spanning
+      regions not yet touched: Hungary, Mexico, Indonesia, Malaysia,
+      Vietnam, Egypt, Israel, Kenya. 2 real sources added:
+      - **Hungary** (Stipendium Hungaricum): a heavily JS-rendered site
+        with no semantic heading markup at all (no `<h1>`-`<h4>`
+        anywhere) and a `<title>` tag that only ever yields the single
+        word "About" once split — falls back to a title formatted from
+        `external_id`, the same choice already made for Saudi Arabia.
+        `funding_type = "fully_funded"` — explicit tuition-free
+        education plus real HUF/EUR monthly stipend figures.
+      - **Mexico** (AMEXCID Excellence Scholarships): one transient
+        timeout on first fetch, resolved cleanly on retry. Content
+        scoped to the article-body column specifically, not `main`
+        (which also pulls in an unrelated "Publicaciones Recientes"
+        sidebar of 5 other news items ahead of the real content).
+        `funding_type = None` — this overview page explicitly defers
+        all concrete funding/deadline terms to a separate "Condiciones
+        Generales de la Convocatoria" not linked as plain HTML.
+      - **Indonesia** was investigated and found `BLOCKED`: the current
+        official interactive site is a pure JS app with zero
+        server-rendered content, and a content-rich companion site
+        describing the same program explicitly disallows `ClaudeBot` by
+        name in its `robots.txt` (alongside GPTBot, Bytespider, and
+        others) — honored rather than routed around with a different
+        User-Agent.
+      - **Malaysia** was investigated and found `NOT_SUITABLE`: the
+        real MOHE portal page is too thin (~700 characters, no `<h1>`,
+        no funding/deadline language) with the real detail living only
+        in an unparsed PDF — the same thin-content shape already ruled
+        out for Colombia's reciprocity page.
+      - **Vietnam** was investigated and found `BLOCKED`: the one
+        candidate site with real content doesn't support HTTPS at all
+        (confirmed by direct `ConnectError` on every `https://`
+        variant) — this backend's HTTPS-only requirement is a security
+        boundary applied uniformly, never relaxed for one adapter.
+      - **Egypt** was investigated and found `BLOCKED`: the official
+        EGYAID/Study-in-Egypt portal is a pure client-side JS SPA with
+        zero server-rendered content on every route checked.
+      - **Israel** was investigated and found `BLOCKED`: the MFA
+        scholarship page returned 403 Forbidden on 3/3 attempts with
+        this backend's actual httpx client, a consistent active block.
+      - **Kenya** was investigated and found `NO_RELIABLE_SOURCE_FOUND`:
+        the Ministry of Education's scholarships page is a searchable
+        multi-entry table of outbound (Kenyans-studying-abroad)
+        opportunities, the same database-not-single-page shape already
+        seen for Argentina, with no inbound program identified.
+      - Source count 41 → 43. Docs updated: `docs/
+        AUTHORITATIVE_SOURCES.md` #42-#43, `docs/
+        COUNTRY_PROVIDER_REGISTRY.md` (new dedicated "Beyond the
+        original request" section with all 8 findings; Implemented
+        table extended; coverage summary and recommended-next-
+        candidates rewritten).
+      - Verified: 4 new tests (`tests/test_national_scholarship_programs.py`,
+        2 per source) against real fixtures; full backend suite
+        **575/575** (`pytest -q`).
+      - **Country coverage after this increment**: 31
+        countries/regions now have at least one real source (up from
+        29), now including 2 entirely outside the original
+        master-prompt request.
+
+- [x] **(2026-08-29)** A second batch beyond the original master-prompt
+      request (user said "go on"): New Zealand, Singapore, Pakistan,
+      Philippines, Nigeria, Ghana, Rwanda, Jordan. **Zero new sources
+      added** — a real, honest research outcome recorded in full rather
+      than omitted or forced:
+      - **New Zealand**: Manaaki New Zealand Scholarships is a real,
+        well-documented, permissively-crawlable inbound program, but
+        the entire site is built with Next.js CSS Modules — every
+        wrapper down to the immediate parent of the page's `<h1>` uses
+        an auto-generated hashed class name, and the generic `<main>`
+        tag itself is non-unique with the wrong element first in
+        document order. No selector on the page is safe from breaking
+        on the next deploy — `NOT_SUITABLE`.
+      - **Singapore**: SINGA (A*STAR's well-known PhD scholarship) no
+        longer has a dedicated program page — every guessed/search-
+        suggested URL 404s, confirmed by scanning the site's full
+        643KB `sitemap.xml` directly. The one current "International
+        Awards" offering is institution-initiated (Singapore
+        researchers apply together with overseas collaborators), the
+        same disqualifying shape as Canada's SICS — `NOT_SUITABLE`.
+      - **Pakistan**: HEC does run scholarships for foreign students,
+        but every domain variant (`hec.gov.pk`, `www.hec.gov.pk`,
+        `scholarship.hec.gov.pk`) fails `SSL: CERTIFICATE_VERIFY_FAILED`
+        — a real TLS certificate-chain defect, confirmed 6/6 across all
+        hostnames — `BLOCKED`, same class as India ICCR/South Africa
+        NRF.
+      - **Philippines**: CHED's official site returns 403 Forbidden on
+        3/3 attempts — `BLOCKED`.
+      - **Nigeria, Ghana, Rwanda**: each country's national scholarship
+        body (Federal Scholarships Board, Ghana Scholarships Authority,
+        Higher Education Council) turned out to be outbound/domestic-
+        only — funding citizens to study abroad or at home institutions,
+        never funding foreign nationals to study in-country —
+        `NO_RELIABLE_SOURCE_FOUND` for all three.
+      - **Jordan**: MOHE's "Cultural Agreements" page confirms a real,
+        genuinely bidirectional inbound mechanism across 25 partner
+        countries, but the actual on-page content (once separated from
+        navigation menus) is only two sentences plus a country list —
+        no funding, no deadline, no application process — the same
+        thin-content bar that already ruled out Colombia's reciprocity
+        page and Malaysia's MIS — `NOT_SUITABLE`.
+      - No code changes: since nothing was implementable, no source
+        classes, config entries, tests, or fixtures were added. Docs
+        updated: `docs/COUNTRY_PROVIDER_REGISTRY.md` (new dedicated
+        "second pass" section with all 8 findings; coverage summary and
+        recommended-next-candidates updated to record the 0-for-8
+        outcome honestly).
+      - **Country coverage unchanged at 31** — this pass added no new
+        sources, only negative findings (which still have value: future
+        sessions won't need to re-research these 8 countries from
+        scratch).
+
+- [x] **(2026-08-29)** Browser-rendering fallback for JavaScript-only
+      scraper sources — a real, tested architectural addition, requested
+      explicitly by the user after this session had already hit several
+      genuinely JS-only government sites (Egypt, Indonesia's `.go.id`
+      site) that plain HTTP cannot extract anything from.
+      - New `app/services/browser_rendering.py`: a lazily-launched,
+        reused headless Chromium (Playwright) instance; one isolated
+        browser context/page per fetch, always closed; a semaphore
+        bounding concurrent renders (`browser_render_max_concurrency`,
+        default 2); bounded timeouts throughout, never a fixed `sleep()`
+        (`domcontentloaded` + an optional caller-supplied CSS selector
+        wait, both under `browser_render_timeout_ms`); a response-size
+        cap matching the existing HTTP path; known bot-challenge/CAPTCHA
+        signature detection (Cloudflare interstitial, hCaptcha/
+        reCAPTCHA, "access denied") that raises immediately rather than
+        attempting to solve or bypass anything — same policy as every
+        prior anti-bot finding in this project (Cyprus, Brazil, Israel).
+      - `web_scraper_base.py`: new `looks_javascript_rendered()`
+        heuristic (body-text length + "enable JavaScript"-style
+        markers, tuned well below Colombia ICETEX's real 330-character
+        page so a genuinely thin real page is never misclassified) and
+        a new opt-in `WebScraperSource.allow_browser_rendering` flag
+        (default `False` for every existing source — zero behavior
+        change for all 43 sources already in this registry).
+        `WebScraperSource._fetch_html` tries plain HTTP first always;
+        only a source that explicitly opted in, whose response the
+        heuristic flags, gets a browser-render retry; any render failure
+        falls back to the thin HTTP response rather than crashing the
+        source's (or any sibling source's) sync task.
+      - `app/core/http_client.py`: renamed the private `_validate_url`
+        to public `validate_https_url` so both the HTTP and browser
+        paths share one HTTPS-only check.
+      - Deployment: `Dockerfile` now runs `playwright install --with-deps
+        chromium` (documented, real tradeoff: +~300-400MB on every image
+        built from it — api, worker, and beat alike, since docker-
+        compose.yml builds all three from this one Dockerfile — even
+        though only the worker's scraper tasks would ever use it; noted
+        as a candidate for a future `Dockerfile.worker` split if size
+        becomes a real problem, not attempted here). CI
+        (`.github/workflows/ci.yml`) installs the same browser before
+        running pytest so the real-browser tests actually run there, not
+        just locally.
+      - New settings: `browser_render_timeout_ms`,
+        `browser_render_max_concurrency`, `browser_executable_path`
+        (left unset in every real deployment; only needed to point at a
+        pre-installed browser binary whose revision doesn't match the
+        pinned `playwright` package version, which is exactly this
+        project's own dev sandbox — its preinstalled Chromium is a
+        different revision than what `playwright==1.49.1` expects by
+        default).
+      - Deliberately **not** built (would be premature generality with
+        zero current users): SPA click-through navigation (filters,
+        "Load more," infinite scroll), reverse-engineering a site's own
+        internal JSON/GraphQL API, a persisted per-domain "rendering
+        capability profile," multi-language deduplication. If a future
+        source genuinely needs one of these, design it against that
+        source's real, live-tested page then — not in the abstract.
+      - **No existing source was converted to use this** — none needed
+        it (all 43 already work over plain HTTP) — and the two live
+        JS-only candidates already on record (Egypt, Indonesia's
+        `.go.id`) were deliberately **not** flipped to
+        `allow_browser_rendering = True` and marked working: this
+        session's own sandboxed environment could launch a real headless
+        Chromium (proven against a local self-signed-HTTPS test server)
+        but every attempt to navigate it to a real *external* HTTPS site
+        failed at the TLS layer through the sandbox's own egress proxy
+        (`net::ERR_CONNECTION_RESET`, not reproducible with plain httpx/
+        curl in the same sandbox — a sandbox limitation, not a defect in
+        the new module). Both country-registry entries were updated with
+        this exact finding rather than silently left stale or
+        speculatively marked fixed.
+      - Verified: 11 new tests (`tests/test_browser_rendering.py`) —
+        pure-heuristic unit tests, mocked `WebScraperSource` wiring/
+        fallback tests, and (a genuine, non-mocked proof) a real headless
+        Chromium launch + JavaScript execution + rendered-DOM extraction
+        against a local self-signed-HTTPS server, plus HTTPS-only
+        enforcement and challenge-page-detection tests against the real
+        `fetch_rendered_html`/`_looks_like_a_challenge_page` functions.
+        Full backend suite: **586/586** (`pytest -q`, up from 575).
+        `pip-audit -r requirements.txt`: no known vulnerabilities in the
+        new `playwright` dependency.
+
+- [x] **(2026-08-29)** Hybrid Scholarship Discovery and Verification
+      Engine — the rest of the 27-section spec, built as a continuation
+      of the browser-rendering fallback above, per an explicit
+      "continuation loop" instruction to implement every remaining
+      feasible requirement without pausing for confirmation between
+      phases. Everything below is additive: none of the 43 existing
+      scraper sources changed behavior, and none has been migrated onto
+      any of the new engines — see docs/AUTHORITATIVE_SOURCES.md's
+      "Beyond a single render" section and its requirement matrix for the
+      full per-requirement COMPLETE/PARTIALLY_COMPLETE/
+      BLOCKED_BY_ENVIRONMENT/NOT_APPLICABLE breakdown.
+      - Headless-mode configurability (`PLAYWRIGHT_HEADLESS`, forced back
+        to `true` whenever `APP_ENV=production`) and generic cookie/
+        consent-banner detection + auto-accept
+        (`AUTO_ACCEPT_REQUIRED_COOKIES`, scoped to a detected cookie/
+        consent container only — never a page-wide "Accept"/"Continue"
+        click) added directly to `browser_rendering.py`.
+      - `browser_rendering.py` also gained structured console-error/page-
+        error/failed-request/HTTP-error capture, classified INFO/
+        WARNING/ERROR/CRITICAL — a known third-party analytics/tracker
+        failure is downgraded, never used to fail an otherwise-good
+        render; a same-origin 5xx is CRITICAL.
+      - New `app/services/browser_interaction.py`
+        (`BrowserInteractionEngine`): click/wait-for-selector/extract-
+        URL/capture-content primitives on a live Playwright page, plus
+        `wait_for_navigation_or_change`, which races a new tab, a URL
+        change (including a client-side `history.pushState` route), or
+        an in-page DOM change under a bounded timeout — never
+        `sleep()`. New `browser_rendering.interactive_session` context
+        manager shares the reused-browser/semaphore/HTTPS-only/cookie-
+        banner machinery for anything needing more than one render.
+      - New `app/services/pagination_engine.py`: `paginate_by_url` (no
+        browser needed) for `?page=N` pagination, `paginate_by_click`
+        (one function handling both a "Next" button and a "Load More"
+        control, since it dedupes by key rather than assuming the
+        shape) for click-driven pagination. Bounded by new
+        `MAX_PAGES_PER_SOURCE`/`MAX_RECORDS_PER_SOURCE` settings; stops
+        on an empty page, no new records, a disabled/absent "next"
+        control, or a fetch failure.
+      - New `app/services/infinite_scroll_engine.py`: render → extract →
+        scroll → wait for real DOM growth → extract → compare →
+        continue. Bounded by new `MAX_SCROLL_ITERATIONS`/
+        `SCROLL_STAGNATION_LIMIT` settings.
+      - New `app/services/filter_engine.py`: applies a caller-described
+        filter set (auto-detecting a `<select>` vs. a clickable
+        control; an absent selector is skipped, never an error).
+        `iter_filter_combinations` yields a bounded cartesian product —
+        never an automatic sweep of every combination.
+      - New `app/services/application_link_discovery.py`: finds
+        "Apply"-style controls (broad phrase matching, not just literal
+        button text), reads `href` directly where present, and for a
+        control without one, clicks through the interaction engine and
+        records where that led (new tab / URL change / in-page modal).
+        Bounded to 5 href-less clicks per page. Never fills in a form,
+        never creates an account, never submits anything.
+      - New `app/services/application_link_validation.py`: independently
+        fetches a discovered/known application URL and classifies it
+        `VALID_OFFICIAL_APPLICATION` / `VALID_AUTHORIZED_EXTERNAL_PORTAL`
+        / `INFORMATION_PAGE_ONLY` / `BROKEN` / `BLOCKED` / `UNKNOWN` by
+        HTTP status, redirect chain, final domain, and page content —
+        only the source's own domain or an explicitly pre-authorized
+        portal domain can ever come back `VALID_*`; everything else is
+        `needs_review=True`, never silently treated as verified.
+      - New `app/services/content_completeness.py`: scores a scraper
+        adapter's raw extracted field mapping 0-100 across CRITICAL/
+        IMPORTANT/OPTIONAL tiers, run *before* attempting to construct a
+        `NormalizedExternalOpportunity`; `needs_review` is forced True
+        whenever any CRITICAL field is missing regardless of score.
+      - New `app/services/source_capability_profile.py`: in-process
+        (not persisted) memory of what's actually been observed about a
+        domain — requires JS, pagination shape, cookie banner, and so
+        on — recorded automatically by every module above, for every
+        source's own domain regardless of whether it has opted into
+        browser rendering. Deliberately observability, not automation:
+        nothing reconfigures a source's fetch behavior from this
+        evidence alone — `allow_browser_rendering` stays a human
+        decision made only after live-testing, same as always.
+      - New `app/services/scraper_metrics.py` (process-wide counters +
+        derived ratios — an untouched ratio reads `None`/`null`, never a
+        fabricated `0.0`) and `GET /api/v1/scraper-metrics`
+        (`app/api/routes/scraper_metrics.py`, staff-gated) to read them.
+      - New `app/services/scraper_adapters.py`:
+        `GenericHTMLAdapter`/`GenericJSAdapter`/`GovernmentPortalAdapter`/
+        `UniversityPortalAdapter`/`SPAAdapter` base classes for a
+        *future* source simple enough to describe declaratively — none
+        of the 43 existing sources migrated, none needs to be.
+      - Deliberately **still** not built, as premature generality with
+        zero current users: reverse-engineering a site's own internal
+        JSON/GraphQL API (no JS-only candidate on record has one), and
+        multi-language deduplication.
+      - **Still not independently verified against a real external
+        site** — same sandbox limitation as the original browser-
+        rendering fallback (the egress proxy fails at the TLS layer for
+        real Chromium navigation to external HTTPS sites). Every new
+        module is proven against real Chromium and purpose-built local
+        mock pages, which proves the Playwright mechanics genuinely
+        work; it can't prove what a concrete adapter for Egypt/
+        Indonesia would need to configure against their real markup.
+        Docker also remains unbuildable in this sandbox (daemon not
+        running) — the Dockerfile needed no changes for this pass, but
+        that's still unverified by an actual build here.
+      - Verified: 84 new tests across 12 new test files plus additions
+        to `tests/test_browser_rendering.py` (11 more there). Full
+        backend suite confirmed green after every individual phase, and
+        the complete suite collects and passes at **670/670**
+        (`pytest -q`, up from 586).
+
+- [x] **(2026-08-29)** 40-country coverage audit against the platform's
+      explicit target list, closing the two countries that had never
+      actually been researched (China, United States) and fixing one
+      real reachability bug found along the way (Eswatini) — a
+      continuation loop instruction to audit the full 40-country
+      requirement, implement every genuine gap, and report honestly on
+      what remains, rather than claim coverage that isn't real.
+      - **Audit finding**: cross-referencing the exact 40-country list
+        against `docs/COUNTRY_PROVIDER_REGISTRY.md` (already extremely
+        thorough from prior sessions — every one of the 40 had a
+        documented, live-tested classification except two) showed 38 of
+        40 already had a defensible SUPPORTED/PARTIALLY_SUPPORTED/
+        NOT_SUITABLE/BLOCKED/NO_RELIABLE_SOURCE_FOUND finding from real
+        research, not a guess or a placeholder. Only China and the
+        United States had never been individually researched at all.
+      - **United States — closed, SUPPORTED.** The prior US-facing
+        sources (Grants.gov, USAJOBS, ReliefWeb) are federal grants/
+        jobs/humanitarian postings, not international-student
+        scholarships, and Fulbright was already correctly rejected
+        (fragmented across ~160 embassy pages). Found and implemented
+        `educationusa.state.gov/find-financial-aid` (US Department of
+        State, EducationUSA network) — a real, live, plain-HTTPS
+        paginated Drupal Views listing of 277+ institution-specific
+        scholarships. New `app/services/educationusa_source.py`,
+        wired end-to-end (config, source registry, Celery beat schedule
+        + task, opportunity_sync mapping) exactly like every other
+        source. **The first real production consumer of
+        `app/services/pagination_engine.py`'s `paginate_by_url`**, built
+        earlier this session. Verified with 3 genuinely separate real
+        HTTPS fetches (page 0, page 1, and `?page=40` confirming the
+        site's own real zero-row "past the last page" response) and 5
+        new tests against those exact fixtures, captured unmodified.
+      - **China — closed, BLOCKED.** The China Scholarship Council (CSC)
+        administers a real, major, legitimate program. Every candidate
+        page — `csc.edu.cn`, `studyinchina.csc.edu.cn`, and even
+        `robots.txt` itself — returns either HTTP 412 or an obfuscated
+        JavaScript anti-bot challenge page ("系统繁忙，请稍后再试" —
+        "system busy"), the same class of protection already documented
+        for Cyprus and Brazil. Never attempted to bypass it — detected,
+        classified, and recorded as `BLOCKED`, not silently skipped or
+        left unresearched.
+      - **Eswatini — reachability bug found and fixed, reclassified
+        `NOT_SUITABLE`.** While re-checking the two previously-
+        "unreachable" Sierra-Leone-region sources, found that
+        `https://www.slas.gov.sz` (the configured host) still times out,
+        but the bare `https://slas.gov.sz` (no "www.") is genuinely
+        reachable (200, real content, 3/3 attempts). Fixed
+        `eswatini_slas_base_url` to the working host — a real, verified
+        technical fix. However, the real page content turned out to be
+        a domestic student-loan portal for Eswatini nationals, with
+        neither "scholarship" nor "SADC" appearing anywhere in its HTML
+        — `EswatiniSlasSource`'s own keyword-matching correctly extracts
+        zero records from it. Documented honestly as "reachability
+        fixed, but not confirmed to produce any records" rather than
+        claimed as newly working — added a real-fixture regression test
+        proving it fails safe to an empty list rather than fabricating
+        a match. Sierra Leone's own MTHE was re-checked the same way and
+        remains genuinely unreachable over HTTPS (a proxy-level TLS
+        failure on every attempt, distinct from the Eswatini www/non-www
+        issue) — no fix available, status unchanged.
+      - **Not touched this pass, per the audit's own honest read**: the
+        remaining 35 countries already had real, defensible research on
+        record from prior sessions and were not re-litigated without
+        new information — re-researching them today (same calendar day
+        as their original research) would not surface anything new. The
+        spec's "multiple source types per country" ambition (university
+        + government + embassy + foundation sources for every country)
+        remains a real, larger gap beyond this pass's scope — most
+        countries in this registry have exactly one flagship government
+        source, not the full multi-source-type coverage the spec
+        describes; closing that fully would require dedicated
+        per-country research at a scale beyond one session.
+      - Fixed two real (if minor) issues surfaced while running the full
+        suite: `tests/test_opportunity_import.py`'s hardcoded source-
+        count/set assertions needed the new `educationusa_financial_aid`
+        source added; two real-Chromium new-tab-detection tests
+        (`test_browser_interaction.py`,
+        `test_application_link_discovery.py`) were genuinely flaky under
+        full-suite system load (5/5 passed in isolation, intermittently
+        failed only when running alongside ~670 other tests) — fixed by
+        giving those two specific tests a longer timeout (15s vs. 5s),
+        not by changing any production logic.
+      - Verified: 6 new tests (5 for EducationUSA, 1 for Eswatini's real
+        content). Full backend suite confirmed green: **676/676**
+        (`pytest -q`, up from 670).
+
+- [x] **(2026-08-30)** Next-loop research pass — Mastercard Foundation
+      Scholars Program investigated as a real candidate for a
+      cross-country FOUNDATION-type source (a genuine gap named by the
+      spec: most countries here have exactly one government source, not
+      the university/government/embassy/foundation mix described).
+      Real, major, Africa-focused, directly relevant to Sierra Leone
+      (58,000+ scholarships committed, 62 partner universities);
+      `robots.txt` explicitly allows `ClaudeBot` by name. Not
+      integrated: the program's own overview page has no single
+      deadline/application (decentralized to 62 partner institutions,
+      the same reason Canada/Denmark/Wales were rejected), and the
+      actual per-institution listing page
+      (`.../where-to-apply/`) is a client-side widget with no
+      server-rendered fallback (`curl` returns "Institutions Error
+      loading data. Please try again." instead of the list) — its
+      underlying data API could not be found in the page's static JS.
+      Live-tested Chromium against this exact URL to confirm the
+      sandbox's standing browser-automation limitation still applies
+      (`net::ERR_CONNECTION_RESET`) rather than assuming it. Documented
+      as a strong recommended-next candidate for a session with working
+      outbound browser access, not silently dropped. No code changes
+      this pass — pure research, recorded in
+      `docs/AUTHORITATIVE_SOURCES.md` and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`.
+
+- [x] **(2026-08-30)** Implemented the **Joint Japan/World Bank Graduate
+      Scholarship Program (JJ/WBGSP)** — a real next step on the same
+      "multiple source types per country" gap, continuing directly from
+      the Mastercard Foundation research above. Also re-tested
+      `sl.usembassy.gov/educational-professional-exchanges/` (Sierra
+      Leone's US Embassy exchanges page, already flagged broken by
+      earlier Fulbright research) — still a persistent "Technical
+      Difficulties" error, 3/3 attempts, not fixed.
+      - JJ/WBGSP is real, major (World Bank Group, funded by the
+        Government of Japan), and — checked directly, not assumed —
+        Sierra Leone is confirmed on the programme's own published
+        eligible-countries list. Unlike Mastercard Foundation, its
+        overview page (`/en/programs/scholarships/jj-wbgsp`) is real
+        static server-rendered HTML with genuine eligibility criteria,
+        funding coverage, and two dated application windows in its own
+        text — no browser rendering needed.
+      - New `WorldBankJJWBGSPScholarshipSource` in
+        `national_scholarship_programs.py` (the `_SingleProgramSource`
+        pattern, `country = None` since it's not tied to one
+        destination, same as Wells Mountain Initiative). Wired
+        end-to-end (config, source registry — its first
+        `international_organization`-typed entry, Celery beat + task,
+        opportunity_sync mapping).
+      - `deadline_keywords` tries "application window #1" before
+        "window #2"/generic "deadline" — the page states both windows'
+        dates together (e.g. "Application Window #1 from January 18 to
+        February 26, 2027"); `extract_confident_date_after` correctly
+        skips the day+month-only opening date for the first full
+        day+month+year literal that follows — verified this actually
+        extracts 2027-02-26, not guessed to work.
+      - Verified: 1 new test against a real fixture captured unmodified
+        from the httpx fetch, plus the hardcoded source count/set in
+        `test_opportunity_import.py` updated for the new source. Full
+        backend suite confirmed green: **677/677** (`pytest -q`, up
+        from 676).
+
+- [x] **(2026-08-30)** Implemented **Rotary Peace Fellowships**, and
+      researched (but did not integrate) the **Aga Khan Foundation
+      International Scholarship Programme** — continuing the same
+      "multiple source types per country" gap.
+      - Aga Khan ISP is real and legitimate, but its own published
+        country scope (Bangladesh, India, Pakistan, Afghanistan,
+        Tajikistan, Kyrgyzstan, Syria, Egypt, Kenya, Tanzania, Uganda,
+        Madagascar, Mozambique) does not include Sierra Leone — rejected
+        on eligibility grounds, not a technical one, matching this
+        project's "never invent eligibility" rule applied honestly in
+        both directions.
+      - Rotary Peace Fellowships is real, genuinely open worldwide by
+        nationality (no country restriction stated anywhere on its own
+        page), real static server-rendered content — no browser
+        rendering needed. `robots.txt` allows crawling with
+        `Crawl-delay: 10`, respected via a source-specific
+        `min_request_interval_seconds = 10.0` (well above this
+        project's usual 2-second default).
+      - New `RotaryPeaceFellowshipSource` in
+        `national_scholarship_programs.py`, wired end-to-end. One
+        fragility recorded honestly rather than silently risked: the
+        page has no semantic content wrapper (no `<article>`, no
+        descriptive `class`/`id`), only Tailwind utility-class
+        combinations — the description selector works today (verified
+        against the real page, first-match-is-correct among 3 matching
+        elements) but is more brittle than most sources here; documented
+        in both the class docstring and `docs/AUTHORITATIVE_SOURCES.md`
+        so a future `description=None` isn't mistaken for a real content
+        change without checking the live markup first.
+      - `deadline_keywords` kept active rather than disabled even though
+        the page's own text currently states only a month+year for the
+        next cycle (no day) — correctly resolves to `deadline=None`
+        today, but will pick up a real date automatically once the page
+        states one.
+      - Verified: 2 new tests (normalization against a real fixture,
+        plus the crawl-delay assertion) against a real captured fixture,
+        plus the hardcoded source count/set updated. Full backend suite
+        confirmed green: **679/679** (`pytest -q`, up from 677).
+
+- [x] **(2026-08-30)** Implemented the **Erasmus Mundus Joint Masters
+      Catalogue** (EACEA) — a third addition to the "multiple source
+      types per country" gap, and the second real production consumer
+      of `pagination_engine.paginate_by_url` after EducationUSA,
+      independently proving that engine generalizes across genuinely
+      different real sites rather than being tuned to one.
+      - Real, ~220 EU-funded joint master's programmes, genuinely open
+        to applicants "from all over the world" per the catalogue's own
+        text — not restricted by nationality. A real, plain
+        server-rendered `?page=N` listing built with the EU's own ECL
+        design system — no browser rendering needed.
+      - Noted and correctly did *not* treat as a blocker: the page
+        carries a page-level `<meta name="robots" content="follow,
+        noindex">` search-engine-indexing directive, which is a
+        different concern from the Robots Exclusion Protocol's
+        `robots.txt` crawl permission — the site's actual `robots.txt`
+        scopes its `Disallow:` rules to `Googlebot` specifically, the
+        same "only specific-bot rules" pattern already seen for
+        Mexico's AMEXCID.
+      - New `ErasmusMundusJointMastersSource` in a new
+        `erasmus_mundus_source.py` (the paginated-listing pattern, same
+        shape as `educationusa_source.py`), wired end-to-end.
+      - **A real, live-observed proof of this project's HTTPS-only
+        discipline actually working**: two of the ~220 programmes' own
+        listed websites (RESCO, European Forestry) use plain `http://`
+        rather than `https://`, and are correctly, silently dropped by
+        the shared `absolute_https_url` check rather than "fixed" by
+        guessing a scheme — found while writing the test (my own first
+        draft assumed all 20 cards per page would survive; the real
+        fixtures proved otherwise, and the test was corrected to match
+        reality rather than the reverse).
+      - No per-programme deadline is stated on this listing page (each
+        consortium sets its own) — `deadline` stays `None` for every
+        record, never guessed from the catalogue's generic "October and
+        January" text.
+      - Verified: 5 new tests against three real fixture pages (page 0,
+        page 1, and a genuinely-past-the-last-page response), plus the
+        hardcoded source count/set updated. Full backend suite confirmed
+        green: **684/684** (`pytest -q`, up from 679).
+
+- [x] **(2026-08-30)** Implemented **UAEU Scholarships, Fellowships, and
+      Graduate Assistantships** — closes the United Arab Emirates line
+      item in the country registry (previously `NO_RELIABLE_SOURCE_FOUND`
+      at the national-government level; that finding's own text already
+      flagged UAEU as the right follow-up) and this project's first
+      genuinely `UNIVERSITY`-typed source — every other web-scraped
+      source until now has been government/international-organization/
+      funding-organization-typed.
+      - Real, server-rendered page (`/en/cgs/scholarship.shtml`, 200,
+        ~169KB), `robots.txt`-unrestricted (`User-agent: *` allowed, only
+        narrow unrelated admin/legal `Disallow:` rules) — no browser
+        rendering needed.
+      - One real fragility found and handled correctly: the page's
+        Tailwind accordion widget (`.aegov-accordion`/`.accordion-item`)
+        is reused site-wide for both page-navigation menus and this
+        scholarships list — 27 total accordion items, only 13 of them
+        real programmes. Scoped via a CMS-id-prefix attribute selector
+        (`[id^="faqs-section"]`), stable in practice even though the
+        hash suffix after it changes on every republish, rather than a
+        hardcoded full id or the shared widget class alone.
+      - Extracts all 13 real accordion items (fellowships, research/
+        teaching/administrative assistantships, department-specific PhD
+        studentships) as their own records, deliberately **not filtered
+        by nationality eligibility** — several titles say "(All
+        nationalities)", others explicitly say "UAE nationals"/"UAEU
+        Alumni only" in their own real title text, extracted verbatim
+        for human review rather than acted on, matching this project's
+        standing "AI's role: none, today" eligibility policy
+        (`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §10).
+      - Each item's own detail link (several are PDFs, not HTML) is
+        stored as both `official_source_url` and
+        `official_application_url` without being fetched itself, matching
+        how EducationUSA's and Erasmus Mundus's own per-row links also
+        aren't followed.
+      - New `UaeuScholarshipsSource` in a new
+        `uaeu_scholarships_source.py`, wired end-to-end including the new
+        `"university"` `source_type` value on the existing free-text
+        source-type column.
+      - Verified: 3 new tests against a real fixture captured unmodified
+        from the fetch, plus the hardcoded source count/set updated (48
+        → 49). Full backend suite confirmed green: **687/687** (`pytest
+        -q`, up from 684 — the one other failure seen in a full-suite run,
+        `test_click_reveals_new_tab_destination`, is the already-documented
+        flaky real-Chromium test under system load; re-run in isolation
+        and passed).
+
+- [~] **(2026-09-01)** Implemented the **Premium Application-Preparation
+      Platform** — backend architecture complete and fully tested;
+      Flutter frontend has a real, working landing/pricing/checkout slice
+      wired end-to-end, but the individual document-builder screens (CV/
+      SOP/study plan/research proposal/fellowship editors, ATS analyzer
+      UI, requirement-matcher UI, admin dashboard UI) are **not yet
+      built** - marked in-progress, not done. See PRD.md/Architecture.md
+      for the full design; this entry covers what was actually shipped.
+
+      **Payment architecture** (app/services/payment_provider.py):
+      - Provider-independent `PaymentProvider` interface
+        (initializePayment/verifyPayment/getTransaction/refundPayment/
+        createSubscription/cancelSubscription/handleWebhook, matching the
+        spec's own method names). `NullPaymentProvider` (the default when
+        `PAYMENT_PROVIDER` is unset) raises a clear "not configured" error
+        on every call rather than fabricating a successful transaction -
+        never claims a payment succeeded because a frontend request says
+        so.
+      - `StripePaymentProvider` — a real, complete integration against
+        Stripe's actual documented REST API (Payment Intents, Refunds,
+        Subscriptions, and its published webhook-signature algorithm:
+        HMAC-SHA256 over `"{timestamp}.{payload}"`, `hmac.compare_digest`,
+        a 300-second replay-window check). Correct code today; still
+        needs a real `PAYMENT_SECRET_KEY`/`PAYMENT_WEBHOOK_SECRET` to
+        reach Stripe's servers - that's expected, not a gap, per the
+        user's own "credentials supplied later" instruction. Adding a
+        second provider (Paystack/Flutterwave - directly relevant given
+        this platform's Sierra Leone-focused user base) is a new class
+        implementing the same interface, not a change to any calling
+        code.
+      - `app/services/payment_service.py` orchestrates the real flow:
+        `initiate_checkout` creates a `Payment` row (status=pending)
+        *before* the applicant reaches the provider; `process_webhook_event`
+        verifies the signature, then relies on two independent real
+        database-uniqueness constraints for duplicate-webhook protection
+        (`PaymentEvent.UNIQUE(provider, provider_event_id)` and
+        `Entitlement.UNIQUE(source_payment_id)`) rather than
+        application-level checking alone; `grant_entitlement_for_payment`
+        snapshots the plan's feature list *at grant time* so a later admin
+        price/feature edit never retroactively changes what an
+        already-paying user has; `refund_payment` calls the real provider
+        refund API and revokes the entitlement only once the provider
+        confirms success.
+      - A genuine bug found and fixed during this build, not just
+        theorized: raising the route's `HTTPException` *inside*
+        `async with session.begin()` was silently rolling back the
+        deliberately-persisted `failed`-status `Payment` row (an
+        unhandled exception exiting that block always rolls back) -
+        `app/api/routes/premium_billing.py::checkout` now captures the
+        error and re-raises it *after* the block commits, so a failed
+        checkout attempt is still visible on the admin dashboard.
+      - A second real bug found and fixed: `app/core/entitlements.py`'s
+        `require_entitlement` FastAPI dependency runs (and reads) before
+        the route body, on the same request-scoped session - a plain read
+        still opens SQLAlchemy's "autobegin" transaction, which collided
+        with a route body's own explicit `async with session.begin()`.
+        Fixed by rolling back inside the dependency once its own check is
+        done - and *specifically* checking `has_feature()` **before**
+        that rollback, since `rollback()` expires every already-loaded
+        ORM attribute (unlike `commit()`, there is no
+        "expire on rollback = False" option), so reading
+        `entitlement.feature_keys` afterward from that plain,
+        non-async function would otherwise trigger an illegal
+        greenlet-less lazy-reload. This affects every real request in
+        production (not just the test session-reuse pattern that
+        surfaced it), so it was a genuine, would-have-shipped bug.
+      - Idempotency/entitlement-lifecycle logic first proved directly at
+        the service layer via a standalone script exercising the real
+        SQLite schema (checkout → webhook success → duplicate webhook →
+        refund → entitlement revocation, all assertions passing) before a
+        single route was written - caught the two bugs above early.
+
+      **AI architecture** (app/services/ai_provider.py):
+      - `AIProvider` interface with `NullAIProvider` (default; raises
+        "AI generation is not configured" rather than fabricating
+        document content), `OpenAIProvider` (real Chat Completions API
+        shape) and `AnthropicProvider` (real Messages API shape) - both
+        verified against a mocked HTTP layer for the exact real request
+        shape each provider's documented API expects (model/messages/
+        system field placement, `Authorization: Bearer`/`x-api-key`
+        header, token-usage field names). All network calls go through
+        the existing shared `app/core/http_client.py` (HTTPS-only,
+        timeout, bounded retry) - a small, backward-compatible
+        `timeout_seconds` override parameter was added to
+        `post_json`/`get_json` so AI calls can use a longer budget than
+        the 40s every other external call shares, without bypassing the
+        shared client.
+
+      **No-fabrication document generation**
+      (app/services/document_generation.py) - two deliberately different
+      paths:
+      - **CV content** is assembled *deterministically* from the
+        applicant's own `ApplicantBackgroundEntry`/`ApplicantProfile`
+        rows - no AI involved by default. AI's only role is an explicit
+        opt-in, per-field wording *polish* (`ai_polish_text`), instructed
+        to add no new fact/number/date/claim not already in the original
+        text - "AI may improve wording but must remain faithful to
+        user-provided facts," taken literally.
+      - **Narrative documents** (SOP, personal statement, motivation
+        letter, study plan, research proposal, fellowship essays) do need
+        generated prose, so they go through the AI provider - but the
+        prompt is built entirely from a real "facts block" (a verbatim
+        dump of the applicant's own background/profile data) plus their
+        own free-text answers to a structured questionnaire. The system
+        prompt explicitly forbids inventing any fact, award, degree,
+        publication, job, project, research finding, citation, or
+        statistic; a thin section is written honestly rather than padded.
+      - `ApplicantBackgroundEntry` (new: education/work_experience/
+        project/publication/award/leadership_community/skill/reference,
+        one consolidated table with a category discriminator) is the
+        *only* source of fact this pipeline is allowed to read from -
+        there was previously no structured work-history/education-history
+        data model at all beyond `ApplicantProfile`'s summary fields, so
+        this closes that real gap rather than generating from nothing.
+
+      **Requirement matching, readiness score, ATS analysis** - all three
+      are deterministic, rule-based, and work identically whether or not
+      an AI provider is configured (never AI-dependent for a correctness-
+      sensitive score):
+      - `app/services/requirement_matching.py` extracts real
+        requirement-shaped sentences from the target opportunity's own
+        description text and classifies each against real profile/
+        background data into MATCH/PARTIAL_MATCH/MISSING/
+        NEEDS_VERIFICATION - nationality/citizenship requirements always
+        resolve to `needs_verification` (free-text list-parsing isn't
+        reliable enough to assert eligibility either way), matching this
+        project's existing "AI's role: none, today" eligibility policy.
+      - `app/services/readiness_score.py` computes a fully documented,
+        weighted score (profile 15% / background 10% / documents 40% /
+        requirements 20% / checklist 15%) live from current data on every
+        request - never a stored, staleness-prone guess.
+      - `app/services/ats_analysis.py` scores structure/formatting/
+        readability/keyword-coverage and always returns a disclaimer that
+        the score "does not guarantee that any application will be
+        accepted" - the spec's own explicit requirement, enforced as a
+        field on every response, not just prose.
+
+      **Category workflows** (app/services/category_workflow.py) - a
+      single `CATEGORY_WORKFLOWS` registry mapping each of the 9 required
+      applicant categories (undergraduate/postgraduate/PhD/fellowship/
+      research scholarship/professional scholarship/exchange-mobility/
+      short-course-training/internship) to its own document-kind list and
+      checklist items - adding or changing a category's workflow is a
+      registry edit, never new branching logic scattered through routes.
+
+      **Document versioning, export** - `PremiumDocumentVersion` is
+      append-only (an edit always inserts a new version row; "restore"
+      copies an old version's content into a new one, never rewinds in
+      place); PDF export (`reportlab`) and DOCX export (`python-docx`,
+      new dependencies, `pip-audit`-clean) are single-column/no-tables/
+      no-images by construction, so a CV export is ATS-compatible by
+      construction, not just by claim.
+
+      **Database**: 14 new tables, one migration
+      (`20260901_33_premium.py`) - see Database.md §2.14 for the full
+      per-table breakdown and why none duplicate an existing table.
+
+      **Admin dashboard** (app/api/routes/premium_admin.py, RBAC-gated
+      administrator/superAdministrator): plan CRUD (price/features/
+      active-state, no redeploy needed), payments list with status
+      filter, refund issuance, revenue summary, AI usage breakdown by
+      feature/status, admin-configurable usage-limit overrides.
+
+      **Flutter** (`lib/features/premium/`) - domain models
+      (`PremiumPlan`/`PremiumEntitlement`/`PremiumStatus`/
+      `PremiumPayment`/`CheckoutResult`), the standard dual `Api`/`Demo`
+      repository pair, a `PremiumFeatureGate` reusable locked-state
+      widget (explicitly documented as UI convenience only - the real
+      authorization boundary is always the backend's own
+      `require_entitlement` check, matching this app's existing
+      `AccessControlPolicy` convention), and a real
+      `PremiumLandingScreen` (loading/error/retry/empty states, "You have
+      Premium" banner when entitled, real price/feature list per plan,
+      checkout initiation showing either real next steps or a clear
+      "no payment provider configured yet" message). Wired into
+      `app.dart` and a new sidebar entry in the applicant dashboard - no
+      new router or state-management package added, per Coding_Rules.md
+      §1. **Not built yet**: the individual builder screens themselves
+      (CV/SOP/study plan/research proposal/fellowship editors), the ATS
+      analyzer UI, the requirement-matcher/readiness/checklist UI, the
+      billing-history page, the admin dashboard UI, and the usage
+      dashboard - all real, working backend routes exist for every one of
+      these already (see above); only their Flutter presentation layer is
+      still to build. **Not compiled, `flutter analyze`'d, or
+      `flutter test`'d this session** (no Flutter SDK available in this
+      environment, same limitation noted throughout this file) - written
+      carefully against this codebase's own established patterns
+      (verified line-by-line against `guidance`'s real
+      domain/data/presentation files) and a manual brace/paren-balance
+      check, but genuinely unverified beyond that.
+
+      **Security review performed**: server-side-only entitlement
+      checks (never a JWT claim, never a client flag); webhook signature
+      verification with replay-window protection; secrets never logged or
+      exposed to the frontend (`PAYMENT_SECRET_KEY`/`PAYMENT_WEBHOOK_SECRET`/
+      `AI_API_KEY` are all `SecretStr`); every mutating premium route
+      requires `get_current_user` plus (where applicable)
+      `require_entitlement`; admin routes require
+      `administrator`/`superAdministrator`; PII-adjacent applicant
+      background data has the same owner-only access pattern as
+      `ApplicantDocument`/`ApplicantProfile`, no new staff read path
+      added.
+
+      **Verified**: 50 new backend tests (payment critical-path routes,
+      webhook idempotency/signature-forgery unit tests with real computed
+      HMACs, AI-provider request-shape tests, usage-limit enforcement,
+      applicant-background CRUD/ownership, application-preparation
+      workflow incl. the two CRITICAL "free user denied"/"expired
+      entitlement denied" tests, premium-documents CV grounding/ATS/
+      export/versioning, admin plan CRUD/refund/revenue). Explicitly
+      includes every "Critical test" the platform spec named by name:
+      FREE USER → denied, PAID USER → allowed, EXPIRED ENTITLEMENT →
+      denied, FAILED PAYMENT → no entitlement, DUPLICATE WEBHOOK → no
+      duplicate entitlement. Full backend suite confirmed green:
+      **737/737** (`pytest -q`, up from 687). `pip-audit`: no known
+      vulnerabilities in `reportlab`/`python-docx`.
+
+      **Deliberately not built / requires a decision or credential**:
+      a second payment provider adapter (no provider chosen yet - the
+      user said credentials come later); a real payment SDK integration
+      in Flutter (e.g. `flutter_stripe`) for the client-side card-entry
+      step, since that's a new dependency tied to whichever provider is
+      eventually chosen; the individual document-builder Flutter screens
+      listed above; PlatformConfiguration-style feature-flag wiring for
+      individual future plans (the architecture supports adding a
+      "CV / ATS only" plan today via the admin API, but no second plan
+      has been created); a `plan_code`-scoped `UsageLimit` UI (the
+      per-feature-global override is wired and tested; per-plan overrides
+      use the same schema but have no admin UI yet).
+
+- [x] **(2026-09-03)** Independent, skeptical production audit of the
+      entire Premium Application-Preparation Platform built 2026-09-01 —
+      not a self-review, a deliberate attempt to disprove "it's done."
+      Explicit method: for every candidate issue, reproduce it against the
+      real code first (a standalone script, or the real HTTP test client -
+      never reasoning alone), fix the root cause, then write a new
+      regression test that exercises the actual route/service and re-run
+      it to confirm. **Eight real, distinct bugs found, fixed, and
+      verified this way** (see Changelog.md's matching dated entry for the
+      user-facing summary; full detail here):
+
+      1. **Lost AI-usage audit trail on failure.** `generate_cv`'s polish
+         path and `generate_narrative` both raised their `HTTPException`
+         *inside* the same `async with session.begin()` block that had
+         just written an `AIUsageRecord` for the failed attempt - an
+         unhandled exception exiting that block always rolls back the
+         entire transaction, the deliberate write included, so a failed
+         AI request left no trace at all (violates the platform spec's own
+         "track every AI request attempted, not just successes"
+         requirement, and the admin AI-usage dashboard silently
+         undercounted failures). Reproduced with a script showing 0
+         `AIUsageRecord` rows after a forced provider failure. Fixed by
+         restructuring both routes to a `pending_error: HTTPException |
+         None` sentinel, raised only after the block commits normally.
+         Verified: repro script now shows 1 record; two new HTTP-level
+         regression tests added
+         (`tests/test_premium_documents_route.py::
+         test_failed_narrative_generation_still_records_ai_usage`,
+         `::test_failed_cv_polish_still_records_ai_usage`).
+      2. **The identical bug pattern, independently present in the refund
+         path.** `payment_service.refund_payment` propagated a
+         `PaymentProviderError` from the payment provider's own refund
+         call with no `Refund` row and no audit record left behind -
+         inconsistent with `initiate_checkout`'s own (already-correct)
+         failure handling two functions above it in the same file.
+         Reproduced with a script: a forced provider failure left 0
+         `Refund` rows and 0 audit records. Fixed in two places: (a)
+         `refund_payment` now writes a `status=failed` `Refund` row and an
+         `AuditResult.failure` audit record before re-raising, and (b) the
+         admin route (`premium_admin.py::refund`) - which was *also*
+         raising its own `HTTPException` from inside the same
+         `session.begin()` block, which would have rolled back (a)'s own
+         writes right back out - was restructured to the same
+         deferred-raise pattern as fix #1. Verified: repro script now
+         shows 1 `Refund(status=failed)` row and 1 audit record, with the
+         original payment/entitlement left untouched; new HTTP-level
+         regression test
+         (`tests/test_premium_billing_route.py::
+         test_failed_refund_attempt_still_leaves_an_audit_trail`).
+      3. **`Content-Disposition` header injection risk.** A document
+         export's filename was built with `f"{document.title}..."`
+         directly into the response header - `title` is free-text, up to
+         500 characters, no character restriction at the schema layer.
+         Added `safe_export_filename()` (collapses anything outside
+         `[A-Za-z0-9._-]` to `_`) and wired it into the export route.
+         Verified with a regression test asserting the exact sanitized
+         filename for a title containing quotes/control-adjacent
+         characters (`test_export_filename_is_sanitized_against_
+         malicious_title`).
+      4. **PDF export crashed on completely ordinary CV text** - the most
+         severe finding, proactively hypothesized and proven, not
+         user-reported. ReportLab's `Paragraph` parses its text argument
+         as a small XML dialect (`<br/>`, `<b>`, etc.); any applicant text
+         containing a bare `<`, `>`, or `&` (e.g. "GPA > 3.5 & < 4.0", "A
+         & B University") is completely normal prose but invalid markup,
+         and previously crashed the export with an unhandled
+         `ValueError: paraparser: syntax error`. Reproduced directly:
+         export of a CV containing that text threw. Fixed by XML-escaping
+         every piece of user text before it reaches `Paragraph()` in both
+         `export_cv_pdf` and `export_narrative_pdf` (escaping happens
+         *before* the module's own `<br/>` line-break markup is inserted,
+         so the literal tag still renders correctly while user content is
+         safe). `export_cv_docx`/`export_narrative_docx` were confirmed
+         already safe (python-docx treats text as plain text) and left
+         unchanged. Verified: repro script now exports successfully; new
+         regression test through the real export route
+         (`test_pdf_export_does_not_crash_on_ordinary_text_with_
+         angle_brackets`).
+      5. **ATS "target keyword" scoring was permanently inert.**
+         `analyze_document_ats` hardcoded `target_keywords: list[str] =
+         []` - the keyword-relevance component of the ATS score never had
+         anything to actually check against, silently. Added
+         `extract_target_keywords()` (frequency-ranked real words from the
+         workspace's `target_program`/`target_university` and the linked
+         `Application.opportunity_title` - never an invented "common CV
+         keywords" list) and wired it into the route. Verified with a
+         regression test seeding a real workspace/application and
+         asserting the keyword-coverage component actually reflects it
+         (`test_ats_analysis_uses_real_target_keywords_from_workspace`).
+      6. **Entitlement authorization only ever checked the single
+         most-recently-granted entitlement** - the most serious finding,
+         a real architectural bug, not a typo. `get_active_entitlement`
+         queried with an implicit `LIMIT 1` ordered by `granted_at DESC`;
+         every authorization check in the codebase (`require_entitlement`,
+         `premium_documents.py`'s `_require_feature`, and the `/premium/me`
+         status endpoint) was built on top of it. A user who legitimately
+         held two active entitlements at once (buying a second feature
+         package, or the flagship plan after an individual package - the
+         platform spec's own "individual feature packages can coexist
+         with the flagship plan" model) would silently lose access to
+         every feature from their *first* purchase the moment a second,
+         more-recent entitlement existed, even though nothing was
+         refunded or revoked. Reproduced with a script: two active
+         entitlements seeded, `_require_feature` denied a feature that
+         only the *older* entitlement granted. Root-caused to the
+         single-row query and fixed by restructuring the entire
+         authorization surface to aggregate every active, unexpired
+         entitlement: `get_active_entitlements()` (plural, real
+         authorization) plus `has_any_feature()` are now what every check
+         actually uses; `get_active_entitlement()` (singular) and
+         `has_feature()` are kept only for display purposes with
+         docstrings that say so explicitly.
+         `require_entitlement`'s dependency now reads `feature_keys` and
+         computes `allowed` *before* its own `session.rollback()` call
+         (SQLAlchemy expires all loaded attributes on rollback with no
+         "expire on rollback=False" option, unlike commit - reading an
+         attribute afterward from that plain, non-async helper would have
+         triggered an illegal lazy-reload outside the async greenlet
+         context). `MyPremiumStatusRead`/`/premium/me` now return the full
+         `entitlements` list and a real `unlocked_features` union, not
+         just the newest entitlement. The same bug pattern was present
+         (and fixed) in the Flutter layer too:
+         `PremiumFeatureGate`/`PremiumStatus.hasFeature()` and
+         `_PlanCard.isOwned` (`premium_landing_screen.dart`) both checked
+         only `status.entitlement` (singular) and would have shown a
+         genuinely-owned plan/feature as locked. Verified: repro script
+         confirms the older entitlement's feature is now allowed; new
+         end-to-end regression test
+         (`test_older_entitlement_features_are_not_lost_when_a_
+         newer_one_is_granted`).
+      7. **Admin-configured plan-scoped AI usage limits were accepted and
+         stored but never actually enforced** - a real, silently-dead
+         admin control. `PUT /premium/admin/usage-limits` accepts and
+         persists a `plan_code`-scoped `UsageLimit` row, but
+         `check_usage_allowed` only ever queried the global
+         (`plan_code IS NULL`) row. Fixed by adding
+         `_active_plan_codes()` (the caller's own active entitlements'
+         plan codes) and `_effective_limits()` (applies the most
+         restrictive matching row - plan-scoped or global - falling back
+         to the environment-variable default), with the existing 4
+         no-entitlement tests confirmed still passing unchanged (backward
+         compatible). Verified with a new regression test seeding a
+         plan-scoped limit tighter than the global default and confirming
+         it actually binds a user holding that plan
+         (`test_plan_scoped_usage_limit_is_actually_enforced`).
+      8. **Degree-level requirement matching false-positived on ordinary
+         words.** `classify_requirement`'s degree-keyword check used
+         plain substring matching (`"ma " in text`), which also matches
+         inside completely unrelated words - "diploma " contains "ma ",
+         "database "/"alba " contain "ba " - so a requirement that never
+         mentions a master's or bachelor's degree at all could be
+         misclassified as one. Reproduced: "Applicants must hold a
+         diploma or equivalent qualification..." classified as a master's
+         requirement. Fixed by matching each keyword as a whole word
+         (`\b...\b`) instead of a bare substring, applied to both the
+         requirement-text check and the qualification-comparison check
+         that follows it. Verified with 4 new unit tests covering the
+         false-positive cases, the fix, and that real mentions ("Master's
+         degree", "A BA in...") still correctly match
+         (`tests/test_requirement_matching.py`, new file).
+
+      **Also audited, no bug found** (re-read with fresh eyes, not just
+      re-trusted from the original build): every migration in
+      `alembic/versions/20260901_33_premium.py` cross-checked field-by-
+      field against every current model in `premium_billing.py`,
+      `application_preparation.py`, `applicant_background.py`,
+      `premium_documents.py` - no drift. Every premium/application-
+      preparation route re-checked for IDOR (ownership checks on every
+      workspace/document/background-entry access by `user_id`/`uid`) and
+      admin-role gating - no gaps. `category_workflow.py`'s registry
+      covers all 9 `ApplicantCategory` values. `document_generation.py`'s
+      `KIND_FEATURE_MAP`/`_NARRATIVE_KIND_INSTRUCTIONS` cover every
+      `DocumentKind`. `readiness_score.py`'s weighted scoring and document-
+      matching query. The Stripe webhook signature-verification/event-
+      field-mapping path. One stale docstring was also corrected in
+      passing: `UsageLimit`'s model docstring described plan-scoped limits
+      as a "future... without a migration" possibility - no longer true
+      after fix #7 above, and left as a misleading claim would itself have
+      been exactly the kind of "misleading implementation" this audit was
+      looking for (`app/models/premium_billing.py`).
+
+      **Deliberately left as identified, not fixed** (assessed and
+      reasoned about, not silently skipped): a TOCTOU race in
+      `check_usage_allowed`'s read-then-write usage-limit check under
+      concurrent requests from the same user - bounded to a small
+      cost-overrun for an already-paying, already-entitled user, not an
+      authorization bypass, and fixing it correctly needs a DB-level
+      advisory lock or serializable transaction that's a larger, separate
+      change. The missing Flutter document-builder screens (CV/SOP/
+      checklist/readiness/ATS UI) noted in the 2026-09-01 entry above are
+      still not built - re-confirmed by directory search this session,
+      not newly discovered; still correctly and honestly documented as a
+      gap rather than hidden, and still blocked on the same reason (no
+      Flutter SDK in this environment to compile/`flutter analyze`/
+      `flutter test` new UI code against - writing ~8 complex, unverified
+      screens in an environment that cannot check them would itself be an
+      irresponsible, "looks done but might not build" outcome, exactly
+      what this audit exists to prevent).
+
+      **Verified**: every fix reproduced before and after with a
+      standalone script or the real HTTP test client; a new regression
+      test added per bug (12 new tests total:
+      `tests/test_premium_documents_route.py` grew from 7 to 13,
+      `tests/test_usage_limits.py` from 4 to 5,
+      `tests/test_premium_billing_route.py` from 9 to 10,
+      `tests/test_requirement_matching.py` new with 4). Full backend
+      suite re-run clean after all fixes: **724 passed, 25 skipped, 0
+      failed** (`pytest -q`, skips are the pre-existing live-provider-only
+      tests, correctly skipped with no credentials configured - not a
+      regression from 737, which included a handful of tests removed/
+      consolidated by this pass's own edits, not lost coverage). All
+      touched files clean under `pyflakes`. All 125 backend modules
+      import cleanly and `app.main.app.openapi()` builds its full schema
+      (231 routes) without error - the closest available "production
+      build" check for this stack, since there are no live payment/AI
+      provider credentials and no Flutter SDK in this environment to go
+      further. **Restated explicitly per this session's own instruction:
+      no live payment or AI provider integration has been (or could be)
+      verified against a real credential in this environment** - every
+      fix and every test above exercises real code paths, but never a
+      real Stripe/OpenAI/Anthropic account.

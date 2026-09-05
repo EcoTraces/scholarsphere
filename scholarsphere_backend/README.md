@@ -279,6 +279,76 @@ Stop without deleting PostgreSQL/Redis volumes:
 docker compose down
 ```
 
+## Deploying to a free hosting tier
+
+**Stack:** [Render](https://render.com) (web service) +
+[Neon](https://neon.tech) (Postgres) + [Upstash](https://upstash.com)
+(Redis). Chosen after checking the current (2026) state of each
+platform's free tier, not from memory - the landscape here changes often
+enough that stale advice is actively wrong:
+
+- **Neon**: free Postgres plan is explicitly permanent, no time limit, no
+  credit card ("Build and learn free with no time limits") - unlike
+  Render's own free Postgres, which **expires after 30 days**. Use Neon,
+  not Render's built-in database.
+- **Upstash**: free Redis plan (500,000 commands/month, 256 MB) is also
+  ongoing, not a trial. Supports the standard Redis wire protocol (a
+  `rediss://...` connection string from its dashboard), which is what
+  this backend's `REDIS_URL` needs - it does not require using Upstash's
+  separate REST API.
+- **Render**: free web services (0.1 CPU / 512 MB) run indefinitely, no
+  trial expiry, but sleep after 15 minutes idle and cold-start (tens of
+  seconds) on the next request. Acceptable for a demo/staging deployment;
+  not a production SLA.
+
+**What this does not cover:** Render's free plan has no Background Worker
+or Cron Job service type - both require a paid plan (Cron Jobs specifically
+have a $1/month-per-job minimum). That means the 22 scheduled Celery tasks
+in `app/tasks/opportunity_sync.py` (source syncs, link-health checks,
+reverification, notification delivery) have no equivalently free
+always-on home right now. The API itself works fully without them - every
+route in this README works - just without anything running those jobs on
+a schedule. If/when that's worth paying for, the cheapest fix is a Render
+Background Worker (`celery ... worker`) plus a Cron Job (`celery ...
+beat`, or a single scheduled invocation per task) on a paid plan, using
+the same Docker image already built here.
+
+### Setup
+
+1. **Neon**: create a project, copy its connection string, and rewrite
+   its scheme for this backend's async driver:
+   `postgresql://...` -> `postgresql+asyncpg://...` (keep everything
+   after `://` as Neon gave it, including `?sslmode=require`).
+2. **Upstash**: create a Redis database, copy the `rediss://` connection
+   string from its dashboard.
+3. **Firebase**: generate a service-account key (Firebase Console ->
+   Project settings -> Service accounts -> Generate new private key),
+   then base64-encode it: `base64 -w0 service-account.json` (Linux) or
+   `base64 -i service-account.json | tr -d '\n'` (macOS).
+4. **Render**: New -> Blueprint -> point at this repository. Render reads
+   `render.yaml` at the repo root and creates the `scholarsphere-backend`
+   web service automatically. Then, in that service's Environment tab,
+   set the secrets `render.yaml` deliberately left blank
+   (`sync: false`): `DATABASE_URL` (step 1), `REDIS_URL` (step 2),
+   `FIREBASE_PROJECT_ID`, `FIREBASE_CREDENTIALS_JSON_BASE64` (step 3),
+   and `ALLOWED_ORIGINS` (the origin(s) that will call this API - e.g.
+   the GitHub Pages origin from `.github/workflows/deploy-pages.yml`,
+   see the root `.env.example`'s CORS section for the exact format).
+5. Deploy, then check `https://<your-service>.onrender.com/health/ready`
+   returns `{"status": "ready"}` - that exercises a real database query,
+   not just process liveness (`/health/live`).
+6. Point the Flutter web build at this URL via the
+   `SCHOLARSPHERE_API_BASE_URL` repo Actions variable (see
+   `.github/workflows/deploy-pages.yml`'s own comments).
+
+`APP_ENV=production` (set in `render.yaml`) makes `app/core/config.py`
+refuse to start against a placeholder `DATABASE_URL`/`REDIS_URL` and
+forces Firebase token-revocation checking on - see that file's
+`reject_placeholder_infrastructure_credentials_in_production` for why. A
+missing/invalid Firebase credential fails startup the same way (see
+`app/main.py`'s `ensure_firebase_ready_in_production`), so step 3 isn't
+optional for a production-mode deploy.
+
 ## API usage
 
 Every protected request needs a Firebase ID token:

@@ -230,25 +230,24 @@ class ApiReleaseRepository implements ReleaseRepository {
         summary: json['summary'] as String? ?? '',
       );
 
-  DeploymentRecord _toDeployment(Map<String, dynamic> json) =>
-      DeploymentRecord(
-        id: json['id'] as String,
-        artifact: _artifactFromWire(json['artifact'] as Map<String, dynamic>),
-        environment: DeploymentEnvironment.values.firstWhere(
-          (value) => value.name == json['environment'],
-        ),
-        strategy: DeploymentStrategy.values.firstWhere(
-          (value) => value.name == json['strategy'],
-        ),
-        status: DeploymentStatus.values.firstWhere(
-          (value) => value.name == json['status'],
-        ),
-        createdBy: json['created_by'] as String,
-        approvedBy: json['approved_by'] as String?,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        previousDeploymentId: json['previous_deployment_id'] as String?,
-        history: (json['history'] as List<dynamic>).cast<String>(),
-      );
+  DeploymentRecord _toDeployment(Map<String, dynamic> json) => DeploymentRecord(
+    id: json['id'] as String,
+    artifact: _artifactFromWire(json['artifact'] as Map<String, dynamic>),
+    environment: DeploymentEnvironment.values.firstWhere(
+      (value) => value.name == json['environment'],
+    ),
+    strategy: DeploymentStrategy.values.firstWhere(
+      (value) => value.name == json['strategy'],
+    ),
+    status: DeploymentStatus.values.firstWhere(
+      (value) => value.name == json['status'],
+    ),
+    createdBy: json['created_by'] as String,
+    approvedBy: json['approved_by'] as String?,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    previousDeploymentId: json['previous_deployment_id'] as String?,
+    history: (json['history'] as List<dynamic>).cast<String>(),
+  );
 
   ReleaseArtifact _artifactFromWire(Map<String, dynamic> json) =>
       ReleaseArtifact(

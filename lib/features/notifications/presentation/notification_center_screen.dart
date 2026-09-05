@@ -136,10 +136,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                   ? null
                                   : Semantics(
                                       label: 'Unread',
-                                      child: const Icon(
-                                        Icons.circle,
-                                        size: 10,
-                                      ),
+                                      child: const Icon(Icons.circle, size: 10),
                                     ),
                               onTap: () async {
                                 await widget.repository.markRead(
@@ -174,8 +171,18 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   // A day/month/year slash format (e.g. "3/7/2027") is ambiguous across

@@ -225,15 +225,22 @@ class EswatiniSlasSource(_EmbassyAnnouncementSource):
     "Swaziland" - matching the country-name-normalization requirement
     for this expansion.
 
-    LIVE SOURCE TEST: NOT PERFORMED. `https://www.slas.gov.sz` timed out
-    on every connection attempt (2026-08-22/23, both protocols) - the
-    same failure pattern as `mthe_sl_base_url` above (a different
-    `.gov.sz`-adjacent... actually a distinct ccTLD/hosting path, but an
-    identical symptom: DNS resolves though this was not itself re-tested
-    for slas.gov.sz specifically, connection times out rather than
-    refuses). Implemented against the same conservative announcement
-    pattern and unit-tested against a realistic fixture only. Smoke-test
-    against the live site before enabling its scheduled sync.
+    LIVE SOURCE TEST: PARTIALLY PERFORMED, 2026-08-29. `https://
+    www.slas.gov.sz` (the originally configured host) still times out on
+    every attempt; the bare `https://slas.gov.sz` (no "www.") is
+    reachable (200, real ~41KB HTML, 3/3 attempts) and is now what
+    `eswatini_slas_base_url` points at. However, the real homepage
+    content is a domestic student-loan portal for Eswatini nationals
+    ("Ministry of Labour and Social Security" / "Student Loan" / "Apply
+    Now" / "Loan Repayment") - neither "scholarship" nor "SADC" appears
+    anywhere in the page's HTML, so this class's own keyword-matching
+    (`keywords` below) correctly finds zero announcement links on it.
+    Fixing reachability alone does not make this source produce
+    records; it likely needs a different `list_path` pointing at an
+    actual scholarships/SADC sub-page, if one exists on this domain -
+    not yet found. Left enabled (harmlessly returns an empty list
+    rather than fabricating anything) rather than disabled, in case a
+    future check finds the right sub-page.
     """
 
     source_code = "eswatini_slas"

@@ -228,6 +228,51 @@ class LiveVerificationSummary {
   final int approvedByYou;
 }
 
+/// Source- and country-level discovery aggregates, complementing
+/// [LiveVerificationSummary] (per-opportunity verification state) with
+/// crawl/source health, the catalog's country spread, and application-link
+/// health backlog/breakage from the backend's periodic link-health check.
+/// See [ApiVerificationRepository.getDiscoverySummary].
+class LiveDiscoverySummary {
+  const LiveDiscoverySummary({
+    required this.sourcesTotal,
+    required this.sourcesActive,
+    required this.sourcesWithRecentErrors,
+    required this.opportunitiesTotal,
+    required this.publishedTotal,
+    required this.duplicateReviewRequired,
+    required this.opportunitiesByCountry,
+    required this.neverLinkChecked,
+    required this.brokenLinks,
+  });
+
+  factory LiveDiscoverySummary.fromJson(Map<String, dynamic> json) =>
+      LiveDiscoverySummary(
+        sourcesTotal: json['sources_total'] as int,
+        sourcesActive: json['sources_active'] as int,
+        sourcesWithRecentErrors: json['sources_with_recent_errors'] as int,
+        opportunitiesTotal: json['opportunities_total'] as int,
+        publishedTotal: json['published_total'] as int,
+        duplicateReviewRequired: json['duplicate_review_required'] as int,
+        opportunitiesByCountry:
+            (json['opportunities_by_country'] as Map<String, dynamic>).map(
+              (key, value) => MapEntry(key, value as int),
+            ),
+        neverLinkChecked: json['never_link_checked'] as int,
+        brokenLinks: json['broken_links'] as int,
+      );
+
+  final int sourcesTotal;
+  final int sourcesActive;
+  final int sourcesWithRecentErrors;
+  final int opportunitiesTotal;
+  final int publishedTotal;
+  final int duplicateReviewRequired;
+  final Map<String, int> opportunitiesByCountry;
+  final int neverLinkChecked;
+  final int brokenLinks;
+}
+
 /// Reads and acts on the real verification queue from the ScholarSphere
 /// Python backend (scholarsphere_backend/).
 ///
@@ -405,6 +450,15 @@ class ApiVerificationRepository implements VerificationRepository {
       const {},
     );
     return LiveVerificationSummary.fromJson(body as Map<String, dynamic>);
+  }
+
+  /// Source/country/link-health aggregates - see [LiveDiscoverySummary].
+  Future<LiveDiscoverySummary> getDiscoverySummary() async {
+    final body = await _get(
+      '/external-opportunities/discovery-summary',
+      const {},
+    );
+    return LiveDiscoverySummary.fromJson(body as Map<String, dynamic>);
   }
 
   /// The official source's raw record behind one opportunity, available to

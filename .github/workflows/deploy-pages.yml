@@ -1,0 +1,93 @@
+name: Deploy web to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lib/**"
+      - "web/**"
+      - "assets/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time; a newer push cancels an in-flight one
+# rather than racing it, but never cancels the live deployment itself.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Static analysis
+        run: flutter analyze
+      - name: Automated tests
+        run: flutter test
+      - name: Build web artifact
+        # GitHub Pages project sites (not a custom domain or a
+        # <owner>.github.io root repo) are served from
+        # https://<owner>.github.io/<repo>/, so every asset URL the app
+        # emits must be rooted at /<repo>/, not /. --base-href is the
+        # supported way to do that (see web/index.html's own comment on
+        # $FLUTTER_BASE_HREF) - deploying with the default "/" base href
+        # would 404 every asset load once served from a subpath.
+        #
+        # SCHOLARSPHERE_API_BASE_URL is a compile-time --dart-define (see
+        # lib/features/opportunities/data/api_opportunity_repository.dart)
+        # - it is baked into the built JS, not read at runtime. Its
+        # default is http://localhost:8000/api/v1, which is unreachable
+        # from a visitor's browser once this is deployed. Set a repo
+        # Actions variable named SCHOLARSPHERE_API_BASE_URL (Settings ->
+        # Secrets and variables -> Actions -> Variables) to the real,
+        # publicly reachable HTTPS URL of a deployed
+        # scholarsphere_backend/ instance before relying on this
+        # deployment for anything beyond a static preview - this backend
+        # is not deployed anywhere by this workflow or this repository.
+        run: |
+          flutter build web --release \
+            --base-href "/${{ github.event.repository.name }}/" \
+            --dart-define=SCHOLARSPHERE_API_BASE_URL="${{ vars.SCHOLARSPHERE_API_BASE_URL || 'http://localhost:8000/api/v1' }}"
+      - name: Add SPA fallback and disable Jekyll processing
+        # This app navigates in-memory (a single MaterialApp with a
+        # NavigatorKey, no GoRouter/path-based routes - see lib/app/app.dart)
+        # so there are no deep sub-paths to rewrite; 404.html is a
+        # defensive fallback for a stray bookmarked/shared sub-path, not a
+        # routing requirement. .nojekyll stops GitHub Pages' default
+        # Jekyll processing from mangling the build output (its
+        # underscore-prefixed-file exclusion rule in particular) - this is
+        # unconditionally recommended for any Flutter web Pages deploy,
+        # not just this app's current output shape.
+        run: |
+          cp build/web/index.html build/web/404.html
+          touch build/web/.nojekyll
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -538,18 +538,8 @@ class _ProviderMetrics extends StatelessWidget {
       const amber = Color(0xFFE09F3E);
       final values = [
         ('Total Opportunities', total, Icons.inventory_2_outlined, ink),
-        (
-          'Published Opportunities',
-          published,
-          Icons.verified_outlined,
-          teal,
-        ),
-        (
-          'Application Clicks',
-          applications,
-          Icons.groups_outlined,
-          amber,
-        ),
+        ('Published Opportunities', published, Icons.verified_outlined, teal),
+        ('Application Clicks', applications, Icons.groups_outlined, amber),
         ('Opportunity Views', views, Icons.visibility_outlined, teal),
         ('Saved', saves, Icons.star_outline, amber),
       ];
@@ -612,11 +602,7 @@ class _EngagementOverview extends StatelessWidget {
         children: [
           _bar('Views', analytics.views, const Color(0xFF14213D)),
           _bar('Saves', analytics.saves, const Color(0xFF007C72)),
-          _bar(
-            'Clicks',
-            analytics.applicationClicks,
-            const Color(0xFFE09F3E),
-          ),
+          _bar('Clicks', analytics.applicationClicks, const Color(0xFFE09F3E)),
         ],
       ),
     ),

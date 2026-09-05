@@ -118,9 +118,8 @@ class _ProfileFormState extends State<_ProfileForm> {
   bool _saving = false;
   bool _dirty = false;
 
-  bool get _requiredFieldsFilled => _requiredKeys.every(
-    (key) => _controllers[key]!.text.trim().isNotEmpty,
-  );
+  bool get _requiredFieldsFilled =>
+      _requiredKeys.every((key) => _controllers[key]!.text.trim().isNotEmpty);
 
   @override
   void initState() {
@@ -221,151 +220,152 @@ class _ProfileFormState extends State<_ProfileForm> {
         }
       },
       child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 48),
-      children: [
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 820),
-            child: Form(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.lock_outline),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Your profile is private. Sensitive information '
-                            'is used only for matching and is never shown on '
-                            'a public profile.',
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 48),
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 820),
+              child: Form(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.lock_outline),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Your profile is private. Sensitive information '
+                              'is used only for matching and is never shown on '
+                              'a public profile.',
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const RequiredFieldsLegend(),
-                  const SizedBox(height: 24),
-                  _heading(context, 'Personal information'),
-                  _field('name', 'Full name'),
-                  _field('nationality', 'Nationality'),
-                  _field('residence', 'Country of residence'),
-                  _dateField(context),
-                  _field('gender', 'Gender (optional)', required: false),
-                  const SizedBox(height: 24),
-                  _heading(context, 'Education and experience'),
-                  _field('qualification', 'Highest qualification'),
-                  _field('field', 'Degree field'),
-                  _field('classification', 'GPA or academic classification'),
-                  _field(
-                    'graduation',
-                    'Graduation year',
-                    keyboardType: TextInputType.number,
-                  ),
-                  _field(
-                    'experience',
-                    'Work experience in years',
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 24),
-                  _heading(context, 'Preferences'),
-                  _field('levels', 'Preferred study levels'),
-                  _field('countries', 'Preferred countries'),
-                  _field('interests', 'Areas of interest'),
-                  _field('funding', 'Funding preferences'),
-                  _field(
-                    'special',
-                    'Disability or special eligibility categories (optional)',
-                    required: false,
-                  ),
-                  const SizedBox(height: 24),
-                  _heading(context, 'Readiness'),
-                  _enumField<EnglishTestStatus>(
-                    label: 'English-language test status',
-                    value: _englishTest,
-                    values: EnglishTestStatus.values,
-                    onChanged: (value) => setState(() {
-                      _englishTest = value;
-                      _dirty = true;
-                    }),
-                  ),
-                  _enumField<PassportStatus>(
-                    label: 'Passport status',
-                    value: _passport,
-                    values: PassportStatus.values,
-                    onChanged: (value) => setState(() {
-                      _passport = value;
-                      _dirty = true;
-                    }),
-                  ),
-                  _enumField<EmploymentStatus>(
-                    label: 'Employment status',
-                    value: _employment,
-                    values: EmploymentStatus.values,
-                    onChanged: (value) => setState(() {
-                      _employment = value;
-                      _dirty = true;
-                    }),
-                  ),
-                  const SizedBox(height: 24),
-                  _heading(context, 'Uploaded documents'),
-                  if (_documents.isEmpty)
-                    const Text('No documents have been added.')
-                  else
-                    ..._documents.map(
-                      (document) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.description_outlined),
-                        title: Text(document.name),
-                        subtitle: Text(document.type),
-                        trailing: IconButton(
-                          tooltip: 'Remove document',
-                          onPressed: () => setState(() {
-                            _documents.remove(document);
-                            _dirty = true;
-                          }),
-                          icon: const Icon(Icons.delete_outline),
-                        ),
+                        ],
                       ),
                     ),
-                  OutlinedButton.icon(
-                    onPressed: _addDemoDocument,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Add document record'),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      key: const Key('save-profile'),
-                      onPressed: _saving || !_requiredFieldsFilled
-                          ? null
-                          : _save,
-                      icon: const Icon(Icons.save_outlined),
-                      label: Text(_saving ? 'Saving...' : 'Save profile'),
+                    const SizedBox(height: 10),
+                    const RequiredFieldsLegend(),
+                    const SizedBox(height: 24),
+                    _heading(context, 'Personal information'),
+                    _field('name', 'Full name'),
+                    _field('nationality', 'Nationality'),
+                    _field('residence', 'Country of residence'),
+                    _dateField(context),
+                    _field('gender', 'Gender (optional)', required: false),
+                    const SizedBox(height: 24),
+                    _heading(context, 'Education and experience'),
+                    _field('qualification', 'Highest qualification'),
+                    _field('field', 'Degree field'),
+                    _field('classification', 'GPA or academic classification'),
+                    _field(
+                      'graduation',
+                      'Graduation year',
+                      keyboardType: TextInputType.number,
                     ),
-                  ),
-                  Center(
-                    child: SubmitBlockedHint(
-                      visible: !_saving && !_requiredFieldsFilled,
-                      message: 'Complete the highlighted required fields '
-                          'above to save.',
+                    _field(
+                      'experience',
+                      'Work experience in years',
+                      keyboardType: TextInputType.number,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    _heading(context, 'Preferences'),
+                    _field('levels', 'Preferred study levels'),
+                    _field('countries', 'Preferred countries'),
+                    _field('interests', 'Areas of interest'),
+                    _field('funding', 'Funding preferences'),
+                    _field(
+                      'special',
+                      'Disability or special eligibility categories (optional)',
+                      required: false,
+                    ),
+                    const SizedBox(height: 24),
+                    _heading(context, 'Readiness'),
+                    _enumField<EnglishTestStatus>(
+                      label: 'English-language test status',
+                      value: _englishTest,
+                      values: EnglishTestStatus.values,
+                      onChanged: (value) => setState(() {
+                        _englishTest = value;
+                        _dirty = true;
+                      }),
+                    ),
+                    _enumField<PassportStatus>(
+                      label: 'Passport status',
+                      value: _passport,
+                      values: PassportStatus.values,
+                      onChanged: (value) => setState(() {
+                        _passport = value;
+                        _dirty = true;
+                      }),
+                    ),
+                    _enumField<EmploymentStatus>(
+                      label: 'Employment status',
+                      value: _employment,
+                      values: EmploymentStatus.values,
+                      onChanged: (value) => setState(() {
+                        _employment = value;
+                        _dirty = true;
+                      }),
+                    ),
+                    const SizedBox(height: 24),
+                    _heading(context, 'Uploaded documents'),
+                    if (_documents.isEmpty)
+                      const Text('No documents have been added.')
+                    else
+                      ..._documents.map(
+                        (document) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.description_outlined),
+                          title: Text(document.name),
+                          subtitle: Text(document.type),
+                          trailing: IconButton(
+                            tooltip: 'Remove document',
+                            onPressed: () => setState(() {
+                              _documents.remove(document);
+                              _dirty = true;
+                            }),
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ),
+                      ),
+                    OutlinedButton.icon(
+                      onPressed: _addDemoDocument,
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Add document record'),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        key: const Key('save-profile'),
+                        onPressed: _saving || !_requiredFieldsFilled
+                            ? null
+                            : _save,
+                        icon: const Icon(Icons.save_outlined),
+                        label: Text(_saving ? 'Saving...' : 'Save profile'),
+                      ),
+                    ),
+                    Center(
+                      child: SubmitBlockedHint(
+                        visible: !_saving && !_requiredFieldsFilled,
+                        message:
+                            'Complete the highlighted required fields '
+                            'above to save.',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }

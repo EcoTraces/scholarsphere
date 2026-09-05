@@ -50,16 +50,44 @@ from app.services.firebase_users import (
     list_reverification_recipient_uids,
 )
 from app.services.grants_gov import GrantsGovIndividualSource, GrantsGovSource
+from app.services.link_health import check_link_reachable
 from app.services.national_scholarship_programs import (
+    AustraliaDfatAwardsSource,
+    AustriaOeadErnstMachSource,
+    BelgiumAresScholarshipSource,
+    ChileAgcidScholarshipSource,
+    ColombiaIcetexBecaExtranjerosSource,
+    CzechRepublicMsmtScholarshipSource,
+    FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
+    HungaryStipendiumHungaricumSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
+    JapanMextScholarshipSource,
+    MexicoAmexcidScholarshipSource,
+    MoroccoAmciScholarshipSource,
+    NetherlandsNufficScholarshipSource,
+    PeruPronabecAlianzaPacificoSource,
+    PolandNawaMyFirstChoiceSource,
+    PortugalCamoesScholarshipSource,
+    QatarScholarshipsSource,
+    RomaniaMfaScholarshipSource,
+    SaudiArabiaMoeScholarshipSource,
+    SerbiaWorldInSerbiaScholarshipSource,
     SouthAfricaNrfScholarshipSource,
+    SouthKoreaGksScholarshipSource,
+    SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
+    SwitzerlandEskasScholarshipSource,
+    RotaryPeaceFellowshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
+    WorldBankJJWBGSPScholarshipSource,
 )
+from app.services.educationusa_source import EducationUsaFinancialAidSource
+from app.services.erasmus_mundus_source import ErasmusMundusJointMastersSource
+from app.services.uaeu_scholarships_source import UaeuScholarshipsSource
 from app.services.notification_dispatch import (
     default_preferences,
     event_title,
@@ -173,6 +201,114 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_south_africa_nrf",
             "schedule": crontab(minute=15, hour=6),
         },
+        "sync-netherlands-nuffic": {
+            "task": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
+            "schedule": crontab(minute=30, hour=6),
+        },
+        "sync-spain-aecid": {
+            "task": "app.tasks.opportunity_sync.sync_spain_aecid",
+            "schedule": crontab(minute=45, hour=6),
+        },
+        "sync-australia-dfat-awards": {
+            "task": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
+            "schedule": crontab(minute=0, hour=7),
+        },
+        "sync-japan-mext": {
+            "task": "app.tasks.opportunity_sync.sync_japan_mext",
+            "schedule": crontab(minute=15, hour=7),
+        },
+        "sync-belgium-ares": {
+            "task": "app.tasks.opportunity_sync.sync_belgium_ares",
+            "schedule": crontab(minute=30, hour=7),
+        },
+        "sync-france-eiffel": {
+            "task": "app.tasks.opportunity_sync.sync_france_eiffel",
+            "schedule": crontab(minute=45, hour=7),
+        },
+        "sync-austria-oead": {
+            "task": "app.tasks.opportunity_sync.sync_austria_oead",
+            "schedule": crontab(minute=0, hour=8),
+        },
+        "sync-morocco-amci": {
+            "task": "app.tasks.opportunity_sync.sync_morocco_amci",
+            "schedule": crontab(minute=15, hour=8),
+        },
+        "sync-portugal-camoes": {
+            "task": "app.tasks.opportunity_sync.sync_portugal_camoes",
+            "schedule": crontab(minute=30, hour=8),
+        },
+        "sync-colombia-icetex": {
+            "task": "app.tasks.opportunity_sync.sync_colombia_icetex",
+            "schedule": crontab(minute=45, hour=8),
+        },
+        "sync-chile-agcid": {
+            "task": "app.tasks.opportunity_sync.sync_chile_agcid",
+            "schedule": crontab(minute=0, hour=9),
+        },
+        "sync-peru-pronabec": {
+            "task": "app.tasks.opportunity_sync.sync_peru_pronabec",
+            "schedule": crontab(minute=15, hour=9),
+        },
+        "sync-south-korea-gks": {
+            "task": "app.tasks.opportunity_sync.sync_south_korea_gks",
+            "schedule": crontab(minute=30, hour=9),
+        },
+        "sync-saudi-arabia-moe": {
+            "task": "app.tasks.opportunity_sync.sync_saudi_arabia_moe",
+            "schedule": crontab(minute=45, hour=9),
+        },
+        "sync-qatar-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_qatar_scholarships",
+            "schedule": crontab(minute=0, hour=10),
+        },
+        "sync-switzerland-sbfi-eskas": {
+            "task": "app.tasks.opportunity_sync.sync_switzerland_sbfi_eskas",
+            "schedule": crontab(minute=15, hour=10),
+        },
+        "sync-poland-nawa-myfirstchoice": {
+            "task": "app.tasks.opportunity_sync.sync_poland_nawa_myfirstchoice",
+            "schedule": crontab(minute=30, hour=10),
+        },
+        "sync-czech-republic-msmt": {
+            "task": "app.tasks.opportunity_sync.sync_czech_republic_msmt",
+            "schedule": crontab(minute=45, hour=10),
+        },
+        "sync-serbia-world-in-serbia": {
+            "task": "app.tasks.opportunity_sync.sync_serbia_world_in_serbia",
+            "schedule": crontab(minute=0, hour=11),
+        },
+        "sync-romania-mfa": {
+            "task": "app.tasks.opportunity_sync.sync_romania_mfa",
+            "schedule": crontab(minute=15, hour=11),
+        },
+        "sync-hungary-stipendium-hungaricum": {
+            "task": "app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum",
+            "schedule": crontab(minute=30, hour=11),
+        },
+        "sync-mexico-amexcid": {
+            "task": "app.tasks.opportunity_sync.sync_mexico_amexcid",
+            "schedule": crontab(minute=45, hour=11),
+        },
+        "sync-educationusa-financial-aid": {
+            "task": "app.tasks.opportunity_sync.sync_educationusa_financial_aid",
+            "schedule": crontab(minute=0, hour=12),
+        },
+        "sync-world-bank-jjwbgsp": {
+            "task": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
+            "schedule": crontab(minute=15, hour=12),
+        },
+        "sync-rotary-peace-fellowship": {
+            "task": "app.tasks.opportunity_sync.sync_rotary_peace_fellowship",
+            "schedule": crontab(minute=30, hour=12),
+        },
+        "sync-erasmus-mundus-joint-masters": {
+            "task": "app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters",
+            "schedule": crontab(minute=45, hour=12),
+        },
+        "sync-uaeu-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_uaeu_scholarships",
+            "schedule": crontab(minute=0, hour=13),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -180,6 +316,10 @@ celery_app.conf.update(
         "detect-expired-opportunities": {
             "task": "app.tasks.opportunity_sync.detect_expired_opportunities",
             "schedule": crontab(minute=5, hour=1),
+        },
+        "check-link-health": {
+            "task": "app.tasks.opportunity_sync.check_link_health",
+            "schedule": crontab(minute=45, hour=1),
         },
         "schedule-reverification": {
             "task": "app.tasks.opportunity_sync.schedule_reverification",
@@ -224,6 +364,45 @@ SOURCE_TASK_NAMES = {
     "italy_maeci_scholarships": "app.tasks.opportunity_sync.sync_italy_maeci_scholarships",
     "greece_iky_scholarships": "app.tasks.opportunity_sync.sync_greece_iky_scholarships",
     "south_africa_nrf": "app.tasks.opportunity_sync.sync_south_africa_nrf",
+    "netherlands_nuffic": "app.tasks.opportunity_sync.sync_netherlands_nuffic",
+    "spain_aecid": "app.tasks.opportunity_sync.sync_spain_aecid",
+    "australia_dfat_awards": "app.tasks.opportunity_sync.sync_australia_dfat_awards",
+    "japan_mext": "app.tasks.opportunity_sync.sync_japan_mext",
+    "belgium_ares": "app.tasks.opportunity_sync.sync_belgium_ares",
+    "france_eiffel": "app.tasks.opportunity_sync.sync_france_eiffel",
+    "austria_oead": "app.tasks.opportunity_sync.sync_austria_oead",
+    "morocco_amci": "app.tasks.opportunity_sync.sync_morocco_amci",
+    "portugal_camoes": "app.tasks.opportunity_sync.sync_portugal_camoes",
+    "colombia_icetex": "app.tasks.opportunity_sync.sync_colombia_icetex",
+    "chile_agcid": "app.tasks.opportunity_sync.sync_chile_agcid",
+    "peru_pronabec": "app.tasks.opportunity_sync.sync_peru_pronabec",
+    "south_korea_gks": "app.tasks.opportunity_sync.sync_south_korea_gks",
+    "saudi_arabia_moe": "app.tasks.opportunity_sync.sync_saudi_arabia_moe",
+    "qatar_scholarships": "app.tasks.opportunity_sync.sync_qatar_scholarships",
+    "switzerland_sbfi_eskas": "app.tasks.opportunity_sync.sync_switzerland_sbfi_eskas",
+    "poland_nawa_myfirstchoice": (
+        "app.tasks.opportunity_sync.sync_poland_nawa_myfirstchoice"
+    ),
+    "czech_republic_msmt": "app.tasks.opportunity_sync.sync_czech_republic_msmt",
+    "serbia_world_in_serbia": (
+        "app.tasks.opportunity_sync.sync_serbia_world_in_serbia"
+    ),
+    "romania_mfa": "app.tasks.opportunity_sync.sync_romania_mfa",
+    "hungary_stipendium_hungaricum": (
+        "app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum"
+    ),
+    "mexico_amexcid": "app.tasks.opportunity_sync.sync_mexico_amexcid",
+    "educationusa_financial_aid": (
+        "app.tasks.opportunity_sync.sync_educationusa_financial_aid"
+    ),
+    "world_bank_jjwbgsp": "app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
+    "rotary_peace_fellowship": (
+        "app.tasks.opportunity_sync.sync_rotary_peace_fellowship"
+    ),
+    "erasmus_mundus_joint_masters": (
+        "app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters"
+    ),
+    "uaeu_scholarships": "app.tasks.opportunity_sync.sync_uaeu_scholarships",
 }
 
 
@@ -577,6 +756,375 @@ def sync_south_africa_nrf(
     return _execute_source_task(self, "south_africa_nrf", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_netherlands_nuffic",
+    max_retries=3,
+)
+def sync_netherlands_nuffic(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "netherlands_nuffic", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_spain_aecid",
+    max_retries=3,
+)
+def sync_spain_aecid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "spain_aecid", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_australia_dfat_awards",
+    max_retries=3,
+)
+def sync_australia_dfat_awards(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "australia_dfat_awards", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_japan_mext",
+    max_retries=3,
+)
+def sync_japan_mext(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "japan_mext", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_belgium_ares",
+    max_retries=3,
+)
+def sync_belgium_ares(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "belgium_ares", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_france_eiffel",
+    max_retries=3,
+)
+def sync_france_eiffel(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "france_eiffel", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_austria_oead",
+    max_retries=3,
+)
+def sync_austria_oead(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "austria_oead", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_morocco_amci",
+    max_retries=3,
+)
+def sync_morocco_amci(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "morocco_amci", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_portugal_camoes",
+    max_retries=3,
+)
+def sync_portugal_camoes(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "portugal_camoes", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_colombia_icetex",
+    max_retries=3,
+)
+def sync_colombia_icetex(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "colombia_icetex", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_chile_agcid",
+    max_retries=3,
+)
+def sync_chile_agcid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "chile_agcid", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_peru_pronabec",
+    max_retries=3,
+)
+def sync_peru_pronabec(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "peru_pronabec", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_south_korea_gks",
+    max_retries=3,
+)
+def sync_south_korea_gks(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "south_korea_gks", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_saudi_arabia_moe",
+    max_retries=3,
+)
+def sync_saudi_arabia_moe(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "saudi_arabia_moe", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_qatar_scholarships",
+    max_retries=3,
+)
+def sync_qatar_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "qatar_scholarships", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_switzerland_sbfi_eskas",
+    max_retries=3,
+)
+def sync_switzerland_sbfi_eskas(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "switzerland_sbfi_eskas", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_poland_nawa_myfirstchoice",
+    max_retries=3,
+)
+def sync_poland_nawa_myfirstchoice(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "poland_nawa_myfirstchoice", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_czech_republic_msmt",
+    max_retries=3,
+)
+def sync_czech_republic_msmt(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "czech_republic_msmt", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_serbia_world_in_serbia",
+    max_retries=3,
+)
+def sync_serbia_world_in_serbia(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "serbia_world_in_serbia", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_romania_mfa",
+    max_retries=3,
+)
+def sync_romania_mfa(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "romania_mfa", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_hungary_stipendium_hungaricum",
+    max_retries=3,
+)
+def sync_hungary_stipendium_hungaricum(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "hungary_stipendium_hungaricum", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_mexico_amexcid",
+    max_retries=3,
+)
+def sync_mexico_amexcid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "mexico_amexcid", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_educationusa_financial_aid",
+    max_retries=3,
+)
+def sync_educationusa_financial_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "educationusa_financial_aid", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_world_bank_jjwbgsp",
+    max_retries=3,
+)
+def sync_world_bank_jjwbgsp(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "world_bank_jjwbgsp", correlation_id, triggered_by)
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_rotary_peace_fellowship",
+    max_retries=3,
+)
+def sync_rotary_peace_fellowship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "rotary_peace_fellowship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters",
+    max_retries=3,
+)
+def sync_erasmus_mundus_joint_masters(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "erasmus_mundus_joint_masters", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_uaeu_scholarships",
+    max_retries=3,
+)
+def sync_uaeu_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "uaeu_scholarships", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -798,6 +1346,33 @@ def _collector(source_code: str) -> Any:
         "italy_maeci_scholarships": ItalyMaeciScholarshipSource,
         "greece_iky_scholarships": GreeceIkyScholarshipSource,
         "south_africa_nrf": SouthAfricaNrfScholarshipSource,
+        "netherlands_nuffic": NetherlandsNufficScholarshipSource,
+        "spain_aecid": SpainAecidScholarshipSource,
+        "australia_dfat_awards": AustraliaDfatAwardsSource,
+        "japan_mext": JapanMextScholarshipSource,
+        "belgium_ares": BelgiumAresScholarshipSource,
+        "france_eiffel": FranceEiffelScholarshipSource,
+        "austria_oead": AustriaOeadErnstMachSource,
+        "morocco_amci": MoroccoAmciScholarshipSource,
+        "portugal_camoes": PortugalCamoesScholarshipSource,
+        "colombia_icetex": ColombiaIcetexBecaExtranjerosSource,
+        "chile_agcid": ChileAgcidScholarshipSource,
+        "peru_pronabec": PeruPronabecAlianzaPacificoSource,
+        "south_korea_gks": SouthKoreaGksScholarshipSource,
+        "saudi_arabia_moe": SaudiArabiaMoeScholarshipSource,
+        "qatar_scholarships": QatarScholarshipsSource,
+        "switzerland_sbfi_eskas": SwitzerlandEskasScholarshipSource,
+        "poland_nawa_myfirstchoice": PolandNawaMyFirstChoiceSource,
+        "czech_republic_msmt": CzechRepublicMsmtScholarshipSource,
+        "serbia_world_in_serbia": SerbiaWorldInSerbiaScholarshipSource,
+        "romania_mfa": RomaniaMfaScholarshipSource,
+        "hungary_stipendium_hungaricum": HungaryStipendiumHungaricumSource,
+        "mexico_amexcid": MexicoAmexcidScholarshipSource,
+        "educationusa_financial_aid": EducationUsaFinancialAidSource,
+        "world_bank_jjwbgsp": WorldBankJJWBGSPScholarshipSource,
+        "rotary_peace_fellowship": RotaryPeaceFellowshipSource,
+        "erasmus_mundus_joint_masters": ErasmusMundusJointMastersSource,
+        "uaeu_scholarships": UaeuScholarshipsSource,
     }[source_code]()
 
 
@@ -873,6 +1448,78 @@ async def _detect_expired_opportunities() -> dict[str, int]:
                 )
                 changed += 1
     return {"expired": changed}
+
+
+LINK_HEALTH_BATCH_SIZE = 100
+
+
+@celery_app.task(name="app.tasks.opportunity_sync.check_link_health")
+def check_link_health() -> dict[str, int]:
+    return run_async_safely(_check_link_health())
+
+
+async def _check_link_health() -> dict[str, int]:
+    """Periodically confirm published opportunities' links are still live.
+
+    Scoped to verified+published opportunities: those are the only ones a
+    real applicant can currently reach, so they're the only ones where a
+    broken link is actionable right now. Bounded to
+    LINK_HEALTH_BATCH_SIZE per run, oldest-checked (nulls - never checked -
+    first) so one run can't grow unbounded as the catalog grows; the next
+    scheduled run picks up where this one left off.
+
+    A reachable response only proves the URL still resolves, not that it
+    still points at the right page - see link_checked_at's docstring. An
+    unreachable one demotes verification_status back to
+    reverification_required (this codebase's existing "needs another look"
+    state - see schedule_reverification above) and logs a
+    VerificationHistory entry, exactly like a passed deadline does in
+    detect_expired_opportunities. It never deletes the opportunity or its
+    stored link.
+    """
+    checked = 0
+    broken = 0
+    async with AsyncSessionFactory() as session:
+        async with session.begin():
+            opportunities = (
+                await session.scalars(
+                    select(ExternalOpportunity)
+                    .where(
+                        ExternalOpportunity.verification_status == VerificationStatus.verified,
+                        ExternalOpportunity.publication_status == PublicationStatus.published,
+                    )
+                    .order_by(ExternalOpportunity.link_checked_at.asc().nulls_first())
+                    .limit(LINK_HEALTH_BATCH_SIZE)
+                )
+            ).all()
+            for opportunity in opportunities:
+                url = opportunity.official_application_url or opportunity.official_source_url
+                if url is None:
+                    continue
+                checked += 1
+                reachable = await check_link_reachable(url)
+                opportunity.link_checked_at = utc_now()
+                if reachable:
+                    continue
+                broken += 1
+                opportunity.verification_status = VerificationStatus.reverification_required
+                session.add(
+                    VerificationHistory(
+                        opportunity_id=opportunity.id,
+                        previous_status=VerificationStatus.verified.value,
+                        new_status=VerificationStatus.reverification_required.value,
+                        reason="Routine link health check could not reach the stored "
+                        "application/source URL.",
+                    )
+                )
+                review = await session.scalar(
+                    select(VerificationReview).where(
+                        VerificationReview.opportunity_id == opportunity.id
+                    )
+                )
+                if review is not None:
+                    review.application_link_checked = False
+    return {"checked": checked, "broken": broken}
 
 
 @celery_app.task(name="app.tasks.opportunity_sync.schedule_reverification")

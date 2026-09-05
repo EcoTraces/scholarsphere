@@ -17,7 +17,8 @@ import '../domain/system_configuration_repository.dart';
 /// `actor` is accepted on every method for interface compatibility but
 /// never sent: authorization and the recorded `updatedBy` are always taken
 /// from the caller's own verified auth token server-side.
-class ApiSystemConfigurationRepository implements SystemConfigurationRepository {
+class ApiSystemConfigurationRepository
+    implements SystemConfigurationRepository {
   ApiSystemConfigurationRepository({
     String? baseUrl,
     http.Client? client,
@@ -95,7 +96,9 @@ class ApiSystemConfigurationRepository implements SystemConfigurationRepository 
       return _toConfiguration(body as Map<String, dynamic>);
     } on LiveBackendException catch (error) {
       if (error.statusCode == 404) {
-        throw const ConfigurationFailure('Configuration version was not found.');
+        throw const ConfigurationFailure(
+          'Configuration version was not found.',
+        );
       }
       rethrow;
     }
@@ -118,8 +121,7 @@ class ApiSystemConfigurationRepository implements SystemConfigurationRepository 
     'maximum_file_size_bytes': configuration.maximumFileSizeBytes,
     'applicant_registration_enabled':
         configuration.applicantRegistrationEnabled,
-    'provider_registration_enabled':
-        configuration.providerRegistrationEnabled,
+    'provider_registration_enabled': configuration.providerRegistrationEnabled,
     'maintenance_mode': configuration.maintenanceMode,
     'feature_flags': configuration.featureFlags.map(
       (flag, value) => MapEntry(_flagToWire(flag), value),
@@ -141,16 +143,14 @@ class ApiSystemConfigurationRepository implements SystemConfigurationRepository 
         brandPrimaryColor: json['brand_primary_color'] as String,
         emailSenderName: json['email_sender_name'] as String,
         emailSenderAddress: json['email_sender_address'] as String,
-        verificationExpirationDays:
-            json['verification_expiration_days'] as int,
+        verificationExpirationDays: json['verification_expiration_days'] as int,
         supportedCountries: (json['supported_countries'] as List<dynamic>)
             .cast<String>(),
         supportedLanguages: (json['supported_languages'] as List<dynamic>)
             .cast<String>(),
-        opportunityCategories:
-            (json['opportunity_categories'] as List<dynamic>).cast<String>(),
-        documentTypes: (json['document_types'] as List<dynamic>)
+        opportunityCategories: (json['opportunity_categories'] as List<dynamic>)
             .cast<String>(),
+        documentTypes: (json['document_types'] as List<dynamic>).cast<String>(),
         maximumFileSizeBytes: json['maximum_file_size_bytes'] as int,
         applicantRegistrationEnabled:
             json['applicant_registration_enabled'] as bool,
@@ -191,7 +191,8 @@ class ApiSystemConfigurationRepository implements SystemConfigurationRepository 
   static FeatureFlag _flagFromWire(String value) =>
       FeatureFlag.values.firstWhere(
         (flag) => flag.name == value,
-        orElse: () => throw LiveBackendException('Unknown feature flag: $value'),
+        orElse: () =>
+            throw LiveBackendException('Unknown feature flag: $value'),
       );
 
   Future<dynamic> _get(String path) async {

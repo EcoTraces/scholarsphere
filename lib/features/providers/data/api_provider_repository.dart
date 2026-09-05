@@ -128,16 +128,15 @@ class ApiProviderRepository implements ProviderRepository {
     final body = await _post('/providers/$providerId/administrators', {
       'user_id': administrator.userId,
       'email': administrator.email,
-      'permissions': administrator.permissions
-          .map(_permissionToWire)
-          .toList(),
+      'permissions': administrator.permissions.map(_permissionToWire).toList(),
     }, businessErrorContext: 'add the administrator');
     return _toProfile(body as Map<String, dynamic>);
   }
 
   @override
   Future<bool> canPublish(String userId) async {
-    final body = await _get('/providers/me/can-publish') as Map<String, dynamic>;
+    final body =
+        await _get('/providers/me/can-publish') as Map<String, dynamic>;
     return body['can_publish'] as bool;
   }
 
@@ -227,12 +226,13 @@ class ApiProviderRepository implements ProviderRepository {
 
   // Keep in sync with `_PERMISSION_WIRE_TO_MODEL` in
   // scholarsphere_backend/app/schemas/provider.py.
-  static ProviderPermission _permissionFromWire(String value) => switch (value) {
-    'manageOrganization' => ProviderPermission.manageOrganization,
-    'publishOpportunities' => ProviderPermission.publishOpportunities,
-    'manageAdmins' => ProviderPermission.manageAdmins,
-    _ => throw LiveBackendException('Unknown provider permission: $value'),
-  };
+  static ProviderPermission _permissionFromWire(String value) =>
+      switch (value) {
+        'manageOrganization' => ProviderPermission.manageOrganization,
+        'publishOpportunities' => ProviderPermission.publishOpportunities,
+        'manageAdmins' => ProviderPermission.manageAdmins,
+        _ => throw LiveBackendException('Unknown provider permission: $value'),
+      };
 
   static String _permissionToWire(ProviderPermission permission) =>
       switch (permission) {

@@ -244,3 +244,26 @@ class VerificationSummary(BaseModel):
     official_source_ratio: float
     decisions_last_7_days: list[VerificationActivityDay]
     approved_by_you: int
+
+
+class DiscoverySummary(BaseModel):
+    """Cross-source discovery/quality visibility for the admin dashboard.
+
+    Complements VerificationSummary (per-opportunity verification state)
+    with source- and country-level aggregates: how many sources are
+    active, what's queued for duplicate review, how the catalog splits by
+    country, and application-link health backlog/breakage from
+    app.tasks.opportunity_sync.check_link_health. Every field is a real
+    aggregate query result against the live schema - see that summary's
+    own docstring for why that matters.
+    """
+
+    sources_total: int
+    sources_active: int
+    sources_with_recent_errors: int
+    opportunities_total: int
+    published_total: int
+    duplicate_review_required: int
+    opportunities_by_country: dict[str, int]
+    never_link_checked: int
+    broken_links: int

@@ -6,11 +6,32 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Browser-rendering fallback (app/services/browser_rendering.py) - only
+# used by scraper sources that opt in via `allow_browser_rendering = True`
+# (none do yet as of this line's addition; see docs/AUTHORITATIVE_SOURCES.md
+# for which do, if any, once one does). This is a real, material tradeoff:
+# it adds Chromium plus its OS dependencies to every image built from this
+# Dockerfile - api, worker, and beat alike (docker-compose.yml builds all
+# three from this one image) - roughly +300-400MB, even though only the
+# worker (which runs the scraper Celery tasks) ever actually needs it; the
+# api process itself never launches a browser. If image size/deploy time
+# becomes a real problem (e.g. for the free-tier Render API deployment in
+# render.yaml, which uses this same Dockerfile), splitting this into a
+# separate Dockerfile.worker that only the worker/beat services build from
+# is the fix - not attempted here to keep this one deployment story intact.
+RUN playwright install --with-deps chromium
+
 COPY . .
+RUN chmod +x docker-entrypoint.sh
 
 RUN useradd --create-home --uid 10001 appuser
 USER appuser
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Deliberately CMD, not ENTRYPOINT: docker-compose.yml's worker/beat
+# services override this with their own `command: celery -A ... worker`/
+# `beat` - an ENTRYPOINT would instead receive those as arguments to this
+# script, which doesn't forward them, silently breaking both services.
+CMD ["./docker-entrypoint.sh"]
 

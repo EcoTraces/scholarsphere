@@ -25,6 +25,7 @@ from app.models.external_opportunity import PublicationStatus, SyncStatus, Verif
 from app.schemas.external_opportunity import ImportStatistics, NormalizedExternalOpportunity
 from app.schemas.external_source import (
     AdminOpportunityPage,
+    DiscoverySummary,
     OpportunityEditRequest,
     OpportunityEditResponse,
     OpportunityNoteRequest,
@@ -563,6 +564,85 @@ async def verification_summary(
         official_source_ratio=official_source_ratio,
         decisions_last_7_days=decisions_last_7_days,
         approved_by_you=approved_by_you or 0,
+    )
+
+
+@router.get("/discovery-summary", response_model=DiscoverySummary)
+async def discovery_summary(
+    _: Annotated[AuthenticatedUser, Depends(preview_access)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> DiscoverySummary:
+    """Source- and country-level aggregates for the admin discovery dashboard.
+
+    See DiscoverySummary's docstring for how this differs from
+    verification_summary above.
+    """
+    sources_total = await session.scalar(select(func.count(OpportunitySource.id)))
+    sources_active = await session.scalar(
+        select(func.count(OpportunitySource.id)).where(OpportunitySource.is_active.is_(True))
+    )
+    sources_with_recent_errors = await session.scalar(
+        select(func.count(OpportunitySource.id)).where(
+            OpportunitySource.most_recent_error.is_not(None)
+        )
+    )
+
+    opportunities_total = await session.scalar(select(func.count(ExternalOpportunity.id)))
+    published_total = await session.scalar(
+        select(func.count(ExternalOpportunity.id)).where(
+            ExternalOpportunity.publication_status == PublicationStatus.published
+        )
+    )
+    duplicate_review_required = await session.scalar(
+        select(func.count(ExternalOpportunity.id)).where(
+            ExternalOpportunity.duplicate_review_required.is_(True)
+        )
+    )
+
+    country_rows = (
+        await session.execute(
+            select(ExternalOpportunity.country, func.count(ExternalOpportunity.id))
+            .where(ExternalOpportunity.country.is_not(None))
+            .group_by(ExternalOpportunity.country)
+        )
+    ).all()
+    opportunities_by_country = {country: count for country, count in country_rows}
+
+    never_link_checked = await session.scalar(
+        select(func.count(ExternalOpportunity.id)).where(
+            ExternalOpportunity.verification_status == VerificationStatus.verified,
+            ExternalOpportunity.publication_status == PublicationStatus.published,
+            ExternalOpportunity.link_checked_at.is_(None),
+        )
+    )
+    # "Currently believed broken" - still reverification_required, and the
+    # reason it was last demoted names a failed link health check (not,
+    # say, the unrelated 90-day scheduled-reverification cutoff). Not a
+    # perfectly point-in-time signal (a later, unrelated demotion after a
+    # link-health one would still count here), but a real, honest
+    # aggregate rather than a fabricated one - matches this route's
+    # existing pragmatic style (see verified_today's decision-history scan
+    # above).
+    broken_links = await session.scalar(
+        select(func.count(func.distinct(ExternalOpportunity.id)))
+        .join(VerificationHistory, VerificationHistory.opportunity_id == ExternalOpportunity.id)
+        .where(
+            ExternalOpportunity.verification_status == VerificationStatus.reverification_required,
+            VerificationHistory.new_status == VerificationStatus.reverification_required.value,
+            VerificationHistory.reason.like("%link health check%"),
+        )
+    )
+
+    return DiscoverySummary(
+        sources_total=sources_total or 0,
+        sources_active=sources_active or 0,
+        sources_with_recent_errors=sources_with_recent_errors or 0,
+        opportunities_total=opportunities_total or 0,
+        published_total=published_total or 0,
+        duplicate_review_required=duplicate_review_required or 0,
+        opportunities_by_country=opportunities_by_country,
+        never_link_checked=never_link_checked or 0,
+        broken_links=broken_links or 0,
     )
 
 

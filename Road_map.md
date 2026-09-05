@@ -196,6 +196,59 @@ partial · `[ ]` Not started · `[!]` Blocked
 - [ ] Formal incident-response runbook (`docs/operations.md` is a short
       baseline, not an IR plan)
 
+## Phase 11 — Premium Application-Preparation Platform (2026-09-01)
+
+- [x] Provider-independent payment abstraction (`PaymentProvider`
+      interface, `NullPaymentProvider` default, real `StripePaymentProvider`
+      reference adapter) with real webhook-signature verification and
+      database-level idempotency (not application-level checking alone)
+- [x] Server-authoritative entitlement system (`require_entitlement`
+      FastAPI dependency, never a JWT-cached claim), plan feature-lists
+      snapshotted at grant time, refund → entitlement revocation
+- [x] Configurable premium plans (admin-editable price/currency/feature
+      list; flagship "Complete Premium Application Package" seeded, not
+      hardcoded)
+- [x] Provider-independent AI abstraction (`AIProvider` interface,
+      `NullAIProvider` default, real `OpenAIProvider`/`AnthropicProvider`
+      adapters)
+- [x] Applicant background data model (education/work-experience/project/
+      publication/award/leadership/skill/reference) — closes a real,
+      pre-existing gap (`ApplicantProfile` only ever had summary fields)
+- [x] Deterministic CV assembly + opt-in, fact-preserving AI wording polish
+- [x] Grounded AI narrative generation (SOP, personal statement,
+      motivation letter, study plan, research proposal, fellowship
+      essays) — system prompt explicitly forbids inventing any fact
+- [x] Deterministic, AI-independent requirement matching, readiness
+      scoring (fully documented weights), and ATS analysis (always
+      carries a "does not guarantee acceptance" disclaimer)
+- [x] Category-driven workflow registry for all 9 required applicant
+      categories (undergraduate/postgraduate/PhD/fellowship/research
+      scholarship/professional scholarship/exchange-mobility/short-course/
+      internship)
+- [x] Append-only document versioning; ATS-compatible PDF/DOCX export
+- [x] Admin dashboard (plan CRUD, payments/refunds, revenue, AI usage,
+      usage-limit config)
+- [x] 50 new backend tests incl. every "Critical test" the platform spec
+      named explicitly; full backend suite green (737/737)
+- [x] Flutter: `PremiumLandingScreen` (real pricing/checkout/status),
+      `PremiumFeatureGate`, dual demo/api repository, `app.dart` wiring
+- [ ] Flutter: the individual document-builder screens themselves (CV/
+      SOP/study plan/research proposal/fellowship editors), ATS analyzer
+      UI, requirement-matcher/readiness/checklist UI, billing-history
+      page, admin premium dashboard UI, usage dashboard — real backend
+      routes exist for all of these already; only the presentation layer
+      remains
+- [ ] A second real payment provider (Paystack/Flutterwave) —
+      architecture supports it (new class + one registry line); not
+      built because no provider has been chosen yet
+- [ ] Client-side payment SDK integration in Flutter (e.g.
+      `flutter_stripe`) for the card-entry step — **blocked**, tied to
+      whichever provider is eventually chosen and its real credentials
+- [ ] Real payment/AI credentials in any environment — **blocked**,
+      requires the team's own provider account and API keys; both
+      abstractions are fully implemented and tested against the honest
+      "not configured" failure mode in the meantime
+
 ## Not yet scoped (dead code — needs a product decision, not more building)
 
 - [ ] `eligibility_rules`, `integrations`, `data_transfer`, `platforms` —

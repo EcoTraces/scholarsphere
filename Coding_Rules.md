@@ -104,6 +104,27 @@ must follow these throughout the project.
 - **Authorization:** use `require_roles(...)`/`require_permissions(...)`
   (`app/core/rbac.py`) as a route dependency — don't hand-roll a role check
   inline in a handler.
+- **Premium entitlement checks:** use `require_entitlement(feature)`
+  (`app/core/entitlements.py`) as a route dependency for a gated Premium
+  feature — never a client-supplied "premium" flag, and never a JWT claim
+  (entitlements are dynamic: a payment can complete, expire, or be revoked
+  at any time). If the route also opens its own `async with
+  session.begin()`, know that `require_entitlement`'s own database read
+  already ran and rolled back before the route body starts — it does not
+  leave a dangling transaction for the route to collide with (this was a
+  real bug, fixed 2026-09-01 — see Architecture.md §9.1).
+- **A FastAPI dependency that reads the database, paired with a route body
+  that opens its own `async with session.begin()`, is a specific hazard:**
+  the dependency's plain read still opens SQLAlchemy's "autobegin"
+  transaction on the shared request-scoped session, which collides with
+  the route's explicit `begin()`. If you write a new gating dependency
+  with this shape, close its own transaction (`await session.rollback()`)
+  immediately after it finishes reading — but check any loaded ORM
+  attribute *before* that rollback: `rollback()` expires every
+  already-loaded attribute (unlike `commit()`, there is no "expire on
+  rollback" toggle), so reading one afterward from a plain, non-async
+  helper triggers an illegal lazy-reload outside the SQLAlchemy async
+  greenlet context.
 - **Proper HTTP status codes:** `409` for a state-machine violation (e.g.
   approving without all checklist items, publishing before verification);
   `403` for an authorization failure; `404` — not `403` — when a resource

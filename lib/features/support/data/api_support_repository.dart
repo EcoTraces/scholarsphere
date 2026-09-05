@@ -154,7 +154,9 @@ class ApiSupportRepository implements SupportRepository {
       return _toTicket(body as Map<String, dynamic>);
     } on LiveBackendException catch (error) {
       if (error.statusCode == 409) {
-        throw const SupportFailure('Only resolved or closed tickets can reopen.');
+        throw const SupportFailure(
+          'Only resolved or closed tickets can reopen.',
+        );
       }
       rethrow;
     }
@@ -240,7 +242,8 @@ class ApiSupportRepository implements SupportRepository {
 
   @override
   Future<SupportPerformanceReport> performanceReport() async {
-    final body = await _get('/support/performance-report') as Map<String, dynamic>;
+    final body =
+        await _get('/support/performance-report') as Map<String, dynamic>;
     final byCategory = <SupportTicketCategory, int>{};
     (body['by_category'] as Map<String, dynamic>).forEach((key, value) {
       byCategory[_categoryFromWire(key)] = value as int;
@@ -251,8 +254,8 @@ class ApiSupportRepository implements SupportRepository {
       slaBreaches: body['sla_breaches'] as int,
       averageFirstResponseMinutes:
           (body['average_first_response_minutes'] as num).toDouble(),
-      averageResolutionMinutes:
-          (body['average_resolution_minutes'] as num).toDouble(),
+      averageResolutionMinutes: (body['average_resolution_minutes'] as num)
+          .toDouble(),
       satisfactionScore: (body['satisfaction_score'] as num).toDouble(),
       byCategory: byCategory,
     );
@@ -356,7 +359,8 @@ class ApiSupportRepository implements SupportRepository {
       switch (category) {
         SupportTicketCategory.accountAccess => 'accountAccess',
         SupportTicketCategory.profileProblem => 'profileProblem',
-        SupportTicketCategory.opportunityInformation => 'opportunityInformation',
+        SupportTicketCategory.opportunityInformation =>
+          'opportunityInformation',
         SupportTicketCategory.eligibilityResult => 'eligibilityResult',
         SupportTicketCategory.applicationTracking => 'applicationTracking',
         SupportTicketCategory.documentUpload => 'documentUpload',
@@ -369,7 +373,9 @@ class ApiSupportRepository implements SupportRepository {
         SupportTicketCategory.generalInquiry => 'generalInquiry',
       };
 
-  static SupportTicketCategory _categoryFromWire(String value) => switch (value) {
+  static SupportTicketCategory _categoryFromWire(
+    String value,
+  ) => switch (value) {
     'accountAccess' => SupportTicketCategory.accountAccess,
     'profileProblem' => SupportTicketCategory.profileProblem,
     'opportunityInformation' => SupportTicketCategory.opportunityInformation,
@@ -386,20 +392,24 @@ class ApiSupportRepository implements SupportRepository {
     _ => throw LiveBackendException('Unknown support ticket category: $value'),
   };
 
-  static String _priorityToWire(SupportTicketPriority priority) => switch (priority) {
-    SupportTicketPriority.low => 'low',
-    SupportTicketPriority.normal => 'normal',
-    SupportTicketPriority.high => 'high',
-    SupportTicketPriority.urgent => 'urgent',
-  };
+  static String _priorityToWire(SupportTicketPriority priority) =>
+      switch (priority) {
+        SupportTicketPriority.low => 'low',
+        SupportTicketPriority.normal => 'normal',
+        SupportTicketPriority.high => 'high',
+        SupportTicketPriority.urgent => 'urgent',
+      };
 
-  static SupportTicketPriority _priorityFromWire(String value) => switch (value) {
-    'low' => SupportTicketPriority.low,
-    'normal' => SupportTicketPriority.normal,
-    'high' => SupportTicketPriority.high,
-    'urgent' => SupportTicketPriority.urgent,
-    _ => throw LiveBackendException('Unknown support ticket priority: $value'),
-  };
+  static SupportTicketPriority _priorityFromWire(String value) =>
+      switch (value) {
+        'low' => SupportTicketPriority.low,
+        'normal' => SupportTicketPriority.normal,
+        'high' => SupportTicketPriority.high,
+        'urgent' => SupportTicketPriority.urgent,
+        _ => throw LiveBackendException(
+          'Unknown support ticket priority: $value',
+        ),
+      };
 
   static String _statusToWire(SupportTicketStatus status) => switch (status) {
     SupportTicketStatus.open => 'open',
@@ -431,7 +441,9 @@ class ApiSupportRepository implements SupportRepository {
     KnowledgeContentType.applicationHelp => 'applicationHelp',
   };
 
-  static KnowledgeContentType _contentTypeFromWire(String value) => switch (value) {
+  static KnowledgeContentType _contentTypeFromWire(
+    String value,
+  ) => switch (value) {
     'frequentlyAskedQuestion' => KnowledgeContentType.frequentlyAskedQuestion,
     'article' => KnowledgeContentType.article,
     'tutorial' => KnowledgeContentType.tutorial,

@@ -64,6 +64,9 @@ import '../features/notifications/presentation/notification_center_screen.dart';
 import '../features/profiles/data/api_applicant_profile_repository.dart';
 import '../features/profiles/domain/applicant_profile_repository.dart';
 import '../features/profiles/presentation/applicant_profile_screen.dart';
+import '../features/premium/data/api_premium_repository.dart';
+import '../features/premium/domain/premium_repository.dart';
+import '../features/premium/presentation/premium_landing_screen.dart';
 import '../features/privacy/data/api_privacy_repository.dart';
 import '../features/privacy/domain/privacy_repository.dart';
 import '../features/privacy/domain/privacy_models.dart';
@@ -117,6 +120,7 @@ class ScholarSphereApp extends StatefulWidget {
     this.fraudInvestigationRepository,
     this.collectionRepository,
     this.verificationRepository,
+    this.premiumRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -307,6 +311,13 @@ class ScholarSphereApp extends StatefulWidget {
   /// FastAPI backend to be running.
   final ApiVerificationRepository? verificationRepository;
 
+  /// Overrides the real backend-backed Premium billing/entitlement
+  /// repository used by the Premium landing/pricing screen. Production
+  /// never sets this (it defaults to [ApiPremiumRepository]); tests pass a
+  /// [DemoPremiumRepository] so they never require the FastAPI backend to
+  /// be running.
+  final PremiumRepository? premiumRepository;
+
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
 }
@@ -358,6 +369,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       widget.privacyRepository ?? ApiPrivacyRepository();
   late final _documentRepository =
       widget.documentRepository ?? ApiDocumentRepository();
+  late final _premiumRepository =
+      widget.premiumRepository ?? ApiPremiumRepository();
   late final _analyticsRepository =
       widget.analyticsRepository ?? ApiAnalyticsRepository();
   late final _recommendationGovernanceRepository =
@@ -560,6 +573,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         openCalendar: () => _openApplicantCalendar(user),
         openDocuments: () => _openApplicantProfile(user),
         openSettings: () => _openApplicantSettings(user),
+        openPremium: _openPremium,
         onSignOut: _signOut,
       );
     }
@@ -672,6 +686,14 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
           applications: applications,
           repository: _calendarRepository,
         ),
+      ),
+    );
+  }
+
+  void _openPremium() {
+    _navigatorKey.currentState?.push<void>(
+      MaterialPageRoute(
+        builder: (_) => PremiumLandingScreen(repository: _premiumRepository),
       ),
     );
   }

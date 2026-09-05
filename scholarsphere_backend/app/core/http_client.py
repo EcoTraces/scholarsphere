@@ -21,7 +21,7 @@ class ExternalAPIError(Exception):
         self.status_code = status_code
 
 
-def _validate_url(url: str) -> None:
+def validate_https_url(url: str) -> None:
     parsed = urlsplit(url)
     if parsed.scheme != "https" or not parsed.hostname:
         raise ExternalAPIError("External API URL must be a valid HTTPS URL.")
@@ -35,9 +35,17 @@ async def post_json(
     files: Mapping[str, Any] | None = None,
     params: Mapping[str, Any] | None = None,
     headers: Mapping[str, str] | None = None,
+    timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     return await _request_json(
-        "POST", url, json=json, data=data, files=files, params=params, headers=headers
+        "POST",
+        url,
+        json=json,
+        data=data,
+        files=files,
+        params=params,
+        headers=headers,
+        timeout_seconds=timeout_seconds,
     )
 
 
@@ -75,7 +83,7 @@ async def get_html(
     scraper adapters (app/services/web_scraper_base.py), which fetch HTML
     pages rather than JSON API responses.
     """
-    _validate_url(url)
+    validate_https_url(url)
     settings = get_settings()
     correlation_id = str(uuid4())
     safe_headers = {
@@ -162,8 +170,9 @@ async def _request_json(
     params: Mapping[str, Any] | None = None,
     headers: Mapping[str, str] | None = None,
     override_user_agent: bool = True,
+    timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
-    _validate_url(url)
+    validate_https_url(url)
     settings = get_settings()
     correlation_id = str(uuid4())
     safe_headers = {
@@ -173,7 +182,11 @@ async def _request_json(
     }
     if override_user_agent or "User-Agent" not in safe_headers:
         safe_headers["User-Agent"] = "ScholarSphere/1.0"
-    timeout = httpx.Timeout(settings.http_timeout_seconds)
+    # A caller-supplied override (e.g. AI generation, which can
+    # legitimately run longer than the default budget every other
+    # external call shares) still goes through this one shared client
+    # rather than a bespoke httpx call - see Coding_Rules.md SS4.
+    timeout = httpx.Timeout(timeout_seconds or settings.http_timeout_seconds)
 
     async with httpx.AsyncClient(
         timeout=timeout,

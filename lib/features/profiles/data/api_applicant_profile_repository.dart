@@ -144,13 +144,14 @@ class ApiApplicantProfileRepository implements ApplicantProfileRepository {
     EnglishTestStatus.notRequired => 'notRequired',
   };
 
-  static EnglishTestStatus _englishTestFromWire(String value) => switch (value) {
-    'notTaken' => EnglishTestStatus.notTaken,
-    'planned' => EnglishTestStatus.planned,
-    'completed' => EnglishTestStatus.completed,
-    'notRequired' => EnglishTestStatus.notRequired,
-    _ => throw LiveBackendException('Unknown English test status: $value'),
-  };
+  static EnglishTestStatus _englishTestFromWire(String value) =>
+      switch (value) {
+        'notTaken' => EnglishTestStatus.notTaken,
+        'planned' => EnglishTestStatus.planned,
+        'completed' => EnglishTestStatus.completed,
+        'notRequired' => EnglishTestStatus.notRequired,
+        _ => throw LiveBackendException('Unknown English test status: $value'),
+      };
 
   static String _passportToWire(PassportStatus value) => switch (value) {
     PassportStatus.unavailable => 'unavailable',

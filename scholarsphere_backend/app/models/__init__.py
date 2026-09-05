@@ -1,4 +1,5 @@
 from app.models.analytics import OpportunityViewEvent
+from app.models.applicant_background import ApplicantBackgroundEntry, BackgroundEntryCategory
 from app.models.applicant_document import ApplicantDocument, DocumentType
 from app.models.applicant_profile import (
     ApplicantProfile,
@@ -7,6 +8,14 @@ from app.models.applicant_profile import (
     PassportStatus,
 )
 from app.models.application import Application, ApplicationStage
+from app.models.application_preparation import (
+    ApplicantCategory,
+    ChecklistItemStatus,
+    PersonalizedChecklistItem,
+    PremiumWorkspace,
+    RequirementMatch,
+    RequirementMatchStatus,
+)
 from app.models.audit_log import (
     AuditAction,
     AuditChainState,
@@ -87,6 +96,28 @@ from app.models.observability import (
     OperationalIncident,
     TraceSpan,
 )
+from app.models.premium_billing import (
+    AIUsageRecord,
+    AIUsageStatus,
+    BillingInterval,
+    Entitlement,
+    EntitlementStatus,
+    Payment,
+    PaymentEvent,
+    PaymentStatus,
+    PremiumFeature,
+    PremiumPlan,
+    Refund,
+    RefundStatus,
+    Subscription,
+    SubscriptionStatus,
+    UsageLimit,
+)
+from app.models.premium_documents import (
+    DocumentKind,
+    PremiumDocument,
+    PremiumDocumentVersion,
+)
 from app.models.privacy import (
     ConsentRecord,
     ConsentType,
@@ -158,7 +189,11 @@ from app.models.system_configuration import PlatformConfiguration
 from app.models.taxonomy import TaxonomyTerm, TaxonomyType, TaxonomyVersion
 
 __all__ = [
+    "AIUsageRecord",
+    "AIUsageStatus",
     "AlertRule",
+    "ApplicantBackgroundEntry",
+    "ApplicantCategory",
     "ApplicantDocument",
     "ApplicantProfile",
     "Application",
@@ -166,6 +201,8 @@ __all__ = [
     "ApplicationLog",
     "ApplicationStage",
     "AuditAction",
+    "BackgroundEntryCategory",
+    "BillingInterval",
     "AuditChainState",
     "AuditRecord",
     "AuditResult",
@@ -293,4 +330,24 @@ __all__ = [
     "VerificationHistory",
     "VerificationReview",
     "WatchlistEntry",
+    "ChecklistItemStatus",
+    "DocumentKind",
+    "Entitlement",
+    "EntitlementStatus",
+    "Payment",
+    "PaymentEvent",
+    "PaymentStatus",
+    "PersonalizedChecklistItem",
+    "PremiumDocument",
+    "PremiumDocumentVersion",
+    "PremiumFeature",
+    "PremiumPlan",
+    "PremiumWorkspace",
+    "Refund",
+    "RefundStatus",
+    "RequirementMatch",
+    "RequirementMatchStatus",
+    "Subscription",
+    "SubscriptionStatus",
+    "UsageLimit",
 ]

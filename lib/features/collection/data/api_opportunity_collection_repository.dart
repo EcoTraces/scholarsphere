@@ -117,8 +117,9 @@ class ApiOpportunityCollectionRepository
   static CollectionSourceType _sourceTypeFromWire(String value) =>
       CollectionSourceType.values.firstWhere(
         (type) => type.name == value,
-        orElse: () =>
-            throw LiveBackendException('Unknown collection source type: $value'),
+        orElse: () => throw LiveBackendException(
+          'Unknown collection source type: $value',
+        ),
       );
 
   Future<dynamic> _get(String path) async {

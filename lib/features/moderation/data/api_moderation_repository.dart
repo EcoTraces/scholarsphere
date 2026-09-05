@@ -138,7 +138,8 @@ class ApiModerationRepository implements ModerationRepository {
 
   @override
   Future<ModerationAnalytics> analytics() async {
-    final body = await _get('/moderation-cases/analytics') as Map<String, dynamic>;
+    final body =
+        await _get('/moderation-cases/analytics') as Map<String, dynamic>;
     return ModerationAnalytics(
       totalReports: body['total_reports'] as int,
       openReports: body['open_reports'] as int,
@@ -203,9 +204,7 @@ class ApiModerationRepository implements ModerationRepository {
     status: _statusFromWire(json['status'] as String),
     createdAt: DateTime.parse(json['created_at'] as String),
     history: (json['history'] as List<dynamic>)
-        .map(
-          (item) => _toHistoryEntry(item as Map<String, dynamic>),
-        )
+        .map((item) => _toHistoryEntry(item as Map<String, dynamic>))
         .toList(),
     assignedModeratorId: json['assigned_moderator_id'] as String?,
     moderationNotes: json['moderation_notes'] as String?,
@@ -241,12 +240,13 @@ class ApiModerationRepository implements ModerationRepository {
     ReportedEntityType.user => 'user',
   };
 
-  static ReportedEntityType _entityTypeFromWire(String value) => switch (value) {
-    'opportunity' => ReportedEntityType.opportunity,
-    'provider' => ReportedEntityType.provider,
-    'user' => ReportedEntityType.user,
-    _ => throw LiveBackendException('Unknown reported entity type: $value'),
-  };
+  static ReportedEntityType _entityTypeFromWire(String value) =>
+      switch (value) {
+        'opportunity' => ReportedEntityType.opportunity,
+        'provider' => ReportedEntityType.provider,
+        'user' => ReportedEntityType.user,
+        _ => throw LiveBackendException('Unknown reported entity type: $value'),
+      };
 
   // Keep these two maps in sync with app/schemas/moderation.py's wire maps.
   static String _reportTypeToWire(ModerationReportType type) => switch (type) {
@@ -260,17 +260,20 @@ class ApiModerationRepository implements ModerationRepository {
     ModerationReportType.harmfulContent => 'harmfulContent',
   };
 
-  static ModerationReportType _reportTypeFromWire(String value) => switch (value) {
-    'scam' => ModerationReportType.scam,
-    'incorrectDeadline' => ModerationReportType.incorrectDeadline,
-    'brokenLink' => ModerationReportType.brokenLink,
-    'duplicateListing' => ModerationReportType.duplicateListing,
-    'misleadingContent' => ModerationReportType.misleadingContent,
-    'inappropriateContent' => ModerationReportType.inappropriateContent,
-    'outdatedContent' => ModerationReportType.outdatedContent,
-    'harmfulContent' => ModerationReportType.harmfulContent,
-    _ => throw LiveBackendException('Unknown moderation report type: $value'),
-  };
+  static ModerationReportType _reportTypeFromWire(String value) =>
+      switch (value) {
+        'scam' => ModerationReportType.scam,
+        'incorrectDeadline' => ModerationReportType.incorrectDeadline,
+        'brokenLink' => ModerationReportType.brokenLink,
+        'duplicateListing' => ModerationReportType.duplicateListing,
+        'misleadingContent' => ModerationReportType.misleadingContent,
+        'inappropriateContent' => ModerationReportType.inappropriateContent,
+        'outdatedContent' => ModerationReportType.outdatedContent,
+        'harmfulContent' => ModerationReportType.harmfulContent,
+        _ => throw LiveBackendException(
+          'Unknown moderation report type: $value',
+        ),
+      };
 
   static String _statusToWire(ModerationStatus status) => switch (status) {
     ModerationStatus.submitted => 'submitted',

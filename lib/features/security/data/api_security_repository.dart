@@ -192,7 +192,8 @@ class ApiSecurityRepository implements SecurityRepository {
   static LoginOutcome _outcomeFromWire(String value) =>
       LoginOutcome.values.firstWhere(
         (outcome) => outcome.name == value,
-        orElse: () => throw LiveBackendException('Unknown login outcome: $value'),
+        orElse: () =>
+            throw LiveBackendException('Unknown login outcome: $value'),
       );
 
   static SecurityAlertType _alertTypeFromWire(String value) =>
