@@ -205,8 +205,11 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                               : null,
                           onChanged: _busyType != null
                               ? null
-                              : (available) =>
-                                    _toggle(type, available ?? false, documents),
+                              : (available) => _toggle(
+                                  type,
+                                  available ?? false,
+                                  documents,
+                                ),
                         ),
                     ],
                   ),

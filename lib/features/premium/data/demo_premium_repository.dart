@@ -105,7 +105,8 @@ class DemoPremiumRepository implements PremiumRepository {
   }
 
   @override
-  Future<List<PremiumPayment>> listMyPayments() async => List.unmodifiable(_payments);
+  Future<List<PremiumPayment>> listMyPayments() async =>
+      List.unmodifiable(_payments);
 
   /// Test/demo-only helper: simulates a provider webhook confirming
   /// success, mirroring exactly what the real backend does server-side

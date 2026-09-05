@@ -153,9 +153,9 @@ class ApiObservabilityRepository implements ObservabilityRepository {
   @override
   Future<int> enforceLogRetention(Duration retention) async {
     final headers = await _headers();
-    final uri = Uri.parse('$baseUrl/observability/logs/enforce-retention').replace(
-      queryParameters: {'retention_seconds': '${retention.inSeconds}'},
-    );
+    final uri = Uri.parse(
+      '$baseUrl/observability/logs/enforce-retention',
+    ).replace(queryParameters: {'retention_seconds': '${retention.inSeconds}'});
     final body = await _handle(() => _client.post(uri, headers: headers));
     return body as int;
   }
@@ -167,9 +167,7 @@ class ApiObservabilityRepository implements ObservabilityRepository {
     message: json['message'] as String,
     timestamp: DateTime.parse(json['timestamp'] as String),
     correlationId: json['correlation_id'] as String,
-    context: Map<String, Object?>.from(
-      json['context'] as Map<String, dynamic>,
-    ),
+    context: Map<String, Object?>.from(json['context'] as Map<String, dynamic>),
   );
 
   ServiceHealth _toHealth(Map<String, dynamic> json) => ServiceHealth(
@@ -179,9 +177,7 @@ class ApiObservabilityRepository implements ObservabilityRepository {
     ),
     checkedAt: DateTime.parse(json['checked_at'] as String),
     latencyMilliseconds: json['latency_milliseconds'] as int,
-    details: Map<String, Object?>.from(
-      json['details'] as Map<String, dynamic>,
-    ),
+    details: Map<String, Object?>.from(json['details'] as Map<String, dynamic>),
   );
 
   OperationalIncident _toIncident(Map<String, dynamic> json) =>

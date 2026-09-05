@@ -93,7 +93,9 @@ class ApiTaxonomyRepository implements TaxonomyRepository {
   }
 
   @override
-  Future<List<List<TaxonomyTerm>>> duplicateCandidates(TaxonomyType type) async {
+  Future<List<List<TaxonomyTerm>>> duplicateCandidates(
+    TaxonomyType type,
+  ) async {
     final body = await _get('/taxonomy/terms/duplicates', {
       'type': _typeToWire(type),
     });

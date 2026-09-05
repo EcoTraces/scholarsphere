@@ -80,10 +80,7 @@ class _AuthScreenState extends State<AuthScreen> {
       (label: 'An uppercase letter', met: RegExp('[A-Z]').hasMatch(password)),
       (label: 'A lowercase letter', met: RegExp('[a-z]').hasMatch(password)),
       (label: 'A number', met: RegExp('[0-9]').hasMatch(password)),
-      (
-        label: 'A symbol',
-        met: RegExp(r'[^A-Za-z0-9]').hasMatch(password),
-      ),
+      (label: 'A symbol', met: RegExp(r'[^A-Za-z0-9]').hasMatch(password)),
     ];
   }
 
@@ -203,196 +200,199 @@ class _AuthScreenState extends State<AuthScreen> {
           child: Material(
             type: MaterialType.transparency,
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildModeToggle(theme),
-              const SizedBox(height: 24),
-              Form(
-                key: _formKey,
-                child: AutofillGroup(
-                  child: Column(
-                  children: [
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: RequiredFieldsLegend(),
-                    ),
-                    const SizedBox(height: 10),
-                    if (_registering) ...[
-                      TextFormField(
-                        controller: _nameController,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.name],
-                        maxLength: _nameMaxLength,
-                        buildCounter: characterCounterBuilder,
-                        decoration: const InputDecoration(
-                          labelText: 'Full name *',
-                          prefixIcon: Icon(Icons.person_outline),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildModeToggle(theme),
+                const SizedBox(height: 24),
+                Form(
+                  key: _formKey,
+                  child: AutofillGroup(
+                    child: Column(
+                      children: [
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: RequiredFieldsLegend(),
                         ),
-                        validator: (value) =>
-                            value == null || value.trim().length < 2
-                            ? 'Enter your full name.'
-                            : null,
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                    TextFormField(
-                      key: const Key('auth-email'),
-                      controller: _emailController,
-                      focusNode: _emailFocus,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email],
-                      decoration: InputDecoration(
-                        labelText: 'Email address *',
-                        prefixIcon: const Icon(Icons.mail_outline),
-                        errorText: _emailTouched && !_emailValid
-                            ? 'Enter a valid email address.'
-                            : null,
-                      ),
-                      validator: (value) {
-                        final email = value?.trim() ?? '';
-                        return _isValidEmail(email)
-                            ? null
-                            : 'Enter a valid email address.';
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      key: const Key('auth-password'),
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      onFieldSubmitted: (_) => _submit(),
-                      autofillHints: [
-                        _registering
-                            ? AutofillHints.newPassword
-                            : AutofillHints.password,
-                      ],
-                      decoration: InputDecoration(
-                        labelText: 'Password *',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          tooltip: _obscurePassword
-                              ? 'Show password'
-                              : 'Hide password',
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
+                        const SizedBox(height: 10),
+                        if (_registering) ...[
+                          TextFormField(
+                            controller: _nameController,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.name],
+                            maxLength: _nameMaxLength,
+                            buildCounter: characterCounterBuilder,
+                            decoration: const InputDecoration(
+                              labelText: 'Full name *',
+                              prefixIcon: Icon(Icons.person_outline),
+                            ),
+                            validator: (value) =>
+                                value == null || value.trim().length < 2
+                                ? 'Enter your full name.'
+                                : null,
                           ),
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
+                          const SizedBox(height: 14),
+                        ],
+                        TextFormField(
+                          key: const Key('auth-email'),
+                          controller: _emailController,
+                          focusNode: _emailFocus,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                          decoration: InputDecoration(
+                            labelText: 'Email address *',
+                            prefixIcon: const Icon(Icons.mail_outline),
+                            errorText: _emailTouched && !_emailValid
+                                ? 'Enter a valid email address.'
+                                : null,
                           ),
+                          validator: (value) {
+                            final email = value?.trim() ?? '';
+                            return _isValidEmail(email)
+                                ? null
+                                : 'Enter a valid email address.';
+                          },
                         ),
-                      ),
-                      validator: (value) {
-                        final password = value ?? '';
-                        if (!_registering) {
-                          return password.isEmpty
-                              ? 'Enter your password.'
-                              : null;
-                        }
-                        if (password.length < 12) {
-                          return 'Use at least 12 characters.';
-                        }
-                        if (!RegExp('[A-Z]').hasMatch(password) ||
-                            !RegExp('[a-z]').hasMatch(password) ||
-                            !RegExp('[0-9]').hasMatch(password) ||
-                            !RegExp(r'[^A-Za-z0-9]').hasMatch(password)) {
-                          return 'Use upper/lowercase, a number, and a '
-                              'symbol.';
-                        }
-                        return null;
-                      },
-                    ),
-                    if (_registering) ...[
-                      const SizedBox(height: 8),
-                      _buildPasswordChecklist(theme),
-                      const SizedBox(height: 12),
-                      CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        visualDensity: VisualDensity.standard,
-                        value: _acceptPrivacy,
-                        title: const Text('Accept the privacy policy'),
-                        onChanged: _busy
-                            ? null
-                            : (value) => setState(
-                                () => _acceptPrivacy = value ?? false,
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          key: const Key('auth-password'),
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          onFieldSubmitted: (_) => _submit(),
+                          autofillHints: [
+                            _registering
+                                ? AutofillHints.newPassword
+                                : AutofillHints.password,
+                          ],
+                          decoration: InputDecoration(
+                            labelText: 'Password *',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              tooltip: _obscurePassword
+                                  ? 'Show password'
+                                  : 'Hide password',
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
                               ),
-                      ),
-                      CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        visualDensity: VisualDensity.standard,
-                        value: _acceptTerms,
-                        title: const Text('Accept the terms and conditions'),
-                        onChanged: _busy
-                            ? null
-                            : (value) =>
-                                  setState(() => _acceptTerms = value ?? false),
-                      ),
-                    ],
-                  ],
-                  ),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                _buildErrorBanner(theme),
-              ],
-              if (!_registering)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _busy ? null : _resetPassword,
-                    child: const Text('Forgot password?'),
-                  ),
-                )
-              else
-                const SizedBox(height: 18),
-              const SizedBox(height: 4),
-              FilledButton(
-                key: const Key('auth-submit'),
-                onPressed: _busy || !_formValid ? null : _submit,
-                child: _busy
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                            ),
+                          ),
+                          validator: (value) {
+                            final password = value ?? '';
+                            if (!_registering) {
+                              return password.isEmpty
+                                  ? 'Enter your password.'
+                                  : null;
+                            }
+                            if (password.length < 12) {
+                              return 'Use at least 12 characters.';
+                            }
+                            if (!RegExp('[A-Z]').hasMatch(password) ||
+                                !RegExp('[a-z]').hasMatch(password) ||
+                                !RegExp('[0-9]').hasMatch(password) ||
+                                !RegExp(r'[^A-Za-z0-9]').hasMatch(password)) {
+                              return 'Use upper/lowercase, a number, and a '
+                                  'symbol.';
+                            }
+                            return null;
+                          },
                         ),
-                      )
-                    : Text(_registering ? 'Create account' : 'Sign in'),
-              ),
-              Center(
-                child: SubmitBlockedHint(
-                  visible: !_busy && !_formValid,
-                  message: _registering
-                      ? 'Complete the highlighted fields above to '
-                            'create your account.'
-                      : 'Enter your email and password to sign in.',
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildOrDivider(theme),
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
-                onPressed: _busy ? null : _signInWithGoogle,
-                icon: _buildGoogleIcon(),
-                label: const Text('Continue with Google'),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: TextButton(
-                  onPressed: _busy ? null : () => _setMode(!_registering),
-                  child: Text(
-                    _registering
-                        ? 'Already have an account? Login'
-                        : "Don't have an account? Register now",
+                        if (_registering) ...[
+                          const SizedBox(height: 8),
+                          _buildPasswordChecklist(theme),
+                          const SizedBox(height: 12),
+                          CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            visualDensity: VisualDensity.standard,
+                            value: _acceptPrivacy,
+                            title: const Text('Accept the privacy policy'),
+                            onChanged: _busy
+                                ? null
+                                : (value) => setState(
+                                    () => _acceptPrivacy = value ?? false,
+                                  ),
+                          ),
+                          CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            visualDensity: VisualDensity.standard,
+                            value: _acceptTerms,
+                            title: const Text(
+                              'Accept the terms and conditions',
+                            ),
+                            onChanged: _busy
+                                ? null
+                                : (value) => setState(
+                                    () => _acceptTerms = value ?? false,
+                                  ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                if (_error != null) ...[
+                  const SizedBox(height: 14),
+                  _buildErrorBanner(theme),
+                ],
+                if (!_registering)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _busy ? null : _resetPassword,
+                      child: const Text('Forgot password?'),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 18),
+                const SizedBox(height: 4),
+                FilledButton(
+                  key: const Key('auth-submit'),
+                  onPressed: _busy || !_formValid ? null : _submit,
+                  child: _busy
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(_registering ? 'Create account' : 'Sign in'),
+                ),
+                Center(
+                  child: SubmitBlockedHint(
+                    visible: !_busy && !_formValid,
+                    message: _registering
+                        ? 'Complete the highlighted fields above to '
+                              'create your account.'
+                        : 'Enter your email and password to sign in.',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildOrDivider(theme),
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: _busy ? null : _signInWithGoogle,
+                  icon: _buildGoogleIcon(),
+                  label: const Text('Continue with Google'),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: _busy ? null : () => _setMode(!_registering),
+                    child: Text(
+                      _registering
+                          ? 'Already have an account? Login'
+                          : "Don't have an account? Register now",
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -580,11 +580,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: theme.colorScheme.error,
-              size: 20,
-            ),
+            Icon(Icons.error_outline, color: theme.colorScheme.error, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -771,11 +767,7 @@ class _AuthScreenState extends State<AuthScreen> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              titleText,
-              const SizedBox(height: 4),
-              subtitleText,
-            ],
+            children: [titleText, const SizedBox(height: 4), subtitleText],
           ),
         ),
       ],

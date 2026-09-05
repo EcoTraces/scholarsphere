@@ -165,23 +165,24 @@ class ApiNotificationRepository implements NotificationRepository {
     );
   }
 
-  Map<String, dynamic> _preferencesBody(NotificationPreferences preferences) => {
-    'channels': preferences.channels.map(_channelToWire).toList(),
-    'frequency': _frequencyToWire(preferences.frequency),
-    'reminder_days': preferences.reminderDays.toList(),
-    'matching_opportunities': preferences.matchingOpportunities,
-    'opportunity_changes': preferences.opportunityChanges,
-    'verification_updates': preferences.verificationUpdates,
-    'saved_opportunity_expiry': preferences.savedOpportunityExpiry,
-    'quiet_hours_start': preferences.quietHoursStart,
-    'quiet_hours_end': preferences.quietHoursEnd,
-    'timezone': preferences.timezone,
-    'daily_limit': preferences.dailyLimit,
-    'group_notifications': preferences.groupNotifications,
-    'unsubscribed_types': preferences.unsubscribedTypes
-        .map(_eventTypeToWire)
-        .toList(),
-  };
+  Map<String, dynamic> _preferencesBody(NotificationPreferences preferences) =>
+      {
+        'channels': preferences.channels.map(_channelToWire).toList(),
+        'frequency': _frequencyToWire(preferences.frequency),
+        'reminder_days': preferences.reminderDays.toList(),
+        'matching_opportunities': preferences.matchingOpportunities,
+        'opportunity_changes': preferences.opportunityChanges,
+        'verification_updates': preferences.verificationUpdates,
+        'saved_opportunity_expiry': preferences.savedOpportunityExpiry,
+        'quiet_hours_start': preferences.quietHoursStart,
+        'quiet_hours_end': preferences.quietHoursEnd,
+        'timezone': preferences.timezone,
+        'daily_limit': preferences.dailyLimit,
+        'group_notifications': preferences.groupNotifications,
+        'unsubscribed_types': preferences.unsubscribedTypes
+            .map(_eventTypeToWire)
+            .toList(),
+      };
 
   NotificationPreferences _toPreferences(Map<String, dynamic> json) =>
       NotificationPreferences(
@@ -236,13 +237,14 @@ class ApiNotificationRepository implements NotificationRepository {
       value == null ? null : DateTime.tryParse(value as String);
 
   // Keep these four maps in sync with app/schemas/notification.py's wire maps.
-  static String _channelToWire(NotificationChannel channel) => switch (channel) {
-    NotificationChannel.inApp => 'inApp',
-    NotificationChannel.email => 'email',
-    NotificationChannel.push => 'push',
-    NotificationChannel.sms => 'sms',
-    NotificationChannel.whatsapp => 'whatsapp',
-  };
+  static String _channelToWire(NotificationChannel channel) =>
+      switch (channel) {
+        NotificationChannel.inApp => 'inApp',
+        NotificationChannel.email => 'email',
+        NotificationChannel.push => 'push',
+        NotificationChannel.sms => 'sms',
+        NotificationChannel.whatsapp => 'whatsapp',
+      };
 
   static NotificationChannel _channelFromWire(String value) => switch (value) {
     'inApp' => NotificationChannel.inApp,
@@ -267,7 +269,9 @@ class ApiNotificationRepository implements NotificationRepository {
         'dailyDigest' => NotificationFrequency.dailyDigest,
         'weeklyDigest' => NotificationFrequency.weeklyDigest,
         'disabled' => NotificationFrequency.disabled,
-        _ => throw LiveBackendException('Unknown notification frequency: $value'),
+        _ => throw LiveBackendException(
+          'Unknown notification frequency: $value',
+        ),
       };
 
   static String _eventTypeToWire(NotificationEventType type) => switch (type) {
@@ -282,7 +286,9 @@ class ApiNotificationRepository implements NotificationRepository {
     NotificationEventType.emergencySystemMessage => 'emergencySystemMessage',
   };
 
-  static NotificationEventType _eventTypeFromWire(String value) => switch (value) {
+  static NotificationEventType _eventTypeFromWire(
+    String value,
+  ) => switch (value) {
     'matchingOpportunity' => NotificationEventType.matchingOpportunity,
     'deadlineReminder' => NotificationEventType.deadlineReminder,
     'requirementsChanged' => NotificationEventType.requirementsChanged,

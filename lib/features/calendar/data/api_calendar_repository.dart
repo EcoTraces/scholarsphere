@@ -73,7 +73,10 @@ class ApiCalendarRepository implements CalendarRepository {
   }
 
   @override
-  Future<CalendarEvent> updateDeadline(String eventId, DateTime newDeadline) async {
+  Future<CalendarEvent> updateDeadline(
+    String eventId,
+    DateTime newDeadline,
+  ) async {
     try {
       final body = await _post('/calendar/events/$eventId/deadline', {
         'new_deadline': newDeadline.toUtc().toIso8601String(),
@@ -107,9 +110,7 @@ class ApiCalendarRepository implements CalendarRepository {
   Future<List<CalendarConflict>> conflicts(String userId) async {
     final body = await _get('/calendar/conflicts');
     return (body as List<dynamic>)
-        .map(
-          (item) => _toConflict(item as Map<String, dynamic>),
-        )
+        .map((item) => _toConflict(item as Map<String, dynamic>))
         .toList();
   }
 

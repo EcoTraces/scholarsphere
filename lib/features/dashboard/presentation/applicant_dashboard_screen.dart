@@ -64,7 +64,8 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
   void _startLoad() {
     _data = _load();
     _data.then((data) {
-      if (mounted) setState(() => _unreadNotifications = data.unreadNotifications);
+      if (mounted)
+        setState(() => _unreadNotifications = data.unreadNotifications);
     });
   }
 
@@ -285,84 +286,84 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     return Container(
-    height: 72,
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    decoration: const BoxDecoration(
-      color: Colors.white,
-      border: Border(bottom: BorderSide(color: Color(0xFFE7EBF1))),
-    ),
-    child: Row(
-      children: [
-        if (showMenu)
-          Builder(
-            builder: (context) => IconButton(
-              tooltip: 'Open navigation',
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              icon: const Icon(Icons.menu),
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE7EBF1))),
+      ),
+      child: Row(
+        children: [
+          if (showMenu)
+            Builder(
+              builder: (context) => IconButton(
+                tooltip: 'Open navigation',
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                icon: const Icon(Icons.menu),
+              ),
             ),
-          ),
-        Expanded(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: TextField(
-              key: const Key('dashboard-search'),
-              readOnly: true,
-              onTap: onSearch,
-              decoration: const InputDecoration(
-                isDense: true,
-                prefixIcon: Icon(Icons.search),
-                hintText:
-                    'Search scholarships, fellowships, webinars, summits and more...',
+          Expanded(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: TextField(
+                key: const Key('dashboard-search'),
+                readOnly: true,
+                onTap: onSearch,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  prefixIcon: Icon(Icons.search),
+                  hintText:
+                      'Search scholarships, fellowships, webinars, summits and more...',
+                ),
               ),
             ),
           ),
-        ),
-        const Spacer(),
-        // The tooltip string doubles as the accessible name for IconButton,
-        // so making it contextual ("3 unread notifications") satisfies the
-        // "announce a meaningful phrase, not a bare number" a11y guidance
-        // without a second, competing Semantics node around the badge.
-        Badge.count(
-          count: unreadNotifications,
-          isLabelVisible: unreadNotifications > 0,
-          child: IconButton(
-            tooltip: unreadNotifications > 0
-                ? '$unreadNotifications unread notifications'
-                : 'Notifications',
-            onPressed: onNotifications,
-            icon: const Icon(Icons.notifications_none),
-          ),
-        ),
-        PopupMenuButton<String>(
-          tooltip: 'Account',
-          onSelected: (value) {
-            if (value == 'profile') onProfile();
-            if (value == 'sign-out') onSignOut();
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'profile', child: Text('Edit profile')),
-            PopupMenuItem(value: 'sign-out', child: Text('Sign out')),
-          ],
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: primary.withValues(alpha: 0.14),
-                  foregroundColor: primary,
-                  child: Text(user.fullName.substring(0, 1)),
-                ),
-                const SizedBox(width: 9),
-                if (MediaQuery.sizeOf(context).width >= 700)
-                  Text('Hi, ${user.fullName.split(' ').first}'),
-                const Icon(Icons.keyboard_arrow_down, size: 18),
-              ],
+          const Spacer(),
+          // The tooltip string doubles as the accessible name for IconButton,
+          // so making it contextual ("3 unread notifications") satisfies the
+          // "announce a meaningful phrase, not a bare number" a11y guidance
+          // without a second, competing Semantics node around the badge.
+          Badge.count(
+            count: unreadNotifications,
+            isLabelVisible: unreadNotifications > 0,
+            child: IconButton(
+              tooltip: unreadNotifications > 0
+                  ? '$unreadNotifications unread notifications'
+                  : 'Notifications',
+              onPressed: onNotifications,
+              icon: const Icon(Icons.notifications_none),
             ),
           ),
-        ),
-      ],
-    ),
+          PopupMenuButton<String>(
+            tooltip: 'Account',
+            onSelected: (value) {
+              if (value == 'profile') onProfile();
+              if (value == 'sign-out') onSignOut();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'profile', child: Text('Edit profile')),
+              PopupMenuItem(value: 'sign-out', child: Text('Sign out')),
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: primary.withValues(alpha: 0.14),
+                    foregroundColor: primary,
+                    child: Text(user.fullName.substring(0, 1)),
+                  ),
+                  const SizedBox(width: 9),
+                  if (MediaQuery.sizeOf(context).width >= 700)
+                    Text('Hi, ${user.fullName.split(' ').first}'),
+                  const Icon(Icons.keyboard_arrow_down, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -448,11 +449,7 @@ class _SideNavigation extends StatelessWidget {
                   openDashboard,
                   true,
                 ),
-                _nav(
-                  Icons.workspace_premium_outlined,
-                  'Premium',
-                  openPremium,
-                ),
+                _nav(Icons.workspace_premium_outlined, 'Premium', openPremium),
                 _nav(
                   Icons.explore_outlined,
                   'Opportunities',
@@ -714,7 +711,8 @@ class _Metrics extends StatelessWidget {
               _Metric(
                 width: width,
                 icon: Icons.schedule,
-                color: scheme.error, // urgency — matches the "deadline" semantic
+                color:
+                    scheme.error, // urgency — matches the "deadline" semantic
                 value: data.closingSoon,
                 label: 'Closing soon',
                 onTap: openOpportunities,
@@ -1031,7 +1029,9 @@ class _Notifications extends StatelessWidget {
                   (item) => ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFE6F4F2) /* brand teal tint */,
+                      backgroundColor: const Color(
+                        0xFFE6F4F2,
+                      ) /* brand teal tint */,
                       child: Icon(
                         item.type == NotificationEventType.deadlineReminder
                             ? Icons.calendar_today_outlined

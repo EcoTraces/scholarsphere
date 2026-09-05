@@ -213,11 +213,10 @@ class ApiBackupRepository implements BackupRepository {
   // Keep in sync with app/models/backup.py's enum wire values.
   static String _typeToWire(BackupType type) => type.name;
 
-  static BackupType _typeFromWire(String value) => BackupType.values
-      .firstWhere(
-        (type) => type.name == value,
-        orElse: () => throw LiveBackendException('Unknown backup type: $value'),
-      );
+  static BackupType _typeFromWire(String value) => BackupType.values.firstWhere(
+    (type) => type.name == value,
+    orElse: () => throw LiveBackendException('Unknown backup type: $value'),
+  );
 
   Future<dynamic> _get(String path) async {
     final headers = await _headers();

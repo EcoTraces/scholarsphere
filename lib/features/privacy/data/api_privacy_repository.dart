@@ -119,9 +119,7 @@ class ApiPrivacyRepository implements PrivacyRepository {
   }
 
   @override
-  Future<List<OrganizationAccessRecord>> getAccessHistory(
-    String userId,
-  ) async {
+  Future<List<OrganizationAccessRecord>> getAccessHistory(String userId) async {
     final body = await _get('/privacy/access-history');
     return (body as List<dynamic>)
         .map((item) => _toAccessRecord(item as Map<String, dynamic>))
@@ -247,13 +245,14 @@ class ApiPrivacyRepository implements PrivacyRepository {
     PrivacyRequestType.documentDeletion => 'documentDeletion',
   };
 
-  static PrivacyRequestType _requestTypeFromWire(String value) => switch (value) {
-    'dataExport' => PrivacyRequestType.dataExport,
-    'accountDeletion' => PrivacyRequestType.accountDeletion,
-    'dataCorrection' => PrivacyRequestType.dataCorrection,
-    'documentDeletion' => PrivacyRequestType.documentDeletion,
-    _ => throw LiveBackendException('Unknown privacy request type: $value'),
-  };
+  static PrivacyRequestType _requestTypeFromWire(String value) =>
+      switch (value) {
+        'dataExport' => PrivacyRequestType.dataExport,
+        'accountDeletion' => PrivacyRequestType.accountDeletion,
+        'dataCorrection' => PrivacyRequestType.dataCorrection,
+        'documentDeletion' => PrivacyRequestType.documentDeletion,
+        _ => throw LiveBackendException('Unknown privacy request type: $value'),
+      };
 
   static PrivacyRequestStatus _requestStatusFromWire(String value) =>
       switch (value) {
@@ -262,7 +261,9 @@ class ApiPrivacyRepository implements PrivacyRepository {
         'completed' => PrivacyRequestStatus.completed,
         'rejected' => PrivacyRequestStatus.rejected,
         'cancelled' => PrivacyRequestStatus.cancelled,
-        _ => throw LiveBackendException('Unknown privacy request status: $value'),
+        _ => throw LiveBackendException(
+          'Unknown privacy request status: $value',
+        ),
       };
 
   Future<dynamic> _get(String path) async {

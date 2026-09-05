@@ -82,9 +82,7 @@ class ApiRecommendationGovernanceRepository
   Future<List<RecommendationHistoryEntry>> getHistory(String userId) async {
     final body = await _get('/recommendations/history');
     return (body as List<dynamic>)
-        .map(
-          (item) => _toHistoryEntry(userId, item as Map<String, dynamic>),
-        )
+        .map((item) => _toHistoryEntry(userId, item as Map<String, dynamic>))
         .toList();
   }
 
@@ -106,9 +104,7 @@ class ApiRecommendationGovernanceRepository
   Future<List<RecommendationFeedback>> getFeedback(String userId) async {
     final body = await _get('/recommendations/feedback');
     return (body as List<dynamic>)
-        .map(
-          (item) => _toFeedback(userId, item as Map<String, dynamic>),
-        )
+        .map((item) => _toFeedback(userId, item as Map<String, dynamic>))
         .toList();
   }
 
@@ -132,14 +128,12 @@ class ApiRecommendationGovernanceRepository
             json['behavioural_recommendations_enabled'] as bool,
         preferredCountries: (json['preferred_countries'] as List<dynamic>)
             .cast<String>(),
-        opportunityCategories:
-            (json['opportunity_categories'] as List<dynamic>)
-                .map((value) => _categoryFromWire(value as String))
-                .toSet(),
-        hiddenOpportunityIds:
-            (json['hidden_opportunity_ids'] as List<dynamic>)
-                .cast<String>()
-                .toSet(),
+        opportunityCategories: (json['opportunity_categories'] as List<dynamic>)
+            .map((value) => _categoryFromWire(value as String))
+            .toSet(),
+        hiddenOpportunityIds: (json['hidden_opportunity_ids'] as List<dynamic>)
+            .cast<String>()
+            .toSet(),
       );
 
   RecommendationHistoryEntry _toHistoryEntry(
@@ -174,8 +168,9 @@ class ApiRecommendationGovernanceRepository
   static RecommendationCategory _categoryFromWire(String value) =>
       RecommendationCategory.values.firstWhere(
         (category) => category.name == value,
-        orElse: () =>
-            throw LiveBackendException('Unknown recommendation category: $value'),
+        orElse: () => throw LiveBackendException(
+          'Unknown recommendation category: $value',
+        ),
       );
 
   static String _labelToWire(RecommendationLabel label) => label.name;

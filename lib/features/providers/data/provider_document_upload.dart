@@ -20,15 +20,19 @@ class ProviderDocumentUploadFailure implements Exception {
 }
 
 class ProviderDocumentUpload {
-  ProviderDocumentUpload({firebase.FirebaseAuth? auth, storage.FirebaseStorage? storageInstance})
-    : _authOverride = auth,
-      _storageOverride = storageInstance;
+  ProviderDocumentUpload({
+    firebase.FirebaseAuth? auth,
+    storage.FirebaseStorage? storageInstance,
+  }) : _authOverride = auth,
+       _storageOverride = storageInstance;
 
   final firebase.FirebaseAuth? _authOverride;
   final storage.FirebaseStorage? _storageOverride;
 
-  firebase.FirebaseAuth get _auth => _authOverride ?? firebase.FirebaseAuth.instance;
-  storage.FirebaseStorage get _storage => _storageOverride ?? storage.FirebaseStorage.instance;
+  firebase.FirebaseAuth get _auth =>
+      _authOverride ?? firebase.FirebaseAuth.instance;
+  storage.FirebaseStorage get _storage =>
+      _storageOverride ?? storage.FirebaseStorage.instance;
 
   static const _allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
   static const _maxBytes = 10 * 1024 * 1024;
@@ -45,7 +49,9 @@ class ProviderDocumentUpload {
   Future<String?> pickAndUpload() async {
     final user = _auth.currentUser;
     if (user == null) {
-      throw const ProviderDocumentUploadFailure('Sign in to upload a document.');
+      throw const ProviderDocumentUploadFailure(
+        'Sign in to upload a document.',
+      );
     }
     final file = await FilePicker.pickFile(
       type: FileType.custom,
@@ -56,13 +62,19 @@ class ProviderDocumentUpload {
     try {
       bytes = await file.readAsBytes();
     } on Exception {
-      throw const ProviderDocumentUploadFailure('Could not read the selected file.');
+      throw const ProviderDocumentUploadFailure(
+        'Could not read the selected file.',
+      );
     }
     if (bytes.lengthInBytes > _maxBytes) {
-      throw const ProviderDocumentUploadFailure('Files must be 10 MB or smaller.');
+      throw const ProviderDocumentUploadFailure(
+        'Files must be 10 MB or smaller.',
+      );
     }
     final dot = file.name.lastIndexOf('.');
-    final extension = dot == -1 ? '' : file.name.substring(dot + 1).toLowerCase();
+    final extension = dot == -1
+        ? ''
+        : file.name.substring(dot + 1).toLowerCase();
     final contentType = _contentTypes[extension];
     if (contentType == null) {
       throw const ProviderDocumentUploadFailure(

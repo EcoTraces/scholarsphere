@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../opportunities/data/api_opportunity_repository.dart' show LiveBackendException;
+import '../../opportunities/data/api_opportunity_repository.dart'
+    show LiveBackendException;
 import '../domain/premium_plan.dart';
 import '../domain/premium_repository.dart';
 
@@ -113,7 +114,8 @@ class _PremiumLandingScreenState extends State<PremiumLandingScreen> {
                                     // owned even after a different plan
                                     // was purchased more recently.
                                     isOwned: status.entitlements.any(
-                                      (entitlement) => entitlement.planId == plan.id,
+                                      (entitlement) =>
+                                          entitlement.planId == plan.id,
                                     ),
                                     inFlight: _checkoutInFlight,
                                     onUnlock: () => _unlock(plan),
@@ -159,18 +161,27 @@ class _Hero extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.verified, color: theme.colorScheme.primary, semanticLabel: 'Premium active'),
+            Icon(
+              Icons.verified,
+              color: theme.colorScheme.primary,
+              semanticLabel: 'Premium active',
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('You have ScholarSphere Premium', style: theme.textTheme.titleLarge),
+                  Text(
+                    'You have ScholarSphere Premium',
+                    style: theme.textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     expiresAt == null
                         ? 'Lifetime access to every Premium feature.'
-                        : 'Access until ${expiresAt.toLocal()}'.split('.').first,
+                        : 'Access until ${expiresAt.toLocal()}'
+                              .split('.')
+                              .first,
                     style: theme.textTheme.bodyMedium,
                   ),
                 ],
@@ -183,7 +194,10 @@ class _Hero extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Prepare a stronger application', style: theme.textTheme.headlineSmall),
+        Text(
+          'Prepare a stronger application',
+          style: theme.textTheme.headlineSmall,
+        ),
         const SizedBox(height: 8),
         Text(
           'CV and ATS optimization, SOP and study plan builders, research '
@@ -221,7 +235,8 @@ class _PlanCard extends StatelessWidget {
     PremiumFeatureKeys.studyPlanBuilder: 'Study plan builder',
     PremiumFeatureKeys.researchProposalBuilder: 'Research proposal builder',
     PremiumFeatureKeys.fellowshipPreparation: 'Fellowship preparation',
-    PremiumFeatureKeys.aiDocumentImprovement: 'AI-assisted document improvement',
+    PremiumFeatureKeys.aiDocumentImprovement:
+        'AI-assisted document improvement',
     PremiumFeatureKeys.documentVersioning: 'Document versioning',
     PremiumFeatureKeys.pdfExport: 'PDF export',
     PremiumFeatureKeys.docxExport: 'DOCX export',
@@ -242,26 +257,39 @@ class _PlanCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(
-                  plan.displayPrice,
-                  style: theme.textTheme.headlineLarge,
+                Flexible(
+                  child: Text(
+                    plan.displayPrice,
+                    style: theme.textTheme.headlineLarge,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  plan.billingInterval == 'one_time' ? 'one-time' : 'per ${plan.billingInterval}',
-                  style: theme.textTheme.bodyMedium,
+                Flexible(
+                  child: Text(
+                    plan.billingInterval == 'one_time'
+                        ? 'one-time'
+                        : 'per ${plan.billingInterval}',
+                    style: theme.textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            if (plan.description.isNotEmpty) Text(plan.description, style: theme.textTheme.bodyMedium),
+            if (plan.description.isNotEmpty)
+              Text(plan.description, style: theme.textTheme.bodyMedium),
             const SizedBox(height: 16),
             ...plan.features.map(
               (feature) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle, size: 18, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(child: Text(_featureLabels[feature] ?? feature)),
                   ],
@@ -331,7 +359,11 @@ class _EmptyPlansState extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.inventory_2_outlined, size: 40, color: Theme.of(context).colorScheme.outline),
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 40,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 12),
             const Text('No Premium plans are configured yet.'),
           ],
@@ -354,7 +386,11 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 40, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 40,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 12),
             const Text("We couldn't load Premium plans."),
             const SizedBox(height: 16),

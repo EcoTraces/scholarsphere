@@ -184,8 +184,8 @@ class ApiSearchIndexRepository implements SearchIndexRepository {
     fieldsOfStudy: (json['fieldsOfStudy'] as List<dynamic>).cast<String>(),
     summary: json['summary'] as String,
     benefits: (json['benefits'] as List<dynamic>).cast<String>(),
-    eligibilityRequirements:
-        (json['eligibilityRequirements'] as List<dynamic>).cast<String>(),
+    eligibilityRequirements: (json['eligibilityRequirements'] as List<dynamic>)
+        .cast<String>(),
     requiredDocuments: (json['requiredDocuments'] as List<dynamic>)
         .cast<String>(),
     applicationProcedure: (json['applicationProcedure'] as List<dynamic>)
@@ -194,8 +194,8 @@ class ApiSearchIndexRepository implements SearchIndexRepository {
         .cast<String>(),
     minimumAge: json['minimumAge'] as int?,
     maximumAge: json['maximumAge'] as int?,
-    workExperienceYearsRequired:
-        (json['workExperienceYearsRequired'] as num?)?.toDouble(),
+    workExperienceYearsRequired: (json['workExperienceYearsRequired'] as num?)
+        ?.toDouble(),
     contactInformation: json['contactInformation'] as String,
     availablePositions: json['availablePositions'] as int?,
     deliveryFormat: _deliveryFromWire(json['deliveryFormat'] as String),
@@ -234,7 +234,9 @@ class ApiSearchIndexRepository implements SearchIndexRepository {
       );
 
   SearchHit _toHit(Map<String, dynamic> json) => SearchHit(
-    opportunity: _opportunityFromJson(json['opportunity'] as Map<String, dynamic>),
+    opportunity: _opportunityFromJson(
+      json['opportunity'] as Map<String, dynamic>,
+    ),
     score: (json['score'] as num).toDouble(),
     matchedTerms: (json['matched_terms'] as List<dynamic>).cast<String>(),
   );
@@ -262,13 +264,15 @@ class ApiSearchIndexRepository implements SearchIndexRepository {
   static OpportunityType _typeFromWire(String value) =>
       OpportunityType.values.firstWhere(
         (item) => item.name == value,
-        orElse: () => throw LiveBackendException('Unknown opportunity type: $value'),
+        orElse: () =>
+            throw LiveBackendException('Unknown opportunity type: $value'),
       );
 
   static FundingType _fundingFromWire(String value) =>
       FundingType.values.firstWhere(
         (item) => item.name == value,
-        orElse: () => throw LiveBackendException('Unknown funding type: $value'),
+        orElse: () =>
+            throw LiveBackendException('Unknown funding type: $value'),
       );
 
   static VerificationStatus _statusFromWire(String value) =>
@@ -281,7 +285,8 @@ class ApiSearchIndexRepository implements SearchIndexRepository {
   static DeliveryFormat _deliveryFromWire(String value) =>
       DeliveryFormat.values.firstWhere(
         (item) => item.name == value,
-        orElse: () => throw LiveBackendException('Unknown delivery format: $value'),
+        orElse: () =>
+            throw LiveBackendException('Unknown delivery format: $value'),
       );
 
   Future<dynamic> _get(

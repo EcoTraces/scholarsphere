@@ -105,8 +105,7 @@ class ApiProviderOpportunityRepository implements OpportunityRepository {
       'language_requirements': opportunity.languageRequirements,
       'minimum_age': opportunity.minimumAge,
       'maximum_age': opportunity.maximumAge,
-      'work_experience_years_required':
-          opportunity.workExperienceYearsRequired,
+      'work_experience_years_required': opportunity.workExperienceYearsRequired,
       'contact_information': opportunity.contactInformation,
       'available_positions': opportunity.availablePositions,
       'application_fee': opportunity.applicationFee,
@@ -173,8 +172,8 @@ class ApiProviderOpportunityRepository implements OpportunityRepository {
     fieldsOfStudy: (json['fields_of_study'] as List<dynamic>).cast<String>(),
     summary: json['summary'] as String,
     benefits: (json['benefits'] as List<dynamic>).cast<String>(),
-    eligibilityRequirements:
-        (json['eligibility_requirements'] as List<dynamic>).cast<String>(),
+    eligibilityRequirements: (json['eligibility_requirements'] as List<dynamic>)
+        .cast<String>(),
     requiredDocuments: (json['required_documents'] as List<dynamic>)
         .cast<String>(),
     applicationProcedure: (json['application_procedure'] as List<dynamic>)
@@ -274,9 +273,7 @@ class ApiProviderOpportunityRepository implements OpportunityRepository {
         'rejected' => VerificationStatus.rejected,
         'expired' => VerificationStatus.expired,
         'archived' => VerificationStatus.archived,
-        _ => throw LiveBackendException(
-          'Unknown verification status: $value',
-        ),
+        _ => throw LiveBackendException('Unknown verification status: $value'),
       };
 
   static DateTime? _date(dynamic value) =>
@@ -287,7 +284,10 @@ class ApiProviderOpportunityRepository implements OpportunityRepository {
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
 
-  Future<dynamic> _get(String path, {Map<String, String> query = const {}}) async {
+  Future<dynamic> _get(
+    String path, {
+    Map<String, String> query = const {},
+  }) async {
     final headers = await _headers();
     final uri = Uri.parse(
       '$baseUrl$path',

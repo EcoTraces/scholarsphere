@@ -30,7 +30,8 @@ class ApplicantDocumentUpload {
   final firebase.FirebaseAuth? _authOverride;
   final storage.FirebaseStorage? _storageOverride;
 
-  firebase.FirebaseAuth get _auth => _authOverride ?? firebase.FirebaseAuth.instance;
+  firebase.FirebaseAuth get _auth =>
+      _authOverride ?? firebase.FirebaseAuth.instance;
   storage.FirebaseStorage get _storage =>
       _storageOverride ?? storage.FirebaseStorage.instance;
 
@@ -49,7 +50,9 @@ class ApplicantDocumentUpload {
   Future<({String storagePath, String fileName})?> pickAndUpload() async {
     final user = _auth.currentUser;
     if (user == null) {
-      throw const ApplicantDocumentUploadFailure('Sign in to upload a document.');
+      throw const ApplicantDocumentUploadFailure(
+        'Sign in to upload a document.',
+      );
     }
     final file = await FilePicker.pickFile(
       type: FileType.custom,
@@ -60,13 +63,19 @@ class ApplicantDocumentUpload {
     try {
       bytes = await file.readAsBytes();
     } on Exception {
-      throw const ApplicantDocumentUploadFailure('Could not read the selected file.');
+      throw const ApplicantDocumentUploadFailure(
+        'Could not read the selected file.',
+      );
     }
     if (bytes.lengthInBytes > _maxBytes) {
-      throw const ApplicantDocumentUploadFailure('Files must be 10 MB or smaller.');
+      throw const ApplicantDocumentUploadFailure(
+        'Files must be 10 MB or smaller.',
+      );
     }
     final dot = file.name.lastIndexOf('.');
-    final extension = dot == -1 ? '' : file.name.substring(dot + 1).toLowerCase();
+    final extension = dot == -1
+        ? ''
+        : file.name.substring(dot + 1).toLowerCase();
     final contentType = _contentTypes[extension];
     if (contentType == null) {
       throw const ApplicantDocumentUploadFailure(

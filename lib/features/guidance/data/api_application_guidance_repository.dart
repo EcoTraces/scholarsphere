@@ -26,7 +26,8 @@ import '../domain/application_guidance_repository.dart';
 /// structured application requirements server-side (this repository's
 /// own [Opportunity] objects also always carry empty lists for those two
 /// fields today - a pre-existing gap in the Opportunities feature).
-class ApiApplicationGuidanceRepository implements ApplicationGuidanceRepository {
+class ApiApplicationGuidanceRepository
+    implements ApplicationGuidanceRepository {
   ApiApplicationGuidanceRepository({
     String? baseUrl,
     http.Client? client,
@@ -103,15 +104,16 @@ class ApiApplicationGuidanceRepository implements ApplicationGuidanceRepository 
     RecommendationLetterTracker letter,
   ) async {
     try {
-      final body = await _post('/guidance/plans/$planId/recommendation-letters', {
-        'id': letter.id,
-        'referee_name': letter.refereeName,
-        'referee_email': letter.refereeEmail,
-        'requested_at': letter.requestedAt.toUtc().toIso8601String(),
-        'due_at': letter.dueAt.toUtc().toIso8601String(),
-        'received': letter.received,
-        'received_at': letter.receivedAt?.toUtc().toIso8601String(),
-      });
+      final body =
+          await _post('/guidance/plans/$planId/recommendation-letters', {
+            'id': letter.id,
+            'referee_name': letter.refereeName,
+            'referee_email': letter.refereeEmail,
+            'requested_at': letter.requestedAt.toUtc().toIso8601String(),
+            'due_at': letter.dueAt.toUtc().toIso8601String(),
+            'received': letter.received,
+            'received_at': letter.receivedAt?.toUtc().toIso8601String(),
+          });
       return _toPlan(body as Map<String, dynamic>);
     } on LiveBackendException catch (error) {
       if (error.statusCode == 404) {

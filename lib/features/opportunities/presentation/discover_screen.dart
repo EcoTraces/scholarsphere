@@ -732,7 +732,9 @@ class _OpportunityCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    closingSoon ? 'Closing soon · $deadline' : 'Deadline $deadline',
+                    closingSoon
+                        ? 'Closing soon · $deadline'
+                        : 'Deadline $deadline',
                     style: closingSoon
                         ? TextStyle(
                             color: Theme.of(context).colorScheme.error,
@@ -753,8 +755,18 @@ class _OpportunityCard extends StatelessWidget {
 }
 
 const _months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 // A day/month/year slash format (e.g. "3/7/2027") is ambiguous across

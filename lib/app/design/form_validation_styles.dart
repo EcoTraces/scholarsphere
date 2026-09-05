@@ -30,7 +30,11 @@ class RequiredFieldsLegend extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.info_outline, size: 14, color: ValidationPalette.muted),
+        const Icon(
+          Icons.info_outline,
+          size: 14,
+          color: ValidationPalette.muted,
+        ),
         const SizedBox(width: 6),
         Text('Fields marked * are required.', style: style),
       ],
@@ -86,7 +90,8 @@ class AnimatedRequirementRow extends StatelessWidget {
         ? Duration.zero
         : const Duration(milliseconds: 180);
     final color = met ? ValidationPalette.success : ValidationPalette.muted;
-    final bodySmall = Theme.of(context).textTheme.bodySmall ?? const TextStyle();
+    final bodySmall =
+        Theme.of(context).textTheme.bodySmall ?? const TextStyle();
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
@@ -125,7 +130,11 @@ class AnimatedRequirementRow extends StatelessWidget {
 /// tracks progress), so the state of the whole list is legible at a glance
 /// instead of requiring the user to read every row.
 class RequirementProgress extends StatelessWidget {
-  const RequirementProgress({super.key, required this.met, required this.total});
+  const RequirementProgress({
+    super.key,
+    required this.met,
+    required this.total,
+  });
 
   final int met;
   final int total;
@@ -152,7 +161,9 @@ class RequirementProgress extends StatelessWidget {
             Text(
               '$met of $total met',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: complete ? ValidationPalette.success : ValidationPalette.muted,
+                color: complete
+                    ? ValidationPalette.success
+                    : ValidationPalette.muted,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -172,7 +183,9 @@ class RequirementProgress extends StatelessWidget {
               minHeight: 6,
               backgroundColor: const Color(0xFFE7EAF0),
               valueColor: AlwaysStoppedAnimation(
-                complete ? ValidationPalette.success : theme.colorScheme.primary,
+                complete
+                    ? ValidationPalette.success
+                    : theme.colorScheme.primary,
               ),
             ),
           ),

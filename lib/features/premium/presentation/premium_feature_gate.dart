@@ -52,12 +52,13 @@ class PremiumFeatureGate extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.lock_outline, color: theme.colorScheme.secondary, semanticLabel: 'Locked'),
-              const SizedBox(width: 8),
-              Text(
-                featureLabel,
-                style: theme.textTheme.titleLarge,
+              Icon(
+                Icons.lock_outline,
+                color: theme.colorScheme.secondary,
+                semanticLabel: 'Locked',
               ),
+              const SizedBox(width: 8),
+              Text(featureLabel, style: theme.textTheme.titleLarge),
             ],
           ),
           const SizedBox(height: 8),

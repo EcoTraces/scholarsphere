@@ -138,12 +138,13 @@ class ApiExperienceRepository implements ExperienceRepository {
       );
 
   // Keep in sync with app/schemas/experience.py's wire map.
-  static String _languageToWire(SupportedLanguage language) => switch (language) {
-    SupportedLanguage.english => 'english',
-    SupportedLanguage.french => 'french',
-    SupportedLanguage.spanish => 'spanish',
-    SupportedLanguage.arabic => 'arabic',
-  };
+  static String _languageToWire(SupportedLanguage language) =>
+      switch (language) {
+        SupportedLanguage.english => 'english',
+        SupportedLanguage.french => 'french',
+        SupportedLanguage.spanish => 'spanish',
+        SupportedLanguage.arabic => 'arabic',
+      };
 
   static SupportedLanguage _languageFromWire(String value) => switch (value) {
     'english' => SupportedLanguage.english,
