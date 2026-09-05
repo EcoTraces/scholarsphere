@@ -1899,3 +1899,59 @@ class HongKongPhdFellowshipSchemeSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().hkpfs_base_url
+
+
+class TaiwanIcdfScholarshipSource(_SingleProgramSource):
+    """TaiwanICDF International Higher Education Scholarship Program -
+    Taiwan International Cooperation and Development Fund, offering full
+    scholarships to students from Taiwan's partner countries to pursue
+    higher education at partner universities in Taiwan since 1998.
+
+    Confirmed 2026-09-05: `robots.txt` returns a genuine HTTP 404 (nginx's
+    own generic error page, not a bot-challenge page) - no robots.txt
+    file exists at all, treated as unrestricted per RFC 9309, the same
+    reasoning already documented for Yenching Academy, ETH Zurich, and
+    HKPFS above.
+
+    `overview_path` points at the program's own `xItem`/`ctNode` page
+    (the site's CMS reassigns other node IDs across sections - the
+    "Eligibility" and "Apply Now" URLs found via search both 404 on
+    their real redirect target, so only this one confirmed-working page
+    is used, matching this platform's "record what actually works,
+    don't guess a fragile URL" discipline).
+
+    `title_selectors = ("h2.title",)`: the page's actual `<h1>` is just
+    the site-wide logo link (not a real title, the same "site-builder
+    page with a useless h1" pattern already seen in WMI/Yenching above);
+    `h2.title` correctly matches the first (of three) same-classed
+    headings on the page, which is the real program title.
+
+    `content_selectors = (".ck-content",)`: a single, uniquely-classed
+    rich-text container holding the actual program description and
+    the current cycle's announcement banner.
+
+    `deadline_keywords = ("to march",)`: the page states its one
+    application window as "The 2027 TaiwanICDF Scholarship applications
+    open from December 1, 2026 to March 15, 2027!" - anchoring on the
+    default "deadline" keyword would find nothing (that word never
+    appears), and anchoring on "applications open" would find the
+    *opening* date (December 1, 2026) first, since it appears earlier in
+    the same sentence. "to march" starts the search window immediately
+    after "to ", so the first date found is the real deadline (March 15,
+    2027) rather than the opening date - verified directly against the
+    live fixture. Deliberately not a more generic keyword: if a future
+    cycle's window isn't phrased with "to <month>", this correctly
+    extracts no deadline rather than risk matching the wrong one.
+    """
+
+    source_code = "taiwan_icdf_scholarship"
+    overview_path = "/wSite/ct?xItem=12505&ctNode=31562&mp=2"
+    title_selectors = ("h2.title",)
+    content_selectors = (".ck-content",)
+    deadline_keywords = ("to march",)
+    provider_name = "Taiwan International Cooperation and Development Fund (TaiwanICDF)"
+    country = "Taiwan"
+    external_id = "taiwan-icdf-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().taiwan_icdf_base_url

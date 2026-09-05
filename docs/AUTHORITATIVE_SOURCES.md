@@ -2408,6 +2408,82 @@ implemented).
   real fixtures, captured unmodified from the live fetch
   (`tests/fixtures/hkpfs_index.html`, `tests/fixtures/hkpfs_apply.html`).
 
+## 55. TaiwanICDF International Higher Education Scholarship Program
+
+Researched 2026-09-05, a follow-up "find another one" pass immediately
+after HKPFS (#54) in the same opportunity-expansion effort.
+
+- **Organization**: Taiwan International Cooperation and Development
+  Fund (TaiwanICDF), operating since 1998
+- **Route code**: `taiwan-icdf-scholarship` (`taiwan_icdf_scholarship`
+  internally)
+- **Official domain / base URL**: `https://www.icdf.org.tw`
+  (`TAIWAN_ICDF_BASE_URL`)
+- **Opportunity types**: Scholarship — full scholarships (the page
+  states "offers full scholarships to outstanding students from partner
+  countries") to pursue higher education at TaiwanICDF's partner
+  universities in Taiwan
+- **Country coverage**: Restricted to Taiwan's diplomatic/partner
+  countries (the page says "students from partner countries" without
+  itemizing them on this page — the full list lives only in a
+  downloadable PDF guidebook, which this project's adapters don't parse,
+  consistent with the same choice already made for Malaysia in
+  `docs/COUNTRY_PROVIDER_REGISTRY.md`). `country = "Taiwan"` records the
+  program's host location, the same host-vs-eligibility distinction used
+  for Schwarzman/Knight-Hennessy/Yenching/ETH Zurich above — the
+  restriction itself is preserved in the free-text description rather
+  than invented into a structured field this schema doesn't have.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed) — a single program page
+  carries the description and current-cycle announcement together. The
+  "Eligibility" and "Apply Now" URLs surfaced by web search both
+  redirect to a dead `xItem` on the live site (the CMS has since
+  reassigned those content IDs) — recorded here rather than guessed at;
+  only the one confirmed-working overview page is used.
+- **robots.txt / indexing note**: Returns a genuine HTTP 404 (nginx's
+  own generic error page, not a bot-challenge page), confirmed
+  consistently across three separate fetch attempts — no robots.txt
+  file exists at all. Per RFC 9309, treated as unrestricted, the same
+  reasoning already documented for Yenching Academy (#52), ETH Zurich
+  (#53), and HKPFS (#54).
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Title selector**: the page's real `<h1>` is only the site-wide
+    logo link (the same "site-builder page with a useless h1" pattern
+    already documented for WMI/Yenching above) — `h2.title` correctly
+    matches the first of three same-classed headings on the page, which
+    is the real program title.
+  - **Deadline keyword choice**: the page's current-cycle banner reads
+    "The 2027 TaiwanICDF Scholarship applications open from December 1,
+    2026 to March 15, 2027!" — anchoring on the default "deadline"
+    keyword finds nothing (that word never appears on the page), and
+    anchoring on "applications open" would find the *opening* date
+    (December 1, 2026) first, since it appears earlier in the same
+    sentence. The adapter anchors on "to march" instead, so the
+    300-character search window starts immediately after "to ",
+    correctly extracting the real deadline (March 15, 2027) rather than
+    the opening date — verified directly against the live fixture. A
+    future cycle phrased differently would correctly yield no deadline
+    rather than risk extracting the wrong one.
+  - **Current cycle, verified directly, not inferred from a prior
+    year**: as of 2026-09-05, the *next* (2027) cycle is officially
+    announced but not yet open — applications run 1 December 2026
+    through 15 March 2027. The *2026* cycle (deadline 15 March 2026) had
+    already closed by the research date; this adapter does not fabricate
+    an "open now" status by reusing that closed cycle's dates, and does
+    not guess the 2027 dates from the 2026 ones — both were read
+    directly off the live page's own current announcement.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML, no
+  browser rendering needed. Implemented and unit-tested against a real
+  fixture, captured unmodified from the live fetch
+  (`tests/fixtures/taiwan_icdf_scholarship.html`).
+
 ### Researched this pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

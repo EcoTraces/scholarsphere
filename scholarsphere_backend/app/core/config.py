@@ -284,6 +284,15 @@ class Settings(BaseSettings):
     # same reasoning as Yenching Academy/ETH Zurich above.
     hkpfs_base_url: str = "https://cerg1.ugc.edu.hk"
 
+    # TaiwanICDF International Higher Education Scholarship Program -
+    # Taiwan International Cooperation and Development Fund, funding full
+    # scholarships for students from Taiwan's diplomatic partner countries
+    # to study at partner universities in Taiwan. robots.txt returns a
+    # genuine HTTP 404 (nginx's own generic error page), treated as
+    # unrestricted per RFC 9309, same reasoning as Yenching/ETH Zurich/
+    # HKPFS above.
+    taiwan_icdf_base_url: str = "https://www.icdf.org.tw"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -428,6 +437,7 @@ class Settings(BaseSettings):
         "yenching_academy_base_url",
         "eth_zurich_esop_base_url",
         "hkpfs_base_url",
+        "taiwan_icdf_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

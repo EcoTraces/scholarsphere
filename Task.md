@@ -2775,3 +2775,35 @@ for the full dated history.
       make a larger number; existing opportunities and sources were
       preserved and none were deleted, per that prompt's own explicit
       "never delete existing data" rule.
+
+- [x] **(2026-09-05)** "Find another one" follow-up: implemented the
+      **TaiwanICDF International Higher Education Scholarship Program**,
+      this platform's 56th opportunity source (see Changelog.md's
+      same-date entry and `docs/AUTHORITATIVE_SOURCES.md` #55 for full
+      detail) - a real, official, single flagship scholarship (Taiwan
+      International Cooperation and Development Fund) whose next (2027)
+      cycle is officially announced (1 December 2026 - 15 March 2027)
+      but not yet open, read directly off the live page rather than
+      guessed from the already-closed 2026 cycle. One real navigational
+      finding: the "Eligibility" and "Apply Now" URLs a web search
+      surfaced both redirect to a dead page on the live site (the CMS
+      has since reassigned those content IDs) - recorded rather than
+      guessed at; only the one confirmed-working overview page (found by
+      retrying the redirect chain directly) is used. One real
+      date-extraction subtlety, the same category of bug this session
+      has hit before with other sources: the page's own current-cycle
+      sentence states the opening date *before* the deadline in the same
+      breath ("...applications open from December 1, 2026 to March 15,
+      2027!") - anchoring on the default "deadline" keyword (absent
+      entirely) or on "applications open" (would land on the earlier,
+      wrong date) would both be wrong; anchoring on "to march" instead
+      correctly lands the 300-character search window past the opening
+      date, extracting the real deadline.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 755 passed / 25 skipped (up from 753 - the
+      new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      55 -> 56 registered sources). The fixture
+      (`tests/fixtures/taiwan_icdf_scholarship.html`) was captured
+      unmodified from the live site, not hand-written.

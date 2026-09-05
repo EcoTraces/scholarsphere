@@ -28,6 +28,40 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Follow-up opportunity source: TaiwanICDF Scholarship Program (56th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::TaiwanIcdfScholarshipSource`
+  — the **TaiwanICDF International Higher Education Scholarship
+  Program**, this platform's 56th opportunity source, run by the Taiwan
+  International Cooperation and Development Fund since 1998, offering
+  full scholarships to students from Taiwan's partner countries to study
+  at partner universities in Taiwan. `robots.txt` (checked 2026-09-05,
+  confirmed across three separate fetch attempts) returns a genuine HTTP
+  404 — no robots.txt file exists at all, treated as unrestricted per
+  RFC 9309. Confirmed the *next* (2027) cycle directly from the live
+  page's own current announcement — applications open 1 December 2026
+  through 15 March 2027 — rather than reusing the already-closed 2026
+  cycle's dates (deadline 15 March 2026, already past as of the research
+  date) or guessing the 2027 dates from the 2026 ones. The "Eligibility"
+  and "Apply Now" URLs surfaced by web search both redirect to a dead
+  page on the live site (the CMS has since reassigned those content
+  IDs) — recorded rather than guessed at; only the one confirmed-working
+  overview page is used. One real extraction subtlety: the page's
+  current-cycle text reads "...applications open from December 1, 2026
+  to March 15, 2027!" — anchoring on the default "deadline" keyword
+  finds nothing (that word never appears on the page) and anchoring on
+  "applications open" would extract the *opening* date first; the
+  adapter anchors on "to march" instead so it correctly extracts the
+  real deadline (March 15, 2027). Fully wired: config setting, source
+  registry entry, Celery beat schedule + dedicated sync task, and a real
+  fixture-backed test (fixture captured unmodified from the live fetch).
+
+  **Verified**: full backend suite green after the change (755 passed,
+  25 skipped, up from 753 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 55 -> 56
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Opportunity expansion pass: Hong Kong PhD Fellowship Scheme (55th opportunity source)
 
 ### Added

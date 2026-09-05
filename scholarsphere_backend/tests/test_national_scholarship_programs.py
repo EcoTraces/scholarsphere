@@ -41,6 +41,7 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     EthZurichExcellenceScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
+    TaiwanIcdfScholarshipSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
     YenchingAcademyScholarsSource,
@@ -1595,3 +1596,46 @@ def test_hkpfs_has_no_robots_txt_restrictions_to_respect() -> None:
     no robots.txt file exists at all, so this source uses the default
     (unraised) crawl interval."""
     assert HongKongPhdFellowshipSchemeSource.min_request_interval_seconds == 2.0
+
+
+# --- TaiwanICDF Scholarship: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_taiwan_icdf_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = TaiwanIcdfScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("taiwan_icdf_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "taiwan-icdf-scholarship"
+    assert opportunity.title == "TaiwanICDF International Higher Education Scholarship Program"
+    assert opportunity.country == "Taiwan"
+    assert opportunity.provider_name == (
+        "Taiwan International Cooperation and Development Fund (TaiwanICDF)"
+    )
+    assert opportunity.description is not None
+    assert "full scholarships to outstanding students from partner countries" in (
+        opportunity.description
+    )
+    assert opportunity.funding_type == "fully_funded"
+    # The page states "The 2027 TaiwanICDF Scholarship applications open
+    # from December 1, 2026 to March 15, 2027!" - anchoring on "to march"
+    # skips past the opening date (December 1, 2026) to extract the real
+    # deadline (March 15, 2027), not the first date on the page.
+    assert str(opportunity.deadline) == "2027-03-15"
+
+
+def test_taiwan_icdf_scholarship_has_no_robots_txt_restrictions_to_respect() -> None:
+    """robots.txt itself returns a genuine HTTP 404 (nginx's own generic
+    error page, not a bot-challenge page) - no robots.txt file exists at
+    all, so this source uses the default (unraised) crawl interval."""
+    assert TaiwanIcdfScholarshipSource.min_request_interval_seconds == 2.0

@@ -85,6 +85,7 @@ from app.services.national_scholarship_programs import (
     KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
+    TaiwanIcdfScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -341,6 +342,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_hkpfs",
             "schedule": crontab(minute=30, hour=14),
         },
+        "sync-taiwan-icdf-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_taiwan_icdf_scholarship",
+            "schedule": crontab(minute=45, hour=14),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -447,6 +452,9 @@ SOURCE_TASK_NAMES = {
     ),
     "eth_zurich_esop": "app.tasks.opportunity_sync.sync_eth_zurich_esop",
     "hkpfs": "app.tasks.opportunity_sync.sync_hkpfs",
+    "taiwan_icdf_scholarship": (
+        "app.tasks.opportunity_sync.sync_taiwan_icdf_scholarship"
+    ),
 }
 
 
@@ -1253,6 +1261,21 @@ def sync_hkpfs(
     return _execute_source_task(self, "hkpfs", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_taiwan_icdf_scholarship",
+    max_retries=3,
+)
+def sync_taiwan_icdf_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "taiwan_icdf_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1507,6 +1530,7 @@ def _collector(source_code: str) -> Any:
         "yenching_academy_scholars": YenchingAcademyScholarsSource,
         "eth_zurich_esop": EthZurichExcellenceScholarshipSource,
         "hkpfs": HongKongPhdFellowshipSchemeSource,
+        "taiwan_icdf_scholarship": TaiwanIcdfScholarshipSource,
     }[source_code]()
 
 
