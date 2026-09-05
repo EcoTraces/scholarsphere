@@ -243,6 +243,14 @@ class Settings(BaseSettings):
     erasmus_mundus_base_url: str = "https://www.eacea.ec.europa.eu"
     uaeu_base_url: str = "https://www.uaeu.ac.ae"
 
+    # Mastercard Foundation Scholars Program - re-investigated 2026-09-05
+    # after the foundation's site restructure; see
+    # app/services/mastercard_foundation_scholars_source.py's module
+    # docstring for why this is now integrable (a plain static JSON asset,
+    # not the client-side widget with no server-rendered fallback
+    # previously documented in docs/AUTHORITATIVE_SOURCES.md).
+    mastercard_foundation_base_url: str = "https://mastercardfdn.org"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -381,6 +389,7 @@ class Settings(BaseSettings):
         "rotary_peace_fellowship_base_url",
         "erasmus_mundus_base_url",
         "uaeu_base_url",
+        "mastercard_foundation_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

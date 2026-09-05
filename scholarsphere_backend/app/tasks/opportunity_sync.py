@@ -88,6 +88,9 @@ from app.services.national_scholarship_programs import (
 from app.services.educationusa_source import EducationUsaFinancialAidSource
 from app.services.erasmus_mundus_source import ErasmusMundusJointMastersSource
 from app.services.uaeu_scholarships_source import UaeuScholarshipsSource
+from app.services.mastercard_foundation_scholars_source import (
+    MastercardFoundationScholarsSource,
+)
 from app.services.notification_dispatch import (
     default_preferences,
     event_title,
@@ -309,6 +312,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_uaeu_scholarships",
             "schedule": crontab(minute=0, hour=13),
         },
+        "sync-mastercard-foundation-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_mastercard_foundation_scholars",
+            "schedule": crontab(minute=15, hour=13),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -403,6 +410,9 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_erasmus_mundus_joint_masters"
     ),
     "uaeu_scholarships": "app.tasks.opportunity_sync.sync_uaeu_scholarships",
+    "mastercard_foundation_scholars": (
+        "app.tasks.opportunity_sync.sync_mastercard_foundation_scholars"
+    ),
 }
 
 
@@ -1125,6 +1135,21 @@ def sync_uaeu_scholarships(
     return _execute_source_task(self, "uaeu_scholarships", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_mastercard_foundation_scholars",
+    max_retries=3,
+)
+def sync_mastercard_foundation_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "mastercard_foundation_scholars", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1373,6 +1398,7 @@ def _collector(source_code: str) -> Any:
         "rotary_peace_fellowship": RotaryPeaceFellowshipSource,
         "erasmus_mundus_joint_masters": ErasmusMundusJointMastersSource,
         "uaeu_scholarships": UaeuScholarshipsSource,
+        "mastercard_foundation_scholars": MastercardFoundationScholarsSource,
     }[source_code]()
 
 

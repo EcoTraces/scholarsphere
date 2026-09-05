@@ -2420,3 +2420,83 @@ for the full dated history.
       verified against a real credential in this environment** - every
       fix and every test above exercises real code paths, but never a
       real Stripe/OpenAI/Anthropic account.
+
+- [x] **(2026-09-05)** Fixed the two real issues blocking the actual
+      Render Blueprint deploy attempted this session, and added a new
+      opportunity source (the 50th) while investigating a promising
+      previously-documented candidate.
+
+      **Render deploy fixes** (both reproduced and verified against the
+      real failure before being called fixed, not assumed):
+      - `scholarsphere_backend/Dockerfile`'s floating `python:3.12-slim`
+        tag now resolves to Debian trixie - a codename Playwright 1.49.1
+        doesn't recognize, so it silently fell back to stale Ubuntu
+        20.04 apt package names (`ttf-unifont`,
+        `ttf-ubuntu-font-family`) that trixie's own repo has since
+        renamed, breaking `playwright install --with-deps chromium` on
+        every real build (confirmed live from Render's own build log).
+        Pinned to `python:3.12-slim-bookworm` and verified end-to-end
+        against a real local Docker build in this session (a Docker
+        daemon was actually startable in this sandbox) - reproduced the
+        exact apt failure on plain `slim`, then rebuilt the same command
+        cleanly through the actual Chromium binary download on
+        `slim-bookworm`, not just reasoned about from Playwright's own
+        dependency table.
+      - CI's `backend` job (bare `pytest -q`, unlike the `python -m
+        pytest` used everywhere else this session) doesn't add the
+        working directory to `sys.path`, breaking every backend CI run
+        on this branch with `ModuleNotFoundError: No module named
+        'app'`. Fixed with `pythonpath = .` in `pytest.ini` - reproduced
+        locally with the exact bare `pytest -q` invocation first.
+      - CI's `validate` job caught 41 real `dart format`-dirty files
+        (written across sessions with no Flutter SDK available to check
+        locally) - reformatted, then `flutter analyze` + `flutter test`
+        (90/90) confirmed clean, surfacing one more real bug along the
+        way: a 2px `RenderFlex` overflow in `_PlanCard`'s price row at
+        narrow card widths, fixed with `Flexible`/ellipsis on both
+        `Text` widgets; and two bugs in the test exercising that screen
+        (an off-screen tap the test never scrolled into view; a
+        re-pumped widget Flutter doesn't actually remount in place, so
+        the test asserted on stale pre-checkout status) - neither
+        affects the real app, which always mounts this screen fresh via
+        `Navigator.push`.
+      - Also merged the pending PR (#3 on GitHub) that had these
+        changes and the entire audit segment sitting unmerged on the
+        feature branch, since Render's Blueprint needs `render.yaml` on
+        `main` to find it at all.
+
+      **New opportunity source**: `app/services/
+      mastercard_foundation_scholars_source.py` - the Mastercard
+      Foundation Scholars Program, source #50 (see
+      `docs/AUTHORITATIVE_SOURCES.md` #49 and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`'s implemented-sources table for
+      full detail). Previously investigated 2026-08-30 and left
+      unintegrated because the institution listing looked like a
+      client-side widget with no server-rendered fallback and no
+      locatable API. Re-investigated this session after noticing the
+      site had been restructured (the old documented URL now 404s) and
+      found the real, current blocker was different: the listing's data
+      comes from a plain static JSON asset
+      (`/assets/json/institution.json`), a normal `GET` needing no
+      JavaScript execution at all - confirmed directly via `curl`, not
+      assumed from the old note. This project's first source that
+      produces one opportunity record per *partner institution* (31
+      real, unique institutions after filtering out the JSON's own
+      English/French locale duplicates - live-verified, not the
+      foundation's own broader "62 Global partners" headline stat, which
+      spans every kind of partner across all its programs, not just this
+      one). Fully wired: config setting, source registry entry, Celery
+      beat schedule + dedicated sync task, and a real fixture-backed test
+      file (`tests/test_mastercard_foundation_scholars_source.py`, 5
+      tests, using the actual unmodified JSON fetched from the live
+      endpoint).
+
+      **Verified**: full backend suite green after every change,
+      including the new source and the updated
+      `test_opportunity_import.py` source-count assertion (49 -> 50
+      registered sources). Flutter suite (90/90) verified in the same
+      environment this session already had a working Flutter SDK
+      installed in (see the login-screen-verification entry earlier in
+      this file) - the `_PlanCard` fix and its test corrections are the
+      first Flutter-side changes in this project actually compiled and
+      tested, not just read, since that SDK became available.

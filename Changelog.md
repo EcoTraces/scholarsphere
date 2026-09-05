@@ -28,6 +28,60 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Render deployment fixes, and a new source: Mastercard Foundation Scholars Program (50th opportunity source)
+
+### Fixed
+- **Render Docker build failure**: `scholarsphere_backend/Dockerfile`'s
+  floating `python:3.12-slim` tag now resolves to Debian trixie, a
+  codename Playwright 1.49.1 doesn't recognize — it silently fell back to
+  stale Ubuntu 20.04 apt package names (`ttf-unifont`,
+  `ttf-ubuntu-font-family`) that trixie's repo has since renamed,
+  breaking `playwright install --with-deps chromium` on every build.
+  Pinned to `python:3.12-slim-bookworm`; verified end-to-end against a
+  real local Docker build (apt dependencies through the actual Chromium
+  binary download), not just reasoned about.
+- **CI `backend` job**: bare `pytest -q` (unlike `python -m pytest`)
+  doesn't add the working directory to `sys.path`, so
+  `ModuleNotFoundError: No module named 'app'` broke every backend CI run
+  on this branch. Fixed by adding `pythonpath = .` to `pytest.ini`.
+- **CI `validate` job**: 41 Dart files were not `dart format`-clean
+  (written across sessions with no Flutter SDK available to check them
+  against locally) — reformatted, mechanical whitespace-only change.
+- **A real, if minor, `_PlanCard` layout bug** surfaced while fixing the
+  above: the price/billing-interval `Row` overflowed by 2px at the
+  ~342px card width Flutter's default test viewport produces. Fixed by
+  wrapping both `Text` widgets in `Flexible` with ellipsis overflow.
+  Also fixed two bugs in the test that was exercising this screen,
+  found while investigating why the layout fix alone didn't turn it
+  green: an off-screen tap target the test never scrolled into view, and
+  a re-pumped widget that Flutter doesn't actually remount at the same
+  tree location (so the test was asserting on stale, pre-checkout
+  status). Neither affects the real app, which always mounts this screen
+  fresh via `Navigator.push`.
+
+### Added
+- `app/services/mastercard_foundation_scholars_source.py` — the
+  **Mastercard Foundation Scholars Program**, this platform's 50th
+  opportunity source and its first that produces one opportunity record
+  per *partner institution* (31 real institutions across Africa, North
+  America, Europe, the Middle East, and Costa Rica) from a single
+  foundation-run static JSON index rather than one record per
+  organization. Previously investigated and left unintegrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s prior "not integrated" note) because
+  the institution listing appeared to be a client-side widget with no
+  server-rendered fallback; re-investigated after the foundation
+  restructured its site and found the real blocker was different — the
+  listing's data comes from a plain static JSON asset
+  (`/assets/json/institution.json`), a normal `GET` with no JavaScript
+  execution needed at all. `robots.txt` explicitly allows this project's
+  crawler by name. See `docs/AUTHORITATIVE_SOURCES.md` #49 for full
+  detail, including a real data-quality finding (the JSON mixes English/
+  French locale duplicates in one array, filtered out) and why 31 is the
+  real, verified count rather than the foundation's own broader "62
+  Global partners" headline stat.
+
+---
+
 ## [2026-09-03] — Independent production audit of the Premium platform: 8 real bugs found, fixed, and regression-tested
 
 A skeptical, from-scratch re-audit of everything built for the Premium

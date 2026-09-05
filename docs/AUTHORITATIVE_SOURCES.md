@@ -2010,6 +2010,87 @@ funding-organization-typed).
 
 ---
 
+## 49. Mastercard Foundation Scholars Program
+
+Previously listed below under "Sources evaluated and deliberately not
+integrated" (researched 2026-08-30, left out because the institution
+listing was a client-side widget with no server-rendered fallback and no
+locatable underlying API). Re-investigated 2026-09-05 after the
+foundation restructured its site — the old `/all/scholars-program/
+where-to-apply/` URL now 404s — and the actual blocker turned out to be
+different from what the original research found: the current listing's
+data comes from a **plain static JSON asset**, not a client-rendered
+widget with no fallback at all.
+
+- **Organization**: The Mastercard Foundation
+- **Route code**: `mastercard-foundation-scholars`
+  (`mastercard_foundation_scholars` internally)
+- **Official domain / base URL**: `https://mastercardfdn.org`
+  (`MASTERCARD_FOUNDATION_BASE_URL`)
+- **Opportunity types**: Scholarship — one record per partner higher-
+  education institution (31 distinct institutions at fetch time)
+- **Country coverage**: Global — institutions across Africa (Ethiopia,
+  Ghana, Rwanda, Nigeria, South Africa, Benin, Burkina Faso, Uganda,
+  Morocco, Cameroon and others via a regional AIMS network), North
+  America (Canada, USA), Europe (United Kingdom, France), the Middle
+  East (Lebanon), and Costa Rica
+- **Discovery method**: **Web adapter reading a static JSON asset**,
+  `/assets/json/institution.json` — confirmed via `curl` to be a plain
+  `GET` returning the real per-institution data directly (no JavaScript
+  execution needed), unlike the client-side "All Partners" directory
+  widget on `/en/partners/` (a *different*, much broader endpoint
+  spanning every program the foundation runs, not just this one).
+- **robots.txt / indexing note**: `Allow: /` for `User-agent: *`, and
+  explicitly by name for `ClaudeBot`, `GPTBot`, `OAI-SearchBot`, and
+  `ChatGPT-User`.
+- **API / RSS / Sitemap**: The static JSON asset itself functions as an
+  unofficial but genuinely structured data source — not a documented
+  public API, but not scraped HTML either
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - The JSON asset mixes English and French locale duplicates of every
+    institution in one flat array (`__languageCode: "en"` vs `"fr"` —
+    e.g. Cape Town appears twice, once as itself and once as its French
+    rendering "Le Cap"). Filtered to `__languageCode == "en"` only,
+    which yields exactly 31 unique institutions with no duplicate
+    slugs — live-verified, not assumed.
+  - The foundation's own program page separately advertises "62 Global
+    partners" as a headline stat, but that figure spans every kind of
+    partner across the foundation's many programs (implementing NGOs
+    included), not just this Scholars Program institution list — 31 is
+    what this adapter can actually verify and extract from the real
+    data, reported as such rather than reused as a round headline
+    number that doesn't match what's actually collected.
+  - Every institution is extracted regardless of its current
+    `application_window` ("open"/"closed"/empty) — a program with no
+    live currently-open cohort is still a real, verifiable partner
+    institution; the field is recorded verbatim in `description` and
+    `raw_payload` rather than used to silently drop a record.
+  - Deliberately does not fetch each institution's own detail page
+    (`.../where-to-apply/<slug>/`) or follow through to the
+    institution's own external site — out of proportion with what this
+    adapter needs, the same reasoning `erasmus_mundus_source.py` and
+    `educationusa_source.py` already document for not chasing their own
+    per-row "more information" links. The foundation's own institution
+    detail page at that URL *is* the accurate, stable "how to apply"
+    record (it explicitly instructs the applicant to apply through the
+    institution directly and links to its site) — used as-is for both
+    `official_source_url` and `official_application_url`, matching
+    source #48's (UAEU) same single-URL choice.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path (httpx) — 200, real static JSON, no browser
+  rendering, no spoofed user agent required. Implemented and unit-tested
+  against the real fixture, captured unmodified from the httpx fetch
+  (`tests/fixtures/mastercard_foundation_institutions.json`); extraction
+  verified to yield exactly the 31 real, unique English-language
+  institutions present in the live data at fetch time.
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research
@@ -2026,7 +2107,6 @@ record of what was checked, not just what was added:
 | EURAXESS | No official public API found; only third-party scrapers |
 | Fulbright Program | Researched 2026-08-22. The US-student-facing site (`us.fulbrightonline.org`) is the wrong audience for this platform; the foreign-student program is administered per-country through ~160 individual US embassy pages with no single list of open calls; the one Sierra-Leone-specific page checked (`sl.usembassy.gov/educational-professional-exchanges/`) returned a generic "Technical Difficulties" error page rather than real content — no single stable page to scrape reliably |
 | China Scholarship Council (CSC) / `csc.edu.cn` / `studyinchina.csc.edu.cn` | Researched 2026-08-29 — `BLOCKED`, see `docs/COUNTRY_PROVIDER_REGISTRY.md`'s China entry. A real, major, legitimate official program (the Chinese Government Scholarship), but every page checked — including `robots.txt` itself — returns HTTP 412 or an obfuscated JavaScript anti-bot challenge page ("系统繁忙，请稍后再试" / "system busy, try again later"), not real content. Never bypassed. |
-| Mastercard Foundation Scholars Program (`mastercardfdn.org`) | Researched 2026-08-30 — real, major (58,000+ scholarships committed, 62 partner universities across Africa and internationally), directly relevant to Sierra Leone. `robots.txt` explicitly `Allow: /` for `ClaudeBot` by name. The program's own overview page is real, static, server-rendered content, but — same reason Canada/Denmark/Wales were rejected — has no single deadline or application path: "the application process and decision-making are managed individually by each partner" institution. The actual per-institution listing (`.../where-to-apply/`, "Search the listings below") is a client-side widget with **no server-rendered fallback** — a plain fetch returns literally "Institutions Error loading data. Please try again." instead of the list. Its underlying data API could not be located in the page's own static JS (no inline endpoint URL, and the referenced `kachow.js` bundle is a small unrelated utility script, not the widget itself) without executing the page's JS, which this sandbox cannot do against external sites (same `net::ERR_CONNECTION_RESET` proxy-TLS limitation documented for the original browser-rendering fallback work — re-confirmed live against this exact URL, 2026-08-30). **Not integrated, but a strong candidate for a future session with a working outbound browser-automation path**: enable `allow_browser_rendering` on a listing-page adapter for `/where-to-apply/`, live-verify the rendered institution list's structure, and confirm robots.txt still allows it before implementing. |
 | Aga Khan Foundation International Scholarship Programme (ISP) | Researched 2026-08-30 — real, legitimate, long-running programme for gifted students from developing countries with no other means of financing postgraduate study. Rejected on eligibility grounds, not a technical one: the programme's own published country scope (Bangladesh, India, Pakistan, Afghanistan, Tajikistan, Kyrgyzstan, Syria, Egypt, Kenya, Tanzania, Uganda, Madagascar, Mozambique) does not include Sierra Leone — this platform's own "never invent eligibility" rule cuts both ways: a source that explicitly excludes Sierra Leone from its stated country list is exactly the "clearly ineligible" case, not integrated on that basis rather than a reachability/JS-rendering issue. |
 
 DAAD, Chevening, and Commonwealth Scholarships were in this table until
