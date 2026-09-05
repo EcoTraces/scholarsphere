@@ -35,6 +35,7 @@ from app.services.national_scholarship_programs import (
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
+    KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
@@ -1405,3 +1406,51 @@ async def test_schwarzman_scholars_collect_normalizes_real_fixture(
 
 def test_schwarzman_scholars_respects_the_sites_crawl_delay() -> None:
     assert SchwarzmanScholarsSource.min_request_interval_seconds == 10.0
+
+
+# --- Knight-Hennessy Scholars: real fixtures, fetched 2026-09-05 -----------
+
+
+@pytest.mark.asyncio
+async def test_knight_hennessy_scholars_collect_normalizes_real_fixtures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The deadlines page's site-wide navigation contains an unrelated
+    'Application Deadlines' menu link long before the real deadline
+    sentence - anchoring on the default 'deadline' keyword would land on
+    that nav link and find nothing within its 300-character search
+    window, so this source anchors on 'deadline is' instead."""
+    source = KnightHennessyScholarsSource()
+    overview_url = f"{source.base_url}{source.overview_path}"
+    deadline_url = f"{source.base_url}{source.deadline_path}"
+
+    async def fake_get_html(url: str, **_: object) -> str:
+        if url == overview_url:
+            return _fixture("knight_hennessy_scholars_home.html")
+        if url == deadline_url:
+            return _fixture("knight_hennessy_scholars_deadlines.html")
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    monkeypatch.setattr(web_scraper_base, "get_html", AsyncMock(side_effect=fake_get_html))
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "knight-hennessy-scholars"
+    assert opportunity.title == "Knight-Hennessy Scholars at Stanford University"
+    assert opportunity.country == "United States"
+    assert opportunity.provider_name == "Knight-Hennessy Scholars (Stanford University)"
+    assert opportunity.description is not None
+    assert "multidisciplinary leadership development program" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # The page's real sentence is "The Knight-Hennessy Scholars
+    # application deadline is October 6, 2026, 1:00pm Pacific Time." - a
+    # separate, later "December 1, 2026" fallback deadline for the
+    # Stanford graduate-degree-program application itself is deliberately
+    # not extracted.
+    assert str(opportunity.deadline) == "2026-10-06"
+
+
+def test_knight_hennessy_scholars_respects_the_sites_crawl_delay() -> None:
+    assert KnightHennessyScholarsSource.min_request_interval_seconds == 30.0

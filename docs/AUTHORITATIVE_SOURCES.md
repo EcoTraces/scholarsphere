@@ -2154,6 +2154,71 @@ back, one accepted and one rejected, on the same robots.txt criterion.
 
 ---
 
+## 51. Knight-Hennessy Scholars
+
+Researched 2026-09-05, the same session as Schwarzman Scholars — another
+fully-funded, university-hosted graduate program with genuinely global,
+no-nationality-restriction eligibility.
+
+- **Organization**: Knight-Hennessy Scholars, Stanford University
+- **Route code**: `knight-hennessy-scholars` (`knight_hennessy_scholars`
+  internally)
+- **Official domain / base URL**: `https://knight-hennessy.stanford.edu`
+  (`KNIGHT_HENNESSY_SCHOLARS_BASE_URL`)
+- **Opportunity types**: Scholarship — a fully-endowed, multidisciplinary
+  leadership program funding up to three years of graduate study at any
+  of Stanford's seven schools
+- **Country coverage**: Global. The program's own `/admission/before-
+  you-apply/eligibility` page states: "Knight-Hennessy Scholars has no
+  restrictions based on age, college or university, field of study, or
+  career aspiration. We encourage citizens and residents of all
+  countries to apply." `country = "United States"` is recorded only as
+  the program's *host* country (where Stanford is), not a claim about
+  who is eligible to apply — the same host-vs-eligibility distinction
+  already documented for Schwarzman Scholars (#50).
+- **Discovery method**: Web scraper (plain HTTPS GET, server-rendered
+  HTML, no JavaScript execution needed) — homepage for title/
+  description, a dedicated deadlines page for the application deadline
+- **robots.txt / indexing note**: `Allow: /` for `User-agent: *`
+  (`Crawl-delay: 30`, respected via `min_request_interval_seconds`
+  below) beyond a few asset/admin directories unrelated to this
+  adapter; only `FemtosearchBot` and `SemrushBot` are disallowed by
+  name, not `ClaudeBot` — confirmed by direct fetch 2026-09-05.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `deadline_keywords = ("deadline is",)`, not the default `"deadline"`:
+    `extract_confident_date_after` only scans 300 characters past the
+    *first* occurrence of its keyword on the whole page (not just the
+    `<main>` content), and this site's own navigation contains an
+    earlier, unrelated "Application Deadlines" menu link roughly 1,000
+    characters before the real sentence ("The Knight-Hennessy Scholars
+    application deadline is October 6, 2026...") — anchoring on the
+    default "deadline" keyword lands on that nav link and finds nothing
+    within its window. "deadline is" occurs exactly once on the page,
+    immediately before the real date — verified directly against the
+    live fixture.
+  - The deadlines page also states a *separate*, later "December 1,
+    2026" fallback deadline for the Stanford graduate-degree-program
+    application itself (distinct from the Knight-Hennessy Scholars
+    application deadline). This adapter deliberately extracts only the
+    first, KHS-specific deadline (October 6, 2026) — the one that
+    actually gates eligibility for the fellowship this record
+    represents, not the graduate program's separate deadline.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path (httpx) — 200 on both the homepage and the
+  deadlines page, real server-rendered HTML, no browser rendering, no
+  spoofed user agent required. Implemented and unit-tested against real
+  fixtures, captured unmodified from the httpx fetch
+  (`tests/fixtures/knight_hennessy_scholars_home.html` and
+  `tests/fixtures/knight_hennessy_scholars_deadlines.html`).
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

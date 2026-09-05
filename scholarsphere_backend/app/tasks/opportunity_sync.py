@@ -80,6 +80,7 @@ from app.services.national_scholarship_programs import (
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
+    KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
@@ -321,6 +322,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_schwarzman_scholars",
             "schedule": crontab(minute=30, hour=13),
         },
+        "sync-knight-hennessy-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_knight_hennessy_scholars",
+            "schedule": crontab(minute=45, hour=13),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -419,6 +424,9 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_mastercard_foundation_scholars"
     ),
     "schwarzman_scholars": "app.tasks.opportunity_sync.sync_schwarzman_scholars",
+    "knight_hennessy_scholars": (
+        "app.tasks.opportunity_sync.sync_knight_hennessy_scholars"
+    ),
 }
 
 
@@ -1169,6 +1177,21 @@ def sync_schwarzman_scholars(
     return _execute_source_task(self, "schwarzman_scholars", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_knight_hennessy_scholars",
+    max_retries=3,
+)
+def sync_knight_hennessy_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "knight_hennessy_scholars", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1419,6 +1442,7 @@ def _collector(source_code: str) -> Any:
         "uaeu_scholarships": UaeuScholarshipsSource,
         "mastercard_foundation_scholars": MastercardFoundationScholarsSource,
         "schwarzman_scholars": SchwarzmanScholarsSource,
+        "knight_hennessy_scholars": KnightHennessyScholarsSource,
     }[source_code]()
 
 

@@ -256,6 +256,11 @@ class Settings(BaseSettings):
     # researched the same session and rejected for exactly that reason).
     schwarzman_scholars_base_url: str = "https://www.schwarzmanscholars.org"
 
+    # Knight-Hennessy Scholars (Stanford University) - fully-endowed
+    # global graduate leadership program, no nationality restriction, no
+    # ClaudeBot robots.txt restriction.
+    knight_hennessy_scholars_base_url: str = "https://knight-hennessy.stanford.edu"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -396,6 +401,7 @@ class Settings(BaseSettings):
         "uaeu_base_url",
         "mastercard_foundation_base_url",
         "schwarzman_scholars_base_url",
+        "knight_hennessy_scholars_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

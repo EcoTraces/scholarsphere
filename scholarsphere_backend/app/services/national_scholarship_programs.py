@@ -1685,3 +1685,61 @@ class SchwarzmanScholarsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().schwarzman_scholars_base_url
+
+
+class KnightHennessyScholarsSource(_SingleProgramSource):
+    """Knight-Hennessy Scholars - Stanford University's fully-endowed,
+    multidisciplinary graduate leadership program (up to three years of
+    funding to pursue any graduate degree at any of Stanford's seven
+    schools). Genuinely open worldwide: its own `/admission/before-you-
+    apply/eligibility` page states "Knight-Hennessy Scholars has no
+    restrictions based on age, college or university, field of study, or
+    career aspiration. We encourage citizens and residents of all
+    countries to apply." - no nationality restriction anywhere.
+    `country = "United States"` is recorded only as the program's *host*
+    country (where Stanford is), matching the same host-vs-eligibility
+    distinction already documented for Schwarzman Scholars above.
+
+    Confirmed 2026-09-05: `robots.txt` has no `Disallow` at all for
+    `User-agent: *` beyond a few asset/admin directories unrelated to
+    this adapter (`Crawl-delay: 30`, respected via
+    `min_request_interval_seconds` below), and no separate rule naming
+    `ClaudeBot` - only `FemtosearchBot` and `SemrushBot` are blocked by
+    name, neither of which is this backend's user agent.
+
+    `overview_path = "/"`: the homepage has a single clean `<h1>`
+    ("Knight-Hennessy Scholars at Stanford University") and a `<main>`
+    with real descriptive program text - no need for the title-tag-
+    fallback pattern several other sources in this file require.
+
+    `deadline_path` points at the dedicated deadlines page rather than
+    the homepage, and `deadline_keywords = ("deadline is",)` rather than
+    the default `"deadline"`: `extract_confident_date_after` only scans
+    300 characters past the *first* keyword occurrence on the full page
+    (not just the `<main>` content), and this page's site-wide navigation
+    contains an earlier, unrelated "Application Deadlines" menu link
+    roughly 1,000 characters before the real sentence ("The
+    Knight-Hennessy Scholars application deadline is October 6, 2026...")
+    - anchoring on the default "deadline" keyword lands on that nav link
+    and finds nothing within its 300-character window.  "deadline is"
+    only occurs once on the page, immediately before the real date -
+    verified directly against the live fixture, not assumed. (The page
+    also states a *separate*, later "December 1, 2026" fallback deadline
+    for the Stanford graduate-degree-program application itself, which
+    this adapter deliberately does not extract - the KHS deadline is
+    the one that gates eligibility for the fellowship this record
+    represents.)
+    """
+
+    source_code = "knight_hennessy_scholars"
+    overview_path = "/"
+    deadline_path = "/admission/preparing-your-applications/application-deadlines"
+    content_selectors = ("main",)
+    deadline_keywords = ("deadline is",)
+    provider_name = "Knight-Hennessy Scholars (Stanford University)"
+    country = "United States"
+    external_id = "knight-hennessy-scholars"
+    min_request_interval_seconds = 30.0
+
+    def _base_url(self) -> str:
+        return get_settings().knight_hennessy_scholars_base_url

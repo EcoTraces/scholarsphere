@@ -325,6 +325,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "knight_hennessy_scholars": {
+        "source_name": "Knight-Hennessy Scholars",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -383,6 +389,7 @@ def _base_urls() -> dict[str, str]:
         "uaeu_scholarships": settings.uaeu_base_url,
         "mastercard_foundation_scholars": settings.mastercard_foundation_base_url,
         "schwarzman_scholars": settings.schwarzman_scholars_base_url,
+        "knight_hennessy_scholars": settings.knight_hennessy_scholars_base_url,
     }
 
 
@@ -457,6 +464,7 @@ async def seed_opportunity_sources(
         "uaeu_scholarships": now + timedelta(hours=24),
         "mastercard_foundation_scholars": now + timedelta(hours=24),
         "schwarzman_scholars": now + timedelta(hours=24),
+        "knight_hennessy_scholars": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

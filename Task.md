@@ -2422,8 +2422,8 @@ for the full dated history.
       real Stripe/OpenAI/Anthropic account.
 
 - [x] **(2026-09-05)** Fixed the two real issues blocking the actual
-      Render Blueprint deploy attempted this session, and added two new
-      opportunity sources (the 50th and 51st) while investigating
+      Render Blueprint deploy attempted this session, and added three new
+      opportunity sources (the 50th, 51st, and 52nd) while investigating
       promising candidates.
 
       **Render deploy fixes** (both reproduced and verified against the
@@ -2532,11 +2532,44 @@ for the full dated history.
       unmodified from the live fetch as
       `tests/fixtures/schwarzman_scholars_admissions.html`).
 
+      **New opportunity source #3**: `KnightHennessyScholarsSource` in
+      `app/services/national_scholarship_programs.py` - Knight-Hennessy
+      Scholars, source #52 (see `docs/AUTHORITATIVE_SOURCES.md` #51 and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`'s implemented-sources table for
+      full detail): Stanford University's fully-endowed, multidisciplinary
+      graduate leadership program, funding up to three years of study at
+      any of Stanford's seven schools, genuinely open worldwide - its own
+      eligibility page states "We encourage citizens and residents of all
+      countries to apply," with no restriction based on age, institution,
+      field of study, or career aspiration. `robots.txt` (checked
+      2026-09-05) disallows only `FemtosearchBot` and `SemrushBot` by
+      name, not `ClaudeBot`, and is otherwise permissive with a
+      `Crawl-delay: 30` respected via `min_request_interval_seconds`.
+      One real parsing subtlety found and solved: the dedicated deadlines
+      page's own site-wide navigation contains an unrelated "Application
+      Deadlines" menu link roughly 1,000 characters before the real
+      deadline sentence ("The Knight-Hennessy Scholars application
+      deadline is October 6, 2026..."), and
+      `extract_confident_date_after` only searches 300 characters past
+      the *first* occurrence of its keyword - anchoring on the default
+      `"deadline"` keyword lands on that nav link and finds nothing.
+      Solved by anchoring on `"deadline is"` instead, which occurs
+      exactly once on the page immediately before the real date -
+      verified directly against the live fixture with a standalone
+      script before writing the class, not assumed. The page also states
+      a separate, later "December 1, 2026" fallback deadline for the
+      Stanford graduate-degree-program application itself; deliberately
+      not extracted, since the KHS deadline is the one that actually
+      gates eligibility for this record. Fully wired: config setting,
+      source registry entry, Celery beat schedule + dedicated sync task,
+      and a real fixture-backed test (two fixtures - homepage and
+      deadlines page - both captured unmodified from the live fetch).
+
       **Verified**: full backend suite green after every change,
-      including both new sources and the updated
+      including all three new sources and the updated
       `test_opportunity_import.py` source-count assertion (49 -> 50 -> 51
-      registered sources). Flutter suite (90/90) verified in the same
-      environment this session already had a working Flutter SDK
+      -> 52 registered sources). Flutter suite (90/90) verified in the
+      same environment this session already had a working Flutter SDK
       installed in (see the login-screen-verification entry earlier in
       this file) - the `_PlanCard` fix and its test corrections are the
       first Flutter-side changes in this project actually compiled and

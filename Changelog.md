@@ -28,7 +28,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [2026-09-05] — Render deployment fixes, and two new sources: Mastercard Foundation Scholars Program and Schwarzman Scholars (50th and 51st opportunity sources)
+## [2026-09-05] — Render deployment fixes, and three new sources: Mastercard Foundation Scholars Program, Schwarzman Scholars, and Knight-Hennessy Scholars (50th, 51st, and 52nd opportunity sources)
 
 ### Fixed
 - **Render Docker build failure**: `scholarsphere_backend/Dockerfile`'s
@@ -97,6 +97,18 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   "countdown" instead of the default "deadline" keyword, independently
   cross-checked against the page's own JS countdown-timer epoch
   timestamp. See `docs/AUTHORITATIVE_SOURCES.md` #50 for full detail.
+- `KnightHennessyScholarsSource` in
+  `app/services/national_scholarship_programs.py` — **Knight-Hennessy
+  Scholars**, this platform's 52nd opportunity source: Stanford
+  University's fully-endowed, multidisciplinary graduate leadership
+  program, genuinely open worldwide with no nationality restriction
+  ("We encourage citizens and residents of all countries to apply").
+  Its deadlines page's own site navigation contains an unrelated
+  "Application Deadlines" menu link long before the real deadline
+  sentence, defeating the default `"deadline"` search keyword's
+  300-character lookahead window — solved by anchoring on `"deadline
+  is"` instead, verified directly against the live page. See
+  `docs/AUTHORITATIVE_SOURCES.md` #51 for full detail.
 
 ---
 
