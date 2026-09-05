@@ -1955,3 +1955,87 @@ class TaiwanIcdfScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().taiwan_icdf_base_url
+
+
+class HumboldtResearchFellowshipSource(_SingleProgramSource):
+    """Humboldt Research Fellowship - Alexander von Humboldt Foundation
+    (a Foundation-type source, not government, distinguishing it from
+    this file's mostly-government sources), for postdoctoral and
+    experienced researchers of any nationality to conduct 6-24 months of
+    research in Germany. The page states plainly: "The Humboldt Research
+    Fellowship for researchers of all nationalities and research areas."
+
+    Confirmed 2026-09-05: `robots.txt` allows this content path -
+    `Allow: /` for `User-agent: *`, with only TYPO3 internal/print
+    utility paths disallowed, none of which cover this program page.
+
+    Unlike this file's other sources, the program has no single annual
+    deadline: three calls open per year (15 March / 15 July / 15
+    November), each closing once a fixed application cap (currently 800)
+    is reached rather than on a calendar date - the live page states
+    "We have received the maximum number of applications for the current
+    call... The next call will open on November 15, 2026." Extracting
+    that date into the `deadline` field would mislabel an *opening* date
+    as a deadline, so `deadline_keywords` is left at its default
+    ("deadline", "closing date") - verified directly against the live
+    fixture that this correctly matches nothing and leaves `deadline`
+    `None`, while the real status text is still preserved in the scraped
+    description for a human reviewer to read.
+    """
+
+    source_code = "humboldt_research_fellowship"
+    overview_path = "/en/apply/sponsorship-programmes/humboldt-research-fellowship"
+    content_selectors = ("main.article",)
+    provider_name = "Alexander von Humboldt Foundation"
+    country = "Germany"
+    external_id = "humboldt-research-fellowship"
+
+    def _base_url(self) -> str:
+        return get_settings().humboldt_foundation_base_url
+
+
+class MaxPlanckSchoolsSource(_SingleProgramSource):
+    """Max Planck Schools - a joint doctoral program of German
+    universities and non-university research organizations (Cognition,
+    Matter to Life, Photonics, and Biomedical AI), open to "candidates
+    from around the world" with a Bachelor's or Master's degree, with
+    full funding for up to five years and no tuition fees. Deliberately
+    not the general Max Planck Institute PhD route: that route's own
+    official page (`mpg.de/doctoral_students`) states plainly "There is
+    no central application procedure. Doctoral positions for individual
+    doctorates are advertised all year round" by each of ~80 independent
+    institutes - the same decentralized, no-individually-applicable-
+    portal pattern already found `NOT_SUITABLE` for Canada/Denmark/
+    Singapore in `docs/COUNTRY_PROVIDER_REGISTRY.md`. The Max Planck
+    Schools are the one part of the Max Planck ecosystem that *does* run
+    a single, dated, centrally-applied-to program.
+
+    Confirmed 2026-09-05: `robots.txt` has no `Disallow` rules at all for
+    `User-agent: *` (only a `Sitemap:` directive) - fully unrestricted.
+
+    `title_selectors = ()`: the page's actual `<h1>` is a page-specific
+    call-to-action ("APPLY NOW - until DECEMBER 1"), not a stable program
+    name - falls through to the external_id-derived fallback ("Max
+    Planck Schools"), the same documented pattern already used for
+    WMI/Yenching/HKPFS above.
+
+    Deliberately extracts no deadline: the page states the annual
+    application window only as "September 1 to December 1 of the
+    preceding year" - a real, recurring cycle, but never paired with a
+    specific year anywhere on this page (unlike, say, HKPFS or
+    TaiwanICDF) - verified directly that no year-qualified date literal
+    exists for `extract_confident_date` to match. A missing deadline is
+    safe here; this adapter does not guess which calendar year "the
+    preceding year" refers to.
+    """
+
+    source_code = "max_planck_schools"
+    overview_path = "/en/application"
+    title_selectors = ()
+    content_selectors = ("main",)
+    provider_name = "Max Planck Schools"
+    country = "Germany"
+    external_id = "max-planck-schools"
+
+    def _base_url(self) -> str:
+        return get_settings().max_planck_schools_base_url

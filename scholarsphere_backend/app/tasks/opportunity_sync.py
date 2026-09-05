@@ -82,7 +82,9 @@ from app.services.national_scholarship_programs import (
     SwitzerlandEskasScholarshipSource,
     EthZurichExcellenceScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
+    HumboldtResearchFellowshipSource,
     KnightHennessyScholarsSource,
+    MaxPlanckSchoolsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TaiwanIcdfScholarshipSource,
@@ -346,6 +348,14 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_taiwan_icdf_scholarship",
             "schedule": crontab(minute=45, hour=14),
         },
+        "sync-humboldt-research-fellowship": {
+            "task": "app.tasks.opportunity_sync.sync_humboldt_research_fellowship",
+            "schedule": crontab(minute=0, hour=15),
+        },
+        "sync-max-planck-schools": {
+            "task": "app.tasks.opportunity_sync.sync_max_planck_schools",
+            "schedule": crontab(minute=15, hour=15),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -455,6 +465,10 @@ SOURCE_TASK_NAMES = {
     "taiwan_icdf_scholarship": (
         "app.tasks.opportunity_sync.sync_taiwan_icdf_scholarship"
     ),
+    "humboldt_research_fellowship": (
+        "app.tasks.opportunity_sync.sync_humboldt_research_fellowship"
+    ),
+    "max_planck_schools": "app.tasks.opportunity_sync.sync_max_planck_schools",
 }
 
 
@@ -1276,6 +1290,34 @@ def sync_taiwan_icdf_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_humboldt_research_fellowship",
+    max_retries=3,
+)
+def sync_humboldt_research_fellowship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "humboldt_research_fellowship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_max_planck_schools",
+    max_retries=3,
+)
+def sync_max_planck_schools(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "max_planck_schools", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1531,6 +1573,8 @@ def _collector(source_code: str) -> Any:
         "eth_zurich_esop": EthZurichExcellenceScholarshipSource,
         "hkpfs": HongKongPhdFellowshipSchemeSource,
         "taiwan_icdf_scholarship": TaiwanIcdfScholarshipSource,
+        "humboldt_research_fellowship": HumboldtResearchFellowshipSource,
+        "max_planck_schools": MaxPlanckSchoolsSource,
     }[source_code]()
 
 

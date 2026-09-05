@@ -2807,3 +2807,82 @@ for the full dated history.
       55 -> 56 registered sources). The fixture
       (`tests/fixtures/taiwan_icdf_scholarship.html`) was captured
       unmodified from the live site, not hand-written.
+
+- [x] **(2026-09-05)** "Secondary source expansion" pass: explicitly
+      targeted source categories underrepresented against this
+      platform's government-heavy registry (39-40 government sources
+      against single digits or zero everywhere else). Implemented two
+      new sources in two of the named underrepresented categories - see
+      Changelog.md's same-date entry and `docs/AUTHORITATIVE_SOURCES.md`
+      #56-57 for full detail:
+
+      **Humboldt Research Fellowship** (Alexander von Humboldt
+      Foundation, Germany) - this platform's 2nd Foundation-classified
+      source. Genuinely different in shape from every other source in
+      `national_scholarship_programs.py`: no single annual deadline
+      exists at all - three calls open per year, each closing once a
+      fixed application cap (800) is reached rather than on a calendar
+      date. The live page's real-time status text ("We have received
+      the maximum number of applications for the current call... The
+      next call will open on November 15, 2026") contains the *only*
+      year-qualified date anywhere on the page, and it is an opening
+      date, not a deadline - correctly left unextracted rather than
+      mislabeled into the `deadline` field, even though it was tempting
+      to just grab "the one date on the page."
+
+      **Max Planck Schools** (Germany) - this platform's first-ever
+      Research Institution-classified source (a category that had zero
+      entries before this task). A real design decision made explicit:
+      the *general* Max Planck Institute PhD route was investigated
+      first and correctly rejected, because its own official page states
+      "There is no central application procedure. Doctoral positions for
+      individual doctorates are advertised all year round" across ~80
+      independently-recruiting institutes - the same decentralized,
+      no-individually-applicable-portal problem already found for
+      Canada/Denmark/Singapore. The Max Planck *Schools* (a distinct,
+      much smaller joint program) turned out to be the one part of that
+      ecosystem that actually runs a single, centrally-applied-to
+      program - found only by reading the general page's own text
+      carefully rather than stopping at the first Max Planck URL that
+      returned 200.
+
+      **Four candidates researched and honestly not integrated**,
+      rather than silently dropped or worked around: University of
+      Melbourne (HTTP 403 on every fetch attempt, including its own
+      robots.txt - a real bot-protection layer, not a page-specific
+      block); UNSW Scientia PhD Scholarship Scheme (its own page states
+      "UNSW is not currently recruiting candidates for this Scheme," no
+      next cycle announced - correctly not marked Open or Upcoming);
+      Wellcome Trust (HTTP 202 with an empty body on every attempt,
+      consistent with an async bot challenge); AAUW International
+      Fellowships (HTTP 403). None of these were circumvented - per this
+      project's standing anti-bot-evasion rule, a blocked source is
+      recorded for manual verification, not worked around. UNSW's
+      *general* scholarships page was also found real and fetchable, but
+      is a filterable, paginated database rather than a single flagship
+      page - correctly identified as needing different (multi-record)
+      infrastructure than this file's `_SingleProgramSource` pattern,
+      and left out of scope for this pass rather than forced to fit.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 759 passed / 25 skipped (up from 755 - the
+      two new sources' four fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      56 -> 58 registered sources). Both fixtures
+      (`tests/fixtures/humboldt_research_fellowship.html`,
+      `tests/fixtures/max_planck_schools.html`) were captured unmodified
+      from the live sites.
+
+      **Honest scope note**: the task's own discovery targets (50+
+      university, 15+ funding organization, 10+ embassy, 15+ foundation,
+      20+ research institution sources) were explicitly framed as
+      "discovery targets, not fabricated quotas" - "if only 7
+      universities have genuinely verifiable current opportunities, add
+      7." This pass genuinely verified 2 new sources across 2 categories
+      before time/effort constraints for a single session pass were
+      reached; several other researched candidates in these same
+      categories were blocked by real anti-bot protection rather than
+      circumvented. This is reported as a partial, quality-first
+      contribution toward those targets, not as having exhausted them -
+      consistent with the task's own "quality always overrides quantity"
+      instruction.

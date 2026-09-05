@@ -293,6 +293,20 @@ class Settings(BaseSettings):
     # HKPFS above.
     taiwan_icdf_base_url: str = "https://www.icdf.org.tw"
 
+    # Alexander von Humboldt Foundation - Humboldt Research Fellowship,
+    # for postdoctoral and experienced researchers "of all nationalities
+    # and research areas" to conduct research in Germany. robots.txt
+    # allows this content path (only TYPO3 internal/print paths are
+    # disallowed).
+    humboldt_foundation_base_url: str = "https://www.humboldt-foundation.de"
+
+    # Max Planck Schools - a joint doctoral program of German
+    # universities and non-university research organizations (distinct
+    # from the fully decentralized, no-central-deadline general Max
+    # Planck Institute PhD route), open to "candidates from around the
+    # world". robots.txt has no Disallow rules at all.
+    max_planck_schools_base_url: str = "https://www.maxplanckschools.org"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -438,6 +452,8 @@ class Settings(BaseSettings):
         "eth_zurich_esop_base_url",
         "hkpfs_base_url",
         "taiwan_icdf_base_url",
+        "humboldt_foundation_base_url",
+        "max_planck_schools_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

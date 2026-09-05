@@ -41,6 +41,8 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     EthZurichExcellenceScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
+    HumboldtResearchFellowshipSource,
+    MaxPlanckSchoolsSource,
     TaiwanIcdfScholarshipSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -1639,3 +1641,88 @@ def test_taiwan_icdf_scholarship_has_no_robots_txt_restrictions_to_respect() -> 
     error page, not a bot-challenge page) - no robots.txt file exists at
     all, so this source uses the default (unraised) crawl interval."""
     assert TaiwanIcdfScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Humboldt Research Fellowship: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_humboldt_research_fellowship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The live page states the current call is full ('We have received
+    the maximum number of applications for the current call') with the
+    next call opening November 15, 2026 - a real *opening* date that
+    this adapter deliberately does not extract into `deadline` (which
+    would mislabel it), even though it is the only year-qualified date
+    literal anywhere on the page."""
+    source = HumboldtResearchFellowshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("humboldt_research_fellowship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "humboldt-research-fellowship"
+    assert opportunity.title == "Humboldt Research Fellowship"
+    assert opportunity.country == "Germany"
+    assert opportunity.provider_name == "Alexander von Humboldt Foundation"
+    assert opportunity.description is not None
+    assert "researchers of all nationalities" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_humboldt_research_fellowship_has_no_robots_txt_restrictions_to_respect() -> (
+    None
+):
+    """robots.txt states `Allow: /` for `User-agent: *`, with only
+    TYPO3-internal and print-view paths disallowed - none of which cover
+    this program page - so this source uses the default (unraised)
+    crawl interval."""
+    assert HumboldtResearchFellowshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Max Planck Schools: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_max_planck_schools_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page's real `<h1>` is a page-specific call-to-action ('APPLY
+    NOW - until DECEMBER 1'), not a stable program name, so the title
+    falls through to the external_id-derived fallback. The application
+    window ('September 1 to December 1 of the preceding year') is never
+    paired with a specific year anywhere on the page, so no deadline is
+    extracted."""
+    source = MaxPlanckSchoolsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("max_planck_schools.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "max-planck-schools"
+    assert opportunity.title == "Max Planck Schools"
+    assert opportunity.country == "Germany"
+    assert opportunity.provider_name == "Max Planck Schools"
+    assert opportunity.description is not None
+    assert "candidates from around the world" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_max_planck_schools_has_no_robots_txt_restrictions_to_respect() -> None:
+    """robots.txt has no `Disallow` rules at all for `User-agent: *`
+    (only a `Sitemap:` directive) - fully unrestricted, so this source
+    uses the default (unraised) crawl interval."""
+    assert MaxPlanckSchoolsSource.min_request_interval_seconds == 2.0

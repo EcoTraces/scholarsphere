@@ -355,6 +355,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "humboldt_research_fellowship": {
+        "source_name": "Humboldt Research Fellowship",
+        "source_type": "foundation",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "max_planck_schools": {
+        "source_name": "Max Planck Schools",
+        "source_type": "research_institution",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -418,6 +430,8 @@ def _base_urls() -> dict[str, str]:
         "eth_zurich_esop": settings.eth_zurich_esop_base_url,
         "hkpfs": settings.hkpfs_base_url,
         "taiwan_icdf_scholarship": settings.taiwan_icdf_base_url,
+        "humboldt_research_fellowship": settings.humboldt_foundation_base_url,
+        "max_planck_schools": settings.max_planck_schools_base_url,
     }
 
 
@@ -497,6 +511,8 @@ async def seed_opportunity_sources(
         "eth_zurich_esop": now + timedelta(hours=24),
         "hkpfs": now + timedelta(hours=24),
         "taiwan_icdf_scholarship": now + timedelta(hours=24),
+        "humboldt_research_fellowship": now + timedelta(hours=24),
+        "max_planck_schools": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

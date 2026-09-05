@@ -28,6 +28,59 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Source-diversity pass: Humboldt Research Fellowship and Max Planck Schools (57th and 58th opportunity sources; first Research Institution category)
+
+### Added
+- `app/services/national_scholarship_programs.py::HumboldtResearchFellowshipSource`
+  and `::MaxPlanckSchoolsSource` — this platform's 57th and 58th
+  opportunity sources, added during a dedicated pass targeting source
+  categories underrepresented against this platform's government-heavy
+  registry (at the time: 40 government vs. 5 university, 2 funding
+  organization, 1 foundation, 1 embassy, 0 research institution).
+  - **Humboldt Research Fellowship** (Alexander von Humboldt Foundation,
+    Germany) — a **Foundation**-classified source (distinct from
+    Germany's government-run DAAD, already source #10), open to
+    "researchers of all nationalities and research areas" for 6-24
+    months of research in Germany. Genuinely different shape from every
+    other source in this file: no single annual deadline exists — three
+    calls open per year, each closing once a fixed application cap is
+    reached rather than on a calendar date. The live page's real-time
+    status ("We have received the maximum number of applications for
+    the current call... The next call will open on November 15, 2026")
+    is an *opening* date, not a deadline — deliberately not extracted
+    into the `deadline` field, which would mislabel it.
+  - **Max Planck Schools** (Germany) — this platform's first
+    **Research Institution**-classified source. A joint doctoral program
+    of 30 German universities and 33 research organizations, open to
+    "candidates from around the world," full funding for up to five
+    years, no tuition fees. Deliberately not the general, decentralized
+    Max Planck Institute PhD route, whose own official page states "There
+    is no central application procedure" across ~80 independent
+    institutes — the same pattern already found unsuitable for
+    Canada/Denmark/Singapore. No deadline extracted: the recurring
+    "September 1 to December 1" application window is never paired with
+    a specific year anywhere on the page.
+  - Both fully wired: config settings, source registry entries, Celery
+    beat schedules + dedicated sync tasks, and fixture-backed tests
+    (fixtures captured unmodified from the live sites).
+
+  Four further candidates were researched this pass and found
+  genuinely blocked by active anti-bot protection rather than
+  circumvented, per this project's standing rule (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (source
+  diversity), not integrated" table): University of Melbourne Graduate
+  Research Scholarships (HTTP 403 on every fetch, including its own
+  `robots.txt`), UNSW Scientia PhD Scholarship Scheme (officially "not
+  currently recruiting," no next cycle announced), Wellcome Trust
+  International Masters Fellowships (HTTP 202 with an empty body,
+  consistent with an async bot challenge), and AAUW International
+  Fellowships (HTTP 403).
+
+  **Verified**: full backend suite green after the change (759 passed,
+  25 skipped, up from 755 — the two new sources' four tests plus the
+  updated `test_opportunity_import.py` source-count assertion, 56 -> 58
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Follow-up opportunity source: TaiwanICDF Scholarship Program (56th opportunity source)
 
 ### Added

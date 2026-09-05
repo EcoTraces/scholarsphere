@@ -2484,7 +2484,152 @@ after HKPFS (#54) in the same opportunity-expansion effort.
   fixture, captured unmodified from the live fetch
   (`tests/fixtures/taiwan_icdf_scholarship.html`).
 
-### Researched this pass, not integrated
+## 56. Humboldt Research Fellowship (Alexander von Humboldt Foundation)
+
+Researched 2026-09-05, a "source diversity" pass explicitly targeting
+categories underrepresented in the registry (at the time: 40 government
+sources against 5 university, 2 funding organization, 1 foundation, 1
+embassy, 0 research institution).
+
+- **Organization**: Alexander von Humboldt Foundation (a **Foundation**,
+  not a government body — Germany's DAAD, already source #10, is the
+  government-run scholarship agency; the Humboldt Foundation is legally
+  and organizationally independent)
+- **Route code**: `humboldt-research-fellowship`
+  (`humboldt_research_fellowship` internally)
+- **Official domain / base URL**: `https://www.humboldt-foundation.de`
+  (`HUMBOLDT_FOUNDATION_BASE_URL`)
+- **Opportunity types**: Fellowship (postdoctoral) — 6-24 months of
+  research in Germany, with "further financial support, including
+  family benefits for children and partners, subsidies for private full
+  health insurance and allowances for travel expenses"
+- **Country coverage**: Global. The page states plainly: "The Humboldt
+  Research Fellowship for researchers of all nationalities and research
+  areas" — verified directly, not assumed.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `Allow: /` for `User-agent: *`, with
+  only TYPO3-internal (`/typo3conf/`, `/typo3/`) and print-view paths
+  disallowed — none of which cover this program page
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **No single annual deadline, and deliberately no fabricated one**:
+    unlike every other source in this file, this program runs three
+    calls per year (15 March / 15 July / 15 November), each closing once
+    a fixed application cap (currently 800) is reached rather than on a
+    calendar date. The live page states, in real time: "We have received
+    the maximum number of applications for the current call... The next
+    call will open on November 15, 2026." That is an *opening* date, not
+    a deadline — extracting it into this schema's `deadline` field would
+    mislabel it, so this adapter's `deadline_keywords` stay at the base
+    class default ("deadline", "closing date"), verified directly to
+    match nothing on this page and correctly leave `deadline` `None`.
+    The real, current status text is still preserved in the scraped
+    description for a human reviewer.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML. Implemented
+  and unit-tested against a real fixture, captured unmodified from the
+  live fetch (`tests/fixtures/humboldt_research_fellowship.html`).
+
+## 57. Max Planck Schools
+
+Researched 2026-09-05, the same source-diversity pass as Humboldt (#56)
+— this platform's first **Research Institution**-classified source (a
+category that had zero entries before this pass).
+
+- **Organization**: Max Planck Schools — a joint doctoral program of 30
+  German universities and 33 non-university research organizations
+  (distinct from an individual Max Planck Institute)
+- **Route code**: `max-planck-schools` (`max_planck_schools` internally)
+- **Official domain / base URL**: `https://www.maxplanckschools.org`
+  (`MAX_PLANCK_SCHOOLS_BASE_URL`)
+- **Opportunity types**: PhD position — full funding for up to five
+  years, no tuition fees, across four interdisciplinary fields
+  (Biomedical AI, Cognition, Matter to Life, Photonics); open to both
+  Bachelor's graduates (integrated MSc/PhD track) and Master's graduates
+  (standalone PhD track)
+- **Country coverage**: Global. The page states: "The Max Planck Schools
+  invite highly ambitious and promising candidates from around the world
+  to apply."
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: No `Disallow` rules at all for
+  `User-agent: *` (only a `Sitemap:` directive) — fully unrestricted
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Why this and not the general Max Planck Institute PhD route**:
+    the general route's own official page (`mpg.de/doctoral_students`)
+    states plainly "There is no central application procedure. Doctoral
+    positions for individual doctorates are advertised all year round"
+    by each of roughly 80 independent institutes — verified directly,
+    the same decentralized, no-individually-applicable-portal pattern
+    already found `NOT_SUITABLE` for Canada/Denmark/Singapore in
+    `docs/COUNTRY_PROVIDER_REGISTRY.md`. The Max Planck Schools are the
+    one part of the ecosystem that *does* run a single, centrally-
+    applied-to program with a real recurring deadline, so this is the
+    program actually integrated.
+  - **Title selector**: the page's real `<h1>` is a page-specific
+    call-to-action ("APPLY NOW - until DECEMBER 1"), not a stable
+    program name — `title_selectors = ()` falls through to the
+    external_id-derived fallback ("Max Planck Schools"), the same
+    pattern already used for WMI/Yenching/HKPFS above.
+  - **Deliberately extracts no deadline**: the page states the annual
+    application window only as "September 1 to December 1 of the
+    preceding year" — a real, recurring cycle, but never paired with a
+    specific year anywhere on the page (unlike HKPFS or TaiwanICDF above)
+    — verified directly that no year-qualified date literal exists for
+    `extract_confident_date` to match. This adapter does not guess which
+    calendar year "the preceding year" refers to.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch (`tests/fixtures/max_planck_schools.html`).
+
+### Researched this pass (source diversity), not integrated
+
+- **University of Melbourne Graduate Research Scholarships** — a real,
+  currently-open scholarship (deadline 31 October 2026, confirmed via
+  secondary sources), but `scholarships.unimelb.edu.au` returned a
+  genuine HTTP 403 on every fetch attempt (including its own
+  `robots.txt`), consistent with an active bot-protection layer rather
+  than a page-specific block. Recorded for manual verification rather
+  than circumvented, per this project's standing anti-bot-evasion rule.
+- **UNSW Scientia PhD Scholarship Scheme** — the official page
+  (`scientia.unsw.edu.au`) states plainly "UNSW is not currently
+  recruiting candidates for this Scheme," with no next-cycle date
+  announced — not integrated per the "never mark Open/Upcoming without
+  source confirmation" rule. UNSW's general `unsw.edu.au/scholarships`
+  page is real and fetchable (200, real robots.txt with no relevant
+  disallow), but is a filterable, paginated scholarship database rather
+  than a single flagship page — architecturally closer to this
+  platform's `ExternalOpportunity` multi-record sources than the
+  single-record `_SingleProgramSource` pattern, and out of scope for
+  this pass.
+- **Wellcome Trust** (International Masters Fellowships in Public
+  Health and Tropical Medicine) — a real, well-known funding
+  organization, but `wellcome.org` returned HTTP 202 with an empty body
+  on every fetch attempt (including `robots.txt`), consistent with an
+  async bot-challenge rather than a normal page response. Recorded for
+  manual verification rather than circumvented.
+- **AAUW (American Association of University Women) International
+  Fellowships** — a real, well-known funding organization for women
+  pursuing graduate study outside their home country, but
+  `aauw.org` returned a genuine HTTP 403 on the fellowships page
+  (`robots.txt` itself is fetchable and imposes no relevant
+  restriction). Recorded for manual verification rather than
+  circumvented.
+
+### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**
   — real, official (European Commission), and the "European Postdoctoral
