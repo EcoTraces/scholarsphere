@@ -2422,9 +2422,9 @@ for the full dated history.
       real Stripe/OpenAI/Anthropic account.
 
 - [x] **(2026-09-05)** Fixed the two real issues blocking the actual
-      Render Blueprint deploy attempted this session, and added a new
-      opportunity source (the 50th) while investigating a promising
-      previously-documented candidate.
+      Render Blueprint deploy attempted this session, and added two new
+      opportunity sources (the 50th and 51st) while investigating
+      promising candidates.
 
       **Render deploy fixes** (both reproduced and verified against the
       real failure before being called fixed, not assumed):
@@ -2491,9 +2491,50 @@ for the full dated history.
       tests, using the actual unmodified JSON fetched from the live
       endpoint).
 
+      **New opportunity source #2**: `SchwarzmanScholarsSource` in
+      `app/services/national_scholarship_programs.py` - Schwarzman
+      Scholars, source #51 (see `docs/AUTHORITATIVE_SOURCES.md` #50 and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`'s implemented-sources table for
+      full detail): a fully-funded one-year master's in Global Affairs at
+      Tsinghua University, genuinely open worldwide with no nationality
+      restriction (it runs a *separate* application track for Chinese
+      citizens alongside the "U.S. and Global Applicants" track, which is
+      not a restriction on the latter). Researched back-to-back with
+      United World Colleges (UWC) in the same session - UWC was found to
+      have 152 real national committees and genuinely reachable content
+      (confirmed live, Sierra Leone's committee included), but its
+      `robots.txt` explicitly disallows `ClaudeBot` by name even though
+      `User-agent: *` is unrestricted. Per this project's own established
+      precedent (the Indonesia KNB entry in
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`), a named `ClaudeBot` block is
+      treated as binding regardless of this backend's own actual
+      configured User-Agent header, so UWC was deliberately not
+      integrated - now documented in `docs/AUTHORITATIVE_SOURCES.md`'s
+      "not integrated" table rather than left as an undocumented dead
+      end. Schwarzman's own `robots.txt` carries no such rule (only a
+      `Crawl-delay: 10`, respected via `min_request_interval_seconds`),
+      so it was implemented instead. One real parsing subtlety found and
+      solved: the admissions page states its application deadline twice
+      - once in full-month-name form ("September 9, 2026", parseable)
+      and again in an abbreviated form ("Sept 9, 2026") the project's
+      date-extraction regex can't read, and the default `"deadline"`
+      search keyword lands *after* the full-month-name occurrence,
+      finding only the unparseable one. Solved by anchoring on
+      `"countdown"` instead, which appears earlier in the text; verified
+      directly with a standalone script showing the keyword choice's
+      effect on the extracted result, and independently cross-checked
+      against the page's own JS countdown-timer `data-date` millisecond-
+      epoch attribute (`1788980400000` = 2026-09-09 19:00:00 UTC, matching
+      the extracted date exactly). Fully wired: config setting, source
+      registry entry, Celery beat schedule + dedicated sync task, and a
+      real fixture-backed test
+      (`tests/test_national_scholarship_programs.py`, fixture captured
+      unmodified from the live fetch as
+      `tests/fixtures/schwarzman_scholars_admissions.html`).
+
       **Verified**: full backend suite green after every change,
-      including the new source and the updated
-      `test_opportunity_import.py` source-count assertion (49 -> 50
+      including both new sources and the updated
+      `test_opportunity_import.py` source-count assertion (49 -> 50 -> 51
       registered sources). Flutter suite (90/90) verified in the same
       environment this session already had a working Flutter SDK
       installed in (see the login-screen-verification entry earlier in

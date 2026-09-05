@@ -28,7 +28,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [2026-09-05] — Render deployment fixes, and a new source: Mastercard Foundation Scholars Program (50th opportunity source)
+## [2026-09-05] — Render deployment fixes, and two new sources: Mastercard Foundation Scholars Program and Schwarzman Scholars (50th and 51st opportunity sources)
 
 ### Fixed
 - **Render Docker build failure**: `scholarsphere_backend/Dockerfile`'s
@@ -79,6 +79,24 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   French locale duplicates in one array, filtered out) and why 31 is the
   real, verified count rather than the foundation's own broader "62
   Global partners" headline stat.
+- `SchwarzmanScholarsSource` in `app/services/national_scholarship_programs.py`
+  — **Schwarzman Scholars**, this platform's 51st opportunity source: a
+  fully-funded one-year master's in Global Affairs at Tsinghua University,
+  genuinely open worldwide with no nationality restriction. Researched
+  back-to-back with United World Colleges (UWC), which was investigated
+  and rejected in the same pass: UWC's `robots.txt` explicitly disallows
+  `ClaudeBot` by name even though `User-agent: *` is unrestricted, and per
+  this project's established precedent (see Indonesia's KNB entry) a
+  named `ClaudeBot` block is treated as binding regardless of this
+  backend's own actual User-Agent — not integrated, now documented in
+  `docs/AUTHORITATIVE_SOURCES.md`'s "not integrated" table. Schwarzman's
+  own `robots.txt` carries no such rule, so it was implemented. Notable
+  finding: the admissions page states its deadline twice, once in a
+  parseable full-month-name form and again in an abbreviated form the
+  date parser can't read — solved by anchoring the date search on
+  "countdown" instead of the default "deadline" keyword, independently
+  cross-checked against the page's own JS countdown-timer epoch
+  timestamp. See `docs/AUTHORITATIVE_SOURCES.md` #50 for full detail.
 
 ---
 

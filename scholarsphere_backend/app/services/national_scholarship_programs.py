@@ -1627,3 +1627,61 @@ class RotaryPeaceFellowshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().rotary_peace_fellowship_base_url
+
+
+class SchwarzmanScholarsSource(_SingleProgramSource):
+    """Schwarzman Scholars - a fully-funded one-year master's program in
+
+    Global Affairs at Tsinghua University (Beijing), founded by Stephen
+    A. Schwarzman. Genuinely open worldwide: the program's own
+    `/admissions/` page states eligibility (undergraduate degree, age
+    18-28, English proficiency) with no nationality/country restriction
+    anywhere - it runs a *separate* application track specifically for
+    applicants with Chinese citizenship alongside the "U.S. and Global
+    Applicants" track, which is not a restriction on the latter.
+
+    Confirmed 2026-09-05: `robots.txt` has no `Disallow` at all for
+    `User-agent: *` (`Crawl-delay: 10`, respected via
+    `min_request_interval_seconds` below) and states nothing for
+    `ClaudeBot` specifically - unlike United World Colleges (`uwc.org`),
+    researched the same session and found to explicitly `Disallow: /`
+    for `User-agent: ClaudeBot` by name even though `User-agent: *` is
+    unrestricted; matching this project's existing Indonesia precedent
+    (`docs/AUTHORITATIVE_SOURCES.md`), a named `ClaudeBot` block is
+    treated as binding regardless of this backend's own configured
+    User-Agent string, so UWC was not integrated.
+
+    `title_selectors = ()`: the page's only `<h1>` is a marketing
+    tagline ("Join the world's next generation of leaders."), not a
+    usable title, and the `<title>` tag ("Admissions - Schwarzman
+    Scholars") is too generic to split usefully either - falls through
+    to the `external_id`-derived fallback ("Schwarzman Scholars"),
+    the same documented pattern already used by several sources above.
+
+    `deadline_keywords = ("countdown",)`, not the default `"deadline"`:
+    the page states the same date twice, first in full-month-name form
+    ("Countdown to September 9, 2026 Application Deadline") and again
+    a few lines later in an abbreviated, unparseable form ("Application
+    Deadline: Sept 9, 2026") - `extract_confident_date_after` finds the
+    *first* occurrence of its keyword and only looks forward from there,
+    so anchoring on "deadline" itself lands after the full-month-name
+    date has already passed and finds only the abbreviated one (which
+    `_CONFIDENT_DATE_PATTERN` doesn't match, since it requires a full
+    month name) - "countdown" appears earlier and its own nearby JS
+    countdown-timer `data-date="1788980400000"` millisecond-epoch
+    attribute independently confirms the parsed date (2026-09-09) is
+    the real one, not a coincidental regex match.
+    """
+
+    source_code = "schwarzman_scholars"
+    overview_path = "/admissions/"
+    title_selectors = ()
+    content_selectors = ("main",)
+    deadline_keywords = ("countdown",)
+    provider_name = "Schwarzman Scholars (Tsinghua University)"
+    country = "China"
+    external_id = "schwarzman-scholars"
+    min_request_interval_seconds = 10.0
+
+    def _base_url(self) -> str:
+        return get_settings().schwarzman_scholars_base_url

@@ -251,6 +251,11 @@ class Settings(BaseSettings):
     # previously documented in docs/AUTHORITATIVE_SOURCES.md).
     mastercard_foundation_base_url: str = "https://mastercardfdn.org"
 
+    # Schwarzman Scholars (Tsinghua University) - fully-funded global
+    # master's program, no ClaudeBot robots.txt restriction (unlike UWC,
+    # researched the same session and rejected for exactly that reason).
+    schwarzman_scholars_base_url: str = "https://www.schwarzmanscholars.org"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -390,6 +395,7 @@ class Settings(BaseSettings):
         "erasmus_mundus_base_url",
         "uaeu_base_url",
         "mastercard_foundation_base_url",
+        "schwarzman_scholars_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

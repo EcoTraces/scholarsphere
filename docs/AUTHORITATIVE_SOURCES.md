@@ -2091,6 +2091,69 @@ widget with no fallback at all.
 
 ---
 
+## 50. Schwarzman Scholars
+
+Researched 2026-09-05 in the same pass that rejected United World Colleges
+(UWC) below — both are `_SingleProgramSource` candidates evaluated back to
+back, one accepted and one rejected, on the same robots.txt criterion.
+
+- **Organization**: Schwarzman Scholars (hosted at Tsinghua University,
+  Beijing; founded by Stephen A. Schwarzman)
+- **Route code**: `schwarzman-scholars` (`schwarzman_scholars` internally)
+- **Official domain / base URL**: `https://www.schwarzmanscholars.org`
+  (`SCHWARZMAN_SCHOLARS_BASE_URL`)
+- **Opportunity types**: Scholarship — one fully-funded, one-year master's
+  program in Global Affairs
+- **Country coverage**: Global. The program's own `/admissions/` page
+  states eligibility (undergraduate degree, age 18–28, English
+  proficiency) with no nationality or country restriction anywhere; it
+  runs a *separate* application track for applicants with Chinese
+  citizenship alongside the "U.S. and Global Applicants" track, which is
+  not a restriction on the latter — recorded with `country = "China"`
+  here only because that is the program's *host* country (where the
+  degree is conferred and study takes place), not a claim about who is
+  eligible to apply.
+- **Discovery method**: Web scraper (plain HTTPS GET, WordPress-rendered
+  HTML, no JavaScript execution needed) reading `/admissions/`
+- **robots.txt / indexing note**: No `Disallow` at all for
+  `User-agent: *` (`Crawl-delay: 10`, respected via
+  `min_request_interval_seconds = 10.0`) and no separate rule naming
+  `ClaudeBot` — confirmed by direct fetch 2026-09-05.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ()`: the page's only `<h1>` is a marketing
+    tagline ("Join the world's next generation of leaders."), not a
+    usable title, and the `<title>` tag ("Admissions - Schwarzman
+    Scholars") is too generic to split usefully either — falls through
+    to the `external_id`-derived fallback ("Schwarzman Scholars"), the
+    same documented pattern already used by `wmi_scholars` and others.
+  - `deadline_keywords = ("countdown",)`, not the default `"deadline"`:
+    the page states the same date twice — first in full-month-name form
+    ("Countdown to September 9, 2026 Application Deadline") and again a
+    few lines later in an abbreviated, unparseable form ("Application
+    Deadline: Sept 9, 2026"). `extract_confident_date_after` finds the
+    *first* occurrence of its keyword and only searches forward from
+    there, so anchoring on "deadline" itself lands after the
+    full-month-name date has already passed and finds only the
+    abbreviated one (which the parser's date pattern doesn't match,
+    since it requires a full month name). "countdown" appears earlier
+    in the text, and the extracted date (2026-09-09) was independently
+    cross-checked against the page's own JS countdown-timer
+    `data-date="1788980400000"` millisecond-epoch attribute
+    (= 2026-09-09 19:00:00 UTC) — not a coincidental regex match.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path (httpx) — 200, real WordPress HTML, no
+  browser rendering, no spoofed user agent required. Implemented and
+  unit-tested against the real fixture, captured unmodified from the
+  httpx fetch (`tests/fixtures/schwarzman_scholars_admissions.html`).
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research
@@ -2108,6 +2171,7 @@ record of what was checked, not just what was added:
 | Fulbright Program | Researched 2026-08-22. The US-student-facing site (`us.fulbrightonline.org`) is the wrong audience for this platform; the foreign-student program is administered per-country through ~160 individual US embassy pages with no single list of open calls; the one Sierra-Leone-specific page checked (`sl.usembassy.gov/educational-professional-exchanges/`) returned a generic "Technical Difficulties" error page rather than real content — no single stable page to scrape reliably |
 | China Scholarship Council (CSC) / `csc.edu.cn` / `studyinchina.csc.edu.cn` | Researched 2026-08-29 — `BLOCKED`, see `docs/COUNTRY_PROVIDER_REGISTRY.md`'s China entry. A real, major, legitimate official program (the Chinese Government Scholarship), but every page checked — including `robots.txt` itself — returns HTTP 412 or an obfuscated JavaScript anti-bot challenge page ("系统繁忙，请稍后再试" / "system busy, try again later"), not real content. Never bypassed. |
 | Aga Khan Foundation International Scholarship Programme (ISP) | Researched 2026-08-30 — real, legitimate, long-running programme for gifted students from developing countries with no other means of financing postgraduate study. Rejected on eligibility grounds, not a technical one: the programme's own published country scope (Bangladesh, India, Pakistan, Afghanistan, Tajikistan, Kyrgyzstan, Syria, Egypt, Kenya, Tanzania, Uganda, Madagascar, Mozambique) does not include Sierra Leone — this platform's own "never invent eligibility" rule cuts both ways: a source that explicitly excludes Sierra Leone from its stated country list is exactly the "clearly ineligible" case, not integrated on that basis rather than a reachability/JS-rendering issue. |
+| United World Colleges (UWC), `uwc.org` | Researched 2026-09-05 — a real, legitimate global scholarship movement with 152 national committees (Sierra Leone's included) confirmed live over plain HTTPS, real per-country content, no JS-rendering issue at all. Rejected purely on `robots.txt`: it explicitly states `User-agent: ClaudeBot` / `Disallow: /`, even though `User-agent: *` is otherwise unrestricted. Per this project's own established precedent (see Indonesia's KNB entry, `docs/COUNTRY_PROVIDER_REGISTRY.md`), a named `ClaudeBot` disallow rule is treated as binding regardless of this backend's own actual configured User-Agent header — not circumvented. |
 
 DAAD, Chevening, and Commonwealth Scholarships were in this table until
 2026-08-22 for the same reason as the rows above (no public API) — they are

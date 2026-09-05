@@ -36,6 +36,7 @@ from app.services.national_scholarship_programs import (
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
     RotaryPeaceFellowshipSource,
+    SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -1363,3 +1364,44 @@ async def test_rotary_peace_fellowship_collect_normalizes_real_fixture(
 
 def test_rotary_peace_fellowship_respects_the_sites_crawl_delay() -> None:
     assert RotaryPeaceFellowshipSource.min_request_interval_seconds == 10.0
+
+
+# --- Schwarzman Scholars: real fixture, fetched 2026-09-05 -----------------
+
+
+@pytest.mark.asyncio
+async def test_schwarzman_scholars_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = SchwarzmanScholarsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("schwarzman_scholars_admissions.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "schwarzman-scholars"
+    # The page's only <h1> is a marketing tagline, not a usable title -
+    # falls through to the external_id-derived fallback.
+    assert opportunity.title == "Schwarzman Scholars"
+    assert opportunity.country == "China"
+    assert opportunity.provider_name == "Schwarzman Scholars (Tsinghua University)"
+    assert opportunity.description is not None
+    assert "next generation of leaders" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # The page states the same deadline twice: "Countdown to September 9,
+    # 2026 Application Deadline" (full month name, parseable) and later
+    # "Application Deadline: Sept 9, 2026" (abbreviated, unparseable).
+    # Anchoring on "countdown" instead of "deadline" finds the first,
+    # parseable occurrence - independently confirmed by the page's own
+    # JS countdown-timer `data-date="1788980400000"` epoch attribute,
+    # which is exactly 2026-09-09 19:00:00 UTC.
+    assert str(opportunity.deadline) == "2026-09-09"
+
+
+def test_schwarzman_scholars_respects_the_sites_crawl_delay() -> None:
+    assert SchwarzmanScholarsSource.min_request_interval_seconds == 10.0

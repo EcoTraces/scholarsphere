@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (37, across multiple sessions)
+## Implemented (38, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -75,6 +75,7 @@ that were actually built this session (in two batches).
 | 47 | Erasmus Mundus Joint Masters Catalogue | (not tied to one destination country) | INTERNATIONAL_ORGANIZATION | eacea.ec.europa.eu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; open worldwide, ~220 programmes, paginated listing |
 | 48 | UAEU Scholarships, Fellowships, and Graduate Assistantships | United Arab Emirates | UNIVERSITY | uaeu.ac.ae | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-30; first UNIVERSITY-typed source, 13 programmes extracted verbatim |
 | 49 | Mastercard Foundation Scholars Program | (global — 31 partner institutions across Africa, North America, Europe, the Middle East, and Costa Rica) | FOUNDATION | mastercardfdn.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; previously researched 2026-08-30 and left unintegrated (see AUTHORITATIVE_SOURCES.md's former "not integrated" entry), re-investigated after a site restructure revealed the listing is actually a plain static JSON asset, not a client-side widget with no fallback |
+| 50 | Schwarzman Scholars | China (host country; open worldwide, no nationality restriction) | UNIVERSITY | schwarzmanscholars.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; researched back-to-back with UWC (rejected, see AUTHORITATIVE_SOURCES.md's "not integrated" table) — accepted because its robots.txt has no ClaudeBot-specific disallow rule |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).

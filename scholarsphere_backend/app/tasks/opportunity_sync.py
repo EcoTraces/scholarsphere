@@ -81,6 +81,7 @@ from app.services.national_scholarship_programs import (
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
     RotaryPeaceFellowshipSource,
+    SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -316,6 +317,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_mastercard_foundation_scholars",
             "schedule": crontab(minute=15, hour=13),
         },
+        "sync-schwarzman-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_schwarzman_scholars",
+            "schedule": crontab(minute=30, hour=13),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -413,6 +418,7 @@ SOURCE_TASK_NAMES = {
     "mastercard_foundation_scholars": (
         "app.tasks.opportunity_sync.sync_mastercard_foundation_scholars"
     ),
+    "schwarzman_scholars": "app.tasks.opportunity_sync.sync_schwarzman_scholars",
 }
 
 
@@ -1150,6 +1156,19 @@ def sync_mastercard_foundation_scholars(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_schwarzman_scholars",
+    max_retries=3,
+)
+def sync_schwarzman_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "schwarzman_scholars", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1399,6 +1418,7 @@ def _collector(source_code: str) -> Any:
         "erasmus_mundus_joint_masters": ErasmusMundusJointMastersSource,
         "uaeu_scholarships": UaeuScholarshipsSource,
         "mastercard_foundation_scholars": MastercardFoundationScholarsSource,
+        "schwarzman_scholars": SchwarzmanScholarsSource,
     }[source_code]()
 
 
