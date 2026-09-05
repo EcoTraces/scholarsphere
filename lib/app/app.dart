@@ -67,6 +67,10 @@ import '../features/profiles/presentation/applicant_profile_screen.dart';
 import '../features/premium/data/api_premium_repository.dart';
 import '../features/premium/domain/premium_repository.dart';
 import '../features/premium/presentation/premium_landing_screen.dart';
+import '../features/testimonials/data/api_testimonial_repository.dart';
+import '../features/testimonials/domain/testimonial_repository.dart';
+import '../features/testimonials/presentation/share_success_story_screen.dart';
+import '../features/testimonials/presentation/success_stories_screen.dart';
 import '../features/privacy/data/api_privacy_repository.dart';
 import '../features/privacy/domain/privacy_repository.dart';
 import '../features/privacy/domain/privacy_models.dart';
@@ -121,6 +125,7 @@ class ScholarSphereApp extends StatefulWidget {
     this.collectionRepository,
     this.verificationRepository,
     this.premiumRepository,
+    this.testimonialRepository,
   });
 
   /// Overrides the real Firebase-backed auth repository. Production never
@@ -318,6 +323,12 @@ class ScholarSphereApp extends StatefulWidget {
   /// be running.
   final PremiumRepository? premiumRepository;
 
+  /// repository backing every Success Stories / testimonial screen.
+  /// Production never sets this (it defaults to
+  /// [ApiTestimonialRepository]); tests pass a [DemoTestimonialRepository]
+  /// so they never require the FastAPI backend to be running.
+  final TestimonialRepository? testimonialRepository;
+
   @override
   State<ScholarSphereApp> createState() => _ScholarSphereAppState();
 }
@@ -371,6 +382,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       widget.documentRepository ?? ApiDocumentRepository();
   late final _premiumRepository =
       widget.premiumRepository ?? ApiPremiumRepository();
+  late final _testimonialRepository =
+      widget.testimonialRepository ?? ApiTestimonialRepository();
   late final _analyticsRepository =
       widget.analyticsRepository ?? ApiAnalyticsRepository();
   late final _recommendationGovernanceRepository =
@@ -565,6 +578,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         profileRepository: _profileRepository,
         applicationRepository: _applicationRepository,
         notificationRepository: _notificationRepository,
+        testimonialRepository: _testimonialRepository,
         opportunityScreen: discovery,
         openApplications: () => _openApplicantApplications(user),
         openSaved: () => _openApplicantApplications(user, savedOnly: true),
@@ -574,6 +588,8 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         openDocuments: () => _openApplicantProfile(user),
         openSettings: () => _openApplicantSettings(user),
         openPremium: _openPremium,
+        openSuccessStories: _openSuccessStories,
+        openShareStory: _openShareStory,
         onSignOut: _signOut,
       );
     }
@@ -598,6 +614,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       return ModeratorDashboardScreen(
         user: user,
         repository: _moderationRepository,
+        testimonialRepository: _testimonialRepository,
         onSignOut: _signOut,
       );
     }
@@ -694,6 +711,26 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
     _navigatorKey.currentState?.push<void>(
       MaterialPageRoute(
         builder: (_) => PremiumLandingScreen(repository: _premiumRepository),
+      ),
+    );
+  }
+
+  void _openSuccessStories() {
+    _navigatorKey.currentState?.push<void>(
+      MaterialPageRoute(
+        builder: (_) => SuccessStoriesScreen(
+          repository: _testimonialRepository,
+          onShareStory: _openShareStory,
+        ),
+      ),
+    );
+  }
+
+  void _openShareStory() {
+    _navigatorKey.currentState?.push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            ShareSuccessStoryScreen(repository: _testimonialRepository),
       ),
     );
   }

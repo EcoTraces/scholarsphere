@@ -313,6 +313,71 @@ All `user_id` columns here follow the existing convention (SS1): a plain
 Firebase-uid string, never a FK into a users table that doesn't exist on
 the Postgres side.
 
+### 2.15 Testimonials & Success Stories (2026-09-05)
+
+3 new tables, one migration (`20260915_34_testimonials.py`,
+`down_revision="20260901_33"`). Reuses the existing `ExternalOpportunity`
+verification pattern (status enum + append-only history table) rather than
+inventing a second moderation architecture (`app/models/testimonial.py`).
+
+- **`testimonials`** — one row per applicant-submitted story.
+  `user_id` (plain Firebase-uid string, SS1 convention), `opportunity_id`
+  FK→`external_opportunities` (`SET NULL` — a story survives if the
+  opportunity record is later removed), unique `slug`. Two independent
+  status columns, not one conflated field: `status`
+  (draft/submitted/under_review/approved/rejected/changes_requested/
+  withdrawn/archived — the moderation-workflow state) and
+  `verification_status` (unverified/community/verified — whether staff
+  actually reviewed submitted evidence). `PUBLIC_STATUSES = frozenset({
+  approved})` is the one place "what the public can see" is defined, so
+  every public query filters through it rather than re-deriving the rule
+  ad hoc. `featured` is a plain boolean, set only via a staff-only
+  endpoint — never self-service. `outcome` is a closed enum (applied/
+  shortlisted/interviewed/selected/awarded/admitted/funded/other) —
+  deliberately never collapsed into a generic "success" flag, per the
+  feature spec. The seven case-study narrative fields (`challenge`,
+  `discovery_story`, `preparation_story`, `scholarsphere_help`,
+  `outcome_narrative`, `impact`, `advice`) are all nullable `Text`;
+  `features_used` is a JSON string array against a small `KNOWN_FEATURES`
+  allow-list (`app/schemas/testimonial.py`) rather than free text.
+  `display_mode` (full_name/partial_name/anonymous) plus four
+  `show_*` booleans (university/country/program/photo) drive
+  `display_name_for()` and every other public-facing redaction — privacy
+  is enforced once, server-side, not left to the frontend to honor.
+  `evidence_storage_paths` (JSON array of Firebase Storage paths) is
+  never serialized into any public-facing schema — only
+  `TestimonialOwnRead`/`TestimonialAdminRead` expose it, and even then
+  only as paths a caller must still resolve through the existing
+  `document_storage.generate_download_url()` signed-URL service, the same
+  as applicant documents. `internal_notes`, `verified_by`,
+  `verification_method`, and `last_moderator_id` record who reviewed
+  evidence and how — `internal_notes` is never included in any read
+  schema a non-staff caller can reach. `view_count`/`helpful_count`/
+  `inspiring_count`/`useful_count` are plain counters, not a separate
+  analytics-event table — proportionate to what a lightweight reaction
+  feature needs.
+- **`testimonial_moderation_history`** — append-only, mirrors
+  `ExternalOppVerificationHistory`'s shape exactly (`action`, `actor_id`,
+  `reason`, `previous_status`, `new_status`, `created_at`). Every status
+  transition — including the initial `submitted` — writes one row here,
+  so the moderation dashboard's audit trail is a real query, not
+  reconstructed from mutable columns.
+- **`testimonial_reactions`** — `UNIQUE(testimonial_id, user_id)`: one
+  reaction per applicant per story, matching the schema's
+  `TestimonialReactionType` enum (helpful/inspiring/useful).
+
+8 indexes, exactly matching the feature spec's required set: `status`,
+`verification_status`, `featured`, `opportunity_id`, `user_id`, `country`,
+`success_year`, `created_at` — the columns the public browse/filter/sort
+and admin moderation-queue endpoints actually query against.
+
+Verified end-to-end against a real local PostgreSQL 16 instance (not only
+reasoned about): `alembic upgrade head` ran clean through the full
+34-migration chain, the resulting schema was inspected directly
+(`psql \d testimonials`) and matches the model exactly, and
+`alembic downgrade -1` followed by `alembic upgrade head` round-tripped
+cleanly.
+
 ---
 
 ## 3. Relationships
@@ -466,9 +531,12 @@ point at different tables depending on `entity_type`.
 | `20260913_31_collection` | Collection ledger |
 | `20260914_32_link_health` | External-opportunity link-health column |
 | `20260901_33_premium` | Premium Application-Preparation Platform (SS2.14) |
+| `20260915_34_testimonials` | Testimonials & Success Stories (SS2.15) |
 
-All 33 revisions chain and compile cleanly against the PostgreSQL dialect
-(validated offline via `alembic upgrade head --sql`, per
+All 34 revisions chain and compile cleanly against the PostgreSQL dialect
+(validated for real end-to-end against a local PostgreSQL 16 instance for
+the newest revision — see SS2.15 — and offline via
+`alembic upgrade head --sql` for the rest, per
 `docs/PRODUCTION_SECURITY_AUDIT.md` §14). Run `alembic current` to check
 what's actually applied to a given database.
 

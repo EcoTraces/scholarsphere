@@ -9,6 +9,9 @@ import '../../opportunities/domain/opportunity.dart';
 import '../../opportunities/domain/opportunity_repository.dart';
 import '../../profiles/domain/applicant_profile.dart';
 import '../../profiles/domain/applicant_profile_repository.dart';
+import '../../testimonials/domain/testimonial_repository.dart';
+import '../../testimonials/presentation/dashboard/my_testimonial_status_card.dart';
+import '../../testimonials/presentation/dashboard/success_stories_dashboard_panel.dart';
 
 class ApplicantDashboardScreen extends StatefulWidget {
   const ApplicantDashboardScreen({
@@ -18,6 +21,7 @@ class ApplicantDashboardScreen extends StatefulWidget {
     required this.profileRepository,
     required this.applicationRepository,
     required this.notificationRepository,
+    required this.testimonialRepository,
     required this.opportunityScreen,
     required this.openApplications,
     required this.openSaved,
@@ -27,6 +31,8 @@ class ApplicantDashboardScreen extends StatefulWidget {
     required this.openDocuments,
     required this.openSettings,
     required this.openPremium,
+    required this.openSuccessStories,
+    required this.openShareStory,
     required this.onSignOut,
   });
 
@@ -35,6 +41,7 @@ class ApplicantDashboardScreen extends StatefulWidget {
   final ApplicantProfileRepository profileRepository;
   final ApplicationRepository applicationRepository;
   final NotificationRepository notificationRepository;
+  final TestimonialRepository testimonialRepository;
   final Widget opportunityScreen;
   final VoidCallback openApplications;
   final VoidCallback openSaved;
@@ -44,6 +51,8 @@ class ApplicantDashboardScreen extends StatefulWidget {
   final VoidCallback openDocuments;
   final VoidCallback openSettings;
   final VoidCallback openPremium;
+  final VoidCallback openSuccessStories;
+  final VoidCallback openShareStory;
   final VoidCallback onSignOut;
 
   @override
@@ -131,12 +140,15 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
                         return _DashboardBody(
                           data: snapshot.data!,
                           user: widget.user,
+                          testimonialRepository: widget.testimonialRepository,
                           openOpportunities: _openOpportunities,
                           openApplications: widget.openApplications,
                           openSaved: widget.openSaved,
                           openNotifications: widget.openNotifications,
                           openCalendar: widget.openCalendar,
                           openProfile: widget.openProfile,
+                          openSuccessStories: widget.openSuccessStories,
+                          openShareStory: widget.openShareStory,
                         );
                       },
                     ),
@@ -166,6 +178,7 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
     openProfile: widget.openProfile,
     openSettings: widget.openSettings,
     openPremium: widget.openPremium,
+    openSuccessStories: widget.openSuccessStories,
   );
 
   void _openOpportunities() {
@@ -383,6 +396,7 @@ class _SideNavigation extends StatelessWidget {
     required this.openProfile,
     required this.openSettings,
     required this.openPremium,
+    required this.openSuccessStories,
   });
   final UserAccount user;
   final bool compact;
@@ -397,6 +411,7 @@ class _SideNavigation extends StatelessWidget {
   final VoidCallback openProfile;
   final VoidCallback openSettings;
   final VoidCallback openPremium;
+  final VoidCallback openSuccessStories;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -475,6 +490,11 @@ class _SideNavigation extends StatelessWidget {
                 _nav(Icons.calendar_month_outlined, 'Calendar', openCalendar),
                 _nav(Icons.person_outline, 'Profile', openProfile),
                 _nav(
+                  Icons.auto_stories_outlined,
+                  'Success Stories',
+                  openSuccessStories,
+                ),
+                _nav(
                   Icons.fact_check_outlined,
                   'Eligibility Checker',
                   openOpportunities,
@@ -527,21 +547,27 @@ class _DashboardBody extends StatelessWidget {
   const _DashboardBody({
     required this.data,
     required this.user,
+    required this.testimonialRepository,
     required this.openOpportunities,
     required this.openApplications,
     required this.openSaved,
     required this.openNotifications,
     required this.openCalendar,
     required this.openProfile,
+    required this.openSuccessStories,
+    required this.openShareStory,
   });
   final _DashboardData data;
   final UserAccount user;
+  final TestimonialRepository testimonialRepository;
   final VoidCallback openOpportunities;
   final VoidCallback openApplications;
   final VoidCallback openSaved;
   final VoidCallback openNotifications;
   final VoidCallback openCalendar;
   final VoidCallback openProfile;
+  final VoidCallback openSuccessStories;
+  final VoidCallback openShareStory;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -564,10 +590,18 @@ class _DashboardBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _SavedList(records: data.saved, onViewAll: openSaved),
+          const SizedBox(height: 16),
+          SuccessStoriesDashboardPanel(
+            repository: testimonialRepository,
+            onViewAll: openSuccessStories,
+            onShareStory: openShareStory,
+          ),
         ],
       );
       final side = Column(
         children: [
+          MyTestimonialStatusCard(repository: testimonialRepository),
+          const SizedBox(height: 16),
           _Deadlines(
             opportunities: data.opportunities,
             onCalendar: openCalendar,

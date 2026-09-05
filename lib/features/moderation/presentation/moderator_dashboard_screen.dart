@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../authentication/domain/user_account.dart';
+import '../../testimonials/domain/testimonial_repository.dart';
+import '../../testimonials/presentation/admin/testimonial_moderation_screen.dart';
 import '../domain/moderation_case.dart';
 import '../domain/moderation_repository.dart';
 import 'moderation_queue_screen.dart';
@@ -10,10 +12,12 @@ class ModeratorDashboardScreen extends StatefulWidget {
     super.key,
     required this.user,
     required this.repository,
+    required this.testimonialRepository,
     required this.onSignOut,
   });
   final UserAccount user;
   final ModerationRepository repository;
+  final TestimonialRepository testimonialRepository;
   final VoidCallback onSignOut;
 
   @override
@@ -51,6 +55,16 @@ class _ModeratorDashboardScreenState extends State<ModeratorDashboardScreen> {
         .then((_) {
           if (mounted) setState(_reload);
         });
+  }
+
+  void _openTestimonials() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => TestimonialModerationScreen(
+          repository: widget.testimonialRepository,
+        ),
+      ),
+    );
   }
 
   @override
@@ -123,8 +137,11 @@ class _ModeratorDashboardScreenState extends State<ModeratorDashboardScreen> {
     },
   );
 
-  Widget _navigation() =>
-      _ModeratorNavigation(user: widget.user, onQueue: _openQueue);
+  Widget _navigation() => _ModeratorNavigation(
+    user: widget.user,
+    onQueue: _openQueue,
+    onTestimonials: _openTestimonials,
+  );
 }
 
 class _ModeratorData {
@@ -216,9 +233,14 @@ class _ModeratorHeader extends StatelessWidget {
 }
 
 class _ModeratorNavigation extends StatelessWidget {
-  const _ModeratorNavigation({required this.user, required this.onQueue});
+  const _ModeratorNavigation({
+    required this.user,
+    required this.onQueue,
+    required this.onTestimonials,
+  });
   final UserAccount user;
   final VoidCallback onQueue;
+  final VoidCallback onTestimonials;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -279,6 +301,11 @@ class _ModeratorNavigation extends StatelessWidget {
                   onQueue,
                 ),
                 _moderatorNav(Icons.check_circle_outline, 'Resolved', onQueue),
+                _moderatorNav(
+                  Icons.auto_stories_outlined,
+                  'Success Story Testimonials',
+                  onTestimonials,
+                ),
                 _moderatorNav(
                   Icons.article_outlined,
                   'Content Management',

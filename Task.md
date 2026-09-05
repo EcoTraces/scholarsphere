@@ -2649,3 +2649,75 @@ for the full dated history.
       its test corrections are the first Flutter-side changes in this
       project actually compiled and tested, not just read, since that
       SDK became available.
+
+- [x] **(2026-09-05)** Built the full **Testimonials & Success Stories**
+      platform end-to-end per a detailed 40-phase feature spec: applicant
+      submission with privacy controls and evidence, staff moderation and
+      verification, public browsing, and dashboard integration - see
+      Architecture.md SS10, Database.md SS2.15, and this same date's entry
+      in Changelog.md for the full technical writeup.
+
+      Reused this codebase's existing patterns throughout rather than
+      building a second architecture, as the spec explicitly required:
+      the `ExternalOpportunity` verification-status + append-only-history
+      pattern for moderation, the existing Firebase Storage direct-upload
+      + `storage.rules` + `generate_download_url()` pattern for evidence,
+      the existing RBAC (`require_permissions("moderateContent")`) for
+      admin actions, and the existing demo/api-repository split on the
+      Flutter side. Since this app has no separate marketing homepage,
+      the spec's "homepage integration" phase was adapted into the
+      applicant dashboard, which already serves as every signed-in user's
+      real home screen - an explicit, spec-sanctioned adaptation rather
+      than a deviation.
+
+      **Real bugs found and fixed while building this** (not just written
+      correctly the first time): (1) a test-suite `user()` helper
+      hardcoded `permissions=frozenset()` instead of deriving real
+      permissions from role, silently making every "should be denied"
+      assertion vacuous - caught by a passing test that shouldn't have
+      passed, then fixed and re-verified it now fails without the
+      corresponding auth check; (2) SQLAlchemy's autobegin behavior left
+      an implicit transaction open across simulated requests reusing one
+      test session, raising "transaction already begun" - fixed with an
+      explicit `try/finally` rollback in the test's `get_db` override,
+      not by disabling autobegin; (3) a genuine product gap caught on
+      re-reading the spec after the first implementation pass - no write
+      path existed for staff-only internal moderation notes - closed by
+      adding the schema/service/route/repository-method/test together
+      rather than leaving it as a known gap; (4) `StoryAvatar` originally
+      passed a raw Firebase Storage path straight to `NetworkImage`,
+      which needs an actual URL - fixed with a `FutureBuilder` that
+      resolves the path via `getDownloadURL()` first; (5) `setState()`
+      called synchronously from `initState()`'s own call stack in
+      `SuccessStoriesScreen` threw "setState() or markNeedsBuild() called
+      during build" - fixed by deferring the first load via
+      `Future.microtask(...)`.
+
+      **Verified for real, not assumed**: backend - `pyflakes` clean, 14
+      new tests plus the full pre-existing suite reverified green
+      afterward (751 passed, 25 skipped); the new Alembic migration run
+      end-to-end against a real local PostgreSQL 16 instance (not only
+      offline `--sql` validation) - `alembic upgrade head` through the
+      full 34-migration chain, the resulting schema inspected directly
+      via `psql \d testimonials` and confirmed to match the model exactly,
+      then a `downgrade -1` / `upgrade head` round-trip, both clean.
+      Frontend - a full Flutter SDK was installed in this environment
+      specifically to get real verification rather than manual review
+      alone: `dart analyze` clean, `dart format` clean, and 7 new widget
+      tests green (plus the full pre-existing Flutter suite). Diagnosed
+      and worked around a genuine Flutter widget-testing subtlety along
+      the way: a plain `ListView(children: [...])` (not `.builder`) still
+      only materializes on-screen children into the Element tree via its
+      Sliver machinery, so `find.text()` can't see off-screen list items
+      without an explicit scroll first, regardless of which `ListView`
+      constructor built the list.
+
+      **Honestly deferred, not silently dropped**: no native share sheet
+      (this app's minimal dependency set has no `share_plus`/
+      `url_launcher` - a Clipboard-based "copy link" was used instead,
+      consistent with how the rest of the app already handles links); no
+      separate per-view analytics table (the existing `view_count`
+      counter is proportionate to what this feature actually needs); no
+      generic notification-system wiring for status changes (the
+      dashboard status card already surfaces this in real time); the
+      spec's SEO/OpenGraph phases don't apply to a native Flutter app.

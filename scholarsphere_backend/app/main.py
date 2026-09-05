@@ -42,6 +42,9 @@ from app.api.routes.source_registry import router as source_registry_router
 from app.api.routes.support import router as support_router
 from app.api.routes.system_configuration import router as system_configuration_router
 from app.api.routes.taxonomy import router as taxonomy_router
+from app.api.routes.testimonials import admin_router as testimonials_admin_router
+from app.api.routes.testimonials import own_router as testimonials_own_router
+from app.api.routes.testimonials import router as testimonials_router
 from app.core.auth import initialize_firebase
 from app.core.config import get_settings
 from app.core.errors import install_error_handling
@@ -138,6 +141,9 @@ app.include_router(legal_compliance_router, prefix=settings.api_v1_prefix)
 app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(recommendation_governance_router, prefix=settings.api_v1_prefix)
 app.include_router(provider_analytics_router, prefix=settings.api_v1_prefix)
+app.include_router(testimonials_router, prefix=settings.api_v1_prefix)
+app.include_router(testimonials_own_router, prefix=settings.api_v1_prefix)
+app.include_router(testimonials_admin_router, prefix=settings.api_v1_prefix)
 app.include_router(security_router, prefix=settings.api_v1_prefix)
 app.include_router(audit_router, prefix=settings.api_v1_prefix)
 app.include_router(system_configuration_router, prefix=settings.api_v1_prefix)

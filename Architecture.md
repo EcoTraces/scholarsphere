@@ -508,3 +508,82 @@ category-specific fields, rather than eight near-identical tables — the
 same "one flexible JSON payload, read/written as a unit" shape
 `ApplicationGuidancePlan.items` already uses elsewhere in this codebase
 (Database.md §2.14).
+
+## 10. Testimonials & Success Stories Platform (2026-09-05)
+
+Applicant-submitted success stories with staff moderation, verification,
+and featuring — a public browse/search experience plus dashboard
+integration, built entirely as a layer on the existing architecture: no
+new auth model, no new storage mechanism, no new API error shape, no new
+Flutter state-management approach. See Database.md §2.15 for the schema.
+
+### 10.1 Reusing this codebase's existing verification pattern
+
+Rather than invent a second moderation architecture, `Testimonial` mirrors
+`ExternalOpportunity`'s existing shape: a `status` enum for the
+moderation-workflow state, an independent `verification_status` enum for
+whether staff actually reviewed evidence, and an append-only
+`TestimonialModerationHistory` table mirroring
+`ExternalOppVerificationHistory` exactly (`action`/`actor_id`/`reason`/
+`previous_status`/`new_status`/`created_at`). Every transition — including
+the initial `submitted` — writes a history row, so the admin moderation
+dashboard's audit trail is a real query rather than reconstructed from
+mutable columns. `PUBLIC_STATUSES = frozenset({approved})`
+(`app/models/testimonial.py`) is the single place "what the public can
+see" is defined; every public-facing query and schema filters through it.
+
+### 10.2 Authorization is enforced server-side, not assumed from the frontend
+
+`app/api/routes/testimonials.py` splits into three routers by trust level:
+a `router` for authenticated-but-unprivileged reads (browsing public
+stories — this app has no true anonymous route anywhere, so, consistent
+with `public_opportunities.py`, even "public" browsing requires
+`Depends(get_current_user)`), an `own_router` scoped to the caller's own
+`user_id` (ownership is re-checked against the row's own `user_id` on
+every mutation — a caller can never edit or withdraw another applicant's
+story by guessing its id), and an `admin_router` gated by this codebase's
+existing `require_permissions("moderateContent")` dependency (the
+`moderator` role has this permission; `administrator` does not, matching
+the existing RBAC table in `app/core/auth.py`). No endpoint trusts a
+client-supplied role or ownership claim — every check re-reads the
+authenticated identity and the row's own columns inside the request.
+
+### 10.3 Evidence reuses the existing Storage pattern, never exposed publicly
+
+Evidence files and profile photos upload directly from the Flutter client
+to Firebase Storage (never proxied through the backend), gated by new
+`storage.rules` entries keyed by `{uid}` exactly like every existing
+upload path (`testimonial-evidence/{uid}/{fileName}`: owner write, owner
+plus moderator/administrator/superAdministrator read, no delete;
+`testimonial-photos/{uid}/{fileName}`: owner write/delete, public read —
+a profile photo is not sensitive the way supporting evidence is). No new
+download-URL mechanism was built: evidence paths are resolved server-side
+through the existing generic
+`app/services/document_storage.py::generate_download_url()`, identical to
+applicant documents. `evidence_storage_paths` is never included in any
+schema a non-owner, non-staff caller can reach.
+
+### 10.4 Privacy is enforced once, not left to the UI
+
+`display_mode` (full_name/partial_name/anonymous) plus four `show_*`
+booleans feed one pure function, `display_name_for()`
+(`app/schemas/testimonial.py`), used by every read schema that renders a
+name — a public API response can never leak a real full name an applicant
+chose to keep anonymous, because the redaction happens before the
+response is built, not as a frontend display choice.
+
+### 10.5 Free-text defense and honest demo data
+
+All free-text narrative fields are sanitized through `bleach.clean(text,
+tags=[], strip=True)` (already a dependency, reused rather than adding a
+new one) before persistence — plain-text-only storage, so no HTML/script
+payload can survive into a story. `flag_reasons()` in
+`app/services/testimonial_service.py` is an advisory-only spam heuristic
+(surfaced to moderators, never auto-rejects) — consistent with the
+platform's existing preference for human review over automated blocking
+on trust-and-safety surfaces. `DemoTestimonialRepository`
+(`lib/features/testimonials/data/`) seeds every field with a "DEMO — "
+prefix so development/demo data can never be mistaken for a real
+applicant's story if it ever reached a screen; the real repository
+(`ApiTestimonialRepository`) never seeds anything — production has zero
+fabricated testimonials by construction, not by convention alone.

@@ -28,6 +28,79 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Testimonials & Success Stories platform: submission wizard, moderation/verification workflow, public browsing, dashboard integration
+
+### Added
+- **Full applicant success-story ecosystem**, built as a layer on the
+  existing FastAPI/SQLAlchemy backend and Flutter frontend — no parallel
+  architecture, no fabricated data. See Architecture.md §10 and
+  Database.md §2.15 for full technical detail.
+  - **Backend**: `Testimonial`/`TestimonialModerationHistory`/
+    `TestimonialReaction` models (migration `20260915_34_testimonials`,
+    verified end-to-end against a real local PostgreSQL 16 instance —
+    `alembic upgrade head` through the full 34-migration chain, schema
+    inspected directly via `psql`, and a `downgrade -1`/`upgrade head`
+    round-trip, not just reasoned about offline); Pydantic v2 schemas
+    including a `display_name_for()` privacy function used by every
+    public read path; a service layer handling drafts, submission,
+    withdrawal, moderation transitions (approve/reject/request-changes/
+    under-review/archive), verification, featuring, internal moderator
+    notes, reactions, and public stats; 25 API endpoints across three
+    routers split by trust level (authenticated browsing, owner-scoped
+    "my testimonials", and `moderateContent`-gated admin actions) —
+    authorization is re-checked server-side against the row's own
+    `user_id`/role on every request, never assumed from the client.
+  - **Frontend** (`lib/features/testimonials/`): a 7-step submission
+    wizard (Opportunity/Experience/Profile/Privacy/Evidence/Review/
+    Consent) using Flutter's built-in `Stepper` for progress/back-next,
+    with autosave-as-draft; a public Success Stories browse screen with
+    search/filter/pagination and an honest hero (never fabricates trust
+    numbers — a stat with nothing behind it is hidden, not shown as
+    zero); a long-form story detail page with the seven-question
+    case-study broken into distinct sections and an outcome shown as one
+    of a closed set (Applied/Shortlisted/Interviewed/Selected/Awarded/
+    Admitted/Funded/Other) — never collapsed into generic "success";
+    distinct verification badges (Community Story/Submitted/Under
+    Review/Verified/Featured); a dashboard panel and status card
+    (this app has no separate marketing homepage — the applicant
+    dashboard is every signed-in user's real "home", so integration
+    landed there per the spec's own "adapt to existing routing"
+    instruction); and a full admin moderation dashboard plus per-story
+    review screen wired into the existing moderator dashboard's
+    navigation.
+  - **Evidence & photos**: direct-to-Firebase-Storage uploads (never
+    proxied through the backend), new `storage.rules` entries scoped by
+    `{uid}` — evidence readable only by its owner plus
+    moderator/administrator/superAdministrator roles, never public;
+    resolved server-side through the existing generic
+    `generate_download_url()` service, not a new mechanism.
+  - **Anti-fraud & privacy by construction**: "submitted" and "verified"
+    are independent, separately-tracked states (who verified, when, and
+    by what method); internal moderator notes are never included in any
+    schema a non-staff caller can reach; all free-text fields are
+    sanitized via `bleach.clean(..., strip=True)` against XSS; an
+    advisory-only spam heuristic (`flag_reasons()`) surfaces to
+    moderators without ever auto-rejecting; every seeded demo record in
+    `DemoTestimonialRepository` is prefixed `"DEMO — "` so development
+    data can never be mistaken for a real applicant's story, and the
+    real (API-backed) repository seeds nothing at all.
+  - **Testing**: 14 new backend tests (auth/ownership/moderation
+    transitions/privacy redaction/internal-notes access), full backend
+    suite reverified green afterward (751 passed, 25 skipped); 7 new
+    Flutter widget tests against `DemoTestimonialRepository` covering the
+    public list/detail views, both dashboard states, the wizard's first
+    two steps, and the moderation queue — `dart analyze`/`dart format`
+    clean, `flutter test` green.
+  - Deliberately not built, and why: no native share-sheet (this app's
+    minimal dependency set has no `share_plus`/`url_launcher` — a
+    clipboard-based "copy link" was used instead, consistent with how
+    the rest of the app already handles links); no separate per-view
+    analytics table (the existing `view_count` counter is proportionate
+    to what this feature needs); no generic notification-system wiring
+    for status changes (the dashboard status card already surfaces this
+    in real time); SEO/OpenGraph phases from the original spec don't
+    apply to a native Flutter app.
+
 ## [2026-09-05] — Render deployment fixes, and five new sources: Mastercard Foundation Scholars Program, Schwarzman Scholars, Knight-Hennessy Scholars, Yenching Academy, and ETH Zurich ESOP (50th–54th opportunity sources)
 
 ### Fixed

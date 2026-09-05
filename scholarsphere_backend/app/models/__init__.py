@@ -187,6 +187,17 @@ from app.models.support import (
 )
 from app.models.system_configuration import PlatformConfiguration
 from app.models.taxonomy import TaxonomyTerm, TaxonomyType, TaxonomyVersion
+from app.models.testimonial import (
+    PUBLIC_STATUSES,
+    Testimonial,
+    TestimonialDisplayMode,
+    TestimonialModerationHistory,
+    TestimonialOutcome,
+    TestimonialReaction,
+    TestimonialReactionType,
+    TestimonialStatus,
+    TestimonialVerificationStatus,
+)
 
 __all__ = [
     "AIUsageRecord",
@@ -350,4 +361,13 @@ __all__ = [
     "Subscription",
     "SubscriptionStatus",
     "UsageLimit",
+    "PUBLIC_STATUSES",
+    "Testimonial",
+    "TestimonialDisplayMode",
+    "TestimonialModerationHistory",
+    "TestimonialOutcome",
+    "TestimonialReaction",
+    "TestimonialReactionType",
+    "TestimonialStatus",
+    "TestimonialVerificationStatus",
 ]

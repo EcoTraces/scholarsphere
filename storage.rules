@@ -39,6 +39,40 @@ service firebase.storage {
         request.resource.size <= 10 * 1024 * 1024 &&
         request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
     }
+    // Success-story supporting evidence (award letters, admission
+    // notifications, etc.). Same shape as provider-documents above -
+    // owner plus the staff roles that actually moderate testimonials
+    // (see require_permissions("moderateContent") in
+    // app/api/routes/testimonials.py) may read; only the owner may
+    // write; append-only, matching provider-documents' rationale (a
+    // submitted evidence file is part of the review record, not
+    // something to silently replace after the fact - a new submission
+    // uploads a new file name instead).
+    match /testimonial-evidence/{uid}/{fileName} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == uid ||
+         request.auth.token.role in ['moderator', 'administrator', 'superAdministrator']);
+      allow write: if request.auth != null &&
+        request.auth.uid == uid &&
+        request.resource.size <= 10 * 1024 * 1024 &&
+        request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
+      allow delete: if false;
+    }
+    // Success-story profile photos. Unlike every path above, these are
+    // publicly readable: a photo only ever ends up here because the
+    // applicant chose to upload one for a story whose `show_photo`
+    // privacy toggle they also control (app/models/testimonial.py) -
+    // functionally a public avatar, not a sensitive document. The
+    // backend/UI still only ever displays it when both the story is
+    // publicly visible and `show_photo` is true; this rule stays public
+    // read only because Storage rules can't see that Postgres flag.
+    match /testimonial-photos/{uid}/{fileName} {
+      allow read: if true;
+      allow write, delete: if request.auth != null &&
+        request.auth.uid == uid &&
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/jpeg|image/png');
+    }
     match /{allPaths=**} {
       allow read, write: if false;
     }
