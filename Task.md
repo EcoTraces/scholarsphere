@@ -2422,8 +2422,8 @@ for the full dated history.
       real Stripe/OpenAI/Anthropic account.
 
 - [x] **(2026-09-05)** Fixed the two real issues blocking the actual
-      Render Blueprint deploy attempted this session, and added three new
-      opportunity sources (the 50th, 51st, and 52nd) while investigating
+      Render Blueprint deploy attempted this session, and added four new
+      opportunity sources (the 50th through 53rd) while investigating
       promising candidates.
 
       **Render deploy fixes** (both reproduced and verified against the
@@ -2565,12 +2565,48 @@ for the full dated history.
       and a real fixture-backed test (two fixtures - homepage and
       deadlines page - both captured unmodified from the live fetch).
 
+      **New opportunity source #4**: `YenchingAcademyScholarsSource` in
+      `app/services/national_scholarship_programs.py` - Yenching Academy
+      of Peking University, source #53 (see
+      `docs/AUTHORITATIVE_SOURCES.md` #52 and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`'s implemented-sources table for
+      full detail): a fully-funded interdisciplinary master's program in
+      China Studies, with international students making up roughly 75%
+      of the ~120-student annual cohort and eligibility requiring only
+      "non-Chinese citizens with a valid passport" - no country-of-origin
+      list anywhere. `robots.txt` (checked 2026-09-05) returns a genuine
+      HTTP 404 - the site's own generic "page not found" error page, not
+      a bot-challenge or block page - meaning no robots.txt file exists
+      at all; per RFC 9309 a 4xx response to the robots.txt fetch itself
+      means no rules apply (unlike a 5xx response, treated as a
+      temporary full disallow), so this was treated as unrestricted, the
+      same as an explicit `Allow: /`. One real data-quality finding:
+      the admissions page literally states "Application deadline:
+      November 30, 2026" twice, but its source HTML fragments that date
+      across separate `<span>` tags (evidently pasted from a word
+      processor) - once BeautifulSoup joins the fragments' text with a
+      separator, the result is "November 30 , 2026" with a stray space
+      before the comma, which this project's shared confident-date
+      regex (`app/services/parsing.py`) correctly declines to match, as
+      verified directly with a standalone script showing
+      `extract_confident_date` returns `None` on that exact literal
+      string. Patching the shared regex to tolerate this one page's
+      malformed markup was judged out of proportion and risky for the
+      50+ other sources depending on it, so this adapter honestly
+      reports no deadline rather than guess or special-case a
+      shared parser - a missing deadline is safe (a human confirms the
+      real date), a workaround that starts silently matching different
+      malformed input elsewhere would not be. Fully wired: config
+      setting, source registry entry, Celery beat schedule + dedicated
+      sync task, and a real fixture-backed test (single-page fixture,
+      captured unmodified from the live fetch).
+
       **Verified**: full backend suite green after every change,
-      including all three new sources and the updated
+      including all four new sources and the updated
       `test_opportunity_import.py` source-count assertion (49 -> 50 -> 51
-      -> 52 registered sources). Flutter suite (90/90) verified in the
-      same environment this session already had a working Flutter SDK
-      installed in (see the login-screen-verification entry earlier in
-      this file) - the `_PlanCard` fix and its test corrections are the
-      first Flutter-side changes in this project actually compiled and
-      tested, not just read, since that SDK became available.
+      -> 52 -> 53 registered sources). Flutter suite (90/90) verified in
+      the same environment this session already had a working Flutter
+      SDK installed in (see the login-screen-verification entry earlier
+      in this file) - the `_PlanCard` fix and its test corrections are
+      the first Flutter-side changes in this project actually compiled
+      and tested, not just read, since that SDK became available.

@@ -86,6 +86,7 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
+    YenchingAcademyScholarsSource,
 )
 from app.services.educationusa_source import EducationUsaFinancialAidSource
 from app.services.erasmus_mundus_source import ErasmusMundusJointMastersSource
@@ -326,6 +327,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_knight_hennessy_scholars",
             "schedule": crontab(minute=45, hour=13),
         },
+        "sync-yenching-academy-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_yenching_academy_scholars",
+            "schedule": crontab(minute=0, hour=14),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -426,6 +431,9 @@ SOURCE_TASK_NAMES = {
     "schwarzman_scholars": "app.tasks.opportunity_sync.sync_schwarzman_scholars",
     "knight_hennessy_scholars": (
         "app.tasks.opportunity_sync.sync_knight_hennessy_scholars"
+    ),
+    "yenching_academy_scholars": (
+        "app.tasks.opportunity_sync.sync_yenching_academy_scholars"
     ),
 }
 
@@ -1192,6 +1200,21 @@ def sync_knight_hennessy_scholars(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_yenching_academy_scholars",
+    max_retries=3,
+)
+def sync_yenching_academy_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "yenching_academy_scholars", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1443,6 +1466,7 @@ def _collector(source_code: str) -> Any:
         "mastercard_foundation_scholars": MastercardFoundationScholarsSource,
         "schwarzman_scholars": SchwarzmanScholarsSource,
         "knight_hennessy_scholars": KnightHennessyScholarsSource,
+        "yenching_academy_scholars": YenchingAcademyScholarsSource,
     }[source_code]()
 
 

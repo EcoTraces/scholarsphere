@@ -28,7 +28,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [2026-09-05] — Render deployment fixes, and three new sources: Mastercard Foundation Scholars Program, Schwarzman Scholars, and Knight-Hennessy Scholars (50th, 51st, and 52nd opportunity sources)
+## [2026-09-05] — Render deployment fixes, and four new sources: Mastercard Foundation Scholars Program, Schwarzman Scholars, Knight-Hennessy Scholars, and Yenching Academy (50th–53rd opportunity sources)
 
 ### Fixed
 - **Render Docker build failure**: `scholarsphere_backend/Dockerfile`'s
@@ -109,6 +109,22 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   300-character lookahead window — solved by anchoring on `"deadline
   is"` instead, verified directly against the live page. See
   `docs/AUTHORITATIVE_SOURCES.md` #51 for full detail.
+- `YenchingAcademyScholarsSource` in
+  `app/services/national_scholarship_programs.py` — **Yenching Academy
+  of Peking University**, this platform's 53rd opportunity source: a
+  fully-funded interdisciplinary master's in China Studies, ~75%
+  international student body, no country-of-origin restriction beyond
+  "non-Chinese citizen with a valid passport." `robots.txt` returns a
+  genuine 404 (no file exists at all, not a bot-challenge page) —
+  treated as unrestricted per RFC 9309. Notable finding: the page states
+  its deadline twice, but the source HTML fragments the date across
+  separate `<span>` tags (evidently pasted from a word processor),
+  producing a stray space before the comma once the fragments are
+  joined into plain text — the shared confident-date regex correctly
+  declines to match this malformed spacing, so this source honestly
+  reports no deadline rather than patch a widely-shared regex to
+  tolerate one page's broken markup. See
+  `docs/AUTHORITATIVE_SOURCES.md` #52 for full detail.
 
 ---
 

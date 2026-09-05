@@ -1743,3 +1743,68 @@ class KnightHennessyScholarsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().knight_hennessy_scholars_base_url
+
+
+class YenchingAcademyScholarsSource(_SingleProgramSource):
+    """Yenching Academy of Peking University - a fully-funded, one-to-two
+    year interdisciplinary master's program in China Studies. Genuinely
+    open worldwide: the admissions page states international students
+    make up roughly 75% of the ~120-student cohort, and the "For
+    International Candidates" eligibility text requires only "non-Chinese
+    citizens with a valid passport" - no country-of-origin list anywhere.
+
+    Confirmed 2026-09-05: `robots.txt` returns a genuine HTTP 404 (the
+    site's own generic "page not found, redirecting home" error page, not
+    a bot-challenge or block page) - i.e. no robots.txt file exists at
+    all. Per RFC 9309 (the Robots Exclusion Protocol), a 4xx response to
+    the robots.txt fetch itself means "no rules apply", unlike a 5xx
+    response (which should be treated as a temporary full disallow) - so
+    this is treated as unrestricted, the same as an explicit `Allow: /`.
+
+    `overview_path` points directly at `/ADMISSIONS.htm`, which is the
+    one page carrying eligibility, funding, and the deadline all
+    together - no separate `deadline_path` needed, the same single-page
+    pattern as `RotaryPeaceFellowshipSource` above.
+
+    `title_selectors = ()`: the page has no `<h1>` anywhere, and its
+    `<title>` tag ("ADMISSIONS-Yenching Academy of Peking University")
+    splits into a useless first segment ("ADMISSIONS") on any reasonable
+    separator - falls through to the `external_id`-derived fallback
+    ("Yenching Academy Scholars"), the same documented pattern already
+    used by `wmi_scholars` and Schwarzman Scholars above.
+
+    `content_selectors = ("body",)`: the page has no `<main>` or
+    `<article>` wrapper, and the one content-specific class found
+    (`.layui-container`) matches multiple nested, mostly-empty elements
+    rather than a single content block - `body` was verified directly to
+    place real eligibility/fellowship text within the first ~2KB, well
+    inside the 5000-character description cap, ahead of nothing more
+    than a short nav-menu preamble (~475 characters).
+
+    Deliberately extracts no deadline even though the page literally
+    states "Application deadline: November 30, 2026" twice: the source
+    HTML fragments that date across multiple separate `<span>` tags
+    (evidently pasted from a word processor), which - once BeautifulSoup
+    joins each fragment's text with a separator - produces "November
+    30 , 2026" with a stray space before the comma that the shared
+    `_CONFIDENT_DATE_PATTERN` in `app/services/parsing.py` correctly
+    declines to match (verified directly: `extract_confident_date` on
+    that exact literal string returns `None`). Patching the shared,
+    widely-reused date-extraction regex to tolerate this one page's
+    malformed markup was judged out of proportion and risky for the 50+
+    other sources that depend on it - matching this project's "never
+    invent data" rule, a missing deadline here is safe (a human confirms
+    the real date), a hand-rolled workaround that silently starts
+    matching different malformed input elsewhere would not be.
+    """
+
+    source_code = "yenching_academy_scholars"
+    overview_path = "/ADMISSIONS.htm"
+    title_selectors = ()
+    content_selectors = ("body",)
+    provider_name = "Yenching Academy of Peking University"
+    country = "China"
+    external_id = "yenching-academy-scholars"
+
+    def _base_url(self) -> str:
+        return get_settings().yenching_academy_base_url

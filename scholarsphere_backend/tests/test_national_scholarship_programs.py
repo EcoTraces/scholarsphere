@@ -41,6 +41,7 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
+    YenchingAcademyScholarsSource,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -1454,3 +1455,47 @@ async def test_knight_hennessy_scholars_collect_normalizes_real_fixtures(
 
 def test_knight_hennessy_scholars_respects_the_sites_crawl_delay() -> None:
     assert KnightHennessyScholarsSource.min_request_interval_seconds == 30.0
+
+
+# --- Yenching Academy of Peking University: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_yenching_academy_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = YenchingAcademyScholarsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("yenching_academy_admissions.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "yenching-academy-scholars"
+    # The page has no <h1> anywhere and its <title> tag doesn't split
+    # usefully - falls through to the external_id-derived fallback.
+    assert opportunity.title == "Yenching Academy Scholars"
+    assert opportunity.country == "China"
+    assert opportunity.provider_name == "Yenching Academy of Peking University"
+    assert opportunity.description is not None
+    assert "Qualifications" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # The page literally states "Application deadline: November 30,
+    # 2026" twice, but the source HTML fragments that date across
+    # separate <span> tags, producing "November 30 , 2026" (a stray
+    # space before the comma) once BeautifulSoup joins the fragments -
+    # the shared confident-date regex correctly declines to match this
+    # malformed spacing rather than guess, so no deadline is extracted.
+    assert opportunity.deadline is None
+
+
+def test_yenching_academy_has_no_robots_txt_restrictions_to_respect() -> None:
+    """robots.txt itself returns a genuine HTTP 404 (the site's own
+    generic 'page not found' error page, not a bot-challenge page) - no
+    robots.txt file exists at all, so this source uses the default
+    (unraised) crawl interval rather than a site-stated one."""
+    assert YenchingAcademyScholarsSource.min_request_interval_seconds == 2.0

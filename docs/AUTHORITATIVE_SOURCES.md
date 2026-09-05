@@ -2219,6 +2219,77 @@ no-nationality-restriction eligibility.
 
 ---
 
+## 52. Yenching Academy of Peking University
+
+Researched 2026-09-05, the same session as Schwarzman and Knight-Hennessy
+Scholars — a third fully-funded, university-hosted graduate program with
+genuinely global, no-nationality-restriction eligibility.
+
+- **Organization**: Yenching Academy, Peking University
+- **Route code**: `yenching-academy-scholars` (`yenching_academy_scholars`
+  internally)
+- **Official domain / base URL**: `https://yenchingacademy.pku.edu.cn`
+  (`YENCHING_ACADEMY_BASE_URL`)
+- **Opportunity types**: Scholarship — a fully-funded interdisciplinary
+  master's program in China Studies
+- **Country coverage**: Global. The admissions page states international
+  students comprise roughly 75% of the ~120-student annual cohort, and
+  its "For International Candidates" eligibility text requires only
+  "non-Chinese citizens with a valid passport" — no country-of-origin
+  list anywhere. `country = "China"` is recorded only as the program's
+  *host* country, the same host-vs-eligibility distinction already
+  documented for Schwarzman (#50) and Knight-Hennessy (#51) Scholars.
+- **Discovery method**: Web scraper (plain HTTPS GET, server-rendered
+  HTML, no JavaScript execution needed) — a single admissions page
+  (`/ADMISSIONS.htm`) carries eligibility, funding, and the deadline
+  together
+- **robots.txt / indexing note**: Returns a genuine HTTP 404 (the site's
+  own generic "page not found, redirecting home" error page, not a
+  bot-challenge or block page) — no robots.txt file exists at all. Per
+  RFC 9309, a 4xx response to the robots.txt fetch itself means "no
+  rules apply" (unlike a 5xx response, treated as a temporary full
+  disallow) — confirmed by direct fetch 2026-09-05 and treated as
+  unrestricted, the same as an explicit `Allow: /`.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `title_selectors = ()`: no `<h1>` exists anywhere on the page, and
+    its `<title>` tag ("ADMISSIONS-Yenching Academy of Peking
+    University") splits into a useless first segment ("ADMISSIONS") on
+    any reasonable separator — falls through to the `external_id`-
+    derived fallback ("Yenching Academy Scholars").
+  - `content_selectors = ("body",)`: no `<main>`/`<article>` wrapper
+    exists, and the one content-specific CSS class found
+    (`.layui-container`) matches multiple nested, mostly-empty elements
+    rather than one content block — `body` was verified directly to
+    place real eligibility/fellowship text within the first ~2KB, well
+    inside the 5000-character description cap.
+  - **Deliberately extracts no deadline**, even though the page
+    literally states "Application deadline: November 30, 2026" twice:
+    the source HTML fragments that date across separate `<span>` tags
+    (evidently pasted from a word processor), which — once the shared
+    HTML-to-text extraction joins each fragment — produces "November
+    30 , 2026" with a stray space before the comma that the shared
+    confident-date regex (`app/services/parsing.py`) correctly declines
+    to match. Verified directly: `extract_confident_date` on that exact
+    literal string returns `None`. Patching the shared date-extraction
+    regex to tolerate this one page's malformed markup was judged out
+    of proportion and risky for the 50+ other sources depending on it —
+    a missing deadline here is safe (a human confirms the real date), a
+    hand-rolled workaround that starts silently matching different
+    malformed input elsewhere would not be.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path (httpx) — 200, real server-rendered HTML,
+  no browser rendering, no spoofed user agent required. Implemented and
+  unit-tested against the real fixture, captured unmodified from the
+  httpx fetch (`tests/fixtures/yenching_academy_admissions.html`).
+
+---
+
 ## Sources evaluated and deliberately not integrated
 
 Documented in full in `scholarsphere_backend/README.md` ("Source research

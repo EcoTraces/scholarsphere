@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (39, across multiple sessions)
+## Implemented (40, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -77,6 +77,7 @@ that were actually built this session (in two batches).
 | 49 | Mastercard Foundation Scholars Program | (global — 31 partner institutions across Africa, North America, Europe, the Middle East, and Costa Rica) | FOUNDATION | mastercardfdn.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; previously researched 2026-08-30 and left unintegrated (see AUTHORITATIVE_SOURCES.md's former "not integrated" entry), re-investigated after a site restructure revealed the listing is actually a plain static JSON asset, not a client-side widget with no fallback |
 | 50 | Schwarzman Scholars | China (host country; open worldwide, no nationality restriction) | UNIVERSITY | schwarzmanscholars.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; researched back-to-back with UWC (rejected, see AUTHORITATIVE_SOURCES.md's "not integrated" table) — accepted because its robots.txt has no ClaudeBot-specific disallow rule |
 | 51 | Knight-Hennessy Scholars | United States (host country; open worldwide, no nationality restriction) | UNIVERSITY | knight-hennessy.stanford.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; researched the same session as Schwarzman Scholars, same host-country-vs-eligibility pattern |
+| 52 | Yenching Academy of Peking University | China (host country; open worldwide, no nationality restriction) | UNIVERSITY | yenchingacademy.pku.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; robots.txt returns a genuine 404 (no file exists), treated as unrestricted per RFC 9309; deadline deliberately not extracted due to malformed source markup (see AUTHORITATIVE_SOURCES.md #52) |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
