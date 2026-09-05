@@ -2422,8 +2422,8 @@ for the full dated history.
       real Stripe/OpenAI/Anthropic account.
 
 - [x] **(2026-09-05)** Fixed the two real issues blocking the actual
-      Render Blueprint deploy attempted this session, and added four new
-      opportunity sources (the 50th through 53rd) while investigating
+      Render Blueprint deploy attempted this session, and added five new
+      opportunity sources (the 50th through 54th) while investigating
       promising candidates.
 
       **Render deploy fixes** (both reproduced and verified against the
@@ -2601,12 +2601,51 @@ for the full dated history.
       sync task, and a real fixture-backed test (single-page fixture,
       captured unmodified from the live fetch).
 
+      **New opportunity source #5**: `EthZurichExcellenceScholarshipSource`
+      in `app/services/national_scholarship_programs.py` - ETH Zurich
+      Excellence Scholarship & Opportunity Programme (ESOP), source #54
+      (see `docs/AUTHORITATIVE_SOURCES.md` #53 and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md`'s implemented-sources table for
+      full detail): a fully-funded Master's scholarship (tuition fee
+      waiver plus CHF 12,000-13,500 per semester living/study expenses),
+      applied for concurrently with the Master's admission application
+      itself - the same "apply to the degree and the scholarship
+      together" pattern as Knight-Hennessy. Its eligibility page never
+      mentions nationality, citizenship, or country of origin anywhere -
+      verified directly, not assumed - only a "very good result" (top
+      10%) in a prior Bachelor's degree. `robots.txt` (checked
+      2026-09-05) returns a genuine HTTP 404 (the site's own generic
+      German-language "Seite nicht gefunden" error page) - no robots.txt
+      file exists at all; per RFC 9309 this was treated as unrestricted,
+      the same reasoning already used for Yenching Academy. Deliberately
+      extracts no deadline: the page states its one application-window
+      date range only in abbreviated-month form ("Nov, 1 - Nov, 30
+      2026"), never in the full-month-name form the shared confident-
+      date regex requires - verified directly with a standalone script
+      showing `extract_confident_date` returns `None` on the page's
+      exact real text regardless of keyword choice. Fully wired: config
+      setting, source registry entry, Celery beat schedule + dedicated
+      sync task, and a real fixture-backed test.
+
+      Two other candidates were researched and rejected this session,
+      now documented in `docs/AUTHORITATIVE_SOURCES.md`'s "not
+      integrated" table rather than left as silent dead ends: the OPEC
+      Fund (OFID) Scholarship Award - real, global, technically
+      reachable, but its own live page states verbatim that the program
+      is "currently restructuring" and "not accepting applications at
+      this time"; and International Foundation for Science (IFS)
+      research grants - a real, long-running program still described as
+      active by third parties, but its documented official domain
+      (`ifs.se`) no longer resolves to IFS at all, redirecting instead to
+      an unrelated Swedish website.
+
       **Verified**: full backend suite green after every change,
-      including all four new sources and the updated
+      including all five new sources and the updated
       `test_opportunity_import.py` source-count assertion (49 -> 50 -> 51
-      -> 52 -> 53 registered sources). Flutter suite (90/90) verified in
-      the same environment this session already had a working Flutter
-      SDK installed in (see the login-screen-verification entry earlier
-      in this file) - the `_PlanCard` fix and its test corrections are
-      the first Flutter-side changes in this project actually compiled
-      and tested, not just read, since that SDK became available.
+      -> 52 -> 53 -> 54 registered sources). Flutter suite (90/90)
+      verified in the same environment this session already had a
+      working Flutter SDK installed in (see the login-screen-
+      verification entry earlier in this file) - the `_PlanCard` fix and
+      its test corrections are the first Flutter-side changes in this
+      project actually compiled and tested, not just read, since that
+      SDK became available.

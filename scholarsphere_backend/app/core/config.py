@@ -267,6 +267,13 @@ class Settings(BaseSettings):
     # bot-challenge page), which per RFC 9309 means no crawl restrictions.
     yenching_academy_base_url: str = "https://yenchingacademy.pku.edu.cn"
 
+    # ETH Zurich Excellence Scholarship & Opportunity Programme (ESOP) -
+    # fully-funded master's scholarship with no nationality restriction
+    # mentioned anywhere on its eligibility page. No robots.txt file
+    # exists at all (confirmed 404), treated as unrestricted per
+    # RFC 9309, same reasoning as Yenching Academy above.
+    eth_zurich_esop_base_url: str = "https://ethz.ch"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -409,6 +416,7 @@ class Settings(BaseSettings):
         "schwarzman_scholars_base_url",
         "knight_hennessy_scholars_base_url",
         "yenching_academy_base_url",
+        "eth_zurich_esop_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

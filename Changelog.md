@@ -28,7 +28,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [2026-09-05] — Render deployment fixes, and four new sources: Mastercard Foundation Scholars Program, Schwarzman Scholars, Knight-Hennessy Scholars, and Yenching Academy (50th–53rd opportunity sources)
+## [2026-09-05] — Render deployment fixes, and five new sources: Mastercard Foundation Scholars Program, Schwarzman Scholars, Knight-Hennessy Scholars, Yenching Academy, and ETH Zurich ESOP (50th–54th opportunity sources)
 
 ### Fixed
 - **Render Docker build failure**: `scholarsphere_backend/Dockerfile`'s
@@ -125,6 +125,25 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   reports no deadline rather than patch a widely-shared regex to
   tolerate one page's broken markup. See
   `docs/AUTHORITATIVE_SOURCES.md` #52 for full detail.
+- `EthZurichExcellenceScholarshipSource` in
+  `app/services/national_scholarship_programs.py` — **ETH Zurich
+  Excellence Scholarship & Opportunity Programme (ESOP)**, this
+  platform's 54th opportunity source: a fully-funded Master's
+  scholarship whose eligibility page never mentions nationality,
+  citizenship, or country of origin anywhere. `robots.txt` returns a
+  genuine 404 (no file exists at all) — treated as unrestricted per
+  RFC 9309, the same reasoning as Yenching Academy. Deliberately
+  extracts no deadline: the page states its one application-window
+  date range only in abbreviated-month form ("Nov, 1 - Nov, 30 2026"),
+  never in the full-month-name form the shared date regex requires.
+  Also researched and rejected this session: the OPEC Fund (OFID)
+  Scholarship Award (real, global, but its own page states the program
+  is "currently restructuring" and not accepting applications) and
+  International Foundation for Science research grants (the
+  organization's documented domain, `ifs.se`, no longer resolves to
+  IFS at all) — both newly documented in
+  `docs/AUTHORITATIVE_SOURCES.md`'s "not integrated" table. See
+  `docs/AUTHORITATIVE_SOURCES.md` #53 for full detail on ESOP.
 
 ---
 

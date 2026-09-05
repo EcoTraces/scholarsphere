@@ -39,6 +39,7 @@ from app.services.national_scholarship_programs import (
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
+    EthZurichExcellenceScholarshipSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
     YenchingAcademyScholarsSource,
@@ -1499,3 +1500,45 @@ def test_yenching_academy_has_no_robots_txt_restrictions_to_respect() -> None:
     robots.txt file exists at all, so this source uses the default
     (unraised) crawl interval rather than a site-stated one."""
     assert YenchingAcademyScholarsSource.min_request_interval_seconds == 2.0
+
+
+# --- ETH Zurich Excellence Scholarship (ESOP): real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_eth_zurich_esop_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = EthZurichExcellenceScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("eth_zurich_esop.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "eth-zurich-excellence-scholarship"
+    assert opportunity.title == "Excellence Scholarship & Opportunity Programme"
+    assert opportunity.country == "Switzerland"
+    assert opportunity.provider_name == (
+        "ETH Zurich - Excellence Scholarship & Opportunity Programme (ESOP)"
+    )
+    assert opportunity.description is not None
+    assert "scholarship covers the full study and living costs" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # The page states its one application-window date range only in
+    # abbreviated-month form ("Nov, 1 - Nov, 30 2026"), never in the
+    # full-month-name form the shared confident-date regex requires -
+    # no deadline is extracted rather than guessed.
+    assert opportunity.deadline is None
+
+
+def test_eth_zurich_esop_has_no_robots_txt_restrictions_to_respect() -> None:
+    """robots.txt itself returns a genuine HTTP 404 (the site's own
+    generic German-language 'page not found' error page, not a
+    bot-challenge page) - no robots.txt file exists at all, so this
+    source uses the default (unraised) crawl interval."""
+    assert EthZurichExcellenceScholarshipSource.min_request_interval_seconds == 2.0

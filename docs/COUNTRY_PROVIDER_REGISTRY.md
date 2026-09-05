@@ -34,7 +34,7 @@ that were actually built this session (in two batches).
 
 ---
 
-## Implemented (40, across multiple sessions)
+## Implemented (41, across multiple sessions)
 
 | # | Org/Program | Country | provider_type | Official domain | collection_method | Status |
 |---|---|---|---|---|---|---|
@@ -78,6 +78,7 @@ that were actually built this session (in two batches).
 | 50 | Schwarzman Scholars | China (host country; open worldwide, no nationality restriction) | UNIVERSITY | schwarzmanscholars.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; researched back-to-back with UWC (rejected, see AUTHORITATIVE_SOURCES.md's "not integrated" table) — accepted because its robots.txt has no ClaudeBot-specific disallow rule |
 | 51 | Knight-Hennessy Scholars | United States (host country; open worldwide, no nationality restriction) | UNIVERSITY | knight-hennessy.stanford.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; researched the same session as Schwarzman Scholars, same host-country-vs-eligibility pattern |
 | 52 | Yenching Academy of Peking University | China (host country; open worldwide, no nationality restriction) | UNIVERSITY | yenchingacademy.pku.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; robots.txt returns a genuine 404 (no file exists), treated as unrestricted per RFC 9309; deadline deliberately not extracted due to malformed source markup (see AUTHORITATIVE_SOURCES.md #52) |
+| 53 | ETH Zurich Excellence Scholarship & Opportunity Programme (ESOP) | Switzerland (host country; eligibility page never mentions nationality) | UNIVERSITY | ethz.ch | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; robots.txt returns a genuine 404 (no file exists), treated as unrestricted per RFC 9309; deadline deliberately not extracted since the page states its application window only in abbreviated-month form (see AUTHORITATIVE_SOURCES.md #53) |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).

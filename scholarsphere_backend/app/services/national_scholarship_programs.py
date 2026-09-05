@@ -1808,3 +1808,44 @@ class YenchingAcademyScholarsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().yenching_academy_base_url
+
+
+class EthZurichExcellenceScholarshipSource(_SingleProgramSource):
+    """ETH Zurich Excellence Scholarship & Opportunity Programme (ESOP) -
+    a fully-funded scholarship (tuition fee waiver plus CHF 12'000-13'500
+    per semester living/study expenses) for incoming Master's students at
+    ETH Zurich, applied for concurrently with the Master's admission
+    application itself (the same "apply to the degree program and the
+    scholarship together" pattern as Knight-Hennessy Scholars above).
+    Its eligibility page never mentions nationality, citizenship, or
+    country of origin anywhere - verified directly, not assumed - only a
+    "very good result" (top 10%) in a prior Bachelor's degree.
+
+    Confirmed 2026-09-05: `robots.txt` returns a genuine HTTP 404 (the
+    site's own generic German-language "Seite nicht gefunden" error
+    page, not a bot-challenge or block page) - no robots.txt file exists
+    at all. Per RFC 9309, a 4xx response to the robots.txt fetch itself
+    means "no rules apply" - the same reasoning already documented for
+    Yenching Academy above.
+
+    Deliberately extracts no deadline: the page states its one
+    application-window date range only in abbreviated-month form ("Nov,
+    1 - Nov, 30 2026"), never in the full-month-name form
+    `_CONFIDENT_DATE_PATTERN` requires - verified directly with
+    `extract_confident_date`, which returns `None` for the page's exact
+    real text regardless of which keyword is anchored on. A missing
+    deadline is safe here (a human confirms the real one); this project
+    does not special-case its shared date regex to parse abbreviated
+    months just for one source.
+    """
+
+    source_code = "eth_zurich_esop"
+    overview_path = "/students/en/studies/financial/scholarships/excellencescholarship.html"
+    content_selectors = ("body",)
+    deadline_keywords = ("application window", "deadline")
+    provider_name = "ETH Zurich - Excellence Scholarship & Opportunity Programme (ESOP)"
+    country = "Switzerland"
+    external_id = "eth-zurich-excellence-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().eth_zurich_esop_base_url

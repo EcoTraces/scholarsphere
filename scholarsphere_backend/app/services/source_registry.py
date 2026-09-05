@@ -337,6 +337,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "eth_zurich_esop": {
+        "source_name": "ETH Zurich Excellence Scholarship & Opportunity Programme",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -397,6 +403,7 @@ def _base_urls() -> dict[str, str]:
         "schwarzman_scholars": settings.schwarzman_scholars_base_url,
         "knight_hennessy_scholars": settings.knight_hennessy_scholars_base_url,
         "yenching_academy_scholars": settings.yenching_academy_base_url,
+        "eth_zurich_esop": settings.eth_zurich_esop_base_url,
     }
 
 
@@ -473,6 +480,7 @@ async def seed_opportunity_sources(
         "schwarzman_scholars": now + timedelta(hours=24),
         "knight_hennessy_scholars": now + timedelta(hours=24),
         "yenching_academy_scholars": now + timedelta(hours=24),
+        "eth_zurich_esop": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

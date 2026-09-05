@@ -80,6 +80,7 @@ from app.services.national_scholarship_programs import (
     SpainAecidScholarshipSource,
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
+    EthZurichExcellenceScholarshipSource,
     KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
@@ -331,6 +332,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_yenching_academy_scholars",
             "schedule": crontab(minute=0, hour=14),
         },
+        "sync-eth-zurich-esop": {
+            "task": "app.tasks.opportunity_sync.sync_eth_zurich_esop",
+            "schedule": crontab(minute=15, hour=14),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -435,6 +440,7 @@ SOURCE_TASK_NAMES = {
     "yenching_academy_scholars": (
         "app.tasks.opportunity_sync.sync_yenching_academy_scholars"
     ),
+    "eth_zurich_esop": "app.tasks.opportunity_sync.sync_eth_zurich_esop",
 }
 
 
@@ -1215,6 +1221,19 @@ def sync_yenching_academy_scholars(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_eth_zurich_esop",
+    max_retries=3,
+)
+def sync_eth_zurich_esop(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "eth_zurich_esop", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1467,6 +1486,7 @@ def _collector(source_code: str) -> Any:
         "schwarzman_scholars": SchwarzmanScholarsSource,
         "knight_hennessy_scholars": KnightHennessyScholarsSource,
         "yenching_academy_scholars": YenchingAcademyScholarsSource,
+        "eth_zurich_esop": EthZurichExcellenceScholarshipSource,
     }[source_code]()
 
 
