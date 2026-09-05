@@ -40,6 +40,7 @@ from app.services.national_scholarship_programs import (
     SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
     EthZurichExcellenceScholarshipSource,
+    HongKongPhdFellowshipSchemeSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
     YenchingAcademyScholarsSource,
@@ -1542,3 +1543,55 @@ def test_eth_zurich_esop_has_no_robots_txt_restrictions_to_respect() -> None:
     bot-challenge page) - no robots.txt file exists at all, so this
     source uses the default (unraised) crawl interval."""
     assert EthZurichExcellenceScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Hong Kong PhD Fellowship Scheme (HKPFS): real fixtures, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_hkpfs_collect_normalizes_real_fixtures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The apply.html deadline page repeats 'Application Deadline: 1
+    December 2026' once per participating university (plus one stale,
+    uncorrected 'Application Deadline: 1 December 2015' row for a
+    university section nobody updated) - anchoring on the RGC's own
+    single sentence ('...obtain an HKPFS Reference Number by 1 December
+    2026...') avoids both the ambiguity of repeated per-university rows
+    and the one stale row entirely."""
+    source = HongKongPhdFellowshipSchemeSource()
+    overview_url = f"{source.base_url}{source.overview_path}"
+    deadline_url = f"{source.base_url}{source.deadline_path}"
+
+    async def fake_get_html(url: str, **_: object) -> str:
+        if url == overview_url:
+            return _fixture("hkpfs_index.html")
+        if url == deadline_url:
+            return _fixture("hkpfs_apply.html")
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    monkeypatch.setattr(web_scraper_base, "get_html", AsyncMock(side_effect=fake_get_html))
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "hong-kong-phd-fellowship-scheme"
+    assert opportunity.title == "Hong Kong PhD Fellowship Scheme"
+    assert opportunity.country == "Hong Kong"
+    assert opportunity.provider_name == "Research Grants Council of Hong Kong (HKPFS)"
+    assert opportunity.description is not None
+    assert "irrespective of their country of origin" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # RGC's own initial-application deadline for the 2027/28 round -
+    # verified directly against the live site 2026-09-05, not guessed
+    # from a prior year's cycle.
+    assert str(opportunity.deadline) == "2026-12-01"
+
+
+def test_hkpfs_has_no_robots_txt_restrictions_to_respect() -> None:
+    """robots.txt itself returns a genuine HTTP 404 (the site's own
+    'Not found - GRF/PPR/HKPFS' error page, not a bot-challenge page) -
+    no robots.txt file exists at all, so this source uses the default
+    (unraised) crawl interval."""
+    assert HongKongPhdFellowshipSchemeSource.min_request_interval_seconds == 2.0

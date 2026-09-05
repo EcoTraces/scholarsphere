@@ -2721,3 +2721,57 @@ for the full dated history.
       generic notification-system wiring for status changes (the
       dashboard status card already surfaces this in real time); the
       spec's SEO/OpenGraph phases don't apply to a native Flutter app.
+
+- [x] **(2026-09-05)** A dedicated "opportunity expansion" research pass
+      against a long, explicit list of named target programmes (Erasmus
+      Mundus, DAAD, Chevening, Commonwealth, MEXT, GKS, Swiss ESKAS,
+      Swedish Institute, Campus France, Australia Awards, Belgium ARES,
+      Rotary Peace, and more) - checked each against
+      `docs/AUTHORITATIVE_SOURCES.md` and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md` first, and found every one of
+      them already implemented in prior sessions. Implemented one
+      genuinely new source found beyond that list: the **Hong Kong PhD
+      Fellowship Scheme (HKPFS)**, this platform's 55th opportunity
+      source (see Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #54 for full detail) - a real,
+      global, government-run PhD fellowship (Research Grants Council of
+      Hong Kong), with its current 2027/28 round confirmed genuinely
+      open (1 September - 1 December 2026) directly against the live
+      site, not inferred from a prior cycle.
+
+      Three further candidates were researched this pass and
+      **deliberately not integrated**, each for a documented reason
+      rather than silently dropped: EU Marie Skłodowska-Curie Actions
+      Postdoctoral Fellowships (real and official, but its 2026 call
+      deadline was only 4 days away at research time with no 2027 call
+      yet announced, and the real application path is a separate EU
+      portal this program's own site doesn't control); Vanier Canada
+      Graduate Scholarships (its eligibility page returned a genuine
+      HTTP 503 on two independent fetch attempts - recorded rather than
+      circumvented, per this project's standing "never bypass access
+      restrictions" rule); and EPFL Excellence Fellowships (a real
+      program, but every deadline found came from third-party
+      aggregators rather than an official EPFL page, and all of those
+      had already passed as of the research date).
+
+      **Verified for real**: `pyflakes app tests` clean (no new issues);
+      full backend suite green afterward, 753 passed / 25 skipped (up
+      from 751 - the new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      54 -> 55 registered sources). The two test fixtures
+      (`tests/fixtures/hkpfs_index.html`, `tests/fixtures/
+      hkpfs_apply.html`) were captured unmodified from the live site,
+      not hand-written.
+
+      This is an honest, single-source result from one research pass,
+      not the sweeping "hundreds of new opportunities across every named
+      country and category" scope of the prompt that triggered it - the
+      overwhelming majority of that prompt's named target programmes
+      were already in the database from earlier sessions, and the
+      remaining genuinely-new candidates found either failed live
+      verification (HTTP 503, stale/aggregator-only deadlines) or don't
+      yet fit this codebase's single-flagship-page adapter shape (MSCA's
+      separate EU portal). No opportunity was fabricated or guessed to
+      make a larger number; existing opportunities and sources were
+      preserved and none were deleted, per that prompt's own explicit
+      "never delete existing data" rule.

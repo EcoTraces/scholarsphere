@@ -2342,6 +2342,107 @@ whose eligibility page never mentions nationality at all.
   unit-tested against the real fixture, captured unmodified from the
   httpx fetch (`tests/fixtures/eth_zurich_esop.html`).
 
+## 54. Hong Kong PhD Fellowship Scheme (HKPFS)
+
+Researched 2026-09-05, an "opportunity expansion" pass explicitly
+targeting genuinely new government/university flagship programmes not
+already covered by this platform's existing 54 sources (cross-checked
+against this file and `docs/COUNTRY_PROVIDER_REGISTRY.md` first — DAAD,
+Chevening, Commonwealth, MEXT, GKS, Swiss ESKAS, Swedish Institute,
+Campus France, Australia Awards, Erasmus Mundus, Belgium ARES, and the
+other national/university flagships requested were all already
+implemented).
+
+- **Organization**: Research Grants Council (RGC) of Hong Kong,
+  established 2009; funds PhD study at eight participating Hong Kong
+  universities
+- **Route code**: `hong-kong-phd-fellowship-scheme` (`hkpfs` internally)
+- **Official domain / base URL**: `https://cerg1.ugc.edu.hk`
+  (`HKPFS_BASE_URL`)
+- **Opportunity types**: Scholarship — a PhD fellowship providing an
+  annual stipend of HK$344,400 (~US$44,150) plus a HK$14,400 (~US$1,840)
+  conference/research-travel allowance per year, for up to three years;
+  around 400 fellowships awarded per academic year. The page does not
+  state whether tuition is separately covered — not extracted, not
+  invented.
+- **Country coverage**: Global. The eligibility text states candidates
+  qualify "irrespective of their country of origin, prior work experience
+  and ethnic background" — verified directly against the live page, not
+  assumed.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML — an old-style HTML-table layout with no JavaScript
+  needed) across two pages: `/hkpfs/index.html` (overview/eligibility)
+  and `/hkpfs/apply.html` (application procedure/deadline)
+- **robots.txt / indexing note**: Returns a genuine HTTP 404 (the site's
+  own "Not found - GRF/PPR/HKPFS" error page, not a bot-challenge page)
+  — no robots.txt file exists at all. Per RFC 9309, treated as
+  unrestricted, the same reasoning already documented for Yenching
+  Academy (#52) and ETH Zurich (#53).
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deadline keyword choice**: `apply.html` repeats "Application
+    Deadline: 1 December 2026" once per participating university (eight
+    rows), plus one stale, seemingly-never-updated "Application
+    Deadline: 1 December 2015" row for a ninth section — rather than
+    anchor on any of those repeated/inconsistent per-university rows,
+    the adapter anchors on the RGC's own single unambiguous sentence
+    ("...to obtain an HKPFS Reference Number by 1 December 2026 at Hong
+    Kong Time 12:00:00...") — the deadline that actually gates
+    eligibility for the whole scheme, verified directly against the live
+    fixture to occur exactly once on the page.
+  - **Current cycle, verified directly, not inferred from a prior year**:
+    as of 2026-09-05, the 2027/28 round opened 1 September 2026 (noon
+    HKT) with an initial-application deadline of 1 December 2026 (noon
+    HKT) — confirmed both in `apply.html`'s body text and its `news.html`
+    announcement page, and cross-checked against the HTML source
+    directly (not just an AI summary of it) before being written into
+    the adapter.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML from both
+  pages, no browser rendering needed. Implemented and unit-tested against
+  real fixtures, captured unmodified from the live fetch
+  (`tests/fixtures/hkpfs_index.html`, `tests/fixtures/hkpfs_apply.html`).
+
+### Researched this pass, not integrated
+
+- **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**
+  — real, official (European Commission), and the "European Postdoctoral
+  Fellowships" track is genuinely open to "researchers of any
+  nationality." Not integrated this pass: (1) its 2026 call deadline is
+  9 September 2026 — only 4 days after this research was conducted — so
+  it would need to show as closed almost immediately, with no next cycle
+  officially announced yet to point to instead; and (2) unlike this
+  platform's other single-flagship sources, the actual application is
+  submitted through the separate EU Funding & Tenders Portal rather than
+  a page this program's own site controls, which doesn't fit the
+  existing `_SingleProgramSource` shape without further design work.
+  Worth revisiting once a 2027 call is officially published with more
+  runway before its deadline.
+- **Vanier Canada Graduate Scholarships** (`vanier.gc.ca`) — its
+  eligibility page returned HTTP 503 on two independent fetch attempts
+  2026-09-05 (a real server error, not a proxy artifact — confirmed via
+  both `curl` and an independent fetch path). Per this platform's
+  "do not circumvent access restrictions; record for manual verification
+  instead" rule, this was not retried further or worked around. Also
+  consistent with this project's existing Canada finding
+  (`docs/COUNTRY_PROVIDER_REGISTRY.md`'s "Canada — NOT_SUITABLE"): Vanier
+  is nomination-based through Canadian universities' own quotas, not a
+  single individually-applicable federal portal.
+- **EPFL Excellence Fellowships** (Switzerland) — real program (distinct
+  from ETH Zurich's ESOP, #53), but every source found describing a
+  current deadline was a third-party aggregator (Scholars4Dev,
+  WeMakeScholars, etc.), not EPFL's own site, and the deadlines those
+  aggregators cite (December 2025 / March 2026) have already passed as
+  of this research date (2026-09-05) with no confirmed 2027 cycle dates
+  found on an official EPFL page. Per the "official sources first, never
+  infer next year's deadline from an old cycle" rule, this was left
+  unintegrated rather than guessed at.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

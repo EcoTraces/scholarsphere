@@ -28,6 +28,58 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Opportunity expansion pass: Hong Kong PhD Fellowship Scheme (55th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::HongKongPhdFellowshipSchemeSource`
+  — the **Hong Kong PhD Fellowship Scheme (HKPFS)**, this platform's 55th
+  opportunity source, run by the Research Grants Council of Hong Kong
+  since 2009 and funding PhD study at eight Hong Kong universities
+  (annual stipend HK$344,400 plus a HK$14,400 conference/travel
+  allowance, up to three years). Genuinely global — its own eligibility
+  text states candidates qualify "irrespective of their country of
+  origin, prior work experience and ethnic background." `robots.txt`
+  (checked 2026-09-05) returns a genuine HTTP 404 (the site's own "Not
+  found" error page) — no robots.txt file exists at all, treated as
+  unrestricted per RFC 9309. Confirmed the current 2027/28 round is
+  actually open (1 September 2026 – 1 December 2026, Hong Kong time),
+  not inferred from a prior year's cycle — verified directly against the
+  live `apply.html`/`news.html` pages. One real data-quality finding:
+  the deadline page repeats "Application Deadline: 1 December 2026"
+  once per participating university except one stale, seemingly-never-
+  updated "1 December 2015" row for a ninth section; the adapter anchors
+  on the RGC's own single unambiguous sentence instead of any of those
+  repeated/inconsistent per-university rows. Fully wired: config
+  setting, source registry entry, Celery beat schedule + dedicated sync
+  task, and a real fixture-backed test (two fixtures — overview and
+  apply pages — both captured unmodified from the live fetch).
+
+  This was a dedicated research pass checking a long list of named
+  government/university flagship programmes (Erasmus Mundus, DAAD,
+  Chevening, Commonwealth, MEXT, GKS, Swiss ESKAS, Swedish Institute,
+  Campus France, Australia Awards, Belgium ARES, Rotary Peace, and more)
+  against this platform's existing 54 sources first — all of those were
+  already implemented in prior sessions. Three genuinely new candidates
+  were also researched and documented as **not integrated** rather than
+  left as silent dead ends (see `docs/AUTHORITATIVE_SOURCES.md` #54 and
+  `docs/COUNTRY_PROVIDER_REGISTRY.md`'s new "not integrated" entries):
+  EU Marie Skłodowska-Curie Actions Postdoctoral Fellowships (real call,
+  but its 2026 deadline was only 4 days away at research time with no
+  2027 call yet announced, and its real application path is the
+  separate EU Funding & Tenders Portal rather than a page the program's
+  own site controls); Vanier Canada Graduate Scholarships (its
+  eligibility page returned HTTP 503 on two independent fetch attempts —
+  recorded rather than circumvented, consistent with this project's
+  never-bypass-access-restrictions rule); and EPFL Excellence
+  Fellowships (a real program, but every deadline found came from
+  third-party aggregators, not an official EPFL page, and all of those
+  had already passed).
+
+  **Verified**: full backend suite green after the change (753 passed,
+  25 skipped, up from 751 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 54 -> 55
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Testimonials & Success Stories platform: submission wizard, moderation/verification workflow, public browsing, dashboard integration
 
 ### Added

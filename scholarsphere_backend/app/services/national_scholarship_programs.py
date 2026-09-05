@@ -1849,3 +1849,53 @@ class EthZurichExcellenceScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().eth_zurich_esop_base_url
+
+
+class HongKongPhdFellowshipSchemeSource(_SingleProgramSource):
+    """Hong Kong PhD Fellowship Scheme (HKPFS) - established by the
+    Research Grants Council (RGC) of Hong Kong in 2009, funding PhD study
+    at eight Hong Kong universities. Genuinely global: the eligibility
+    text on `/hkpfs/index.html` states candidates qualify "irrespective of
+    their country of origin, prior work experience and ethnic background".
+
+    Confirmed 2026-09-05: `robots.txt` returns a genuine HTTP 404 (the
+    site's own "Not found - GRF/PPR/HKPFS" error page, not a bot-challenge
+    page) - no robots.txt file exists at all, treated as unrestricted per
+    RFC 9309, the same reasoning already documented for Yenching Academy
+    and ETH Zurich above.
+
+    `overview_path` (`/hkpfs/index.html`) has no `<h1>`, but its `<title>`
+    tag ("Hong Kong PhD Fellowship Scheme | Research Grants Council")
+    splits cleanly on "|" - no fallback to the external_id-derived title
+    needed, unlike Yenching/WMI above.
+
+    `deadline_path` points at the dedicated application-procedure page
+    (`/hkpfs/apply.html`), which is a *different* page from the overview -
+    both pages are old-style HTML-table layouts with no semantic
+    `<main>`/`<article>` wrapper or distinguishing content class, so
+    `content_selectors = ("body",)` is used for the overview (the same
+    choice already made for Yenching Academy). `deadline_keywords =
+    ("reference number by",)` rather than the default "deadline": the
+    apply page repeats "Application Deadline: 1 December 2026" once per
+    participating university (plus one stale, uncorrected "1 December
+    2015" row for a university whose page section was never updated - a
+    real data-quality artifact of the source, not extracted since the
+    RGC-level deadline governs the scheme regardless) - anchoring on the
+    RGC's own single, unambiguous sentence ("...to obtain an HKPFS
+    Reference Number by 1 December 2026 at Hong Kong Time 12:00:00...")
+    is the deadline that actually gates eligibility for the scheme,
+    verified directly against the live fixture to occur exactly once.
+    """
+
+    source_code = "hkpfs"
+    overview_path = "/hkpfs/index.html"
+    deadline_path = "/hkpfs/apply.html"
+    title_tag_separator = "|"
+    content_selectors = ("body",)
+    deadline_keywords = ("reference number by",)
+    provider_name = "Research Grants Council of Hong Kong (HKPFS)"
+    country = "Hong Kong"
+    external_id = "hong-kong-phd-fellowship-scheme"
+
+    def _base_url(self) -> str:
+        return get_settings().hkpfs_base_url

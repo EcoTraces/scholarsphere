@@ -81,6 +81,7 @@ from app.services.national_scholarship_programs import (
     SwedishInstituteScholarshipSource,
     SwitzerlandEskasScholarshipSource,
     EthZurichExcellenceScholarshipSource,
+    HongKongPhdFellowshipSchemeSource,
     KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
@@ -336,6 +337,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_eth_zurich_esop",
             "schedule": crontab(minute=15, hour=14),
         },
+        "sync-hkpfs": {
+            "task": "app.tasks.opportunity_sync.sync_hkpfs",
+            "schedule": crontab(minute=30, hour=14),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -441,6 +446,7 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_yenching_academy_scholars"
     ),
     "eth_zurich_esop": "app.tasks.opportunity_sync.sync_eth_zurich_esop",
+    "hkpfs": "app.tasks.opportunity_sync.sync_hkpfs",
 }
 
 
@@ -1234,6 +1240,19 @@ def sync_eth_zurich_esop(
     return _execute_source_task(self, "eth_zurich_esop", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_hkpfs",
+    max_retries=3,
+)
+def sync_hkpfs(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(self, "hkpfs", correlation_id, triggered_by)
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1487,6 +1506,7 @@ def _collector(source_code: str) -> Any:
         "knight_hennessy_scholars": KnightHennessyScholarsSource,
         "yenching_academy_scholars": YenchingAcademyScholarsSource,
         "eth_zurich_esop": EthZurichExcellenceScholarshipSource,
+        "hkpfs": HongKongPhdFellowshipSchemeSource,
     }[source_code]()
 
 

@@ -274,6 +274,16 @@ class Settings(BaseSettings):
     # RFC 9309, same reasoning as Yenching Academy above.
     eth_zurich_esop_base_url: str = "https://ethz.ch"
 
+    # Hong Kong PhD Fellowship Scheme (HKPFS) - Research Grants Council of
+    # Hong Kong, funding PhD study at eight Hong Kong universities.
+    # Genuinely global: its eligibility text states candidates qualify
+    # "irrespective of their country of origin, prior work experience and
+    # ethnic background". robots.txt returns a genuine HTTP 404 (the
+    # site's own "Not found" page, not a bot-challenge page) - no
+    # robots.txt file exists at all, treated as unrestricted per RFC 9309,
+    # same reasoning as Yenching Academy/ETH Zurich above.
+    hkpfs_base_url: str = "https://cerg1.ugc.edu.hk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -417,6 +427,7 @@ class Settings(BaseSettings):
         "knight_hennessy_scholars_base_url",
         "yenching_academy_base_url",
         "eth_zurich_esop_base_url",
+        "hkpfs_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

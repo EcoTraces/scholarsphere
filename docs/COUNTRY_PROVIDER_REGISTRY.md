@@ -79,9 +79,27 @@ that were actually built this session (in two batches).
 | 51 | Knight-Hennessy Scholars | United States (host country; open worldwide, no nationality restriction) | UNIVERSITY | knight-hennessy.stanford.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; researched the same session as Schwarzman Scholars, same host-country-vs-eligibility pattern |
 | 52 | Yenching Academy of Peking University | China (host country; open worldwide, no nationality restriction) | UNIVERSITY | yenchingacademy.pku.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; robots.txt returns a genuine 404 (no file exists), treated as unrestricted per RFC 9309; deadline deliberately not extracted due to malformed source markup (see AUTHORITATIVE_SOURCES.md #52) |
 | 53 | ETH Zurich Excellence Scholarship & Opportunity Programme (ESOP) | Switzerland (host country; eligibility page never mentions nationality) | UNIVERSITY | ethz.ch | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05; robots.txt returns a genuine 404 (no file exists), treated as unrestricted per RFC 9309; deadline deliberately not extracted since the page states its application window only in abbreviated-month form (see AUTHORITATIVE_SOURCES.md #53) |
+| 54 | Hong Kong PhD Fellowship Scheme (HKPFS) | Hong Kong | GOVERNMENT | cerg1.ugc.edu.hk | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-05, found during a dedicated "new opportunity expansion" pass; global eligibility ("irrespective of...country of origin"); robots.txt returns a genuine 404, treated as unrestricted per RFC 9309; current 2027/28 round confirmed open (1 Sep 2026 – 1 Dec 2026) (see AUTHORITATIVE_SOURCES.md #54) |
 
 Already supported before this initiative: **Germany** (DAAD, source #10)
 and, more narrowly, the UK (Commonwealth Scholarships #8, Chevening #9).
+
+### Researched 2026-09-05 (opportunity-expansion pass), not integrated
+
+- **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships** —
+  real and official, but its 2026 call deadline (9 September 2026) was
+  only 4 days out at research time with no 2027 call yet announced, and
+  its real application path is the separate EU Funding & Tenders Portal
+  rather than a page this program's own site controls. See
+  AUTHORITATIVE_SOURCES.md #54's "Researched this pass, not integrated".
+- **Vanier Canada Graduate Scholarships** — its eligibility page
+  returned HTTP 503 on two independent fetch attempts; also nomination-
+  based through Canadian universities' own quotas, consistent with this
+  registry's existing Canada `NOT_SUITABLE` finding above.
+- **EPFL Excellence Fellowships** (Switzerland) — real program, but no
+  official EPFL page with a confirmed current-cycle deadline was found;
+  every deadline seen came from third-party aggregators and was already
+  in the past.
 
 ---
 
