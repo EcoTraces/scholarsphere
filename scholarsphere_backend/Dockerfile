@@ -1,4 +1,14 @@
-FROM python:3.12-slim
+# Pinned to bookworm (Debian 12), not the floating `python:3.12-slim` tag:
+# that tag now resolves to trixie (Debian 13), a codename Playwright 1.49.1
+# doesn't recognize (its registry only maps debian11/debian12/ubuntu20-24) -
+# unable to identify the OS, it silently falls back to its ubuntu20.04
+# package list (`ttf-ubuntu-font-family`, `ttf-unifont`), which trixie's
+# apt repo has since renamed (e.g. to `fonts-unifont`), so
+# `playwright install --with-deps chromium` fails the build with
+# "Package 'ttf-unifont' has no installation candidate". bookworm is a
+# codename Playwright explicitly supports with the correct current
+# package names, so this is real and reproducible, not floating-tag drift.
+FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
