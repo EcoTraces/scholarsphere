@@ -3551,3 +3551,75 @@ for the full dated history.
       77 -> 78 registered sources). The fixture
       (`tests/fixtures/utwente_itc_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-06)** "Find another master's/postgraduate scholarship
+      in Spain" follow-up: implemented UPF Barcelona School of
+      Management's (Universitat Pompeu Fabra) Merit Based Scholarship -
+      see Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #78 for full detail. This
+      platform's 79th opportunity source, and this registry's *first*
+      Spain *university* source (the existing Spain source, #23
+      `spain_aecid`/Becas MAEC-AECID, is government-classified, not a
+      university).
+
+      No nationality or country restriction anywhere in the eligibility
+      criteria (a completed university qualification and a minimum
+      3.0/4.0 GPA, explicitly including degrees "obtained abroad") -
+      Sierra Leone applicants are eligible. Genuinely partial funding,
+      stated in the page's own words: "covers 25% of the total tuition
+      fee," extendable by "an additional 25%" for demonstrated financial
+      need - never described as fully funded.
+
+      A genuinely interesting deadline-extraction judgment call: the
+      page lists four rolling annual application rounds (18 June 2026,
+      3 September 2026, 26 November 2026, 21 January 2027). As of this
+      research date the first two rounds had already passed. The
+      generic "deadline" keyword resolves to nothing at all on this
+      page, and blindly taking the first dated occurrence in the text
+      would have surfaced an already-passed date. Tested each round's
+      own label ("1st call" through "4th call") individually against
+      `extract_confident_date_after` and confirmed each resolves
+      correctly (2026-06-18, 2026-09-03, 2026-11-26, 2027-01-21
+      respectively) before deliberately choosing the specific phrase
+      "3rd call" - confirmed to occur exactly once in the full page
+      text, with no ambiguity risk - as the keyword that correctly
+      resolves to the next genuinely upcoming round rather than a stale
+      one.
+
+      Also worth noting: the initial candidate page for this
+      institution, `bsm.upf.edu/en/master-of-science-scholarships` (a
+      hub listing several named scholarships), returned a real `<h1>`
+      but an essentially empty body - no "Merit" text anywhere, no
+      `main` tag - diagnosed as client-side-rendered content absent
+      from the plain-HTTP response, the same category as several
+      previously-rejected pages this session (RSM Rotterdam, IU
+      International, IE University's detail pages), distinct from
+      genuine bot-protection/CAPTCHA walls (Leiden, Tilburg) which this
+      project never attempts to bypass. Pivoted to the
+      `en/talent-scholarship` URL instead, which returned real static
+      content and was the one integrated.
+
+      Four other Spanish candidates were researched live first and
+      rejected for concrete reasons: **IE University** (hub page and
+      detail pages both either multi-scholarship listings or
+      client-side rendered), **Universidad de Navarra** (a hub page
+      whose individual scholarships are documented only as PDFs, not a
+      single web page fitting the `_SingleProgramSource` shape), and
+      **ESADE**'s Esade MSc Excellence Awards - a single named scheme
+      with regional/tier variants that would otherwise fit the
+      architecture, but whose own deadline text explicitly reads "July
+      15, 2026 (for the 2026 intake)," an already-passed date with no
+      next-cycle date stated anywhere on the page. A partially updated
+      "2027-2028" tuition figure appearing elsewhere on that same ESADE
+      page was deliberately *not* treated as evidence that a
+      same-shaped next cycle exists - consistent with this project's
+      standing rule to never guess a future cycle from a stale prior
+      one.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 801 passed / 25 skipped (up from 799 - the
+      new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      78 -> 79 registered sources). The fixture
+      (`tests/fixtures/upf_bsm_merit_scholarship.html`) was captured
+      unmodified from the live site.

@@ -103,6 +103,23 @@ that were actually built this session (in two batches).
 | 75 | University of Twente Scholarship (UTS) | Netherlands | UNIVERSITY | utwente.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; cash award (not tuition waiver), explicit eligible-countries list confirmed to include Sierra Leone; already updated for 2027/2028 with a real deadline (1 April 2027) (see AUTHORITATIVE_SOURCES.md #75) |
 | 76 | Anne van den Ban Fund (Wageningen University & Research) | Netherlands | UNIVERSITY | wur.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; nomination-based (no separate application) full-or-partial Master's funding for students from low-income countries; no deadline extracted (year-less recurring dates) (see AUTHORITATIVE_SOURCES.md #76) |
 | 77 | ITC Excellence Scholarship Programme (University of Twente) | Netherlands | UNIVERSITY | utwente.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Netherlands Master's/postgraduate follow-up; a distinct ITC-faculty-administered scholarship from the university-wide UTS (#75); explicit ~100-country eligible list confirmed to include Sierra Leone; genuinely partial (EUR 25,000 of a EUR 74,370 total cost); no deadline extracted (page states 2026 applications closed with a next round "expected to open in December," no exact date given) (see AUTHORITATIVE_SOURCES.md #77) |
+| 78 | Merit Based Scholarship (UPF Barcelona School of Management, Universitat Pompeu Fabra) | Spain | UNIVERSITY | bsm.upf.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Spain Master's/postgraduate follow-up, this registry's first Spain-university source (source #23, Becas MAEC-AECID, is government-classified); no nationality restriction; partial funding (25%, up to 50% with financial need, of tuition); exact deadline extracted via the specific "3rd call" round keyword (26 November 2026 — the first two of four rolling rounds had already passed) (see AUTHORITATIVE_SOURCES.md #78) |
+
+Four other Spanish institutions were researched this pass and found
+unsuitable rather than integrated (see AUTHORITATIVE_SOURCES.md's
+"Researched this pass (Spain Master's/postgraduate follow-up), not
+integrated" note): IE University's Master's Scholarship Programs (a
+hub of ~10 separately-sponsored scholarships, none of which include
+Sierra Leone by name) and its separate general "IE Awards" tier
+(client-side-rendered, no detail in a plain-HTTP fetch); University of
+Navarra's scholarships hub (same multi-record pattern, with most
+individual scholarships' rules published only as PDFs); ESADE's MSc
+Excellence Awards (a genuinely single-scheme, Africa-inclusive
+structure, but its own stated deadline had already passed with no 2027
+refresh even though surrounding tuition figures were updated); and
+UPF-BSM's own general "Master of Science Scholarships" hub page
+(client-side-rendered, unlike the working Merit Based Scholarship page
+actually used).
 
 Five other candidates were researched this pass and found unsuitable
 rather than integrated (see AUTHORITATIVE_SOURCES.md's "Researched this

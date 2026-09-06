@@ -3887,6 +3887,113 @@ ITC Excellence Scholarship Programme:
   residence," and its "Call for applications is closed" with no next
   round mentioned.
 
+## 78. Merit Based Scholarship (UPF Barcelona School of Management, Universitat Pompeu Fabra)
+
+Researched 2026-09-06, in response to a request for another Spain
+Master's/postgraduate scholarship — this platform's first Spain
+*university* source (the existing Spain source, #23, is the
+government-classified Becas MAEC-AECID), and its 26th
+university-classified source overall.
+
+- **Organization**: UPF Barcelona School of Management (Universitat
+  Pompeu Fabra)
+- **Route code**: `upf-bsm-merit-scholarship` (`upf_bsm_merit_scholarship`
+  internally)
+- **Official domain / base URL**: `https://www.bsm.upf.edu`
+  (`UPF_BSM_MERIT_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "covers 25% of the total tuition
+  fee," extendable to "an additional 25%" for demonstrated financial
+  need. `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: No nationality/country
+  restriction stated anywhere in the eligibility criteria (a completed
+  university qualification and a minimum 3.0/4.0 GPA, explicitly
+  including degrees "obtained abroad") — Sierra Leone applicants are
+  eligible.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML from a React/Next.js frontend)
+- **robots.txt / indexing note**: `bsm.upf.edu/robots.txt` does not
+  disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector is `div.body-content`**: the page uses
+    auto-generated CSS-in-JS class names for most wrapper elements
+    (React/Next.js), but this one class is stable and semantic —
+    verified directly via a BeautifulSoup structural walk to hold
+    exactly the real content, with none of the surrounding navigation.
+    A sibling UPF-BSM page (`master-of-science-scholarships`, a hub
+    listing several named scholarships) was checked first and rejected:
+    its real content never appears in the plain-HTTP response at all
+    (client-side rendered), unlike this page.
+  - **`deadline_keywords` uses the specific phrase "3rd call", not the
+    generic "deadline"**: the page lists four rolling annual
+    application rounds with concrete dates (18 June 2026, 3 September
+    2026, 26 November 2026, 21 January 2027 — the last two reserved for
+    programmes starting in Q1 2027). As of this research date the first
+    two rounds have already passed, so the specific "3rd call" phrase
+    is used to reliably resolve to the next genuinely upcoming round,
+    2026-11-26, rather than the generic "deadline" keyword (which
+    resolves to nothing on this page) or the first round's
+    already-passed date.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/upf_bsm_merit_scholarship.html`).
+
+### Researched this pass (Spain Master's/postgraduate follow-up), not integrated
+
+Several other Spanish institutions were researched live before settling
+on the UPF-BSM Merit Based Scholarship, and a consistent pattern emerged
+— Spanish private universities favor multi-scholarship hub pages (like
+several German and Dutch business schools documented earlier in this
+project) far more than the single-flagship-scholarship pages common at
+English and Dutch public universities:
+
+- **IE University — Master's Scholarship Programs** (IE Foundation) —
+  real and well-funded ("covering up to full tuition and living
+  expenses"), but a hub of roughly ten separately-named,
+  separately-sponsored scholarships (Olaf Díaz-Pintado, LPDP Indonesia,
+  Fundación Casa de México, Laidlaw Women's Leadership, Kistefos Africa,
+  Kistefos Norway, Fulbright, and more) — the same multi-record
+  architecture mismatch documented for ESMT, WHU, and IE's own Navarra-
+  style peers elsewhere in this project. Notably, the one Africa-focused
+  award in the list (Kistefos Young Talented Leaders Scholarship for
+  Africa) is itself restricted to "Ethiopia, Ghana, Liberia, Nigeria,
+  South Africa and Tanzania" — Sierra Leone is not among the named
+  countries. IE's separate "Master's Awards and Scholarships" page
+  describes a promising general "IE Awards" tier (10-40% of tuition, no
+  country restriction, evergreen "deadline is the program start date"),
+  but its actual detail is rendered client-side and did not appear in a
+  plain-HTTP fetch.
+- **University of Navarra — Scholarships and grants for master's
+  degrees** — the same hub pattern (Impactun Foundation, School of
+  Architecture/Foro América, School of Science research grants, ALCAT,
+  Barcelona/Antoni Gutiérrez-Rubí scholarships, and more), with most
+  individual scholarships' actual rules published only as downloadable
+  PDF documents rather than a scrapable HTML applicant page.
+- **ESADE — MSc Fees and Financing (Excellence Awards)** — a genuinely
+  single-scheme, geography-tiered structure closer to this platform's
+  accepted pattern (one "Esade MSc Excellence Awards" programme with
+  regional variants, including an "African Talent Award" open to
+  candidates from African countries generally, no narrower exclusion
+  found), but the page's own stated deadline for the award ("July 15,
+  2026 (for the 2026 intake)") has already passed, even though the
+  surrounding page has otherwise been updated with 2027-2028 tuition
+  figures — the scholarship-specific cycle information itself was not
+  refreshed, so this was left unintegrated per the "never guess a future
+  cycle from a stale prior one" rule rather than assuming a same-shaped
+  2027 round exists.
+- **UPF Barcelona School of Management — Master of Science Scholarships**
+  (the general hub page, as opposed to the Merit Based Scholarship page
+  actually used) — its real content is rendered client-side and did not
+  appear in a plain-HTTP fetch, confirmed directly before falling back to
+  the working `talent-scholarship` URL.
+
 ### Researched this pass (Netherlands exhaustive expansion), not integrated
 
 Six further Netherlands universities were researched live and found

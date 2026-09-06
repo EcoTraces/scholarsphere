@@ -28,6 +28,81 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Spain Master's/postgraduate follow-up: UPF Barcelona School of Management Merit Based Scholarship (79th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::UpfBsmMeritScholarshipSource`
+  — this platform's 79th opportunity source, added in response to a
+  request for another Spain Master's/postgraduate scholarship. This is
+  the registry's first Spain *university* source (the existing Spain
+  source, #23 `spain_aecid`/Becas MAEC-AECID, is government-classified).
+  - Live-verified 2026-09-06 against `https://www.bsm.upf.edu/en/talent-scholarship`.
+    `robots.txt` does not disallow this content path.
+  - No nationality or country restriction anywhere in the eligibility
+    criteria (a completed university qualification and a minimum
+    3.0/4.0 GPA, explicitly including degrees "obtained abroad") —
+    Sierra Leone applicants are eligible.
+  - Genuinely partial funding: "covers 25% of the total tuition fee,"
+    extendable by "an additional 25%" for demonstrated financial need —
+    `funding_type = "partial_funding"`, never described as fully funded.
+  - The page lists four rolling annual application rounds with concrete
+    dates (18 June 2026, 3 September 2026, 26 November 2026, 21 January
+    2027). As of this research date the first two rounds had already
+    passed, so `deadline_keywords` deliberately uses the specific phrase
+    "3rd call" (confirmed to occur exactly once on the page) to resolve
+    to the next genuinely upcoming round, 2026-11-26, rather than a
+    generic "deadline" keyword (which resolves to nothing on this page)
+    or the first round's stale date.
+  - Content selector `div.body-content`: the page is built with a
+    React/Next.js frontend using auto-generated CSS-in-JS class names
+    for most wrapper elements, but this one class is stable, semantic,
+    and verified via a direct BeautifulSoup structural walk to hold
+    exactly the real content with none of the surrounding navigation.
+  - Fully wired: config setting, source registry entry (`source_type =
+    "university"`), Celery beat schedule + dedicated sync task, and a
+    fixture-backed test (fixture captured unmodified from the live
+    site).
+
+  Four other candidates were researched live before settling on this
+  one and found genuinely unsuitable rather than integrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (Spain
+  Master's/postgraduate follow-up), not integrated" section for full
+  detail):
+  - **IE University** — both its general scholarships hub and its
+    detailed award pages are multi-scholarship listings (architecture
+    mismatch) or client-side rendered with no content in a plain-HTTP
+    fetch.
+  - **Universidad de Navarra** — a hub page listing many separately
+    named, separately sponsored scholarships, with individual
+    scholarship detail only available as PDFs, not fitting the
+    single-record `_SingleProgramSource` shape.
+  - **ESADE** (Esade MSc Excellence Awards) — a single named scheme
+    with regional/tier variants, which would otherwise fit, but its own
+    deadline text explicitly reads "July 15, 2026 (for the 2026
+    intake)" — already passed, with no next-cycle date stated anywhere
+    on the page (a partially updated "2027-2028" tuition figure
+    elsewhere on the same page was deliberately not treated as
+    evidence of a same-shaped next cycle).
+  - **UPF-BSM's own "Master of Science Scholarships" hub page** — real
+    `<h1>` present but the substantive content is client-side rendered
+    and absent from the plain-HTTP response, unlike the working
+    `talent-scholarship` page that was integrated instead.
+
+- **Verified**: full backend test suite — 801 passed, 25 skipped (up
+  from 799 passed before this change), 0 failed; `pyflakes` clean on
+  every changed/new file.
+
+### Changed
+—
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Netherlands Master's/postgraduate follow-up: University of Twente ITC Excellence Scholarship Programme (78th opportunity source)
 
 ### Added

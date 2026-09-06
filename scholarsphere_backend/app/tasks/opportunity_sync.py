@@ -104,6 +104,7 @@ from app.services.national_scholarship_programs import (
     TumInternationalStudentScholarshipSource,
     TurkiyeBurslariSource,
     UniversityOfTwenteScholarshipSource,
+    UpfBsmMeritScholarshipSource,
     UtrechtLegitsScholarshipSource,
     UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
@@ -482,6 +483,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_utwente_itc_scholarship",
             "schedule": crontab(minute=15, hour=20),
         },
+        "sync-upf-bsm-merit-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_upf_bsm_merit_scholarship",
+            "schedule": crontab(minute=30, hour=20),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -656,6 +661,9 @@ SOURCE_TASK_NAMES = {
     ),
     "utwente_itc_scholarship": (
         "app.tasks.opportunity_sync.sync_utwente_itc_scholarship"
+    ),
+    "upf_bsm_merit_scholarship": (
+        "app.tasks.opportunity_sync.sync_upf_bsm_merit_scholarship"
     ),
 }
 
@@ -1827,6 +1835,21 @@ def sync_utwente_itc_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_upf_bsm_merit_scholarship",
+    max_retries=3,
+)
+def sync_upf_bsm_merit_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "upf_bsm_merit_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2122,6 +2145,7 @@ def _collector(source_code: str) -> Any:
         "university_of_twente_scholarship": UniversityOfTwenteScholarshipSource,
         "wageningen_anne_van_den_ban_fund": WageningenAnneVanDenBanFundSource,
         "utwente_itc_scholarship": UtwenteItcScholarshipSource,
+        "upf_bsm_merit_scholarship": UpfBsmMeritScholarshipSource,
     }[source_code]()
 
 

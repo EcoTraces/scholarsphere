@@ -3031,3 +3031,55 @@ class UtwenteItcScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().utwente_itc_scholarship_base_url
+
+
+class UpfBsmMeritScholarshipSource(_SingleProgramSource):
+    """UPF Barcelona School of Management (Universitat Pompeu Fabra) -
+    Merit Based Scholarship, a rolling, multi-round scholarship for
+    Master of Science candidates - this platform's first Spain
+    *university* source (the existing Spain source, #23, is the
+    government-classified Becas MAEC-AECID).
+
+    Confirmed 2026-09-06: `robots.txt` (`bsm.upf.edu/robots.txt`) does
+    not disallow this content path.
+
+    Content selector: `div.body-content` - the page is built with a
+    React/Next.js frontend using auto-generated CSS-in-JS class names
+    for most wrapper elements, but this one class is stable and
+    semantic, verified directly via a BeautifulSoup structural walk to
+    hold exactly the real content (~5KB), with none of the surrounding
+    navigation. Another UPF-BSM page (`master-of-science-scholarships`,
+    a hub listing several named scholarships) was checked first and
+    rejected: its real content never appears in the plain-HTTP response
+    at all (client-side rendered), unlike this page.
+
+    Country coverage / eligibility: no nationality/country restriction
+    anywhere in the eligibility criteria (a completed university
+    qualification and a minimum 3.0/4.0 GPA, explicitly including
+    degrees "obtained abroad") - Sierra Leone applicants are eligible.
+
+    Deadline: the page lists four rolling annual application rounds with
+    concrete dates (18 June 2026, 3 September 2026, 26 November 2026, 21
+    January 2027 - the last two reserved for programmes starting in Q1
+    2027). As of this research date the first two rounds have already
+    passed, so `deadline_keywords` uses the specific phrase "3rd call"
+    to reliably resolve to the next genuinely upcoming round, 2026-11-26,
+    rather than the generic "deadline" keyword (which resolves to
+    nothing on this page) or the first round's already-passed date.
+
+    Funding: "covers 25% of the total tuition fee," extendable to "an
+    additional 25%" for demonstrated financial need - a partial
+    scholarship, `funding_type = "partial_funding"`.
+    """
+
+    source_code = "upf_bsm_merit_scholarship"
+    overview_path = "/en/talent-scholarship"
+    content_selectors = ("div.body-content",)
+    deadline_keywords = ("3rd call",)
+    provider_name = "UPF Barcelona School of Management (Universitat Pompeu Fabra)"
+    country = "Spain"
+    external_id = "upf-bsm-merit-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().upf_bsm_merit_scholarship_base_url

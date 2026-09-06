@@ -490,6 +490,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "upf_bsm_merit_scholarship": {
+        "source_name": "UPF Barcelona School of Management Merit Based Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -597,6 +603,7 @@ def _base_urls() -> dict[str, str]:
             settings.wageningen_anne_van_den_ban_fund_base_url
         ),
         "utwente_itc_scholarship": settings.utwente_itc_scholarship_base_url,
+        "upf_bsm_merit_scholarship": settings.upf_bsm_merit_scholarship_base_url,
     }
 
 
@@ -698,6 +705,7 @@ async def seed_opportunity_sources(
         "university_of_twente_scholarship": now + timedelta(hours=24),
         "wageningen_anne_van_den_ban_fund": now + timedelta(hours=24),
         "utwente_itc_scholarship": now + timedelta(hours=24),
+        "upf_bsm_merit_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

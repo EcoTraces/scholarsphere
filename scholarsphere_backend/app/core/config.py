@@ -459,6 +459,15 @@ class Settings(BaseSettings):
     # content path.
     utwente_itc_scholarship_base_url: str = "https://www.utwente.nl"
 
+    # UPF Barcelona School of Management (Universitat Pompeu Fabra) -
+    # Merit Based Scholarship, a rolling, multi-round partial tuition
+    # scholarship (25%, up to 50% with demonstrated financial need) for
+    # Master of Science candidates, no nationality restriction. This
+    # platform's first Spain-university source (the existing Spain
+    # source, #23, is the government-classified Becas MAEC-AECID).
+    # robots.txt does not disallow this content path.
+    upf_bsm_merit_scholarship_base_url: str = "https://www.bsm.upf.edu"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -626,6 +635,7 @@ class Settings(BaseSettings):
         "utwente_scholarship_base_url",
         "wageningen_anne_van_den_ban_fund_base_url",
         "utwente_itc_scholarship_base_url",
+        "upf_bsm_merit_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

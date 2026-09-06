@@ -59,6 +59,7 @@ from app.services.national_scholarship_programs import (
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
     UniversityOfTwenteScholarshipSource,
+    UpfBsmMeritScholarshipSource,
     UtrechtLegitsScholarshipSource,
     UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
@@ -2697,3 +2698,51 @@ def test_utwente_itc_scholarship_has_no_robots_txt_restrictions() -> None:
     """robots.txt (`utwente.nl/robots.txt`) does not disallow this
     content path."""
     assert UtwenteItcScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- UPF Barcelona School of Management Merit Based Scholarship: real
+# fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_upf_bsm_merit_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Spain *university* source (the existing
+    Spain source, #23, is the government-classified Becas MAEC-AECID).
+    No nationality/country restriction anywhere in the eligibility
+    criteria - Sierra Leone applicants are eligible. The page lists four
+    rolling annual application rounds; as of this research date the
+    first two (18 June 2026, 3 September 2026) have already passed, so
+    `deadline_keywords` uses the specific phrase "3rd call" to reliably
+    resolve to the next genuinely upcoming round, 26 November 2026,
+    rather than the generic "deadline" keyword (which resolves to
+    nothing on this page) or the first, already-passed round's date."""
+    source = UpfBsmMeritScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("upf_bsm_merit_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "upf-bsm-merit-scholarship"
+    assert opportunity.title == "Merit Based Scholarship"
+    assert opportunity.country == "Spain"
+    assert (
+        opportunity.provider_name
+        == "UPF Barcelona School of Management (Universitat Pompeu Fabra)"
+    )
+    assert opportunity.description is not None
+    assert "covers 25% of the total tuition fee" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline == date(2026, 11, 26)
+
+
+def test_upf_bsm_merit_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`bsm.upf.edu/robots.txt`) does not disallow this
+    content path."""
+    assert UpfBsmMeritScholarshipSource.min_request_interval_seconds == 2.0
