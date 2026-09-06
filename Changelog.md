@@ -28,6 +28,35 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Follow-up England postgraduate source: University of Sheffield (63rd opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::SheffieldPgScholarshipSource`
+  — the **University of Sheffield International Postgraduate
+  Scholarship 2027 (selected regions)**, this platform's 63rd
+  opportunity source and its first England source specifically for
+  postgraduate applicants (Imperial Inspires #60 and Newcastle's VCIS
+  #61 are both primarily undergraduate). A partial GBP 7,000 tuition fee
+  reduction for taught postgraduate offer-holders starting September
+  2027, restricted to a specific, explicitly-published list of
+  countries/regions (India, Indonesia, Japan, Kenya, Nigeria, South
+  Korea, Taiwan, Thailand, Türkiye, Vietnam) — Kenya and Nigeria are
+  eligible, **Sierra Leone is not**, checked directly against the
+  published list rather than assumed. Awarded automatically, no separate
+  application. This platform's first England source to successfully
+  extract a real, exact, future deadline (6 July 2027) — the page's
+  literal word "deadline" sits more than 300 characters after the
+  actual date, so the adapter anchors on the sentence's own opening
+  ("accept your offer") instead of the default keyword. Fully wired:
+  config setting, source registry entry, Celery beat schedule +
+  dedicated sync task, and a fixture-backed test (fixture captured
+  unmodified from the live site).
+
+  **Verified**: full backend suite green after the change (769 passed,
+  25 skipped, up from 767 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 62 -> 63
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — England university expansion: Imperial Inspires and Newcastle VCIS (61st and 62nd opportunity sources; first England-university sources)
 
 ### Added

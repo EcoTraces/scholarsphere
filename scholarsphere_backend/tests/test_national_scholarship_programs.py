@@ -45,6 +45,7 @@ from app.services.national_scholarship_programs import (
     ImperialInspiresScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
+    SheffieldPgScholarshipSource,
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
@@ -1909,3 +1910,53 @@ def test_newcastle_vc_international_scholarship_has_no_robots_txt_restrictions()
     assert (
         NewcastleVcInternationalScholarshipSource.min_request_interval_seconds == 2.0
     )
+
+
+# --- University of Sheffield International Postgraduate Scholarship:
+# real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_sheffield_pg_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page's raw HTML has two commented-out placeholder <h1> tags
+    ('Library item label woz ere') - BeautifulSoup correctly parses only
+    the one real heading. The literal word 'deadline' appears once on
+    the page but more than 300 characters after the actual date, so
+    this anchors on 'accept your offer' instead, which correctly
+    extracts the real 6 July 2027 deadline."""
+    source = SheffieldPgScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("sheffield_international_postgraduate_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "sheffield-international-postgraduate-scholarship-2027"
+    )
+    assert opportunity.title == "International Postgraduate Scholarship 2027 (selected regions)"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "University of Sheffield"
+    assert opportunity.description is not None
+    assert "£7,000" in opportunity.description
+    # Kenya and Nigeria are eligible; Sierra Leone is not on the
+    # published list - verified directly, not assumed.
+    assert "Kenya" in opportunity.description
+    assert "Sierra Leone" not in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert str(opportunity.deadline) == "2027-07-06"
+
+
+def test_sheffield_pg_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt is a standard Drupal file (only /core/, /profiles/,
+    /admin/ etc. disallowed) that does not cover this content path, so
+    this source uses the default (unraised) crawl interval."""
+    assert SheffieldPgScholarshipSource.min_request_interval_seconds == 2.0

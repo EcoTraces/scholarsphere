@@ -337,6 +337,14 @@ class Settings(BaseSettings):
     # robots.txt only disallows specific old PDF files, not this page.
     newcastle_vcis_base_url: str = "https://www.ncl.ac.uk"
 
+    # University of Sheffield - International Postgraduate Scholarship
+    # 2027 (selected regions), a partial (GBP 7,000) tuition fee
+    # reduction for taught postgraduate offer-holders from a specific,
+    # explicitly-published list of countries/regions, awarded
+    # automatically with no separate application. robots.txt is a
+    # standard Drupal file that does not disallow this content path.
+    sheffield_pg_scholarship_base_url: str = "https://sheffield.ac.uk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -488,6 +496,7 @@ class Settings(BaseSettings):
         "tum_international_scholarship_base_url",
         "imperial_inspires_base_url",
         "newcastle_vcis_base_url",
+        "sheffield_pg_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

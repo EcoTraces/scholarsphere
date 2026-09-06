@@ -3000,3 +3000,41 @@ for the full dated history.
       Per the brief's own repeated "quality over quantity" and "if only
       37 are found, report 37" instructions, this is reported as a
       partial, honest contribution, not a completed England expansion.
+
+- [x] **(2026-09-05)** "Add another England postgraduate universities
+      scholarship" follow-up: implemented the **University of Sheffield
+      International Postgraduate Scholarship 2027 (selected regions)**,
+      this platform's 63rd opportunity source and first England source
+      aimed specifically at postgraduate applicants (the two prior
+      England sources were both primarily undergraduate) - see
+      Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #62 for full detail.
+
+      Real, verified findings: a partial GBP 7,000 tuition reduction
+      restricted to a specific, explicitly-published country list -
+      Kenya and Nigeria are eligible, Sierra Leone is not, checked
+      directly rather than assumed, consistent with this session's
+      established Sierra-Leone-eligibility discipline. This is also the
+      first England source where a real, exact, future deadline was
+      successfully extracted (6 July 2027) rather than left `None`: the
+      page's literal word "deadline" sits more than 300 characters after
+      the actual date sentence, so the adapter anchors on "accept your
+      offer" (the sentence's own opening) instead of the default
+      keyword - a concrete instance of the same "anchor past the
+      irrelevant nearby keyword" problem this session has now solved
+      for several different sources (Knight-Hennessy, TaiwanICDF,
+      Sheffield), each with its own specific anchor phrase rather than
+      a one-size-fits-all fix to the shared regex. Also noted the
+      university publishes a separate China-specific variant of this
+      same scholarship at a different URL - correctly left as a
+      distinct future record rather than merged with this one, per the
+      "different awards from the same provider stay separate"
+      duplicate-control rule.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 769 passed / 25 skipped (up from 767 - the
+      new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      62 -> 63 registered sources). The fixture
+      (`tests/fixtures/sheffield_international_postgraduate_scholarship.html`)
+      was captured unmodified from the live site.

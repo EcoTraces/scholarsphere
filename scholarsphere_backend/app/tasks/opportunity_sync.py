@@ -89,6 +89,7 @@ from app.services.national_scholarship_programs import (
     NewcastleVcInternationalScholarshipSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
+    SheffieldPgScholarshipSource,
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
@@ -380,6 +381,10 @@ celery_app.conf.update(
             ),
             "schedule": crontab(minute=15, hour=16),
         },
+        "sync-sheffield-pg-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_sheffield_pg_scholarship",
+            "schedule": crontab(minute=30, hour=16),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -504,6 +509,9 @@ SOURCE_TASK_NAMES = {
     ),
     "newcastle_vc_international_scholarship": (
         "app.tasks.opportunity_sync.sync_newcastle_vc_international_scholarship"
+    ),
+    "sheffield_pg_scholarship": (
+        "app.tasks.opportunity_sync.sync_sheffield_pg_scholarship"
     ),
 }
 
@@ -1414,6 +1422,21 @@ def sync_newcastle_vc_international_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_sheffield_pg_scholarship",
+    max_retries=3,
+)
+def sync_sheffield_pg_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "sheffield_pg_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1679,6 +1702,7 @@ def _collector(source_code: str) -> Any:
         "newcastle_vc_international_scholarship": (
             NewcastleVcInternationalScholarshipSource
         ),
+        "sheffield_pg_scholarship": SheffieldPgScholarshipSource,
     }[source_code]()
 
 

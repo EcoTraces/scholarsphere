@@ -2220,3 +2220,62 @@ class NewcastleVcInternationalScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().newcastle_vcis_base_url
+
+
+class SheffieldPgScholarshipSource(_SingleProgramSource):
+    """International Postgraduate Scholarship 2027 (selected regions) -
+    University of Sheffield, England. A partial (GBP 7,000) tuition fee
+    reduction for taught postgraduate offer-holders starting September
+    2027, this platform's first England source specifically for
+    postgraduate applicants (Imperial Inspires and Newcastle's VCIS,
+    sources #60-61, are both primarily undergraduate).
+
+    Confirmed 2026-09-05: `robots.txt` is a standard Drupal file (only
+    `/core/`, `/profiles/`, `/admin/` etc. disallowed) - does not cover
+    this content path.
+
+    Country coverage / eligibility: restricted to permanent residents
+    of, or those who have lived for the last three years in, a specific
+    published list - verified directly from the live page, not assumed:
+    India, Indonesia, Japan, Kenya, Nigeria, South Korea, Taiwan,
+    Thailand, Turkiye, and Vietnam. **Sierra Leone is not on this list**
+    (Kenya and Nigeria are the only African countries included) -
+    checked explicitly per this platform's standing Sierra-Leone-
+    eligibility discipline, same as Newcastle's VCIS (#61) above.
+    Awarded "automatically to eligible offer holders, with no additional
+    application required" - `application_required = false` in spirit
+    (this schema has no such field; the scraped description preserves
+    the exact statement).
+
+    `title_selectors = ("h1",)`: the page's raw HTML contains two
+    generic placeholder `<h1>` comments ("Library item label woz ere")
+    - the same "commented-out heading poses no risk" pattern already
+    verified directly for Newcastle's VCIS above; `soup.find_all("h1")`
+    on this page returns exactly the one real heading.
+
+    `deadline_keywords = ("accept your offer",)` rather than the
+    default "deadline": the real sentence is "You must accept your
+    offer from the University before 4pm (UK time) on Tuesday 6 July
+    2027" - the literal word "deadline" appears once elsewhere on the
+    page ("If you accept your first offer by the deadline...") more than
+    300 characters *after* the actual date, so anchoring on "deadline"
+    itself would find nothing; anchoring on "accept your offer" (the
+    first, and only relevantly-positioned, occurrence) correctly
+    extracts the real date - verified directly against the live
+    fixture.
+    """
+
+    source_code = "sheffield_pg_scholarship"
+    overview_path = (
+        "/international/fees-and-funding/scholarships/postgraduate/"
+        "international-postgraduate-scholarship-2027"
+    )
+    content_selectors = ("article",)
+    deadline_keywords = ("accept your offer",)
+    provider_name = "University of Sheffield"
+    country = "United Kingdom"
+    external_id = "sheffield-international-postgraduate-scholarship-2027"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().sheffield_pg_scholarship_base_url

@@ -2867,6 +2867,71 @@ Inspires (#60) — this platform's 9th university-classified source.
   unmodified from the live fetch
   (`tests/fixtures/newcastle_vc_international_scholarship.html`).
 
+## 62. International Postgraduate Scholarship 2027 (University of Sheffield)
+
+Researched 2026-09-05, a follow-up "add another England postgraduate
+scholarship" pass after Imperial Inspires (#60) and Newcastle's VCIS
+(#61) — this platform's 10th university-classified source and its first
+England source specifically for postgraduate applicants (both prior
+England sources are primarily undergraduate).
+
+- **Organization**: University of Sheffield
+- **Route code**: `sheffield-international-postgraduate-scholarship-2027`
+  (`sheffield_pg_scholarship` internally)
+- **Official domain / base URL**: `https://sheffield.ac.uk`
+  (`SHEFFIELD_PG_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — a partial GBP 7,000 tuition fee
+  reduction for taught postgraduate offer-holders starting September
+  2027, `funding_type = "partial_funding"`
+- **Country coverage / eligibility**: Restricted to permanent residents
+  of, or those who have lived for the last three years in, a specific
+  published list — verified directly from the live page: India,
+  Indonesia, Japan, Kenya, Nigeria, South Korea, Taiwan, Thailand,
+  Türkiye, and Vietnam. **Sierra Leone is not on this list** (Kenya and
+  Nigeria are the only African countries included) — checked explicitly
+  per this platform's standing Sierra-Leone-eligibility discipline, same
+  as Newcastle's VCIS (#61). Awarded "automatically to eligible offer
+  holders, with no additional application required."
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed). Note: the university
+  publishes a *separate*, China-specific variant of this scholarship
+  (`international-postgraduate-scholarship-china`) at a different URL —
+  correctly treated as a distinct record if ever added, not merged with
+  this "selected regions" one, per this platform's duplicate-control
+  rule that different awards from the same provider must stay separate.
+- **robots.txt / indexing note**: A standard Drupal file (`/core/`,
+  `/profiles/`, `/admin/`, etc. disallowed) that does not cover this
+  content path
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Title selector robustness**: the page's raw HTML contains *two*
+    generic placeholder `<h1>` tags inside HTML comments ("Library item
+    label woz ere") — the same "commented-out heading poses no risk"
+    property already verified directly for Newcastle's VCIS (#61);
+    `soup.find_all("h1")` on this page returns exactly the one real
+    heading.
+  - **Deadline keyword choice**: this is the first England source to
+    successfully extract a real, exact, future deadline. The page's
+    real sentence is "You must accept your offer from the University
+    before 4pm (UK time) on Tuesday 6 July 2027" — the literal word
+    "deadline" does appear once elsewhere on the page ("If you accept
+    your first offer by the deadline...") but more than 300 characters
+    *after* the actual date, so the default "deadline" keyword would
+    anchor too late and find nothing; `deadline_keywords = ("accept
+    your offer",)` anchors on the sentence's own start instead,
+    verified directly against the live fixture to correctly extract
+    `2027-07-06`.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/sheffield_international_postgraduate_scholarship.html`).
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**
