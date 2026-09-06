@@ -4930,6 +4930,157 @@ real, credible lead (Radboud Encouragement Scholarship) blocked purely
 by an access barrier rather than a funding shortfall — is itself the
 correct, complete outcome to report.
 
+## 84. Heinrich Böll Foundation ("Tailwind for Talents") Scholarship for Graduates and PhD students
+
+Researched 2026-09-06, in response to an open-scope "find another
+scholarship opportunities in germany" request — unlike the recent
+country mega-prompts, this stated no degree-level or funding-type
+restriction, so the research pass considered any genuinely new,
+verifiable German opportunity rather than only fully-funded Master's
+candidates. This platform's second **Foundation**-classified source
+(Humboldt Research Fellowship, #56, is the first) and its third
+Germany source of any kind alongside DAAD (#10, government) and the
+university sources TUM (#59) and Freiburg (#69).
+
+- **Organization**: Heinrich Böll Foundation (Heinrich-Böll-Stiftung) —
+  a political foundation affiliated with Alliance 90/The Greens,
+  legally independent of government even though its international-
+  student track is financed by the Federal Ministry of Research,
+  Technology and Space (BMFTR) and the Federal Foreign Office (AA);
+  the foundation itself runs the selection and payout, not a government
+  agency, matching this project's "classify by who actually
+  administers it" rule already applied to Humboldt and to DAAD's KAS
+  addition.
+- **Route code**: `heinrich-boll-scholarship`
+  (`heinrich_boll_scholarship` internally)
+- **Official domain / base URL**: `https://www.boell.de`
+  (`HEINRICH_BOLL_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — covers both a Master's/graduate
+  track and a PhD track on the same overview page (like Freiburg's
+  Deutschlandstipendium, #69, covering both undergraduate and Master's
+  on one page). For the Federal-Foreign-Office-funded, non-EU
+  international-student Master's track (verified on the foundation's
+  own separate "Financial support" page, confirmed live but not itself
+  scraped for this record, since the overview page's own content is
+  sufficient and more stable): a base scholarship of EUR 992/month, a
+  health-insurance allowance of up to EUR 100/month, reimbursement of
+  German tuition fees up to EUR 10,000/year (covering the same
+  Baden-Württemberg non-EU-tuition exception already documented for
+  DAAD's KAS entry), a EUR 38/month fixed fringe-benefit allowance, and
+  family/child allowances where applicable — genuinely fully funded.
+  `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: "we support graduate students and
+  PhD students from DAC countries who intend to pursue a Master's
+  degree or PhD in Germany," with priority to applicants from DAC
+  (OECD Development Assistance Committee) countries who have "not yet
+  taken up residence in Germany at the time of their application" —
+  Sierra Leone is a DAC-listed Least Developed Country, so it is
+  covered, not merely un-excluded. Genuinely open to **prospective**
+  applicants, not only those already enrolled in Germany: the
+  foundation's separate application-process page (confirmed live but
+  not itself scraped) states the certificate of enrollment/admission
+  "may be submitted at a later point, but no later than the interview"
+  — the opposite of this platform's earlier Friedrich-Ebert-Stiftung
+  research finding (documented above under DAAD, #10), which required
+  applicants to *already* be enrolled in Germany and was left
+  unintegrated for exactly that reason. Documented plainly rather than
+  glossed over: international applicants must separately demonstrate
+  German-language proficiency of at least B2 level or DSH1 (stated on
+  the foundation's application page, not itself scraped) — a language
+  requirement, not a nationality restriction; it does not exclude
+  Sierra Leone.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered Drupal HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `boell.de/robots.txt` (a Drupal
+  default) disallows only CMS-internal paths (`/core/`, `/profiles/`,
+  `/admin/`, `/user/login`, etc.) — none of which cover `/en/
+  scholarships`.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Overview page is `/en/scholarships`, deliberately not the
+    separate `/en/applying-scholarship` page**: both official pages
+    describe the same programme, but `/en/applying-scholarship`'s own
+    "graduate scholarship" section still displays an already-passed
+    "Fall 2026: 15 July 2026 until 1 September 2026" cycle as current
+    — a real content-freshness lag on that specific page, confirmed by
+    fetching both pages live on the same research date — while `/en/
+    scholarships` correctly lists only genuinely future cycles
+    ("Spring 2027" and "Fall 2027"). Chose the current page over the
+    stale one, per this project's "no stale-cycle guessing" rule.
+  - **Content selector `div.node__content`**: a stable Drupal content
+    wrapper, verified directly via a BeautifulSoup structural walk to
+    hold the programme description, the current deadlines, and the
+    "Who can apply?" eligibility text in one clean ~2KB block, with
+    none of the page's navigation or footer chrome.
+  - **`deadline_keywords` deliberately overridden to `("until",)`,
+    skipping the base class's default `("deadline", "closing date")`
+    entirely**: the page's own deadline text reads "Our next
+    application deadlines: Spring 2027: 15 January 2027 until 1 March
+    2027 Fall 2027: ...". A case-insensitive search for "deadline"
+    matches inside "deadlines" first, and the nearest date literal
+    after that point is 15 January 2027 — the application-*window-
+    opening* date, not the deadline. Anchoring on "until" instead
+    correctly lands on the first *closing* date, 1 March 2027,
+    immediately following it — verified directly against the live
+    fixture before writing the test.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/heinrich_boll_scholarship.html`).
+
+### Researched this pass (2026-09-06, general "another Germany scholarship" follow-up), not integrated
+
+An open-scope pass (not restricted to Master's or to fully funded)
+checked five further German political-foundation and university
+candidates live before settling on Heinrich Böll above, and found a
+consistent, genuine access barrier common to most of them:
+
+- **Friedrich Naumann Foundation for Freedom (`freiheit.org`) —
+  Scholarships for foreign students** — its own page requires the
+  applicant to "still have two remaining semesters" of study left at
+  the time of funding, i.e. already enrolled at a German university,
+  not a prospective applicant — `ALREADY_ENROLLED`, the same pattern
+  already documented for Friedrich-Ebert-Stiftung above. Application
+  materials and the selection interview must also be conducted in
+  German.
+- **Rosa Luxemburg Foundation (`rosalux.de`) — scholarship for
+  international students** — explicitly requires "[e]nrollment at a
+  state or state-recognised university in Germany" as a formal
+  eligibility condition, and caps applications to within 15 months of
+  first arriving in Germany — `ALREADY_ENROLLED`, not a scholarship a
+  prospective Sierra Leonean applicant abroad could use to fund initial
+  admission.
+- **Hanns Seidel Foundation (`hss.de`) — international scholarships** —
+  a real, genuinely prospective-applicant-friendly programme in
+  principle (proof of enrollment/admission letter accepted "no later
+  than the time of the interview," the same pattern as Heinrich Böll),
+  but its own published application process is explicitly routed
+  through country-specific national HSF offices (India, Pakistan,
+  Vietnam, Myanmar, Jordan, and others found live) with no office, page,
+  or stated process found covering Sierra Leone or West Africa more
+  broadly — a genuine, undocumented access gap rather than a funding or
+  nationality exclusion, left unintegrated as `VERIFICATION_REQUIRED`
+  rather than assumed accessible.
+- **Universität Hamburg — Merit Scholarships** (also listed on DAAD's
+  database) — its own eligibility rule requires the applicant to have
+  "been enrolled at Universität Hamburg for at least 1 semester" before
+  applying — `ALREADY_ENROLLED`, architecturally the same
+  already-enrolled-retention-grant shape as this platform's existing
+  TUM International Student Scholarship (#59), not a new kind of
+  coverage.
+- **Technical University of Berlin (TU Berlin)** — no single official
+  TU-Berlin-administered flagship scholarship page was found; every
+  aggregator result pointed back to DAAD's own Study Scholarship and
+  EPOS programmes (both already covered by this platform's existing
+  DAAD source, #10) or to unrelated political-foundation scholarships,
+  not a distinct TU Berlin-run scheme.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

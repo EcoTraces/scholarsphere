@@ -46,6 +46,7 @@ from app.services.national_scholarship_programs import (
     FreiburgDeutschlandstipendiumSource,
     GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
+    HeinrichBollScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
@@ -3000,3 +3001,51 @@ def test_gates_cambridge_scholarship_has_no_robots_txt_restrictions() -> None:
     """robots.txt (`gatescambridge.org/robots.txt`) only disallows
     `/wp-admin/`, unrelated to this content path."""
     assert GatesCambridgeScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Heinrich Böll Foundation Scholarship: real fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_heinrich_boll_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A Foundation source (like Humboldt Research Fellowship), for an
+    open-scope "find another scholarship in Germany" request. Genuinely
+    fully funded for prospective (not-yet-enrolled) non-EU Master's/PhD
+    applicants from DAC countries (Sierra Leone included). Deadline
+    extraction deliberately anchors on "until" rather than the base
+    class's default "deadline" keyword, since "deadline" as a substring
+    of "deadlines" would otherwise land on the window-*opening* date (15
+    January 2027) instead of the closing date (1 March 2027)."""
+    source = HeinrichBollScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("heinrich_boll_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "heinrich-boll-scholarship"
+    assert (
+        opportunity.title
+        == "Tailwind for Talents: Scholarships for Graduates and PhD students"
+    )
+    assert opportunity.country == "Germany"
+    assert (
+        opportunity.provider_name
+        == "Heinrich Böll Foundation (Heinrich-Böll-Stiftung)"
+    )
+    assert opportunity.description is not None
+    assert "DAC countries" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline == date(2027, 3, 1)
+
+
+def test_heinrich_boll_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`boell.de/robots.txt`, a Drupal default) sets no
+    relevant `Disallow` for `/en/scholarships`."""
+    assert HeinrichBollScholarshipSource.min_request_interval_seconds == 2.0

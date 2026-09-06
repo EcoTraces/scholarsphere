@@ -159,9 +159,10 @@ async def test_source_seeding_is_idempotent(session: AsyncSession) -> None:
         "sjtu_masters_scholarship",
         "mcgill_mastercard_scholars",
         "gates_cambridge_scholarship",
+        "heinrich_boll_scholarship",
     }
     assert first["grants_gov"].id == second["grants_gov"].id
-    assert await session.scalar(select(func.count(OpportunitySource.id))) == 84
+    assert await session.scalar(select(func.count(OpportunitySource.id))) == 85
 
 
 @pytest.mark.asyncio

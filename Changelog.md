@@ -28,6 +28,94 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Germany, open-scope follow-up: Heinrich Böll Foundation Scholarship added
+
+### Added
+- **Heinrich Böll Foundation ("Tailwind for Talents") Scholarship for
+  Graduates and PhD students** (`app/services/national_scholarship_
+  programs.py::HeinrichBollScholarshipSource`, source #84 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 85th registered
+  `OpportunitySource`, in response to an open-scope "find another
+  scholarship opportunities in germany" request (no degree-level or
+  funding-type restriction stated). This registry's second
+  Foundation-classified source (Humboldt Research Fellowship, #56, is
+  the first) and third Germany source overall, alongside DAAD (#10)
+  and the university sources TUM (#59) and Freiburg (#69).
+  - Genuinely fully funded for the Federal-Foreign-Office-funded,
+    non-EU international-student Master's track: EUR 992/month base
+    scholarship, a health-insurance allowance of up to EUR 100/month,
+    reimbursement of German tuition fees up to EUR 10,000/year
+    (covering the same Baden-Württemberg non-EU-tuition exception
+    already documented for DAAD's KAS entry), a EUR 38/month fringe
+    benefit, and family/child allowances where applicable — verified
+    directly on the foundation's own "Financial support" page.
+  - **Country coverage / eligibility**: priority to applicants from
+    DAC (OECD Development Assistance Committee) countries who have
+    "not yet taken up residence in Germany at the time of their
+    application" — Sierra Leone, a DAC-listed Least Developed Country,
+    is covered. Genuinely open to *prospective* applicants: the
+    certificate of enrollment/admission "may be submitted at a later
+    point, but no later than the interview," the opposite of this
+    platform's earlier Friedrich-Ebert-Stiftung finding (documented
+    under DAAD, #10), which required prior enrollment and was left
+    unintegrated. Documented plainly: international applicants must
+    separately show German-language proficiency of at least B2/DSH1 —
+    a language requirement, not a nationality restriction; it does not
+    exclude Sierra Leone.
+  - **Deliberate design choice**: `deadline_keywords` overridden to
+    `("until",)`, skipping the base class's default `("deadline",
+    "closing date")` entirely — the live page's text ("Our next
+    application deadlines: Spring 2027: 15 January 2027 until 1 March
+    2027...") would otherwise have the substring "deadline" match
+    inside "deadlines" first and surface the window-*opening* date (15
+    January 2027) rather than the actual closing date. Anchoring on
+    "until" instead correctly extracts 1 March 2027.
+  - Overview/content page chosen deliberately: `/en/scholarships`, not
+    the separate `/en/applying-scholarship` page, which still displays
+    an already-passed "Fall 2026" cycle as current — a real
+    content-freshness lag confirmed by fetching both pages live on the
+    same day.
+  - **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+    backend's actual HTTP path — 200, real server-rendered Drupal
+    HTML. Implemented and unit-tested against a real fixture, captured
+    unmodified from the live fetch
+    (`tests/fixtures/heinrich_boll_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — besides the new source above, researched and rejected five further
+  German candidates this same pass:
+  - **Friedrich Naumann Foundation for Freedom** and **Rosa Luxemburg
+    Foundation** — both explicitly require the applicant to already be
+    enrolled at a German university with semesters of study remaining
+    — `ALREADY_ENROLLED`, the same pattern already documented for
+    Friedrich-Ebert-Stiftung under DAAD (#10).
+  - **Hanns Seidel Foundation** — a genuinely prospective-applicant-
+    friendly design (admission proof accepted "no later than the
+    interview," like Heinrich Böll), but its application process is
+    explicitly routed through country-specific national HSF offices
+    (India, Pakistan, Vietnam, Myanmar, Jordan, and others found live)
+    with none found covering Sierra Leone or West Africa more broadly
+    — a genuine access gap, left unintegrated as
+    `VERIFICATION_REQUIRED` rather than assumed accessible.
+  - **Universität Hamburg — Merit Scholarships** — requires the
+    applicant to have "been enrolled at Universität Hamburg for at
+    least 1 semester" — `ALREADY_ENROLLED`, architecturally the same
+    shape as this platform's existing TUM International Student
+    Scholarship (#59).
+  - **Technical University of Berlin** — no distinct
+    TU-Berlin-administered flagship scholarship page found; every
+    result traced back to DAAD's own Study Scholarship/EPOS
+    programmes, already covered by source #10.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Spain, open-scope follow-up: no new source qualified
 
 ### Added

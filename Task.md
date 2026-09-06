@@ -4497,3 +4497,139 @@ for the full dated history.
       run was required since no source code, test, or fixture file
       changed; the existing 813-passed/25-skipped baseline remains the
       accurate current count.
+
+- [x] **(2026-09-06)** Germany, open-scope follow-up: "find another
+      scholarship opportunities in germany" - like the Spain request
+      immediately before it, this was open-ended with no degree-level
+      or funding-type restriction stated. Reviewed this platform's
+      existing Germany coverage first (DAAD #10 with its seven curated
+      detail ids including KAS; Humboldt Research Fellowship #56;
+      TUM's International Student Scholarship #59; Freiburg's
+      Deutschlandstipendium #69; and the long list of previously
+      rejected candidates - Heidelberg, Bonn, Constructor Bremen,
+      Mannheim, ESMT, WHU, Frankfurt School, Göttingen, IU
+      International, RWTH Aachen, Elite Network of Bavaria, Hertie
+      School, FES) before searching for genuinely new candidates.
+
+      Found and **implemented** the **Heinrich Böll Foundation
+      ("Tailwind for Talents") Scholarship for Graduates and PhD
+      students** as source #84 - this registry's second
+      Foundation-classified source (after Humboldt Research Fellowship,
+      #56) and third Germany source overall:
+      - Live-fetched the foundation's own official pages directly
+        (`boell.de/en/scholarships`, `/en/applying-scholarship`,
+        `/en/application`, `/en/2025/05/14/financial-support`) rather
+        than trusting search-engine snippets, which turned out to
+        matter: one secondary source claimed international applicants
+        must already be enrolled in Germany, but the foundation's own
+        `/en/applying-scholarship` page states plainly that a
+        certificate of enrollment/admission "may be submitted at a
+        later point, but no later than the interview" - genuinely open
+        to a prospective applicant, not requiring prior admission.
+      - Confirmed genuinely fully funded by reading the foundation's
+        own "Financial support" page directly: for the Federal Foreign
+        Office-funded non-EU international Master's track, a base
+        scholarship of EUR 992/month, a health-insurance allowance up
+        to EUR 100/month, reimbursement of German tuition fees up to
+        EUR 10,000/year (covering the same Baden-Württemberg
+        non-EU-tuition edge case already documented for DAAD's KAS
+        entry), a EUR 38/month fringe benefit, and family/child
+        allowances.
+      - Confirmed Sierra Leone eligibility properly rather than
+        inferring it from a vague label: the programme states priority
+        for applicants from DAC (OECD Development Assistance Committee)
+        countries not yet resident in Germany - Sierra Leone is a
+        DAC-listed Least Developed Country, genuinely covered.
+      - Documented honestly, not glossed over: international applicants
+        must separately demonstrate German-language proficiency of at
+        least B2 level or DSH1 (stated on the foundation's own
+        `/en/application` page) - a real practical barrier for an
+        English-speaking Sierra Leonean applicant, but a language
+        requirement rather than a nationality restriction, so it does
+        not itself disqualify the source from being listed.
+      - **A real, live-caught content-freshness bug avoided**: compared
+        the foundation's two related pages side by side on the same
+        research day and found `/en/applying-scholarship`'s own
+        "graduate scholarship" section still displaying an
+        already-passed "Fall 2026: 15 July 2026 until 1 September
+        2026" cycle as if current, while `/en/scholarships` correctly
+        showed only genuinely future cycles ("Spring 2027," "Fall
+        2027"). Chose `/en/scholarships` as the overview/content page
+        specifically because of this discrepancy, per this project's
+        "no stale-cycle guessing" rule - verified by fetching both
+        pages live, not assumed.
+      - **A second real extraction trap found and engineered around**:
+        the chosen page's own deadline text reads "Our next application
+        deadlines: Spring 2027: 15 January 2027 until 1 March 2027 Fall
+        2027: ...". The base `_SingleProgramSource` class's default
+        `deadline_keywords = ("deadline", "closing date")` would match
+        the substring "deadline" inside "deadlines" first, and the
+        nearest date literal after that point is 15 January 2027 - the
+        application-*window-opening* date, not the actual deadline.
+        Overrode `deadline_keywords` to `("until",)` instead, which
+        correctly anchors on the closing date immediately following
+        "until" (1 March 2027) - verified directly with a standalone
+        `collect()` simulation against the real fixture before writing
+        the test, exactly matching the documented design intent.
+      - Selected `div.node__content` as the content selector after a
+        BeautifulSoup structural walk confirmed it holds the
+        programme's description, current deadlines, and "Who can
+        apply?" eligibility text in one clean ~2KB block, with none of
+        the page's navigation or footer chrome.
+      - Wired into all 4 standard backend files
+        (`app/core/config.py`'s `heinrich_boll_scholarship_base_url`
+        setting plus its HTTPS-validator tuple entry;
+        `app/services/national_scholarship_programs.py`'s
+        `HeinrichBollScholarshipSource` class;
+        `app/services/source_registry.py`'s `SOURCE_DEFINITIONS`,
+        `_base_urls()`, and `next_runs` dicts; and
+        `app/tasks/opportunity_sync.py`'s five locations - import,
+        Celery beat schedule, task-name map, `@celery_app.task`-
+        decorated sync function, and source-class dispatch map).
+
+      Five further German candidates were researched live and rejected
+      this same pass:
+      - **Friedrich Naumann Foundation for Freedom** - its own page
+        requires the applicant to "still have two remaining semesters"
+        of study left, i.e. already enrolled at a German university,
+        not a prospective applicant; application materials and the
+        interview must also be conducted in German.
+      - **Rosa Luxemburg Foundation** - explicitly requires
+        "[e]nrollment at a state or state-recognised university in
+        Germany" as a formal eligibility condition, and caps
+        applications to within 15 months of first arriving in Germany -
+        not usable to fund initial admission from abroad.
+      - **Hanns Seidel Foundation** - a genuinely prospective-
+        applicant-friendly design on paper (the same "admission proof
+        accepted no later than the interview" pattern as Heinrich
+        Böll), but its own published application process is explicitly
+        routed through country-specific national HSF offices (India,
+        Pakistan, Vietnam, Myanmar, Jordan, and others found live) with
+        no office, page, or stated process found covering Sierra Leone
+        or West Africa more broadly - a genuine, undocumented access
+        gap rather than a funding or nationality exclusion, left
+        unintegrated as `VERIFICATION_REQUIRED` rather than assumed
+        accessible.
+      - **Universität Hamburg - Merit Scholarships** - requires the
+        applicant to have "been enrolled at Universität Hamburg for at
+        least 1 semester" before applying - architecturally the same
+        already-enrolled-retention-grant shape as this platform's
+        existing TUM International Student Scholarship (#59), not a
+        new kind of coverage.
+      - **Technical University of Berlin** - no single official
+        TU-Berlin-administered flagship scholarship page was found;
+        every aggregator result traced back to DAAD's own Study
+        Scholarship and EPOS programmes, both already covered by this
+        platform's existing DAAD source (#10).
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings introduced by any of the touched files. A `collect()`
+      simulation against the real fixture, run before any test was
+      written, confirmed title, provider, country, `funding_type =
+      "fully_funded"`, and `deadline = date(2027, 3, 1)` all resolve
+      exactly as documented. Full backend suite green afterward, 815
+      passed / 25 skipped (up from 813 passed/25 skipped - two new
+      tests, plus `test_opportunity_import.py`'s updated source-count
+      assertion, 84 -> 85 registered sources). The fixture
+      (`tests/fixtures/heinrich_boll_scholarship.html`) was captured
+      unmodified from the live site.

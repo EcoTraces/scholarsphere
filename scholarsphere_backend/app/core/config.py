@@ -550,6 +550,27 @@ class Settings(BaseSettings):
     # disallows `/wp-admin/`, unrelated to this content path.
     gates_cambridge_scholarship_base_url: str = "https://www.gatescambridge.org"
 
+    # Heinrich Böll Foundation ("Tailwind for Talents") Scholarship for
+    # Graduates and PhD students - researched 2026-09-06 in response to
+    # an open-scope "find another scholarship in Germany" request. A
+    # political-foundation source (like Humboldt Research Fellowship,
+    # #56), not government, even though the AA-funded track is financed
+    # by the Federal Foreign Office - administered end-to-end by the
+    # foundation itself. Genuinely fully funded for non-EU
+    # international Master's applicants: EUR 992/month base scholarship,
+    # a health-insurance allowance of up to EUR 100/month, reimbursement
+    # of German tuition fees up to EUR 10,000/year (covering the
+    # Baden-Württemberg non-EU-tuition edge case documented elsewhere in
+    # this file), a EUR 38/month fringe-benefit allowance, and
+    # family/child allowances where applicable - verified directly on
+    # the foundation's own "Financial support" page, not inferred.
+    # `boell.de/robots.txt` sets no relevant Disallow for `/en/
+    # scholarships`. Note (not itself a nationality bar): international
+    # applicants must demonstrate German proficiency of at least B2/DSH1
+    # - a language requirement, not a country restriction; Sierra Leone
+    # is not excluded.
+    heinrich_boll_scholarship_base_url: str = "https://www.boell.de"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -723,6 +744,7 @@ class Settings(BaseSettings):
         "sjtu_masters_scholarship_base_url",
         "mcgill_mastercard_scholars_base_url",
         "gates_cambridge_scholarship_base_url",
+        "heinrich_boll_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

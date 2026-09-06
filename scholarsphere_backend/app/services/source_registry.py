@@ -526,6 +526,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "heinrich_boll_scholarship": {
+        "source_name": "Heinrich Böll Foundation Scholarship",
+        "source_type": "foundation",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -643,6 +649,7 @@ def _base_urls() -> dict[str, str]:
         "sjtu_masters_scholarship": settings.sjtu_masters_scholarship_base_url,
         "mcgill_mastercard_scholars": settings.mcgill_mastercard_scholars_base_url,
         "gates_cambridge_scholarship": settings.gates_cambridge_scholarship_base_url,
+        "heinrich_boll_scholarship": settings.heinrich_boll_scholarship_base_url,
     }
 
 
@@ -750,6 +757,7 @@ async def seed_opportunity_sources(
         "sjtu_masters_scholarship": now + timedelta(hours=24),
         "mcgill_mastercard_scholars": now + timedelta(hours=24),
         "gates_cambridge_scholarship": now + timedelta(hours=24),
+        "heinrich_boll_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

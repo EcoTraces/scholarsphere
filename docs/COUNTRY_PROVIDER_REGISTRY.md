@@ -136,6 +136,7 @@ unverified).
 | 81 | Master's SJTU Scholarship (Shanghai Jiao Tong University) | China | UNIVERSITY | global.sjtu.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass, this registry's second China-university source; content selector is an adjacent-sibling CSS selector (`div.page-item + div.page-item`) deliberately targeting the Graduate-programmes tab panel on a multi-tab hub page, distinct from the Undergraduate tab's separate tiered scholarship; no nationality restriction stated; genuinely fully funded (tuition waiver + monthly stipend + insurance + accommodation subsidy), distinct from SJTU's own separately-named tuition-only Tuition Waiver Scholarship (not integrated); no deadline stated on this panel (see AUTHORITATIVE_SOURCES.md #81) |
 | 82 | Mastercard Foundation Scholars Program (McGill University) | Canada | UNIVERSITY | mcgill.ca | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a Canada fully-funded Master's follow-up request; this registry's first Canada source of any kind (Canada was previously found NOT_SUITABLE at the national/government level via EduCanada's institution-initiated SICS program, a finding that remains correct and unaffected — this is a university-administered source instead); genuinely fully funded (full international student tuition + on-campus housing + monthly stipend + book allowance + return flight); eligibility page (not itself scraped) lists an explicit ~54-country table naming Sierra Leone directly; `Crawl-delay: 5` respected via a source-specific `min_request_interval_seconds = 5.0`; no deadline extracted (see AUTHORITATIVE_SOURCES.md #82) |
 | 83 | Gates Cambridge Scholarship (University of Cambridge / Gates Cambridge Trust) | England | UNIVERSITY | gatescambridge.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for an England fully-funded Master's university scholarship engine request; this registry's first England source classified as genuinely fully funded (the nine pre-existing England sources, #60-#68, are all partial); worldwide eligibility ("a citizen of any country outside the United Kingdom," no narrower list, Sierra Leone included); covers tuition + a GBP 22,050/year maintenance allowance + return airfare + visa costs + the Immigration Health Surcharge; funds one-year postgraduate courses (Master's-level) and MLitt, not only PhD; no deadline extracted (the separate Timeline page's dates vary by applicant category/course with no single canonical value) (see AUTHORITATIVE_SOURCES.md #83). Oxford's Clarendon Fund was researched as an equally strong candidate but `ox.ac.uk` is behind an active Cloudflare managed challenge on every path tested (including robots.txt) — not bypassed, `BLOCKED`. |
+| 84 | Heinrich Böll Foundation ("Tailwind for Talents") Scholarship for Graduates and PhD students | Germany | FOUNDATION | boell.de | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for an open-scope "find another scholarship in germany" request (no degree-level or funding-type restriction); this registry's second Foundation-classified source (Humboldt Research Fellowship, #56, is the first) and third Germany source overall alongside DAAD (#10) and the university sources TUM (#59)/Freiburg (#69); priority given to DAC-country applicants (Sierra Leone, a DAC-listed LDC, is covered) not yet resident in Germany — genuinely open to prospective, not-yet-enrolled applicants, unlike the already-rejected Friedrich-Ebert-Stiftung finding under DAAD (#10); genuinely fully funded for the AA-funded Master's track (EUR 992/month + up to EUR 100/month health insurance + tuition reimbursement up to EUR 10,000/year + EUR 38/month fringe benefit + family allowances); international applicants must separately show German B2/DSH1 proficiency (a language, not a nationality, bar); `deadline_keywords` deliberately overridden to `("until",)` to avoid the base class's default "deadline" keyword landing on the window-opening date instead of the closing date; exact deadline extracted (1 March 2027) (see AUTHORITATIVE_SOURCES.md #84) |
 
 **(2026-09-06, Netherlands continuation pass)** The Netherlands
 fully-funded-only mega-prompt was resubmitted after three genuinely
@@ -195,6 +196,35 @@ UAB's general "beca de carácter general" (explicitly requires Spanish
 family residence as of 31 December 2025 — domestic-only); and UB and
 UCM (only vague aggregator-level claims found, no single official page
 identifying one scheme's exact terms).
+
+**(2026-09-06, general "another Germany scholarship" follow-up)**
+Researched and **implemented** the **Heinrich Böll Foundation
+("Tailwind for Talents") Scholarship for Graduates and PhD students**
+— see AUTHORITATIVE_SOURCES.md #84. An open-scope pass (no degree-level
+or funding-type restriction stated in the request), this registry's
+second Foundation-classified source (Humboldt Research Fellowship, #56,
+is the first) and third Germany source overall (alongside DAAD, #10,
+and the university sources TUM, #59, and Freiburg, #69). Genuinely
+fully funded for the Federal-Foreign-Office-funded Master's track
+(EUR 992/month + health insurance + tuition reimbursement up to
+EUR 10,000/year + fringe benefits + family allowances); priority to DAC
+countries not yet resident in Germany, so genuinely open to prospective
+applicants (Sierra Leone, a DAC-listed LDC, is covered) — unlike the
+already-rejected Friedrich-Ebert-Stiftung finding under DAAD (#10).
+Five further German candidates were researched and rejected this same
+pass (see AUTHORITATIVE_SOURCES.md's "Researched this pass (2026-09-06,
+general "another Germany scholarship" follow-up), not integrated"
+note): Friedrich Naumann Foundation and Rosa Luxemburg Foundation
+(both explicitly require the applicant to already be enrolled at a
+German university — `ALREADY_ENROLLED`); Hanns Seidel Foundation (a
+genuinely prospective-applicant-friendly design, but its application
+process is routed through country-specific national offices with none
+found covering Sierra Leone or West Africa — `VERIFICATION_REQUIRED`);
+Universität Hamburg's Merit Scholarships (also requires prior
+enrollment, the same shape as this platform's existing TUM source,
+#59); and Technical University of Berlin (no distinct
+TU-Berlin-administered flagship page found, only DAAD programmes
+already covered by source #10).
 
 Eight other France candidates were researched this pass and rejected
 from the fully-funded university-only dataset (see

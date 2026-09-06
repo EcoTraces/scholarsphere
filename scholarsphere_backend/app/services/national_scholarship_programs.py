@@ -3464,3 +3464,91 @@ class GatesCambridgeScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().gates_cambridge_scholarship_base_url
+
+
+class HeinrichBollScholarshipSource(_SingleProgramSource):
+    """Heinrich Böll Foundation ("Tailwind for Talents") Scholarship for
+    Graduates and PhD students - researched 2026-09-06 for an
+    open-scope "find another scholarship in Germany" request (no
+    degree-level or funding-type restriction stated). A **Foundation**
+    source, like Humboldt Research Fellowship (#56) - Heinrich-Böll-
+    Stiftung is a political foundation affiliated with Alliance 90/The
+    Greens, legally independent of government even though its
+    international-student track is financed by the Federal Foreign
+    Office (AA); administration (selection, payout) is the foundation's
+    own, per this project's "classify by who actually administers it"
+    rule.
+
+    Confirmed 2026-09-06: `boell.de/robots.txt` (a Drupal default) sets
+    no relevant `Disallow` for `/en/scholarships`.
+
+    Overview/content page is `/en/scholarships`, not the separate
+    `/en/applying-scholarship` page: both describe the same programme,
+    but `/en/applying-scholarship`'s own "graduate scholarship" section
+    still displays an already-passed "Fall 2026: 15 July 2026 until 1
+    September 2026" cycle as if current (a real content-freshness lag
+    on that specific page, confirmed by direct comparison of the two
+    pages' live text on the same day) while `/en/scholarships` lists
+    only genuinely future cycles ("Spring 2027" and "Fall 2027") - the
+    current page was chosen deliberately over the stale one, per this
+    project's "no stale-cycle guessing" rule.
+
+    Content selector `div.node__content`: a stable Drupal content
+    wrapper, verified directly via a BeautifulSoup structural walk to
+    hold the programme description, the current deadlines, and the
+    "Who can apply?" eligibility text in one clean ~2KB block, with none
+    of the page's navigation/footer chrome.
+
+    Country coverage / eligibility: "we support graduate students and
+    PhD students from DAC countries who intend to pursue a Master's
+    degree or PhD in Germany" - priority to DAC-list applicants (Sierra
+    Leone, a Least Developed Country, is on the OECD DAC list) who have
+    "not yet taken up residence in Germany at the time of their
+    application" - a genuinely prospective-applicant scholarship, not
+    one requiring prior enrolment (the certificate of enrolment/
+    admission may be submitted "at a later point, but no later than the
+    interview", per the separate `/en/applying-scholarship` page,
+    confirmed live but not itself scraped for this record - unlike this
+    platform's existing Friedrich-Ebert-Stiftung research finding,
+    documented above under DAAD (#10), which required applicants to
+    *already* be enrolled in Germany and was left unintegrated for that
+    reason). Documented plainly rather than glossed over: international
+    applicants must separately demonstrate German-language proficiency
+    of at least B2/DSH1 (stated on `/en/application`, not itself
+    scraped) - a language requirement, not a nationality restriction;
+    Sierra Leone is not excluded by it.
+
+    Funding (from the foundation's own "Financial support" page,
+    confirmed live but not itself scraped for this record, since the
+    overview page's own content is sufficient and more stable): the
+    Federal-Foreign-Office-funded Master's track pays a base scholarship
+    of EUR 992/month, a health-insurance allowance of up to EUR 100/
+    month, reimbursement of German tuition fees up to EUR 10,000/year
+    (covering the Baden-Württemberg non-EU-tuition exception documented
+    elsewhere in this file for DAAD's KAS entry), a EUR 38/month
+    fixed fringe-benefit allowance, and family/child allowances where
+    applicable - `funding_type = "fully_funded"`.
+
+    Deliberately overrides `deadline_keywords` to `("until",)`, skipping
+    the base class's default `("deadline", "closing date")` entirely:
+    the page's own deadline text reads "Our next application deadlines:
+    Spring 2027: 15 January 2027 until 1 March 2027 Fall 2027: ..." -
+    the substring "deadline" is found inside "deadlines" first, and the
+    nearest date literal after that point is 15 January 2027, which is
+    the application-*window-opening* date, not the deadline. Anchoring
+    on "until" instead correctly lands on the first *closing* date, 1
+    March 2027, immediately after it - verified directly against the
+    live fixture.
+    """
+
+    source_code = "heinrich_boll_scholarship"
+    overview_path = "/en/scholarships"
+    content_selectors = ("div.node__content",)
+    deadline_keywords = ("until",)
+    provider_name = "Heinrich Böll Foundation (Heinrich-Böll-Stiftung)"
+    country = "Germany"
+    external_id = "heinrich-boll-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().heinrich_boll_scholarship_base_url

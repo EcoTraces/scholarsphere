@@ -86,6 +86,7 @@ from app.services.national_scholarship_programs import (
     FreiburgDeutschlandstipendiumSource,
     GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
+    HeinrichBollScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
@@ -512,6 +513,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_gates_cambridge_scholarship",
             "schedule": crontab(minute=45, hour=21),
         },
+        "sync-heinrich-boll-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_heinrich_boll_scholarship",
+            "schedule": crontab(minute=0, hour=22),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -704,6 +709,9 @@ SOURCE_TASK_NAMES = {
     ),
     "gates_cambridge_scholarship": (
         "app.tasks.opportunity_sync.sync_gates_cambridge_scholarship"
+    ),
+    "heinrich_boll_scholarship": (
+        "app.tasks.opportunity_sync.sync_heinrich_boll_scholarship"
     ),
 }
 
@@ -1965,6 +1973,21 @@ def sync_gates_cambridge_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_heinrich_boll_scholarship",
+    max_retries=3,
+)
+def sync_heinrich_boll_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "heinrich_boll_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2266,6 +2289,7 @@ def _collector(source_code: str) -> Any:
         "sjtu_masters_scholarship": SjtuMastersScholarshipSource,
         "mcgill_mastercard_scholars": McgillMastercardScholarsSource,
         "gates_cambridge_scholarship": GatesCambridgeScholarshipSource,
+        "heinrich_boll_scholarship": HeinrichBollScholarshipSource,
     }[source_code]()
 
 
