@@ -2453,3 +2453,111 @@ class SouthamptonMeritUndergraduateScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().southampton_merit_ug_base_url
+
+
+class DurhamInspiringExcellenceUndergraduateScholarshipSource(_SingleProgramSource):
+    """Durham Inspiring Excellence Scholarships (Undergraduate) - England's
+    first Durham University source. A competitive, partial tuition-fee-
+    discount scholarship for self-funded international undergraduates,
+    worth up to GBP 15,000-30,000 over a three-year programme.
+
+    Confirmed 2026-09-06: `robots.txt` (`durham.ac.uk/robots.txt`) has a
+    blanket `Disallow:` (empty value, i.e. no restriction) under
+    `User-Agent: *`, and none of its named `Disallow:` entries match this
+    content path.
+
+    Page has no `<h1>` (Terminal Four page-builder site, like several
+    other England sources here) - `title_selectors` is left at its
+    default `("h1",)`, which will not match, so `collect()` falls back to
+    the `external_id`-derived title, which reads correctly as "Durham
+    Inspiring Excellence Undergraduate Scholarship".
+
+    Content selector: `div.col-md-9` (the page's main content column) -
+    deliberately NOT `div.t4-text-long`, which is a second, later block on
+    the same page holding only the scholarship's Terms and Conditions
+    (withdrawal/notification rules), not the Summary/Amount/Eligibility/
+    How-to-apply sections a reader actually needs - verified directly via
+    a BeautifulSoup structural walk of the fetched page before choosing
+    the selector.
+
+    Country coverage / eligibility: "available to all self-funded
+    international applicants" who are "classified as Overseas student for
+    tuition fee purposes" - no nationality/country restriction stated, so
+    Sierra Leone applicants are eligible like any other international
+    student. Excludes two named Theology programmes and anyone applying
+    via Clearing, Insurance Choice, or the Durham University International
+    Study Centre route.
+
+    Deadline: the page states three application rounds for 2027 entry
+    ("1st round application deadline: 7 December 2026", "2nd round ...
+    15 March 2027", "Final round ... 1 May 2027"). The generic "deadline"
+    keyword's first page occurrence is the unrelated "UCAS reply deadline"
+    phrase, which has no date literal nearby and yields no match - so
+    `deadline_keywords` uses the specific phrase "1st round application
+    deadline" to reliably capture the first (earliest) round's date,
+    2026-12-07, rather than the vaguer generic keyword.
+
+    Funding: a competitive tuition-fee discount, not full funding -
+    `funding_type = "partial_funding"`.
+    """
+
+    source_code = "durham_inspiring_excellence_undergraduate_scholarship"
+    overview_path = (
+        "/study/scholarships/international/durham-inspiring-excellence-scholarships/"
+        "undergraduate/"
+    )
+    content_selectors = ("div.col-md-9",)
+    deadline_keywords = ("1st round application deadline",)
+    provider_name = "Durham University"
+    country = "United Kingdom"
+    external_id = "durham-inspiring-excellence-undergraduate-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().durham_inspiring_excellence_ug_base_url
+
+
+class DurhamInspiringExcellencePostgraduateScholarshipSource(_SingleProgramSource):
+    """Durham Inspiring Excellence Scholarships (Postgraduate) - the
+    Master's-level counterpart of the undergraduate source above, on a
+    separate flagship page with its own eligibility rules and worth up to
+    GBP 10,000 in tuition fee discount for a one-year taught Master's
+    programme (MSc/MA/LLM/MDS; MBA, MSW and MA in Theology and Ministry
+    excluded).
+
+    Same site, same `robots.txt` finding, same no-`<h1>` /
+    external-id-fallback title behaviour, and the same `div.col-md-9` vs.
+    `div.t4-text-long` (Terms and Conditions block) content-selector
+    distinction documented on the undergraduate source above - both
+    verified independently against this page's own fetched HTML, not
+    assumed from the undergraduate page's structure.
+
+    Country coverage / eligibility: "available to all self-funded
+    international applicants" with no nationality/country restriction -
+    Sierra Leone applicants are eligible. Durham alumni may apply but
+    cannot combine this award with the separate Alumni Discount.
+
+    Deadline: same three-round structure and phrasing as the undergraduate
+    page ("1st round application deadline: 7 December 2026") - confirmed
+    independently on this page's own fetched HTML that
+    `deadline_keywords = ("1st round application deadline",)` resolves to
+    2026-12-07 here too.
+
+    Funding: a competitive tuition-fee discount, not full funding -
+    `funding_type = "partial_funding"`.
+    """
+
+    source_code = "durham_inspiring_excellence_postgraduate_scholarship"
+    overview_path = (
+        "/study/scholarships/international/durham-inspiring-excellence-scholarships/"
+        "postgraduate/"
+    )
+    content_selectors = ("div.col-md-9",)
+    deadline_keywords = ("1st round application deadline",)
+    provider_name = "Durham University"
+    country = "United Kingdom"
+    external_id = "durham-inspiring-excellence-postgraduate-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().durham_inspiring_excellence_pg_base_url

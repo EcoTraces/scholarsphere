@@ -39,6 +39,8 @@ from app.services.national_scholarship_programs import (
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TurkiyeBurslariSource,
+    DurhamInspiringExcellencePostgraduateScholarshipSource,
+    DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
@@ -2144,5 +2146,106 @@ def test_southampton_merit_undergraduate_scholarship_has_no_robots_txt_restricti
 ):
     assert (
         SouthamptonMeritUndergraduateScholarshipSource.min_request_interval_seconds
+        == 2.0
+    )
+
+
+# --- Durham University Inspiring Excellence Scholarships (Undergraduate
+# and Postgraduate): real fixtures, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_durham_inspiring_excellence_undergraduate_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page has no `<h1>`, so the title falls back to the
+    `external_id`-derived value. `div.col-md-9` is the correct content
+    selector - the later `div.t4-text-long` block on the same page holds
+    only Terms and Conditions text, verified directly via a structural
+    walk of the fetched page. The generic "deadline" keyword's first
+    match on the page (an unrelated "UCAS reply deadline" phrase) has no
+    date nearby, so `deadline_keywords` uses the specific phrase "1st
+    round application deadline" to reliably extract the first round's
+    date for 2027 entry."""
+    source = DurhamInspiringExcellenceUndergraduateScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture(
+                "durham_inspiring_excellence_undergraduate_scholarship.html"
+            )
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert (
+        opportunity.external_id
+        == "durham-inspiring-excellence-undergraduate-scholarship"
+    )
+    assert opportunity.title == "Durham Inspiring Excellence Undergraduate Scholarship"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "Durham University"
+    assert opportunity.description is not None
+    assert "self-funded international applicants" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline == date(2026, 12, 7)
+
+
+def test_durham_inspiring_excellence_undergraduate_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt's `User-Agent: *` block has a blanket empty
+    `Disallow:` and none of its named entries match this content path."""
+    assert (
+        DurhamInspiringExcellenceUndergraduateScholarshipSource.min_request_interval_seconds
+        == 2.0
+    )
+
+
+@pytest.mark.asyncio
+async def test_durham_inspiring_excellence_postgraduate_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Master's-level counterpart of the undergraduate source above,
+    on its own flagship page - verified independently that the same
+    `div.col-md-9` content selector and "1st round application deadline"
+    keyword resolve correctly on this page's own fetched HTML."""
+    source = DurhamInspiringExcellencePostgraduateScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture(
+                "durham_inspiring_excellence_postgraduate_scholarship.html"
+            )
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert (
+        opportunity.external_id
+        == "durham-inspiring-excellence-postgraduate-scholarship"
+    )
+    assert opportunity.title == "Durham Inspiring Excellence Postgraduate Scholarship"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "Durham University"
+    assert opportunity.description is not None
+    assert "self-funded international applicants" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline == date(2026, 12, 7)
+
+
+def test_durham_inspiring_excellence_postgraduate_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    assert (
+        DurhamInspiringExcellencePostgraduateScholarshipSource.min_request_interval_seconds
         == 2.0
     )

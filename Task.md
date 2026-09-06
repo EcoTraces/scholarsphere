@@ -3164,3 +3164,62 @@ for the full dated history.
       (`tests/fixtures/southampton_presidential_bursaries.html`,
       `tests/fixtures/southampton_merit_undergraduate_scholarship.html`)
       were captured unmodified from the live site.
+
+- [x] **(2026-09-06)** "Add another England postgraduate, masters, and
+      undergraduate universities scholarship" follow-up: implemented two
+      Durham University sources - see Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #67-68 for full detail. This
+      platform's 68th and 69th opportunity sources, and its first from
+      Durham University. The postgraduate source (one-year taught
+      Master's) satisfies both the "postgraduate" and "masters" parts of
+      the request; the undergraduate source satisfies the third.
+
+      Both scholarships are competitive tuition-fee-discount awards for
+      self-funded international applicants with no country restriction
+      stated at all - Sierra Leone applicants are eligible like any
+      other international student, verified directly rather than
+      assumed. Undergraduate: up to £15,000-£30,000 over three years.
+      Postgraduate: up to £10,000 for a one-year Master's.
+
+      A real extraction bug caught on both pages before shipping: the
+      first plain "deadline" occurrence on the page is an unrelated
+      "UCAS reply deadline" phrase with no date literal within reach,
+      which would have made the generic `deadline_keywords` default
+      silently extract nothing despite the page clearly stating three
+      real application-round deadlines further down. Fixed by using the
+      specific phrase "1st round application deadline" instead, which
+      reliably resolves to 7 December 2026 (the earliest of the three
+      rounds) on both pages independently.
+
+      A second real bug, structurally similar to the Southampton
+      Presidential bursaries sidebar issue two follow-ups ago: a later,
+      separate `div.t4-text-long` block on the same page holds only the
+      scholarship's Terms and Conditions (withdrawal/notification
+      rules), not the actual Summary/Amount/Eligibility/How-to-apply
+      content a reader needs. Caught by walking the actual page
+      structure with BeautifulSoup rather than assuming the first
+      "text-long"-sounding class was right; fixed by using `div.col-md-9`
+      instead, verified to contain the real content in document order.
+      Neither page has an `<h1>`, so both rely on the existing
+      `external_id`-derived title fallback already built into
+      `_SingleProgramSource.collect()` rather than needing a new
+      `title_tag_separator`.
+
+      Two further England candidates were researched this pass and
+      found genuinely stale rather than integrated: University of
+      Bristol's Think Big / GREAT postgraduate scholarships closed their
+      2026-27 cycle on 10 April 2026 (confirmed by fetching the live
+      page directly, not just a search snippet) with no 2027-28 cycle
+      page published yet; University of York's International
+      Undergraduate Achievement Scholarship's stated eligibility window
+      (offer held by 30 June 2026) has likewise passed, also confirmed
+      against the live page, with no next-cycle page found.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 781 passed / 25 skipped (up from 777 - the
+      two new sources' four fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      67 -> 69 registered sources). Both fixtures
+      (`tests/fixtures/durham_inspiring_excellence_undergraduate_scholarship.html`,
+      `tests/fixtures/durham_inspiring_excellence_postgraduate_scholarship.html`)
+      were captured unmodified from the live site.

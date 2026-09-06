@@ -28,6 +28,58 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Fifth England follow-up (postgraduate, masters, and undergraduate): Durham University Inspiring Excellence Scholarships (68th and 69th opportunity sources; this platform's first Durham University source)
+
+### Added
+- `app/services/national_scholarship_programs.py::DurhamInspiringExcellenceUndergraduateScholarshipSource`
+  and `::DurhamInspiringExcellencePostgraduateScholarshipSource` — this
+  platform's 68th and 69th opportunity sources, both from Durham
+  University, added in response to a request for another England
+  postgraduate, masters, and undergraduate scholarship (the postgraduate
+  source covers one-year taught Master's degrees, satisfying both the
+  "postgraduate" and "masters" parts of the request).
+  - Both scholarships are competitive tuition-fee-discount awards
+    (`funding_type = "partial_funding"`) for **self-funded international
+    applicants** with **no nationality/country restriction stated** —
+    Sierra Leone applicants are eligible like any other international
+    student. Undergraduate: up to £15,000-£30,000 over a three-year
+    programme. Postgraduate (taught Master's — MSc/MA/LLM/MDS): up to
+    £10,000 for a one-year programme.
+  - Both pages state three application rounds for September 2027 entry;
+    the adapter extracts the first (earliest) round's date, 7 December
+    2026, via the specific `deadline_keywords` phrase "1st round
+    application deadline" — the generic "deadline" keyword's first match
+    on the page is an unrelated "UCAS reply deadline" phrase with no
+    date literal nearby, so it was deliberately not used.
+  - Discovered a real extraction gotcha shared by both pages: a later,
+    separate `div.t4-text-long` block on the same page holds only the
+    scholarship's Terms and Conditions (withdrawal/notification rules),
+    not the actual Summary/Amount/Eligibility/How-to-apply content a
+    reader needs — the adapter targets `div.col-md-9` instead, verified
+    directly via a structural walk of the fetched HTML before choosing
+    the selector. Neither page has an `<h1>`, so both rely on the
+    existing `external_id`-derived title fallback rather than a
+    `title_selectors`/`title_tag_separator` match.
+  - Both fully wired: config settings, source registry entries, Celery
+    beat schedules + dedicated sync tasks, and fixture-backed tests
+    (fixtures captured unmodified from the live site via `curl`; no
+    compression handling needed unlike the Southampton pages above).
+
+  Two further England candidates were researched this pass and found
+  genuinely stale rather than integrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (England
+  postgraduate/masters/undergraduate follow-up), not integrated" entry):
+  University of Bristol's Think Big / GREAT postgraduate scholarships
+  closed their 2026-27 cycle on 10 April 2026 with no 2027-28 cycle page
+  published yet; University of York's International Undergraduate
+  Achievement Scholarship's stated eligibility window (offer held by 30
+  June 2026) has likewise passed with no next-cycle page found.
+
+  **Verified**: full backend suite green after the change (781 passed,
+  25 skipped, up from 777 — the two new sources' four tests plus the
+  updated `test_opportunity_import.py` source-count assertion, 67 -> 69
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Fourth England follow-up (postgraduate and undergraduate): University of Southampton Presidential Bursaries and Merit Scholarships (66th and 67th opportunity sources; first England undergraduate source since Newcastle)
 
 ### Added

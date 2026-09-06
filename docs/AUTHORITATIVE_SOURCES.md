@@ -3211,6 +3211,134 @@ university-classified source overall.
   unmodified from the live fetch
   (`tests/fixtures/southampton_merit_undergraduate_scholarship.html`).
 
+## 67. Durham Inspiring Excellence Scholarship (Undergraduate) (Durham University)
+
+Researched 2026-09-06 — this platform's first Durham University source,
+and its 15th university-classified source overall.
+
+- **Organization**: Durham University
+- **Route code**: `durham-inspiring-excellence-undergraduate-scholarship`
+  (`durham_inspiring_excellence_undergraduate_scholarship` internally)
+- **Official domain / base URL**: `https://www.durham.ac.uk`
+  (`DURHAM_INSPIRING_EXCELLENCE_UG_BASE_URL`)
+- **Opportunity types**: Scholarship — a competitive tuition-fee discount
+  worth up to £15,000–£30,000 over a three-year undergraduate programme
+  (two award tiers: £5,000/year and £10,000/year). `funding_type =
+  "partial_funding"` — a fee discount, not full funding.
+- **Country coverage / eligibility**: "Available to all self-funded
+  international applicants" classified as "Overseas student for tuition
+  fee purposes" — no nationality/country restriction stated, so Sierra
+  Leone applicants are eligible like any other international student.
+  Excludes two named Theology programmes and anyone applying via
+  Clearing, Insurance Choice, or the Durham University International
+  Study Centre progression route.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML from a Terminal Four-built page)
+- **robots.txt / indexing note**: `durham.ac.uk/robots.txt`'s
+  `User-Agent: *` block has a blanket empty `Disallow:` (i.e. no
+  restriction), and none of its named `Disallow:` entries (internal
+  test/build/asset paths) match this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **No `<h1>` on the page** (like several other England sources here):
+    `title_selectors` is left at its default `("h1",)`, which does not
+    match, so `collect()` falls back to the `external_id`-derived title —
+    verified this reads correctly as "Durham Inspiring Excellence
+    Undergraduate Scholarship."
+  - **Content selector is `div.col-md-9`, deliberately NOT
+    `div.t4-text-long`**: the latter is a second, later block on the same
+    page holding only the scholarship's Terms and Conditions (withdrawal/
+    notification rules) — verified directly via a BeautifulSoup
+    structural walk of the fetched page that `div.col-md-9` is the page's
+    actual Summary/Amount/Eligibility/How-to-apply content, in document
+    order, before the Terms and Conditions block.
+  - **`deadline_keywords` uses the specific phrase "1st round application
+    deadline", not the generic "deadline"**: the page's first plain
+    "deadline" occurrence is an unrelated "UCAS reply deadline" phrase
+    with no date literal within the following 300 characters, so the
+    generic keyword resolves to no match. The specific phrase correctly
+    and consistently resolves to the first (earliest) of the page's three
+    stated application rounds for September 2027 entry: 7 December 2026.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/durham_inspiring_excellence_undergraduate_scholarship.html`).
+
+## 68. Durham Inspiring Excellence Scholarship (Postgraduate) (Durham University)
+
+Researched 2026-09-06 — the Master's-level counterpart of #67 above, on
+its own flagship page with its own eligibility rules.
+
+- **Organization**: Durham University
+- **Route code**: `durham-inspiring-excellence-postgraduate-scholarship`
+  (`durham_inspiring_excellence_postgraduate_scholarship` internally)
+- **Official domain / base URL**: `https://www.durham.ac.uk`
+  (`DURHAM_INSPIRING_EXCELLENCE_PG_BASE_URL`)
+- **Opportunity types**: Scholarship — a competitive tuition-fee discount
+  worth up to £10,000 for a one-year, full-time taught Master's
+  programme (MSc/MA/LLM/MDS; MBA, MSW, and MA in Theology and Ministry
+  excluded). `funding_type = "partial_funding"` — a fee discount, not
+  full funding.
+- **Country coverage / eligibility**: "Available to all self-funded
+  international applicants" with no nationality/country restriction
+  stated — Sierra Leone applicants are eligible. Durham alumni may apply
+  but cannot combine this award with the university's separate Alumni
+  Discount.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML from the same Terminal Four-built site as #67)
+- **robots.txt / indexing note**: Same finding as #67 above — no
+  restriction on this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - Same no-`<h1>` / `external_id`-fallback title behaviour and the same
+    `div.col-md-9` vs. `div.t4-text-long` (Terms and Conditions block)
+    content-selector distinction documented on #67 — verified
+    independently against this page's own fetched HTML, not assumed from
+    the undergraduate page's structure.
+  - Same three-round deadline structure and phrasing as #67
+    ("1st round application deadline: 7 December 2026") — confirmed
+    independently on this page's own fetched HTML that
+    `deadline_keywords = ("1st round application deadline",)` resolves to
+    2026-12-07 here too.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/durham_inspiring_excellence_postgraduate_scholarship.html`).
+
+### Researched this pass (England postgraduate/masters/undergraduate follow-up), not integrated
+
+- **University of Bristol — Think Big / GREAT Scholarships** — real,
+  official (`bristol.ac.uk`), and clearly describes postgraduate taught
+  scholarships (£6,500/£13,000/£26,000 tiers) with no country
+  restriction found. Not integrated this pass: every application
+  deadline found for the current 2026-27 cycle (April 2026) has already
+  passed as of this research date (2026-09-06), and no 2027-28 cycle
+  page or dates have been published yet on Bristol's own site — per the
+  "never guess a future deadline/cycle from a stale prior one" rule, this
+  was left unintegrated rather than pointing at closed-cycle content.
+  Worth revisiting once Bristol publishes its next cycle's page.
+- **University of York — International Masters/Undergraduate Achievement
+  Scholarships** — real, official (`york.ac.uk`), automatic (no separate
+  application) tuition-fee-discount scholarships. Not integrated this
+  pass: the undergraduate scholarship's stated eligibility window ("hold
+  an offer by 30 June 2026") is for the 2026 entry cycle, which has
+  already passed as of this research date, and no 2027-entry page with
+  its own dates was found yet on York's own site — same "no stale-cycle
+  guessing" reasoning as Bristol above. Worth revisiting once York
+  publishes its next cycle's page.
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

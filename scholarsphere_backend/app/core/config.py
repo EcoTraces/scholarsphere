@@ -372,6 +372,15 @@ class Settings(BaseSettings):
     # no separate application and no country restriction.
     southampton_merit_ug_base_url: str = "https://www.southampton.ac.uk"
 
+    # Durham University - Inspiring Excellence Scholarships, partial
+    # tuition-fee-discount scholarships for self-funded international
+    # students with no country restriction, one page each for
+    # undergraduate and postgraduate (taught Master's) level. Both pages
+    # state explicit "1st round application deadline" dates for 2027
+    # entry. robots.txt does not disallow this content path.
+    durham_inspiring_excellence_ug_base_url: str = "https://www.durham.ac.uk"
+    durham_inspiring_excellence_pg_base_url: str = "https://www.durham.ac.uk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -528,6 +537,8 @@ class Settings(BaseSettings):
         "nottingham_pg_scholarship_base_url",
         "southampton_presidential_bursaries_base_url",
         "southampton_merit_ug_base_url",
+        "durham_inspiring_excellence_ug_base_url",
+        "durham_inspiring_excellence_pg_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

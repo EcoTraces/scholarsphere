@@ -421,6 +421,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "durham_inspiring_excellence_undergraduate_scholarship": {
+        "source_name": "Durham Inspiring Excellence Scholarship (Undergraduate)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "durham_inspiring_excellence_postgraduate_scholarship": {
+        "source_name": "Durham Inspiring Excellence Scholarship (Postgraduate)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -500,6 +512,12 @@ def _base_urls() -> dict[str, str]:
         ),
         "southampton_merit_undergraduate_scholarship": (
             settings.southampton_merit_ug_base_url
+        ),
+        "durham_inspiring_excellence_undergraduate_scholarship": (
+            settings.durham_inspiring_excellence_ug_base_url
+        ),
+        "durham_inspiring_excellence_postgraduate_scholarship": (
+            settings.durham_inspiring_excellence_pg_base_url
         ),
     }
 
@@ -591,6 +609,8 @@ async def seed_opportunity_sources(
         "nottingham_pg_scholarship": now + timedelta(hours=24),
         "southampton_presidential_bursaries": now + timedelta(hours=24),
         "southampton_merit_undergraduate_scholarship": now + timedelta(hours=24),
+        "durham_inspiring_excellence_undergraduate_scholarship": now + timedelta(hours=24),
+        "durham_inspiring_excellence_postgraduate_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
