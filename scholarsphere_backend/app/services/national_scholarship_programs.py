@@ -2279,3 +2279,46 @@ class SheffieldPgScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().sheffield_pg_scholarship_base_url
+
+
+class ManchesterGlobalFuturesScholarshipSource(_SingleProgramSource):
+    """Global Futures Scholarships - University of Manchester, England.
+    "More than 350 partial merit-based scholarships" (totalling over
+    £6 million) for September 2027 entry, open to both undergraduate
+    and master's (postgraduate taught) students - the hub page names
+    "Taiwan (postgraduate taught master's only)" as one region,
+    confirming genuine postgraduate applicability rather than an
+    assumption from "the university has postgraduate courses."
+
+    Confirmed 2026-09-05: `robots.txt` does not disallow this content
+    path (only unrelated campaign/search/media-library paths are
+    disallowed).
+
+    Country coverage / eligibility: restricted to a specific published
+    list of countries - verified directly from the live page, not
+    assumed: Bangladesh, Botswana, Canada, Egypt, Ghana, India,
+    Indonesia, Kenya, Malaysia, Mauritius, Nigeria, Pakistan, Saudi
+    Arabia, Singapore, South Africa, Sri Lanka, Taiwan, Thailand,
+    Turkiye, UAE, USA, Vietnam, Zimbabwe. **Sierra Leone is not on this
+    list** - checked explicitly, the same discipline already applied to
+    Newcastle's VCIS (#61) and Sheffield's PG Scholarship (#62).
+
+    Deliberately extracts no deadline: the page states plainly "The
+    level of award, eligibility criteria and application deadlines
+    differ for each region so check your country profile for specific
+    details" - there genuinely is no single deadline on this hub page,
+    only per-country sub-pages this adapter does not fetch. Verified
+    directly that no confident date literal exists anywhere in the
+    scraped text.
+    """
+
+    source_code = "manchester_global_futures_scholarship"
+    overview_path = "/study/international/finance-and-scholarships/funding/global-futures-scholarship/"
+    content_selectors = ("div#content",)
+    provider_name = "University of Manchester"
+    country = "United Kingdom"
+    external_id = "manchester-global-futures-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().manchester_gfs_base_url

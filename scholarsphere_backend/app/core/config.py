@@ -345,6 +345,13 @@ class Settings(BaseSettings):
     # standard Drupal file that does not disallow this content path.
     sheffield_pg_scholarship_base_url: str = "https://sheffield.ac.uk"
 
+    # University of Manchester - Global Futures Scholarships, "more than
+    # 350 partial merit-based scholarships" open to both undergraduate
+    # and master's (postgraduate taught) students for September 2027
+    # entry, restricted to a specific published list of countries.
+    # robots.txt does not disallow this content path.
+    manchester_gfs_base_url: str = "https://www.manchester.ac.uk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -497,6 +504,7 @@ class Settings(BaseSettings):
         "imperial_inspires_base_url",
         "newcastle_vcis_base_url",
         "sheffield_pg_scholarship_base_url",
+        "manchester_gfs_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

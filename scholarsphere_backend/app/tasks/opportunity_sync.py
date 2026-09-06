@@ -85,6 +85,7 @@ from app.services.national_scholarship_programs import (
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
     KnightHennessyScholarsSource,
+    ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
     RotaryPeaceFellowshipSource,
@@ -385,6 +386,12 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_sheffield_pg_scholarship",
             "schedule": crontab(minute=30, hour=16),
         },
+        "sync-manchester-global-futures-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync.sync_manchester_global_futures_scholarship"
+            ),
+            "schedule": crontab(minute=45, hour=16),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -512,6 +519,9 @@ SOURCE_TASK_NAMES = {
     ),
     "sheffield_pg_scholarship": (
         "app.tasks.opportunity_sync.sync_sheffield_pg_scholarship"
+    ),
+    "manchester_global_futures_scholarship": (
+        "app.tasks.opportunity_sync.sync_manchester_global_futures_scholarship"
     ),
 }
 
@@ -1437,6 +1447,21 @@ def sync_sheffield_pg_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_manchester_global_futures_scholarship",
+    max_retries=3,
+)
+def sync_manchester_global_futures_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "manchester_global_futures_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1703,6 +1728,9 @@ def _collector(source_code: str) -> Any:
             NewcastleVcInternationalScholarshipSource
         ),
         "sheffield_pg_scholarship": SheffieldPgScholarshipSource,
+        "manchester_global_futures_scholarship": (
+            ManchesterGlobalFuturesScholarshipSource
+        ),
     }[source_code]()
 
 

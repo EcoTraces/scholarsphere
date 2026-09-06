@@ -28,6 +28,47 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Second England postgraduate follow-up: University of Manchester Global Futures Scholarships (64th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::ManchesterGlobalFuturesScholarshipSource`
+  — the **University of Manchester Global Futures Scholarships**, this
+  platform's 64th opportunity source. "More than 350 partial
+  merit-based scholarships" (over £6 million total) for September 2027
+  entry, open to both undergraduate and master's (postgraduate taught)
+  students — the page explicitly names "Taiwan (postgraduate taught
+  master's only)" as one region, confirming genuine postgraduate
+  applicability rather than an assumption. Restricted to a specific
+  published country list (Bangladesh, Botswana, Canada, Egypt, Ghana,
+  India, Indonesia, Kenya, Malaysia, Mauritius, Nigeria, Pakistan, Saudi
+  Arabia, Singapore, South Africa, Sri Lanka, Taiwan, Thailand, Türkiye,
+  UAE, USA, Vietnam, Zimbabwe) — **Sierra Leone is not on it**, checked
+  directly. No deadline extracted: the page states plainly that
+  deadlines "differ for each region," with no single date on this hub
+  page. Fully wired: config setting, source registry entry, Celery beat
+  schedule + dedicated sync task, and a fixture-backed test (fixture
+  captured unmodified from the live site).
+
+  Five further England candidates were researched this pass and found
+  genuinely stale or blocked rather than integrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (England
+  postgraduate follow-up), not integrated" entry): Aston University's
+  Vice-Chancellor's International Scholarship page is fetchable but its
+  own text is stale (references September 2024 and an October 2023
+  deadline, with no current cycle evidence); Aston's Postgraduate Impact
+  Scholarship page has been retired/merged into a generic hub;
+  Nottingham Trent University and University of Leicester's scholarship
+  pages all returned genuine HTTP 403s (active bot protection, not
+  circumvented); and the University of Birmingham's Postgraduate High
+  Fliers Scholarship page is real and current-looking but its own FAQ
+  states a 31 July 2026 deadline that has already passed, with no
+  announced next cycle.
+
+  **Verified**: full backend suite green after the change (771 passed,
+  25 skipped, up from 769 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 63 -> 64
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Follow-up England postgraduate source: University of Sheffield (63rd opportunity source)
 
 ### Added

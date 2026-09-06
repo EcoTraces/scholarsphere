@@ -2932,6 +2932,93 @@ England sources are primarily undergraduate).
   unmodified from the live fetch
   (`tests/fixtures/sheffield_international_postgraduate_scholarship.html`).
 
+## 63. Global Futures Scholarships (University of Manchester)
+
+Researched 2026-09-05, a second "add another England postgraduate
+scholarship" follow-up in the same session — this platform's 11th
+university-classified source.
+
+- **Organization**: University of Manchester
+- **Route code**: `manchester-global-futures-scholarship`
+  (`manchester_global_futures_scholarship` internally)
+- **Official domain / base URL**: `https://www.manchester.ac.uk`
+  (`MANCHESTER_GFS_BASE_URL`)
+- **Opportunity types**: Scholarship — "more than 350 partial
+  merit-based scholarships" (totalling over £6 million) for September
+  2027 entry, open to both undergraduate and master's (postgraduate
+  taught) students. Genuine postgraduate applicability, not assumed:
+  the page names "Taiwan (postgraduate taught master's only)" as one
+  region, `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: Restricted to a specific published
+  list — verified directly, not assumed: Bangladesh, Botswana, Canada,
+  Egypt, Ghana, India, Indonesia, Kenya, Malaysia, Mauritius, Nigeria,
+  Pakistan, Saudi Arabia, Singapore, South Africa, Sri Lanka, Taiwan,
+  Thailand, Türkiye, UAE, USA, Vietnam, Zimbabwe. **Sierra Leone is not
+  on this list** — the same Sierra-Leone-eligibility check already
+  applied to Newcastle's VCIS (#61) and Sheffield's PG Scholarship
+  (#62).
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: Does not disallow this content path
+  (only unrelated campaign/search/media-library paths are disallowed)
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline**: the page states plainly "The
+    level of award, eligibility criteria and application deadlines
+    differ for each region so check your country profile for specific
+    details" — there genuinely is no single deadline on this hub page,
+    only per-country sub-pages this adapter does not fetch. Verified
+    directly that no confident date literal exists anywhere in the
+    scraped text, so nothing was guessed or fabricated to fill the
+    field.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/manchester_global_futures_scholarship.html`).
+
+### Researched this pass (England postgraduate follow-up), not integrated
+
+- **Aston University Vice-Chancellor's International Scholarship** —
+  fetched successfully (200, real content), but the live page's own
+  text is genuinely stale: it references "Undergraduate Scholarship
+  Applications for September 2024," a postgraduate deadline of "Monday
+  2 October 2023" / "Tuesday 31 October 2023," and no evidence of a
+  current 2026/27 or 2027/28 cycle anywhere on the page — verified
+  directly by reading the scraped text, not assumed from the page
+  returning 200. Per this platform's "never convert a historical
+  opportunity into a current one" rule, this was left unintegrated
+  rather than presented as live.
+- **Aston Postgraduate Impact Scholarship** — its expected URL
+  redirects to a generic funding hub page; the specific scholarship page
+  appears to have been retired or merged. Not chased further within
+  this pass.
+- **Nottingham Trent University** (international scholarships hub and
+  postgraduate Master's scholarships page) — both returned a genuine
+  HTTP 403 on every fetch attempt (including `robots.txt` itself, and
+  with a plain browser user agent), consistent with active bot
+  protection rather than a page-specific block. Recorded for manual
+  verification, not circumvented.
+- **University of Leicester** (International Postgraduate Taught Merit
+  Scholarship, Global Excellence Scholarship, Chancellor's International
+  Postgraduate Taught Scholarship, and the general international
+  scholarships hub) — all four returned a genuine HTTP 403, while
+  `robots.txt` itself is fetchable (200) — a targeted block on these
+  content paths specifically. Recorded for manual verification.
+- **University of Birmingham Postgraduate High Fliers Scholarship** — a
+  real, fetchable (200), and richly-detailed page, but its own FAQ text
+  states "there is a deadline, the closing date is 31 July 2026" for
+  the September 2026 intake it describes — already past as of the
+  2026-09-05 research date, with no evidence of an announced next
+  (2027) cycle found on the page. Per the "never present a closed
+  cycle as current, never fabricate a next cycle" rule, this was left
+  unintegrated rather than added as a stale or invented record.
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

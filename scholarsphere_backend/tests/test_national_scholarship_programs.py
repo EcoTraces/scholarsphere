@@ -43,6 +43,7 @@ from app.services.national_scholarship_programs import (
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
+    ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
     SheffieldPgScholarshipSource,
@@ -1960,3 +1961,53 @@ def test_sheffield_pg_scholarship_has_no_robots_txt_restrictions() -> None:
     /admin/ etc. disallowed) that does not cover this content path, so
     this source uses the default (unraised) crawl interval."""
     assert SheffieldPgScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- University of Manchester Global Futures Scholarships: real
+# fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_manchester_global_futures_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The hub page explicitly states deadlines differ per country/
+    region with no single date on this page, so no deadline is
+    extracted."""
+    source = ManchesterGlobalFuturesScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("manchester_global_futures_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "manchester-global-futures-scholarship"
+    assert opportunity.title == "Global Futures Scholarships"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "University of Manchester"
+    assert opportunity.description is not None
+    assert "more than 350 partial merit-based scholarships" in opportunity.description
+    # Postgraduate applicability is genuinely stated (not assumed): one
+    # region is explicitly "postgraduate taught master's only".
+    assert "postgraduate taught master's only" in opportunity.description
+    # Ghana, Kenya, Nigeria, South Africa, Zimbabwe are eligible;
+    # Sierra Leone is not on the published list - verified directly.
+    assert "Zimbabwe" in opportunity.description
+    assert "Sierra Leone" not in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_manchester_global_futures_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt only disallows unrelated campaign/search/media-library
+    paths, not this content page, so this source uses the default
+    (unraised) crawl interval."""
+    assert (
+        ManchesterGlobalFuturesScholarshipSource.min_request_interval_seconds == 2.0
+    )
