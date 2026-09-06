@@ -4494,6 +4494,137 @@ provider is the Chinese government, not the university itself:
   monthly stipend — `TUITION_ONLY`, correctly not classified as fully
   funded and not integrated as its own record.
 
+## 82. McGill University — Mastercard Foundation Scholars Program
+
+Researched 2026-09-06, in response to a request for another fully
+funded Master's scholarship in Canada — this platform's **first Canada
+source of any kind**. Canada was previously found `NOT_SUITABLE` at the
+national/government level (EduCanada's Study in Canada Scholarships is
+confirmed institution-initiated, not individually-applicable — see
+`docs/COUNTRY_PROVIDER_REGISTRY.md`'s "Canada — NOT_SUITABLE" finding,
+which remains correct and unaffected); this is a university-
+administered source instead, the same partnership pattern already used
+for Sciences Po's own Mastercard Foundation Scholars Program (source
+#79).
+
+- **Organization**: McGill University (in partnership with the
+  Mastercard Foundation)
+- **Route code**: `mcgill-mastercard-scholars`
+  (`mcgill_mastercard_scholars` internally)
+- **Official domain / base URL**: `https://www.mcgill.ca`
+  (`MCGILL_MASTERCARD_SCHOLARS_BASE_URL`)
+- **Opportunity types**: Scholarship — "The scholarship includes: ...
+  Full international student tuition, On-campus housing, Personal
+  monthly stipend ..., Academic tools and resources (book allowance,
+  laptop, tutoring, etc.), ... Post-graduation transition expenses (ex.
+  ... return flight, etc.)" — full tuition plus substantial living/
+  housing support plus several additional benefits. `funding_type =
+  "fully_funded"`.
+- **Country coverage / eligibility**: The *separate* Eligibility page
+  (`/mastercardfdn-scholars/apply/eligibility`, not itself scraped for
+  this record) states "Be a citizen of and live in an African country"
+  and lists an explicit ~54-country "Eligible Countries" table that
+  names **Sierra Leone** directly — confirmed by fetching that page
+  live during research. Limited to 13 named graduate programmes
+  (nutrition, public health, public policy, sustainable agriculture)
+  and a first Master's degree only ("Have NEVER registered for, nor
+  completed a master's degree") — documented honestly as a real scope
+  constraint rather than implying university-wide eligibility.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML — a Drupal site)
+- **robots.txt / indexing note**: `mcgill.ca/robots.txt` sets
+  `Crawl-delay: 5` for `User-agent: *` and does not disallow this
+  content path — `min_request_interval_seconds` is set to 5.0 to match
+  that Crawl-delay exactly, more conservative than this project's usual
+  2.0s default.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Overview/content page is the "About" page**, not the separate
+    "Eligibility" page — it is the one stating the full funding
+    package. Content selector `div.field-name-body`: a stable, semantic
+    Drupal field class, verified directly via a BeautifulSoup
+    structural walk to hold exactly the real article content, with none
+    of the surrounding navigation.
+  - **`title_tag_separator = " - McGill University"`**: the raw
+    `<title>` ("About the Program | Mastercard Foundation Scholars
+    Program at McGill University - McGill University") has two
+    site-name fragments; splitting on the fuller, more specific one
+    (rather than the more common `" | "` separator, which would leave
+    just the vague "About the Program") produces a properly descriptive
+    title.
+  - Deliberately extracts no deadline: this page states none. (A
+    separate "Information Sessions" page, also not scraped for this
+    record, shows the Fall 2027 cycle's own sessions already concluded
+    as of this research date — a real, current between-cycles status
+    for a genuinely recurring annual program, the same category as
+    University of Twente's ITC Excellence Scholarship elsewhere in this
+    file, not a defunct or fabricated one.)
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/mcgill_mastercard_scholars.html`).
+
+### Researched this pass (Canada fully-funded Master's follow-up), not integrated
+
+A pass across five major Canadian research universities — Calgary,
+Alberta, Waterloo, Toronto, and McGill (in addition to the scholarship
+actually integrated above) — found that Canadian research universities
+almost universally structure graduate funding as a guaranteed *stipend*
+(via a combination of scholarships, teaching assistantships, and
+research assistantships), not a full tuition waiver, for international
+Master's students — a structurally different pattern from the
+tuition-waiver-plus-stipend model common at Chinese, Dutch, and French
+universities documented elsewhere in this project:
+
+- **University of Calgary** — thesis-based MA/MSc students receive a
+  guaranteed "minimum funding package" of $25,455/year for
+  international students, plus a separate, much smaller "International
+  Graduate Tuition Award" (~$3,060/year total). Neither the funding
+  package's own page nor any linked page states that the $25,455 figure
+  itself goes toward tuition, and the separate tuition award is a small
+  fraction of typical international graduate tuition — `PARTIALLY_
+  FUNDED` (a real, generous stipend, but not a full-tuition package).
+- **University of Alberta** — thesis-based programmes advertise minimum
+  funding packages of $19,000–$28,000/year (a combination of
+  assistantships and department scholarships), while international
+  graduate tuition is separately quoted at $9,000–$18,000/year — no
+  official page found stating the funding package is inclusive of or
+  additional to that tuition amount — `UNVERIFIED`/`PARTIALLY_FUNDED`.
+- **University of Waterloo** — its own International Student Funding
+  page states plainly that Waterloo "does not offer full-ride
+  scholarships that cover all tuition and living costs"; its
+  International Master's Award of Excellence is $2,500/term (a
+  supplementary award, not a comprehensive package) — `PARTIALLY_
+  FUNDED`, confirmed by the university's own negative statement rather
+  than inferred.
+- **University of Toronto** — funding packages are set per graduate
+  unit/department (e.g., a base stipend plus tuition coverage in some
+  units, base stipend only in others) rather than one central,
+  university-wide, evergreen scholarship page fitting this project's
+  single-flagship-source pattern — no single record integrated.
+- **University of British Columbia** — its International Tuition Award
+  is explicitly small (~$3,200/year) and only for students already
+  registered in a research-based graduate programme, not a comprehensive
+  entrance scholarship — `PARTIALLY_FUNDED`.
+- **McCall MacBain Scholarship** (also hosted at McGill, via an
+  independent foundation rather than McGill itself administering
+  eligibility/selection) — genuinely comprehensive (full tuition +
+  fees + a CAD 2,300/month stipend + relocation grant), and ten seats
+  are reserved for applicants from outside Canada/the US, but McGill's
+  own page for it lives under `/gradapplicants/funding/**external**/
+  mccall-macbain-scholarship` — McGill's own site classifies it as an
+  *external* scholarship it merely lists, not one it administers
+  end-to-end the way it does the Mastercard Foundation Scholars
+  Program — left as a candidate for a future *external*-classified
+  source rather than integrated into the university-administered
+  dataset here.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

@@ -514,6 +514,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "mcgill_mastercard_scholars": {
+        "source_name": "McGill University Mastercard Foundation Scholars Program",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -629,6 +635,7 @@ def _base_urls() -> dict[str, str]:
             settings.pku_international_scholarship_base_url
         ),
         "sjtu_masters_scholarship": settings.sjtu_masters_scholarship_base_url,
+        "mcgill_mastercard_scholars": settings.mcgill_mastercard_scholars_base_url,
     }
 
 
@@ -734,6 +741,7 @@ async def seed_opportunity_sources(
         "sciencespo_mastercard_scholars": now + timedelta(hours=24),
         "pku_international_scholarship": now + timedelta(hours=24),
         "sjtu_masters_scholarship": now + timedelta(hours=24),
+        "mcgill_mastercard_scholars": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

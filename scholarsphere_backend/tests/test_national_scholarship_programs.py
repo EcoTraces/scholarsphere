@@ -49,6 +49,7 @@ from app.services.national_scholarship_programs import (
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
     MaastrichtHighPotentialScholarshipSource,
+    McgillMastercardScholarsSource,
     ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
@@ -2902,3 +2903,52 @@ def test_sjtu_masters_scholarship_has_no_robots_txt_restrictions() -> None:
     """robots.txt (`global.sjtu.edu.cn/robots.txt`) returns a generic 404
     page, not a robots.txt - no Disallow rules exist for this host."""
     assert SjtuMastersScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- McGill University Mastercard Foundation Scholars Program: real
+# fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_mcgill_mastercard_scholars_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Canada source of any kind - Canada was
+    previously found NOT_SUITABLE at the national/government level
+    (EduCanada's Study in Canada Scholarships is institution-initiated,
+    not individually-applicable), a finding that remains correct and
+    unaffected; this is a university-administered source instead, the
+    same partnership pattern already used for Sciences Po's own
+    Mastercard Foundation Scholars Program. The separate Eligibility
+    page (not itself scraped for this record) lists an explicit
+    ~54-country table naming Sierra Leone directly - confirmed live
+    during research. No deadline extracted: this page states none."""
+    source = McgillMastercardScholarsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("mcgill_mastercard_scholars.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "mcgill-mastercard-scholars"
+    assert (
+        opportunity.title
+        == "About the Program | Mastercard Foundation Scholars Program at McGill University"
+    )
+    assert opportunity.country == "Canada"
+    assert opportunity.provider_name == "McGill University"
+    assert opportunity.description is not None
+    assert "Full international student tuition" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_mcgill_mastercard_scholars_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`mcgill.ca/robots.txt`) sets `Crawl-delay: 5` (matched
+    exactly by `min_request_interval_seconds`) and does not disallow
+    this content path."""
+    assert McgillMastercardScholarsSource.min_request_interval_seconds == 5.0

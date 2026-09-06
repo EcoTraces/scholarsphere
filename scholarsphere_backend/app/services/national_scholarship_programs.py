@@ -3299,3 +3299,83 @@ class SjtuMastersScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().sjtu_masters_scholarship_base_url
+
+
+class McgillMastercardScholarsSource(_SingleProgramSource):
+    """McGill University - Mastercard Foundation Scholars Program. This
+    platform's first Canada source of any kind: Canada was previously
+    found `NOT_SUITABLE` at the national/government level (EduCanada's
+    Study in Canada Scholarships is confirmed institution-initiated,
+    not individually-applicable - see `docs/COUNTRY_PROVIDER_REGISTRY.md`'s
+    "Canada - NOT_SUITABLE" finding, which remains correct and
+    unaffected) - this is a university-administered source instead,
+    the same partnership pattern already used for Sciences Po's own
+    Mastercard Foundation Scholars Program (source #79).
+
+    Confirmed 2026-09-06: `mcgill.ca/robots.txt` sets `Crawl-delay: 5`
+    for `User-agent: *` and does not disallow this content path (only
+    `/study/*`, `/gradapplicants/programs?*`, and unrelated
+    administrative paths are disallowed) - `min_request_interval_seconds`
+    is set to 5.0 to match that Crawl-delay exactly, rather than this
+    file's usual 2.0s default.
+
+    Overview/content page is the "About" page, not the separate
+    "Eligibility" page - it is the one stating the full funding
+    package. Content selector `div.field-name-body`: a stable, semantic
+    Drupal field class, verified directly via a BeautifulSoup
+    structural walk to hold exactly the real article content, with none
+    of the surrounding navigation.
+
+    `title_tag_separator = " - McGill University"`: the raw `<title>`
+    ("About the Program | Mastercard Foundation Scholars Program at
+    McGill University - McGill University") has two site-name
+    fragments; splitting on the fuller, more specific one (rather than
+    the more common `" | "` separator, which would leave just the vague
+    "About the Program") produces a properly descriptive title.
+
+    Funding: "The scholarship includes: ... Full international student
+    tuition, On-campus housing, Personal monthly stipend ..., Academic
+    tools and resources (book allowance, laptop, tutoring, etc.),
+    ... Post-graduation transition expenses (ex. ... return flight,
+    etc.)" - full tuition plus substantial living/housing support plus
+    several additional benefits - `funding_type = "fully_funded"`.
+
+    Country coverage / eligibility: the *separate* Eligibility page
+    (`/mastercardfdn-scholars/apply/eligibility`, not itself scraped for
+    this record) states plainly "Be a citizen of and live in an African
+    country" and lists an explicit ~54-country "Eligible Countries"
+    table that names "Sierra Leone" directly - confirmed by fetching
+    that page live during research, the same "verified on the live site
+    even though it falls outside the stored description" pattern
+    already used for the Konrad-Adenauer-Stiftung scholarship's country
+    dropdown elsewhere in this file. Limited to 13 named graduate
+    programmes (nutrition, public health, public policy, sustainable
+    agriculture) and a first Master's degree only ("Have NEVER
+    registered for, nor completed a master's degree") - documented
+    honestly as a real scope constraint rather than implying
+    university-wide eligibility.
+
+    Deliberately extracts no deadline: this page states none. (A
+    separate "Information Sessions" page, also not scraped for this
+    record, shows the Fall 2027 cycle's own sessions already concluded
+    as of this research date - a real, current between-cycles status
+    for a genuinely recurring annual program, the same category as
+    University of Twente's ITC Excellence Scholarship elsewhere in this
+    file, not a defunct or fabricated one.)
+    """
+
+    source_code = "mcgill_mastercard_scholars"
+    overview_path = "/mastercardfdn-scholars/about"
+    title_selectors = ()
+    title_tag_separator = " - McGill University"
+    content_selectors = ("div.field-name-body",)
+    provider_name = "McGill University"
+    country = "Canada"
+    external_id = "mcgill-mastercard-scholars"
+    funding_type = "fully_funded"
+    #: Matches mcgill.ca's own published robots.txt Crawl-delay exactly
+    #: (more conservative than this file's usual 2.0s default).
+    min_request_interval_seconds = 5.0
+
+    def _base_url(self) -> str:
+        return get_settings().mcgill_mastercard_scholars_base_url

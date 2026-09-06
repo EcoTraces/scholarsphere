@@ -134,6 +134,7 @@ unverified).
 | 79 | Mastercard Foundation Scholars Program, graduate/Master's track (Sciences Po) | France | UNIVERSITY | sciencespo.fr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a France fully-funded-Master's-only university scholarship request; this registry's first France-*university* source (source #27, France Excellence Eiffel, is government/Campus France-classified, deliberately excluded from the university-only dataset); sole nationality criterion "citizenship of an African country," Sierra Leone not excluded (though a partner-university/bridge-programme/refugee-status condition also applies); genuinely fully funded ("covers the full financial needs," full tuition + living + reserved Paris housing); no deadline extracted (exact date "will be published ... from September 2026," only an imprecise "October to mid-December 2026" window exists so far) (see AUTHORITATIVE_SOURCES.md #79) |
 | 80 | Peking University Scholarship for International Students | China | UNIVERSITY | isd.pku.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a China fully-funded-Master's university scholarship request; this registry's first China-*university* source (Schwarzman Scholars, #50, and Yenching Academy, #52, are elite named programmes at Tsinghua/PKU, not this general institution-wide scholarship); no nationality restriction stated; genuinely fully funded ("covers tuition, a living stipend and medical insurance"); no `<h1>` on the page, title taken directly from an already-clean `<title>` tag; no deadline extracted (year-less recurring "January and March" window) (see AUTHORITATIVE_SOURCES.md #80) |
 | 81 | Master's SJTU Scholarship (Shanghai Jiao Tong University) | China | UNIVERSITY | global.sjtu.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass, this registry's second China-university source; content selector is an adjacent-sibling CSS selector (`div.page-item + div.page-item`) deliberately targeting the Graduate-programmes tab panel on a multi-tab hub page, distinct from the Undergraduate tab's separate tiered scholarship; no nationality restriction stated; genuinely fully funded (tuition waiver + monthly stipend + insurance + accommodation subsidy), distinct from SJTU's own separately-named tuition-only Tuition Waiver Scholarship (not integrated); no deadline stated on this panel (see AUTHORITATIVE_SOURCES.md #81) |
+| 82 | Mastercard Foundation Scholars Program (McGill University) | Canada | UNIVERSITY | mcgill.ca | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a Canada fully-funded Master's follow-up request; this registry's first Canada source of any kind (Canada was previously found NOT_SUITABLE at the national/government level via EduCanada's institution-initiated SICS program, a finding that remains correct and unaffected — this is a university-administered source instead); genuinely fully funded (full international student tuition + on-campus housing + monthly stipend + book allowance + return flight); eligibility page (not itself scraped) lists an explicit ~54-country table naming Sierra Leone directly; `Crawl-delay: 5` respected via a source-specific `min_request_interval_seconds = 5.0`; no deadline extracted (see AUTHORITATIVE_SOURCES.md #82) |
 
 Four other Spanish institutions were researched this pass and found
 unsuitable rather than integrated (see AUTHORITATIVE_SOURCES.md's
@@ -253,6 +254,21 @@ disqualification), and its recommended classification.
   the individual-applicant level this platform models. `robots.txt`
   (checked 2026-08-29) is permissive, so a future curated-database
   adapter is technically feasible if that investment is made.
+
+**(2026-09-06 update)** The finding above is specific to the
+*national/government* level (EduCanada/SICS) and remains correct and
+unaffected. A separate pass targeting *university-administered*
+fully-funded Master's scholarships found one working source: McGill
+University's Mastercard Foundation Scholars Program (source #82,
+`mcgill.ca`) — this platform's first Canada source of any kind. See row
+82 above and AUTHORITATIVE_SOURCES.md #82 for full detail, and its
+"Researched this pass (Canada fully-funded Master's follow-up), not
+integrated" note for Calgary, Alberta, Waterloo, Toronto, and UBC —
+found to structure graduate funding almost universally as a guaranteed
+*stipend* (via scholarships/assistantships) rather than a full tuition
+waiver, a structurally different, generally less-than-fully-funded
+pattern compared to the Chinese/Dutch/French universities documented
+elsewhere in this project.
 
 ### Japan — implemented, see source #25 above (live-verified 2026-08-29)
 
@@ -902,7 +918,7 @@ Zhejiang University (multi-record government/CGS hub), and Fudan
 | Austria | SUPPORTED | Live-verified 2026-08-29 |
 | Morocco | SUPPORTED | Live-verified 2026-08-29 |
 | Portugal | SUPPORTED | Live-verified 2026-08-29 |
-| Canada | NOT_SUITABLE | Confirmed by live research 2026-08-29 — institution-initiated, no individual-applicant path |
+| Canada | NOT_SUITABLE (government level) / SUPPORTED (university level) | Confirmed by live research 2026-08-29 — national-level EduCanada/SICS is institution-initiated, no individual-applicant path; a university-administered source (McGill's Mastercard Foundation Scholars Program, #82) added 2026-09-06 — see row 82 above |
 | Denmark | NOT_SUITABLE | Confirmed by a dedicated follow-up search 2026-08-29 — decentralized to individual universities |
 | Cyprus | BLOCKED | Active anti-bot (Azure WAF) — not bypassed |
 | Wales | NOT_SUITABLE | Corrected 2026-08-29 — the flagship program appears discontinued/decentralized; previous READY_FOR_AUTOMATION note was wrong, never live-tested |

@@ -28,6 +28,86 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Canada fully-funded Master's follow-up: McGill University Mastercard Foundation Scholars Program (83rd opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::McgillMastercardScholarsSource`
+  — this platform's 83rd opportunity source and **first Canada source
+  of any kind**. Canada was previously found `NOT_SUITABLE` at the
+  national/government level (EduCanada's Study in Canada Scholarships
+  is institution-initiated, not individually-applicable), a finding
+  that remains correct and unaffected — this is a university-
+  administered source instead, the same partnership pattern already
+  used for Sciences Po's own Mastercard Foundation Scholars Program
+  (source #79). The **McGill University Mastercard Foundation Scholars
+  Program**:
+  - Live-verified 2026-09-06 against
+    `https://www.mcgill.ca/mastercardfdn-scholars/about`. `robots.txt`
+    sets `Crawl-delay: 5` and does not disallow this content path —
+    `min_request_interval_seconds` is set to 5.0 to match that
+    Crawl-delay exactly, more conservative than this project's usual
+    2.0s default.
+  - Genuinely fully funded: "Full international student tuition,
+    On-campus housing, Personal monthly stipend ..., Academic tools and
+    resources (book allowance, laptop, tutoring, etc.), ...
+    Post-graduation transition expenses (ex. ... return flight, etc.)."
+    `funding_type = "fully_funded"`.
+  - Eligibility: the separate Eligibility page (not itself scraped for
+    this record) states "Be a citizen of and live in an African
+    country" and lists an explicit ~54-country table naming Sierra
+    Leone directly — confirmed live during research. Limited to 13
+    named graduate programmes (nutrition, public health, public policy,
+    sustainable agriculture) and a first Master's degree only —
+    documented honestly as a real scope constraint.
+  - Content selector `div.field-name-body` (a stable Drupal field
+    class); `title_tag_separator = " - McGill University"` handles a
+    `<title>` with two site-name fragments to produce a properly
+    descriptive title.
+  - Deliberately extracts no deadline: this page states none.
+  - Fully wired: config setting, source registry entry (`source_type =
+    "university"`), Celery beat schedule + dedicated sync task, and a
+    fixture-backed test.
+
+  A pass across five major Canadian research universities found that
+  Canadian universities almost universally structure graduate funding
+  as a guaranteed *stipend* rather than a full tuition waiver — a
+  structurally different pattern from China/Netherlands/France. Six
+  other candidates were researched and rejected (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (Canada
+  fully-funded Master's follow-up), not integrated" section):
+  - **University of Calgary** — a guaranteed $25,455/year stipend for
+    international thesis-based Master's students, plus only a small
+    separate ~$3,060/year tuition award — `PARTIALLY_FUNDED`.
+  - **University of Alberta** — similar stipend-only ambiguity, no
+    official statement that funding includes tuition.
+  - **University of Waterloo** — its own page states plainly it "does
+    not offer full-ride scholarships that cover all tuition and living
+    costs."
+  - **University of Toronto** — funding varies per department with no
+    single university-wide evergreen page.
+  - **University of British Columbia** — its International Tuition
+    Award is a small (~$3,200/year) top-up, not comprehensive.
+  - **McCall MacBain Scholarship** — genuinely comprehensive, but
+    McGill's own site classifies it as an *external* scholarship it
+    merely lists (URL path includes `/external/`), not one it
+    administers end-to-end — left as a candidate for a future
+    external-classified source rather than integrated here.
+
+- **Verified**: full backend test suite — 811 passed, 25 skipped (up
+  from 809 passed before this change), 0 failed; `pyflakes` clean on
+  every changed/new file.
+
+### Changed
+—
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — China fully-funded Master's university scholarship engine: Peking University and Shanghai Jiao Tong University (81st and 82nd opportunity sources)
 
 ### Added

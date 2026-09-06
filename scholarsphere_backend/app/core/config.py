@@ -511,6 +511,24 @@ class Settings(BaseSettings):
     # rules).
     sjtu_masters_scholarship_base_url: str = "https://global.sjtu.edu.cn"
 
+    # McGill University - Mastercard Foundation Scholars Program:
+    # genuinely fully funded ("Full international student tuition, On-
+    # campus housing, Personal monthly stipend," plus book allowance
+    # and return flight), for citizens/residents of any African country
+    # (an explicit ~54-country eligible list on McGill's own site names
+    # Sierra Leone) admitted to one of 13 eligible graduate programmes
+    # (nutrition, public health, public policy, sustainable
+    # agriculture). This platform's first Canada source of any kind -
+    # Canada was previously found NOT_SUITABLE at the national/
+    # government level (EduCanada's Study in Canada Scholarships is
+    # institution-initiated, not individually-applicable), a finding
+    # that remains correct and unaffected; this is a university-
+    # administered source instead, the same pattern already used for
+    # Sciences Po's and McGill's own Mastercard Foundation partnership.
+    # robots.txt (`mcgill.ca/robots.txt`) does not disallow this
+    # content path.
+    mcgill_mastercard_scholars_base_url: str = "https://www.mcgill.ca"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -682,6 +700,7 @@ class Settings(BaseSettings):
         "sciencespo_mastercard_scholars_base_url",
         "pku_international_scholarship_base_url",
         "sjtu_masters_scholarship_base_url",
+        "mcgill_mastercard_scholars_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

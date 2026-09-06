@@ -3988,3 +3988,123 @@ for the full dated history.
       (`tests/fixtures/pku_international_scholarship.html`,
       `tests/fixtures/sjtu_masters_scholarship.html`) were captured
       unmodified from their live sites.
+
+- [x] **(2026-09-06)** "Find another fully funded master's scholarship
+      in Canada" request: implemented McGill University's Mastercard
+      Foundation Scholars Program - see Changelog.md's same-date entry
+      and `docs/AUTHORITATIVE_SOURCES.md` #82 for full detail. This
+      platform's 83rd opportunity source, and this platform's *first
+      Canada source of any kind* - not just first Canada-university
+      source, since no Canada source existed at all before this. An
+      earlier session pass (2026-08-29) had already found Canada
+      `NOT_SUITABLE` at the national/government level (EduCanada's
+      Study in Canada Scholarships is institution-initiated, applicants
+      cannot apply directly) - that finding was re-read carefully
+      before starting this pass and confirmed still correct and
+      unaffected, since this request called for going to the
+      university level instead, a different layer entirely.
+
+      A real first question for this pass, given the "another
+      Mastercard Foundation Scholars Program" precedent already set by
+      Sciences Po (France, #79): does McGill also partner with the
+      Mastercard Foundation, and if so, is its own page structured the
+      same accessible way? Both answered yes - McGill has partnered
+      with the Foundation since 2013, and its own site
+      (`mcgill.ca/mastercardfdn-scholars/...`) follows the identical
+      "university administers its own application/eligibility pages"
+      pattern already verified for Sciences Po, rather than routing
+      through a separate foundation-run portal.
+
+      The core research finding for this country, distinct from every
+      prior country pass this session: Canadian research universities
+      structure graduate funding differently from what's been seen at
+      Chinese, Dutch, and French universities. Rather than "tuition
+      waiver + stipend" being the norm, Canadian universities almost
+      universally guarantee a *stipend* (via a combination of
+      scholarships, teaching assistantships, and research
+      assistantships) for thesis-based graduate students, while
+      leaving tuition itself either unaddressed or covered only by a
+      separate, much smaller award. Checked this directly rather than
+      assuming: University of Calgary's own "Funding Thesis-based
+      Students" page states a guaranteed $25,455/year package for
+      international MA/MSc students in one clear sentence, but neither
+      that page nor any linked page ever states this figure is
+      inclusive of tuition - and a separate, much smaller
+      "International Graduate Tuition Award" (~$3,060/year total) is
+      the only tuition-specific instrument mentioned anywhere on
+      Calgary's site. Given a page that states funding amounts in such
+      specific, confident dollar figures would very plausibly also
+      state "this includes full tuition" if that were true (compare
+      Sciences Po's or PKU's explicit "covers... tuition" language),
+      its conspicuous absence here was read as real evidence of a
+      stipend-only package, not an oversight - correctly classified
+      `PARTIALLY_FUNDED` rather than assumed fully funded from a large
+      dollar figure alone. University of Waterloo made this
+      classification decision trivial by stating it outright on its
+      own site: "the University of Waterloo does not offer full-ride
+      scholarships that cover all tuition and living costs."
+
+      McGill's Mastercard Foundation Scholars Program was the one
+      exception found to this country-wide pattern - its own "About"
+      page states the scholarship includes "Full international student
+      tuition" as a distinct, named line item alongside "On-campus
+      housing" and "Personal monthly stipend," the same explicit,
+      itemized structure already seen at Sciences Po and Peking
+      University, categorically different from a single ambiguous
+      dollar figure.
+
+      Eligibility required checking two separate McGill pages, since
+      the "About" page (used for the actual scraped content, because
+      it is the one stating the funding package) only frames
+      eligibility in general continental terms ("from over 20 African
+      countries"), while the *separate* Eligibility page has the
+      actual explicit country list - fetched independently and
+      confirmed to name "Sierra Leone" directly among roughly 54
+      countries, the exact "explicit check, never a vague label"
+      standard this project has held to throughout. This same
+      "eligibility list lives on a different page than the funding
+      description" split was already seen with Sciences Po's Mastercard
+      program (general hub page vs. graduate-study eligibility
+      subpage) - recognizing the pattern the second time around made
+      the two-page check faster than it was the first time.
+
+      A genuinely interesting near-miss was the McCall MacBain
+      Scholarship - by every funding measure a strong candidate (full
+      tuition, a CAD 2,300/month stipend, a relocation grant, ten seats
+      reserved for non-Canada/US applicants), also hosted and promoted
+      on a McGill web page. Checked the URL path of that page itself
+      before treating it as equivalent to the Mastercard Foundation
+      program: `mcgill.ca/gradapplicants/funding/external/mccall-
+      macbain-scholarship` - the word "external" in McGill's own URL
+      structure is McGill's own classification of the award as one it
+      lists but does not itself administer (McCall MacBain Scholars is
+      run by an independent foundation with its own separate selection
+      process, `mccallmacbainscholars.org`). Left unintegrated as a
+      university-administered record for exactly that reason, rather
+      than treated as interchangeable with a program McGill itself
+      selects and admits students for.
+
+      Four other candidates were also researched and rejected on
+      similar stipend-only or too-small-an-award grounds: University of
+      Alberta (funding packages and international tuition figures
+      quoted separately with no page connecting them), University of
+      Toronto (funding set per graduate unit/department, no single
+      university-wide page), and University of British Columbia (its
+      International Tuition Award is a small ~$3,200/year top-up for
+      students already registered, not an entrance scholarship).
+
+      **Verified for real**: `pyflakes app tests` clean; a `collect()`
+      simulation against the real fixture, run before any test was
+      written, confirmed title, provider, country, `funding_type =
+      "fully_funded"`, and `deadline = None` all resolve exactly as
+      documented; full backend suite green afterward, 811 passed / 25
+      skipped (up from 809 - two new tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion, 82
+      -> 83 registered sources). The fixture
+      (`tests/fixtures/mcgill_mastercard_scholars.html`) was captured
+      unmodified from the live site. Also set
+      `min_request_interval_seconds = 5.0` on this one source
+      specifically, matching `mcgill.ca/robots.txt`'s own
+      `Crawl-delay: 5` directive exactly, rather than leaving this
+      file's usual 2.0-second default in place for a site that asked
+      for something more conservative.

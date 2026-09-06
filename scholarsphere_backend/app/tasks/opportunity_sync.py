@@ -90,6 +90,7 @@ from app.services.national_scholarship_programs import (
     ImperialInspiresScholarshipSource,
     KnightHennessyScholarsSource,
     MaastrichtHighPotentialScholarshipSource,
+    McgillMastercardScholarsSource,
     ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
@@ -502,6 +503,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_sjtu_masters_scholarship",
             "schedule": crontab(minute=15, hour=21),
         },
+        "sync-mcgill-mastercard-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_mcgill_mastercard_scholars",
+            "schedule": crontab(minute=30, hour=21),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -688,6 +693,9 @@ SOURCE_TASK_NAMES = {
     ),
     "sjtu_masters_scholarship": (
         "app.tasks.opportunity_sync.sync_sjtu_masters_scholarship"
+    ),
+    "mcgill_mastercard_scholars": (
+        "app.tasks.opportunity_sync.sync_mcgill_mastercard_scholars"
     ),
 }
 
@@ -1919,6 +1927,21 @@ def sync_sjtu_masters_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_mcgill_mastercard_scholars",
+    max_retries=3,
+)
+def sync_mcgill_mastercard_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "mcgill_mastercard_scholars", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2218,6 +2241,7 @@ def _collector(source_code: str) -> Any:
         "sciencespo_mastercard_scholars": SciencesPoMastercardScholarsSource,
         "pku_international_scholarship": PkuInternationalScholarshipSource,
         "sjtu_masters_scholarship": SjtuMastersScholarshipSource,
+        "mcgill_mastercard_scholars": McgillMastercardScholarsSource,
     }[source_code]()
 
 
