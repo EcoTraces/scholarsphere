@@ -4090,6 +4090,68 @@ English and Dutch public universities:
   appear in a plain-HTTP fetch, confirmed directly before falling back to
   the working `talent-scholarship` URL.
 
+### Researched this pass (2026-09-06, general "another Spain scholarship" follow-up), not integrated
+
+A broader, degree/funding-unrestricted pass (not limited to Master's or
+to fully-funded) checked six further Spanish institutions live and
+found no new qualifying candidate:
+
+- **Universidad Carlos III de Madrid (UC3M)** — its official
+  `/postgraduate/aid` page (redirects to `/postgraduate/scholarships`)
+  is a hub listing its own "UC3M Scholarships" (fixed tuition-fee
+  coverage, several parallel calls AM02–AM05) and a research-oriented
+  "AEM_UC3M" aid programme, alongside many externally-funded and
+  country-specific schemes (Mexico's FIDERH, Colombia's ICETEX/PCB,
+  Santander-UC3M grants, India-specific funds). Every 2026/27-cycle
+  item shown is explicitly marked "Final decision" (already resolved,
+  July 2026) or "CLOSED DEADLINE" — not a currently-open single scheme,
+  and the same multi-record architecture mismatch documented elsewhere
+  in this project.
+- **University of Salamanca (USAL) — Becas Internacionales de la USAL**
+  — a genuinely strong-sounding programme (tuition exemption,
+  accommodation, meals, and health/accident/liability insurance across
+  76 official Master's titles), but its own International Relations
+  Service host, `rel-int.usal.es` — the only site actually publishing
+  the current call's full terms — sets `Disallow: /` for all user
+  agents in its `robots.txt`, disallowing this platform's scraper from
+  the entire subdomain. A Faculty of Law news page on a different,
+  unrestricted subdomain (`derecho.usal.es`) merely links back to the
+  disallowed host and is itself a stale 2019 announcement for the
+  2019/2020 cycle. Per this project's "respect robots.txt" rule, not
+  circumvented.
+- **USAL's "Mujeres por África" sub-component** (2 of USAL's
+  international scholarship seats, mentioned as a specifically
+  Africa-focused strand) — checked specifically for Sierra Leone
+  relevance given its Africa focus, but this turned out to be
+  externally administered by the Fundación Mujeres por África
+  (`mujeresporafrica.es`), with USAL as just one of many partner host
+  universities, not a USAL-administered scheme — `EXTERNAL_ONLY`
+  relative to USAL — and its 2026 cycle's own registration deadline (14
+  May 2026) had already passed as of this research date with no
+  next-cycle page found.
+- **Universitat Autònoma de Barcelona (UAB) — "Solicitar beca"
+  (general grant)** — its official page describes the AGAUR
+  (Catalonia)/MEFPD (rest of Spain) "beca de carácter general," which
+  explicitly requires "domicilio familiar" (family residence) within
+  Spain as of 31 December 2025 — a domestic Spanish student grant, not
+  available to an international applicant from abroad — `NOT_
+  INTERNATIONAL`.
+- **University of Barcelona (UB) and Universidad Complutense de Madrid
+  (UCM)** — live search for each surfaced only vague, aggregator-level
+  claims ("many scholarships," "up to 70+ expected") with no single,
+  specific, official page identified describing one particular
+  scheme's exact eligibility and funding terms — Level 3 sources only,
+  not treated as sufficient evidence per this project's "official
+  university source required, aggregators are discovery-only" rule.
+
+No new source was added this pass — the request itself was a short,
+open-scope "find another Spain opportunity" (no Master's-only or
+fully-funded-only restriction), and a genuine research pass across six
+further institutions found every real, well-documented candidate
+either blocked by its own `robots.txt`, externally administered,
+domestically restricted, or already closed with no next-cycle
+evidence — reported honestly rather than forced into the dataset.
+
 ### Researched this pass (Netherlands exhaustive expansion), not integrated
 
 Six further Netherlands universities were researched live and found

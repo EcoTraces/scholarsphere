@@ -28,6 +28,62 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Spain, open-scope follow-up: no new source qualified
+
+### Added
+—
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — following an open-ended "find another scholarship opportunities in
+  spain" request (no degree-level or funding-type restriction, unlike
+  the recent fully-funded-Master's mega-prompts), researched six
+  further Spanish institutions live and found no new qualifying
+  candidate. No source code, tests, or fixtures changed.
+  - **UC3M (Universidad Carlos III de Madrid)** — its official
+    `/postgraduate/aid` hub (redirects to `/postgraduate/scholarships`)
+    lists its own UC3M/AEM_UC3M programmes alongside many
+    externally-funded, country-specific schemes (Mexico's FIDERH,
+    Colombia's ICETEX/PCB, Santander-UC3M, India-specific funds). Every
+    2026/27-cycle item is marked "Final decision" or "CLOSED DEADLINE"
+    — the same multi-record architecture mismatch documented elsewhere
+    in this project, and nothing currently open besides.
+  - **University of Salamanca (USAL) — Becas Internacionales** — a
+    genuinely strong programme (tuition exemption + accommodation +
+    meals + insurance across 76 Master's titles), but the only host
+    publishing its full current-call terms, `rel-int.usal.es`, sets
+    `Disallow: /` for all user agents in `robots.txt` — the entire
+    subdomain is off-limits to this platform's scraper, and a
+    different subdomain's page merely links back to it while itself
+    being a stale 2019 announcement. Not bypassed, per this project's
+    standing robots.txt rule.
+  - **USAL — "Mujeres por África" sub-component** — checked
+    specifically for Sierra Leone relevance given its Africa focus, but
+    it is externally administered by the Fundación Mujeres por África,
+    with USAL as just one of many partner host universities
+    (`EXTERNAL_ONLY` relative to USAL), and its 2026 registration
+    deadline (14 May 2026) had already passed with no next-cycle page
+    found.
+  - **Universitat Autònoma de Barcelona (UAB)** — its general
+    "Solicitar beca" grant (AGAUR/MEFPD) explicitly requires "domicilio
+    familiar" within Spain as of 31 December 2025 — a domestic Spanish
+    student grant, not available to an international applicant from
+    abroad (`NOT_INTERNATIONAL`).
+  - **University of Barcelona (UB) and Universidad Complutense de
+    Madrid (UCM)** — live search for each surfaced only vague,
+    aggregator-level claims with no single, specific, official page
+    describing one particular scheme's exact eligibility and funding
+    terms — Level 3 sources only, insufficient per this project's
+    "official university source required" rule.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Netherlands fully-funded Master's engine, continuation pass: no new source qualified
 
 ### Added

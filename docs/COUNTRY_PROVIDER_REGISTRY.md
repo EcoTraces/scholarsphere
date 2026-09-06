@@ -174,6 +174,28 @@ UPF-BSM's own general "Master of Science Scholarships" hub page
 (client-side-rendered, unlike the working Merit Based Scholarship page
 actually used).
 
+**(2026-09-06, general "another Spain scholarship" follow-up)** A
+further, open-scope pass (not restricted to Master's or to fully
+funded) checked six more Spanish institutions live and again found no
+new qualifying source — see AUTHORITATIVE_SOURCES.md's "Researched
+this pass (2026-09-06, general "another Spain scholarship" follow-up),
+not integrated" note for full detail: UC3M (its `/postgraduate/aid`
+hub lists only externally-funded, country-specific schemes plus its
+own UC3M/AEM programmes, every 2026/27-cycle item already marked
+"Final decision" or "CLOSED DEADLINE" — the same multi-record
+architecture mismatch); University of Salamanca's Becas
+Internacionales (a genuinely strong tuition+accommodation+meals+
+insurance programme across 76 Master's titles, but its only host
+publishing full terms, `rel-int.usal.es`, sets `Disallow: /` in
+`robots.txt` for all user agents — not bypassed); USAL's "Mujeres por
+África" sub-component (externally administered by the Fundación
+Mujeres por África, USAL just one of many partner hosts, and its 2026
+registration deadline had already passed with no next cycle found);
+UAB's general "beca de carácter general" (explicitly requires Spanish
+family residence as of 31 December 2025 — domestic-only); and UB and
+UCM (only vague aggregator-level claims found, no single official page
+identifying one scheme's exact terms).
+
 Eight other France candidates were researched this pass and rejected
 from the fully-funded university-only dataset (see
 AUTHORITATIVE_SOURCES.md's "Researched this pass (France fully-funded

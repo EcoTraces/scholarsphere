@@ -4426,3 +4426,74 @@ for the full dated history.
       `docs/AUTHORITATIVE_SOURCES.md` before committing and found it is
       actually "#45," fixed before finalizing rather than left to
       propagate.
+
+- [x] **(2026-09-06)** Spain, open-scope follow-up: "find another
+      scholarship opportunities in spain" - unlike the recent
+      mega-prompts, this was a short, open-ended request with no
+      degree-level or funding-type restriction stated, so the research
+      pass was broadened accordingly rather than confined to Master's
+      or to fully-funded-only candidates. Checked six further Spanish
+      institutions live:
+      - **Universidad Carlos III de Madrid (UC3M)** - its official
+        `/postgraduate/aid` page redirects to `/postgraduate/
+        scholarships`, a hub listing UC3M's own tuition-coverage
+        "UC3M Scholarships" (parallel calls AM02-AM05) and a
+        research-oriented "AEM_UC3M" aid programme, alongside many
+        externally-funded and country-specific schemes (Mexico's
+        FIDERH, Colombia's ICETEX/PCB, Santander-UC3M grants,
+        India-specific funds). Every item shown for the 2026/27 cycle
+        is explicitly marked "Final decision" (already resolved, July
+        2026) or "CLOSED DEADLINE" - not a single currently-open
+        scheme, and the same multi-record architecture mismatch
+        documented elsewhere in this project.
+      - **University of Salamanca (USAL) - Becas Internacionales de la
+        USAL** - genuinely strong on paper (tuition exemption,
+        accommodation, meals, and health/accident/liability insurance
+        across 76 official Master's titles), but its own International
+        Relations Service host, `rel-int.usal.es` - the only site
+        actually publishing the current call's full terms - sets
+        `Disallow: /` for all user agents in its `robots.txt`,
+        disallowing this platform's scraper from the entire subdomain.
+        A Faculty of Law news page on a different, unrestricted
+        subdomain (`derecho.usal.es`) merely links back to the
+        disallowed host and is itself a stale 2019 announcement for
+        the 2019/2020 cycle. Per this project's "respect robots.txt"
+        rule, not circumvented.
+      - **USAL's "Mujeres por África" sub-component** - checked
+        specifically for Sierra Leone relevance given its explicit
+        Africa focus, but this is externally administered by the
+        Fundación Mujeres por África (`mujeresporafrica.es`), with
+        USAL as just one of many partner host universities, not a
+        USAL-administered scheme (`EXTERNAL_ONLY` relative to USAL) -
+        and its 2026 cycle's own registration deadline (14 May 2026)
+        had already passed as of this research date with no
+        next-cycle page found.
+      - **Universitat Autònoma de Barcelona (UAB) - "Solicitar beca"
+        (general grant)** - its official page describes the AGAUR
+        (Catalonia)/MEFPD (rest of Spain) "beca de carácter general,"
+        which explicitly requires "domicilio familiar" (family
+        residence) within Spain as of 31 December 2025 - a domestic
+        Spanish student grant, not available to an international
+        applicant applying from abroad (`NOT_INTERNATIONAL`).
+      - **University of Barcelona (UB) and Universidad Complutense de
+        Madrid (UCM)** - live search for each surfaced only vague,
+        aggregator-level claims ("many scholarships," "up to 70+
+        expected") with no single, specific, official page identified
+        describing one particular scheme's exact eligibility and
+        funding terms - Level 3 sources only, not treated as
+        sufficient evidence per this project's "official university
+        source required, aggregators are discovery-only" rule.
+
+      No new opportunity source qualified this round - every real,
+      well-documented candidate found was either blocked by its own
+      `robots.txt`, externally administered, domestically restricted,
+      or already closed with no next-cycle evidence, and this is
+      reported honestly rather than forced into the dataset.
+
+      **No code was changed this pass** - only
+      `docs/AUTHORITATIVE_SOURCES.md` and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md` were updated, appending this
+      pass's findings, plus `Changelog.md` and this file. No new test
+      run was required since no source code, test, or fixture file
+      changed; the existing 813-passed/25-skipped baseline remains the
+      accurate current count.
