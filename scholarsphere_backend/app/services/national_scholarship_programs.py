@@ -3083,3 +3083,85 @@ class UpfBsmMeritScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().upf_bsm_merit_scholarship_base_url
+
+
+class SciencesPoMastercardScholarsSource(_SingleProgramSource):
+    """Sciences Po - Mastercard Foundation Scholars Program, graduate
+    (two-year Master's) track. This platform's first France *university*
+    source: France Excellence Eiffel and Erasmus Mundus were deliberately
+    excluded from this dataset as government/Campus France and
+    externally-administered programmes respectively, not university-only
+    scholarships, per this pass's own explicit instruction (Eiffel is
+    real and important for French Master's applicants, but "French
+    universities nominate candidates" does not make it a university
+    scholarship).
+
+    Confirmed 2026-09-06: `robots.txt` (`sciencespo.fr/robots.txt`) does
+    not disallow the `/students/` path.
+
+    Overview/content page: the graduate-study sub-page (`.../
+    mastercard-foundation-scholarships/graduate-study/`), not the parent
+    hub page - it is the one that states the Master's-specific
+    eligibility criteria and the explicit full-funding language, and its
+    own `<h1>` ("Become a Mastercard Foundation Scholar at graduate
+    level") is itself a specific and accurate title. Content selector:
+    `#main-content-page` - a stable, semantic HTML id (an anchor-scroll
+    target used by the page's own in-page navigation), not one of the
+    site's auto-generated CSS-module hash classes, verified directly via
+    a BeautifulSoup structural walk to hold the full real content (both
+    the funding statement and the eligibility section) with only a short,
+    harmless breadcrumb ("Home > Fees & Funding > ...") ahead of it.
+
+    Funding - genuinely fully funded, not merely a large stipend: "A
+    comprehensive grant: Scholarships cover the full cost of tuition and
+    living expenses in France, throughout the recipient's time studying
+    at Sciences Po" (parent hub page), and independently, on this page,
+    "The Program covers the full financial needs of selected Scholars
+    and provides comprehensive support throughout their two years of
+    study at Sciences Po." Also includes reserved Paris housing.
+    `funding_type = "fully_funded"`.
+
+    Eligibility: "Hold the citizenship of an African country" is the
+    sole nationality criterion (dual citizens holding a non-African
+    citizenship are excluded) - Sierra Leone is an African country and
+    is not excluded by name or by omission from any narrower list, so
+    `sierra_leone_eligible = true`. Note the *additional*, non-national
+    constraint documented honestly rather than glossed over: applicants
+    must also hold (or be completing) a Bachelor's degree from one of
+    the Program's own list of approved partner universities, or have
+    completed a recognised bridge/mentoring programme, or hold UNHCR
+    refugee status - this narrows practical eligibility beyond "any
+    Sierra Leonean citizen may apply" without excluding the country
+    itself. Only two-year Master's programmes qualify; one-year Master's
+    and dual-degree programmes are explicitly excluded from this
+    specific scholarship track (though they may still be genuine
+    Sciences Po Master's programmes in their own right).
+
+    Deadline: deliberately left unextracted. As of this research date
+    the page states plainly that "detailed information and the
+    application timeline ... will be published on this page from
+    September 2026" and that "applications for the fee waiver will be
+    open from October to mid-December 2026" - a real, current
+    between-cycles status, but "mid-December 2026" alone carries no day
+    number, so no confident date literal exists for
+    `extract_confident_date_after` to match on the default `"deadline"`/
+    `"closing date"` keywords - correctly resolves to `None` rather than
+    guessing a specific December date. (The page's one full date literal,
+    "17 October 2026", is an information-session/Open House date, not
+    the application deadline, and is never reached by the default
+    keywords.)
+    """
+
+    source_code = "sciencespo_mastercard_scholars"
+    overview_path = (
+        "/students/en/fees-funding/bursaries-financial-aid/"
+        "mastercard-foundation-scholarships/graduate-study/"
+    )
+    content_selectors = ("#main-content-page",)
+    provider_name = "Sciences Po"
+    country = "France"
+    external_id = "sciencespo-mastercard-scholars"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().sciencespo_mastercard_scholars_base_url

@@ -38,6 +38,7 @@ from app.services.national_scholarship_programs import (
     KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
+    SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
     DurhamInspiringExcellencePostgraduateScholarshipSource,
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
@@ -2746,3 +2747,52 @@ def test_upf_bsm_merit_scholarship_has_no_robots_txt_restrictions() -> None:
     """robots.txt (`bsm.upf.edu/robots.txt`) does not disallow this
     content path."""
     assert UpfBsmMeritScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Sciences Po Mastercard Foundation Scholars Program: real fixture,
+# fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_sciencespo_mastercard_scholars_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first France *university* source. Genuinely fully
+    funded (not merely a large stipend): "The Program covers the full
+    financial needs of selected Scholars" plus, on the parent hub page,
+    "cover[s] the full cost of tuition and living expenses in France" and
+    reserved Paris housing. Eligibility's sole nationality criterion is
+    "citizenship of an African country" - Sierra Leone is not excluded.
+    No exact deadline exists yet on this page ("detailed information and
+    the application timeline ... will be published on this page from
+    September 2026"; the window "October to mid-December 2026" carries
+    no day number) so `deadline` correctly resolves to `None` rather than
+    guessing a date - and the page's one full date literal, 17 October
+    2026, is an information-session date, not the deadline, and is never
+    reached by the default `deadline_keywords`."""
+    source = SciencesPoMastercardScholarsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("sciencespo_mastercard_scholars.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "sciencespo-mastercard-scholars"
+    assert opportunity.title == "Become a Mastercard Foundation Scholar at graduate level"
+    assert opportunity.country == "France"
+    assert opportunity.provider_name == "Sciences Po"
+    assert opportunity.description is not None
+    assert "full financial needs of selected Scholars" in opportunity.description
+    assert "citizenship of an African country" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_sciencespo_mastercard_scholars_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`sciencespo.fr/robots.txt`) does not disallow the
+    `/students/` content path."""
+    assert SciencesPoMastercardScholarsSource.min_request_interval_seconds == 2.0

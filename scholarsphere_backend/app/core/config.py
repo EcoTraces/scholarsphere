@@ -468,6 +468,19 @@ class Settings(BaseSettings):
     # robots.txt does not disallow this content path.
     upf_bsm_merit_scholarship_base_url: str = "https://www.bsm.upf.edu"
 
+    # Sciences Po - Mastercard Foundation Scholars Program (graduate/
+    # Master's track): a genuinely fully funded scholarship - "The
+    # Program covers the full financial needs of selected Scholars" plus
+    # "cover[s] the full cost of tuition and living expenses in France"
+    # and reserved Paris housing - for citizens of any African country
+    # admitted to a two-year Master's at Sciences Po (one-year Master's
+    # and dual-degree programmes are not eligible). This platform's
+    # first France-university source; France Excellence Eiffel remains
+    # deliberately excluded as a government/Campus France programme, not
+    # a university-only scholarship. robots.txt does not disallow this
+    # content path.
+    sciencespo_mastercard_scholars_base_url: str = "https://www.sciencespo.fr"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -636,6 +649,7 @@ class Settings(BaseSettings):
         "wageningen_anne_van_den_ban_fund_base_url",
         "utwente_itc_scholarship_base_url",
         "upf_bsm_merit_scholarship_base_url",
+        "sciencespo_mastercard_scholars_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

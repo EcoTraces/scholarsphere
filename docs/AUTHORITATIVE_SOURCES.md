@@ -4071,6 +4071,162 @@ international-facing scholarship — rather than integrated:
   infer next year's deadline from an old cycle" rule, this was left
   unintegrated rather than guessed at.
 
+## 79. Mastercard Foundation Scholars Program, graduate/Master's track (Sciences Po)
+
+Researched 2026-09-06, in response to a request to build a France
+fully-funded-Master's-only university scholarship dataset. This
+platform's **first France university source** — France Excellence
+Eiffel and Erasmus Mundus were deliberately kept out of the main dataset
+as government/Campus France and externally-administered programmes
+respectively, per that request's own explicit instruction (a university
+nominating candidates for Eiffel does not make Eiffel a university
+scholarship). Its 27th university-classified source overall.
+
+- **Organization**: Sciences Po (in partnership with the Mastercard
+  Foundation)
+- **Route code**: `sciencespo-mastercard-scholars`
+  (`sciencespo_mastercard_scholars` internally)
+- **Official domain / base URL**: `https://www.sciencespo.fr`
+  (`SCIENCESPO_MASTERCARD_SCHOLARS_BASE_URL`)
+- **Opportunity types**: Scholarship — genuinely fully funded, not a
+  large stipend: "A comprehensive grant: Scholarships cover the full
+  cost of tuition and living expenses in France, throughout the
+  recipient's time studying at Sciences Po" (parent hub page), and
+  independently, on the page actually scraped, "The Program covers the
+  full financial needs of selected Scholars and provides comprehensive
+  support throughout their two years of study at Sciences Po." Also
+  includes reserved Paris housing. `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: The sole nationality criterion is
+  "Hold the citizenship of an African country" (dual citizens holding a
+  non-African citizenship are excluded). Sierra Leone is an African
+  country and is not excluded by name or by omission from any narrower
+  list, so Sierra Leone applicants are eligible on nationality grounds.
+  Documented honestly rather than glossed over: applicants must
+  *additionally* hold (or be completing) a Bachelor's degree from one of
+  the Program's own approved partner universities, or have completed a
+  recognised bridge/mentoring programme, or hold UNHCR refugee status —
+  this narrows practical eligibility beyond "any Sierra Leonean citizen
+  may apply" without excluding the country itself. Only two-year
+  Master's programmes qualify for this specific scholarship track;
+  one-year Master's and dual-degree programmes are explicitly excluded.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML — a Drupal site, not client-side rendered)
+- **robots.txt / indexing note**: `sciencespo.fr/robots.txt` does not
+  disallow the `/students/` content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Overview/content page is the graduate-study sub-page**
+    (`.../mastercard-foundation-scholarships/graduate-study/`), not the
+    parent hub page — it is the one that states the Master's-specific
+    eligibility criteria and the explicit full-funding language, and its
+    own `<h1>` ("Become a Mastercard Foundation Scholar at graduate
+    level") is itself a specific, accurate title.
+  - **Content selector is `#main-content-page`**: a stable, semantic
+    HTML id (an anchor-scroll target used by the page's own in-page
+    navigation), not one of the site's auto-generated CSS-module hash
+    classes — verified directly via a BeautifulSoup structural walk to
+    hold the full real content (both the funding statement and the
+    eligibility section), with only a short, harmless breadcrumb ("Home
+    > Fees & Funding > ...") ahead of it.
+  - **Deadline deliberately left unextracted**: as of this research date
+    the page states plainly that "detailed information and the
+    application timeline ... will be published on this page from
+    September 2026" and that "applications for the fee waiver will be
+    open from October to mid-December 2026" — a real, current
+    between-cycles status, but "mid-December 2026" alone carries no day
+    number, so no confident date literal exists for
+    `extract_confident_date_after` to match on the default `"deadline"`/
+    `"closing date"` keywords, correctly resolving to `None` rather than
+    guessing a specific December date. The page's one full date literal,
+    "17 October 2026", is an information-session/Open House date, not
+    the application deadline, and is never reached by the default
+    keywords.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/sciencespo_mastercard_scholars.html`).
+
+### Researched this pass (France fully-funded Master's university engine), not integrated
+
+A broad but necessarily non-exhaustive pass across French institutions —
+Sciences Po, Université Paris-Saclay (and CentraleSupélec, which shares
+its scholarship scheme), Institut Polytechnique de Paris/École
+Polytechnique, PSL, Aix-Marseille Université, University of Bordeaux,
+Université de Strasbourg, and Télécom Paris — found the strict
+"full tuition **and** substantial living support, evidenced by the
+university's own words" bar genuinely rare among French university
+scholarships for internationals. Rejected, all for concrete,
+evidence-based reasons rather than a blanket "not found":
+
+- **Sciences Po — Émile Boutmy Scholarship** — real and well-known, but
+  it is explicitly a **tuition-fee exemption only** ("€18,500 exemption
+  from tuition fees for each of the two years of the Master's
+  programme"), with no living-cost component at all —
+  `funding_classification = TUITION_ONLY`, correctly rejected from the
+  fully-funded dataset per this pass's own stated rule.
+- **France Excellence Eiffel** (French Ministry for Europe and Foreign
+  Affairs / Campus France) — real, important, and covers a monthly
+  living allowance (reported at €1,200/month from January 2026) plus
+  benefits, but it is a **government/Campus France programme**: French
+  universities nominate candidates, they do not administer or fund it
+  themselves. Kept out of the main France-university dataset per this
+  pass's own explicit instruction (`funding_classification =
+  EXTERNAL_ONLY`), not fabricated into a university scholarship.
+- **Erasmus Mundus Joint Masters** — real, EU-funded, and already a
+  separate opportunity source on this platform (#49,
+  `erasmus_mundus_joint_masters`), but it is externally administered by
+  the European Commission/EACEA across a multi-university consortium,
+  not a single French university's own scholarship —
+  `funding_classification = EXTERNAL_ONLY` for the purposes of this
+  France-university-only dataset.
+- **Université Paris-Saclay (and CentraleSupélec, which participates in
+  the same scheme) — International Master's Scholarships Program** — a
+  real, genuinely useful award (€10,000/year plus up to €900 for travel
+  and visa costs, auto-renewing into M2), and Paris-Saclay's own
+  materials describe it as covering "both living costs and the majority
+  of academic fees" — but that phrasing itself concedes it is not full
+  coverage of either component, and it explicitly cannot be combined
+  with Eiffel or Erasmus Mundus. `funding_classification =
+  PARTIALLY_FUNDED`, rejected per the "€8,000–10,000 tuition/living
+  award → reject unless official evidence shows a complete package"
+  rule.
+- **Institut Polytechnique de Paris / École Polytechnique** — the
+  Master's Excellence Scholarship (€10,000/year) and the École
+  Polytechnique Foundation scholarship (€8,000/year after the first
+  Master's year) are real but explicitly partial relative to published
+  tuition (up to €15,400/year for some specializations) and Paris living
+  costs — `funding_classification = PARTIALLY_FUNDED`.
+- **PSL Université** — the central PSL scholarships/grants page
+  describes low, publicly-regulated tuition (€3,700–4,000/year) plus
+  scattered merit scholarships awarded at the level of individual PSL
+  Graduate Programmes rather than one central, fully-funded PSL-wide
+  Master's scheme — no single page found stating full tuition-and-living
+  coverage; PSL's genuinely fully-funded tracks are PhD-linked
+  (MSc+PhD 5-year tracks), which fall outside this pass's Master's-only
+  scope. `funding_classification = UNVERIFIED` / out of scope.
+- **Aix-Marseille Université — TIGER Master Excellence Grants** —
+  €10,000/year plus guaranteed CROUS-subsidized accommodation, awarded
+  automatically on admission to an eligible programme — a strong partial
+  package, but Aix-Marseille's own materials do not state it covers the
+  *full* cost of tuition and living, only that it substantially
+  contributes toward both. `funding_classification = PARTIALLY_FUNDED`.
+- **University of Bordeaux** — its only prominently documented
+  international-student funding routes are Eiffel (`EXTERNAL_ONLY`,
+  excluded per the rule above) and a joint Erasmus Mundus programme with
+  Bayreuth/Porto (`EXTERNAL_ONLY`); no Bordeaux-administered
+  fully-funded Master's scholarship was found.
+- **Télécom Paris** — its "International Excellence" scholarship is
+  restricted to students already recruited through Télécom Paris' own
+  international-recruitment activities (not an open, generally
+  applicable award), and its other funding route referenced by
+  aggregators is Eiffel itself (`EXTERNAL_ONLY`).
+
 ---
 
 ## Sources evaluated and deliberately not integrated

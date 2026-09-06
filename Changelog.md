@@ -28,6 +28,106 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — France fully-funded Master's university scholarship engine: Sciences Po Mastercard Foundation Scholars Program (80th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::SciencesPoMastercardScholarsSource`
+  — this platform's 80th opportunity source, added in response to a
+  request to build a France-only, fully-funded-Master's-only,
+  university-administered scholarship dataset. This is the registry's
+  **first France university source** — France Excellence Eiffel (the
+  existing France source, #27) and Erasmus Mundus (source #49) were
+  deliberately kept out of this dataset as government/Campus France and
+  externally-administered programmes respectively, not university-only
+  scholarships, per this pass's own explicit instruction: a university
+  nominating candidates for Eiffel does not make Eiffel a university
+  scholarship.
+  - Live-verified 2026-09-06 against
+    `https://www.sciencespo.fr/students/en/fees-funding/bursaries-financial-aid/mastercard-foundation-scholarships/graduate-study/`.
+    `robots.txt` does not disallow the `/students/` content path.
+  - Genuinely, verifiably fully funded — not merely a large stipend:
+    "A comprehensive grant: Scholarships cover the full cost of tuition
+    and living expenses in France, throughout the recipient's time
+    studying at Sciences Po" (parent hub page), and independently, on
+    the page scraped, "The Program covers the full financial needs of
+    selected Scholars." Also includes reserved Paris housing.
+    `funding_type = "fully_funded"`.
+  - Eligibility: the sole nationality criterion is "Hold the citizenship
+    of an African country" — Sierra Leone is not excluded by name or by
+    omission from any narrower list. Documented honestly rather than
+    glossed over: applicants must *additionally* hold (or be completing)
+    a Bachelor's degree from an approved partner university, or have
+    completed a recognised bridge/mentoring programme, or hold UNHCR
+    refugee status — a real constraint beyond blanket nationality
+    eligibility, stated plainly rather than hidden. Only two-year
+    Master's programmes qualify; one-year Master's and dual-degree
+    programmes are explicitly excluded from this specific track.
+  - Content selector `#main-content-page`: a stable, semantic HTML id
+    (an anchor-scroll target used by the page's own in-page navigation),
+    not one of the site's auto-generated CSS-module hash classes.
+  - Deadline deliberately left unextracted: the page states "detailed
+    information and the application timeline ... will be published on
+    this page from September 2026" and gives only an imprecise
+    "October to mid-December 2026" window, with no day number —
+    `extract_confident_date_after` correctly resolves to `None` on the
+    default `"deadline"`/`"closing date"` keywords rather than guessing
+    a specific date. (The page's one full date literal, 17 October 2026,
+    is an information-session date, not the deadline, and is never
+    reached by the default keywords.)
+  - Fully wired: config setting, source registry entry (`source_type =
+    "university"`), Celery beat schedule + dedicated sync task, and a
+    fixture-backed test (fixture captured unmodified from the live
+    site).
+
+  Eight other France candidates were researched live and correctly
+  rejected from the fully-funded university-only dataset rather than
+  inflated into it (see `docs/AUTHORITATIVE_SOURCES.md`'s new
+  "Researched this pass (France fully-funded Master's university
+  engine), not integrated" section for full detail):
+  - **Sciences Po's own Émile Boutmy Scholarship** — a tuition-fee
+    exemption only (€18,500/year), no living-cost component —
+    `TUITION_ONLY`.
+  - **France Excellence Eiffel** — government/Campus France-
+    administered, not university-only — `EXTERNAL_ONLY`.
+  - **Erasmus Mundus Joint Masters** (already source #49 on this
+    platform) — externally administered by the European
+    Commission/EACEA — `EXTERNAL_ONLY` for this dataset.
+  - **Université Paris-Saclay's International Master's Scholarships
+    Program** (which CentraleSupélec also participates in) — €10,000/
+    year + travel allowance, but the university's own materials concede
+    it covers "the majority of academic fees," not all of them —
+    `PARTIALLY_FUNDED`.
+  - **Institut Polytechnique de Paris / École Polytechnique** — Master's
+    Excellence Scholarship and École Polytechnique Foundation
+    scholarship, €8,000–10,000/year against up to €15,400/year tuition
+    — `PARTIALLY_FUNDED`.
+  - **PSL Université** — low regulated tuition plus scattered
+    per-programme merit awards; no single page found stating full
+    tuition-and-living coverage for a Master's (PSL's genuinely
+    fully-funded tracks are PhD-linked, outside this pass's Master's-
+    only scope) — `UNVERIFIED`/out of scope.
+  - **Aix-Marseille Université's TIGER Master Excellence Grants** —
+    €10,000/year + guaranteed CROUS accommodation, not stated to cover
+    full cost — `PARTIALLY_FUNDED`.
+  - **University of Bordeaux and Télécom Paris** — no
+    university-administered fully-funded route found beyond
+    Eiffel/Erasmus Mundus, both already excluded above.
+
+- **Verified**: full backend test suite — 803 passed, 25 skipped (up
+  from 801 passed before this change), 0 failed; `pyflakes` clean on
+  every changed/new file.
+
+### Changed
+—
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Spain Master's/postgraduate follow-up: UPF Barcelona School of Management Merit Based Scholarship (79th opportunity source)
 
 ### Added

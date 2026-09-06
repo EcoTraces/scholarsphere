@@ -496,6 +496,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "sciencespo_mastercard_scholars": {
+        "source_name": "Sciences Po Mastercard Foundation Scholars Program",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -604,6 +610,9 @@ def _base_urls() -> dict[str, str]:
         ),
         "utwente_itc_scholarship": settings.utwente_itc_scholarship_base_url,
         "upf_bsm_merit_scholarship": settings.upf_bsm_merit_scholarship_base_url,
+        "sciencespo_mastercard_scholars": (
+            settings.sciencespo_mastercard_scholars_base_url
+        ),
     }
 
 
@@ -706,6 +715,7 @@ async def seed_opportunity_sources(
         "wageningen_anne_van_den_ban_fund": now + timedelta(hours=24),
         "utwente_itc_scholarship": now + timedelta(hours=24),
         "upf_bsm_merit_scholarship": now + timedelta(hours=24),
+        "sciencespo_mastercard_scholars": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

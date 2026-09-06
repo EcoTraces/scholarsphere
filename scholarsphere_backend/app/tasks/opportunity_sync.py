@@ -96,6 +96,7 @@ from app.services.national_scholarship_programs import (
     NottinghamPgScholarshipSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
+    SciencesPoMastercardScholarsSource,
     SheffieldPgScholarshipSource,
     SouthamptonMeritUndergraduateScholarshipSource,
     SouthamptonPresidentialBursariesSource,
@@ -487,6 +488,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_upf_bsm_merit_scholarship",
             "schedule": crontab(minute=30, hour=20),
         },
+        "sync-sciencespo-mastercard-scholars": {
+            "task": "app.tasks.opportunity_sync.sync_sciencespo_mastercard_scholars",
+            "schedule": crontab(minute=45, hour=20),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -664,6 +669,9 @@ SOURCE_TASK_NAMES = {
     ),
     "upf_bsm_merit_scholarship": (
         "app.tasks.opportunity_sync.sync_upf_bsm_merit_scholarship"
+    ),
+    "sciencespo_mastercard_scholars": (
+        "app.tasks.opportunity_sync.sync_sciencespo_mastercard_scholars"
     ),
 }
 
@@ -1850,6 +1858,21 @@ def sync_upf_bsm_merit_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_sciencespo_mastercard_scholars",
+    max_retries=3,
+)
+def sync_sciencespo_mastercard_scholars(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "sciencespo_mastercard_scholars", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2146,6 +2169,7 @@ def _collector(source_code: str) -> Any:
         "wageningen_anne_van_den_ban_fund": WageningenAnneVanDenBanFundSource,
         "utwente_itc_scholarship": UtwenteItcScholarshipSource,
         "upf_bsm_merit_scholarship": UpfBsmMeritScholarshipSource,
+        "sciencespo_mastercard_scholars": SciencesPoMastercardScholarsSource,
     }[source_code]()
 
 

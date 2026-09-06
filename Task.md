@@ -3623,3 +3623,107 @@ for the full dated history.
       78 -> 79 registered sources). The fixture
       (`tests/fixtures/upf_bsm_merit_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-06)** "France fully funded Master's university
+      scholarship engine" request: implemented Sciences Po's Mastercard
+      Foundation Scholars Program (graduate/Master's track) - see
+      Changelog.md's same-date entry and `docs/AUTHORITATIVE_SOURCES.md`
+      #79 for full detail. This platform's 80th opportunity source, and
+      this registry's *first* France *university* source. The request
+      was an extremely long, exhaustive-sounding mega-prompt (40
+      sections covering ~50 named institutions, a full new database
+      schema, a scoring engine, a search-loop pseudocode, etc.) - as
+      with the earlier Netherlands mega-prompt, the honest framing given
+      up front was that a full automated discovery pipeline, new schema
+      fields, and a scoring/matching engine were out of scope for a
+      single pass, but a genuine (not exhaustive) multi-institution
+      research pass against the existing `_SingleProgramSource`
+      architecture was both feasible and exactly what the underlying
+      need called for.
+
+      The core difficulty of this request was its own strict
+      definition of "fully funded": full tuition/registration coverage
+      **and** substantial living support, evidenced by the university's
+      own words, with an explicit instruction not to inflate a partial
+      award into "fully funded." This bar turned out to be genuinely
+      rare among French university scholarships for internationals -
+      most (Paris-Saclay, IP Paris, PSL, Aix-Marseille) offer real,
+      useful, but partial annual stipends (~EUR 8,000-10,000/year)
+      against French public tuition and Paris-level living costs,
+      falling short of the bar. Sciences Po's Mastercard Foundation
+      Scholars Program was the one candidate found whose own official
+      page states, independently in two places, that it "covers the
+      full cost of tuition and living expenses" and "the full financial
+      needs of selected Scholars" - a categorically different, fully
+      comprehensive statement rather than a large-but-partial number.
+
+      A second, equally important part of this request was to
+      correctly *exclude* France Excellence Eiffel and Erasmus Mundus
+      from the university-only dataset even though both are important,
+      real France-related scholarships - the request's own text
+      anticipated and explicitly warned against the mistake of counting
+      Eiffel as a university scholarship "merely because French
+      universities nominate candidates." Both were confirmed still
+      correctly excluded (Eiffel is already source #27,
+      government/Campus France-classified; Erasmus Mundus is already
+      source #49, EU/EACEA-classified) - neither was re-added or
+      reclassified.
+
+      A third notable finding, applying this session's standing "never
+      infer eligibility from a vague regional label" discipline in the
+      opposite direction from usual: Sciences Po's own eligibility page
+      states the *specific*, general criterion "Hold the citizenship of
+      an African country" (not a vague "developing countries" phrase,
+      and not a narrower named-country list) as the sole nationality
+      test, so Sierra Leone was correctly marked eligible - while still
+      documenting, rather than hiding, the separate, non-national
+      constraint that applicants must also hold a Bachelor's degree from
+      one of the Program's own approved partner universities (or a
+      bridge/mentoring programme, or UNHCR refugee status), which
+      narrows real-world eligibility beyond blanket nationality without
+      excluding the country itself.
+
+      A fourth finding, applying the "never fabricate a deadline"
+      discipline to an unusually explicit case: the scraped page states
+      outright that exact application-timeline details "will be
+      published on this page from September 2026," and gives only an
+      imprecise "October to mid-December 2026" window with no day
+      number - `extract_confident_date_after` was verified directly
+      (via a standalone script) to correctly resolve to `None` on every
+      keyword tried ("deadline", "closing date", "mid-December"), and
+      critically, was verified to *not* accidentally latch onto the
+      page's one full date literal ("17 October 2026"), which is an
+      information-session/Open House date, not the application
+      deadline - a real near-miss this project has hit before in
+      slightly different forms (grabbing the wrong dated section on a
+      page with multiple dates).
+
+      Eight other candidates were researched live and rejected for
+      concrete, evidence-based reasons rather than a blanket "none
+      found": Sciences Po's own Émile Boutmy Scholarship
+      (tuition-exemption only, no living component); Université
+      Paris-Saclay's International Master's Scholarships Program, which
+      CentraleSupélec also participates in (EUR 10,000/year, the
+      university's own text conceding it covers only "the majority of
+      academic fees"); Institut Polytechnique de Paris/École
+      Polytechnique's two scholarship schemes (EUR 8,000-10,000/year
+      against up to EUR 15,400/year tuition); PSL Université (no single
+      page found stating full tuition-and-living coverage for a
+      Master's - PSL's genuinely fully-funded tracks are PhD-linked,
+      outside this pass's Master's-only scope); Aix-Marseille
+      Université's TIGER Master Excellence Grants (EUR 10,000/year +
+      guaranteed accommodation, not stated to cover full cost); and
+      University of Bordeaux/Télécom Paris (no university-administered
+      fully-funded route found beyond the already-excluded
+      Eiffel/Erasmus Mundus).
+
+      **Verified for real**: `pyflakes app tests` clean; a standalone
+      `collect()` simulation against the real fixture confirmed title,
+      provider, country, `funding_type = "fully_funded"`, and
+      `deadline = None` all resolve exactly as documented before any
+      test was written; full backend suite green afterward, 803 passed
+      / 25 skipped (up from 801 - the new source's two fixture-backed
+      tests, plus `test_opportunity_import.py`'s updated source-count
+      assertion, 79 -> 80 registered sources). The fixture
+      (`tests/fixtures/sciencespo_mastercard_scholars.html`) was
+      captured unmodified from the live site.

@@ -104,6 +104,7 @@ that were actually built this session (in two batches).
 | 76 | Anne van den Ban Fund (Wageningen University & Research) | Netherlands | UNIVERSITY | wur.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; nomination-based (no separate application) full-or-partial Master's funding for students from low-income countries; no deadline extracted (year-less recurring dates) (see AUTHORITATIVE_SOURCES.md #76) |
 | 77 | ITC Excellence Scholarship Programme (University of Twente) | Netherlands | UNIVERSITY | utwente.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Netherlands Master's/postgraduate follow-up; a distinct ITC-faculty-administered scholarship from the university-wide UTS (#75); explicit ~100-country eligible list confirmed to include Sierra Leone; genuinely partial (EUR 25,000 of a EUR 74,370 total cost); no deadline extracted (page states 2026 applications closed with a next round "expected to open in December," no exact date given) (see AUTHORITATIVE_SOURCES.md #77) |
 | 78 | Merit Based Scholarship (UPF Barcelona School of Management, Universitat Pompeu Fabra) | Spain | UNIVERSITY | bsm.upf.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Spain Master's/postgraduate follow-up, this registry's first Spain-university source (source #23, Becas MAEC-AECID, is government-classified); no nationality restriction; partial funding (25%, up to 50% with financial need, of tuition); exact deadline extracted via the specific "3rd call" round keyword (26 November 2026 — the first two of four rolling rounds had already passed) (see AUTHORITATIVE_SOURCES.md #78) |
+| 79 | Mastercard Foundation Scholars Program, graduate/Master's track (Sciences Po) | France | UNIVERSITY | sciencespo.fr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a France fully-funded-Master's-only university scholarship request; this registry's first France-*university* source (source #27, France Excellence Eiffel, is government/Campus France-classified, deliberately excluded from the university-only dataset); sole nationality criterion "citizenship of an African country," Sierra Leone not excluded (though a partner-university/bridge-programme/refugee-status condition also applies); genuinely fully funded ("covers the full financial needs," full tuition + living + reserved Paris housing); no deadline extracted (exact date "will be published ... from September 2026," only an imprecise "October to mid-December 2026" window exists so far) (see AUTHORITATIVE_SOURCES.md #79) |
 
 Four other Spanish institutions were researched this pass and found
 unsuitable rather than integrated (see AUTHORITATIVE_SOURCES.md's
@@ -120,6 +121,35 @@ refresh even though surrounding tuition figures were updated); and
 UPF-BSM's own general "Master of Science Scholarships" hub page
 (client-side-rendered, unlike the working Merit Based Scholarship page
 actually used).
+
+Eight other France candidates were researched this pass and rejected
+from the fully-funded university-only dataset (see
+AUTHORITATIVE_SOURCES.md's "Researched this pass (France fully-funded
+Master's university engine), not integrated" note): Sciences Po's own
+Émile Boutmy Scholarship (tuition-fee exemption only, no living-cost
+component — `TUITION_ONLY`); France Excellence Eiffel (government/Campus
+France-administered, not university-only — `EXTERNAL_ONLY`, per this
+pass's own explicit instruction not to represent it as a university
+scholarship merely because universities nominate candidates); Erasmus
+Mundus Joint Masters (already a separate platform source, #49, but
+externally administered by the European Commission/EACEA —
+`EXTERNAL_ONLY` for this dataset); Université Paris-Saclay's
+International Master's Scholarships Program, which CentraleSupélec also
+participates in (€10,000/year + travel allowance, the university's own
+materials concede it covers "the majority of academic fees" rather than
+all of them — `PARTIALLY_FUNDED`); Institut Polytechnique de
+Paris/École Polytechnique's Master's Excellence Scholarship and École
+Polytechnique Foundation scholarship (€8,000–10,000/year against up to
+€15,400/year tuition — `PARTIALLY_FUNDED`); PSL Université (low
+regulated tuition plus scattered per-programme merit awards, no single
+page found stating full tuition-and-living coverage for a Master's —
+`UNVERIFIED`/out of scope; PSL's genuinely fully-funded tracks are
+PhD-linked, outside this pass's Master's-only remit); Aix-Marseille
+Université's TIGER Master Excellence Grants (€10,000/year + guaranteed
+CROUS accommodation, but not stated to cover full cost —
+`PARTIALLY_FUNDED`); and University of Bordeaux/Télécom Paris (no
+university-administered fully-funded route found beyond Eiffel/Erasmus
+Mundus, both already excluded above).
 
 Five other candidates were researched this pass and found unsuitable
 rather than integrated (see AUTHORITATIVE_SOURCES.md's "Researched this
@@ -825,7 +855,7 @@ checking the full implementation against that exact list.
 | Australia | PARTIALLY_SUPPORTED | Overview live-verified 2026-08-29; deadline page (dfat.gov.au) unreachable, same pattern as Sierra Leone's MTHE |
 | Japan | SUPPORTED | Live-verified 2026-08-29 |
 | Belgium | SUPPORTED | Live-verified 2026-08-29 |
-| France | SUPPORTED | Live-verified 2026-08-29 (Eiffel program only — Campus Bourses database still needs its own design) |
+| France | SUPPORTED | Live-verified 2026-08-29 (Eiffel program only — Campus Bourses database still needs its own design); a France-university source (Sciences Po's Mastercard Foundation Scholars Program, #79) added 2026-09-06 — see row 79 above |
 | Austria | SUPPORTED | Live-verified 2026-08-29 |
 | Morocco | SUPPORTED | Live-verified 2026-08-29 |
 | Portugal | SUPPORTED | Live-verified 2026-08-29 |
