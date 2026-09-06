@@ -102,6 +102,19 @@ that were actually built this session (in two batches).
 | 74 | UM NL-High Potential Scholarship (Maastricht University) | Netherlands | UNIVERSITY | maastrichtuniversity.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; genuinely fully-funded (tuition waiver + monthly stipend); already updated for the 2027-2028 cycle with a real, not-yet-passed deadline (10 December 2026), unlike several other Dutch candidates still locked to closed 2026-2027 cycles (see AUTHORITATIVE_SOURCES.md #74) |
 | 75 | University of Twente Scholarship (UTS) | Netherlands | UNIVERSITY | utwente.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; cash award (not tuition waiver), explicit eligible-countries list confirmed to include Sierra Leone; already updated for 2027/2028 with a real deadline (1 April 2027) (see AUTHORITATIVE_SOURCES.md #75) |
 | 76 | Anne van den Ban Fund (Wageningen University & Research) | Netherlands | UNIVERSITY | wur.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; nomination-based (no separate application) full-or-partial Master's funding for students from low-income countries; no deadline extracted (year-less recurring dates) (see AUTHORITATIVE_SOURCES.md #76) |
+| 77 | ITC Excellence Scholarship Programme (University of Twente) | Netherlands | UNIVERSITY | utwente.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Netherlands Master's/postgraduate follow-up; a distinct ITC-faculty-administered scholarship from the university-wide UTS (#75); explicit ~100-country eligible list confirmed to include Sierra Leone; genuinely partial (EUR 25,000 of a EUR 74,370 total cost); no deadline extracted (page states 2026 applications closed with a next round "expected to open in December," no exact date given) (see AUTHORITATIVE_SOURCES.md #77) |
+
+Five other candidates were researched this pass and found unsuitable
+rather than integrated (see AUTHORITATIVE_SOURCES.md's "Researched this
+pass (Netherlands Master's/postgraduate follow-up), not integrated"
+note): VU Amsterdam's Faculty of Law Fellowship Programme (a
+visiting-researcher fellowship, not a degree scholarship); Erasmus
+MC's Erasmus Trustfonds, Ter Kulve, and TSH Changemaker Scholarships
+(all three share the same already-passed 1 April 2026 deadline);
+ESHPM's Erasmus Trust Fund Scholarship (EEA/EU-nationals-only, and also
+locked to 2026-2027); TU Delft's Delft Global Scholarship Fund (a pure
+donor/fundraising page with no student-facing application process); and
+TU Delft's CLIP Scholarship (Greek-nationals-only, applications closed).
 
 Six further Netherlands universities were researched this pass and found
 unsuitable rather than integrated (see AUTHORITATIVE_SOURCES.md's

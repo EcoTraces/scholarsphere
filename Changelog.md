@@ -28,6 +28,56 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Netherlands Master's/postgraduate follow-up: University of Twente ITC Excellence Scholarship Programme (78th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::UtwenteItcScholarshipSource`
+  — this platform's 78th opportunity source, added in response to a
+  request for another Netherlands Master's/postgraduate scholarship. A
+  distinct scholarship from the university-wide University of Twente
+  Scholarship (#75, added in the previous pass) — administered
+  specifically by the Faculty of Geo-Information Science and Earth
+  Observation (ITC) for two of its own Master's programmes, with its
+  own eligibility list, cost breakdown, and application page.
+  - Explicit "Countries eligible for this scholarship" enumeration of
+    roughly 100 named low- and middle-income countries — confirmed
+    directly that Sierra Leone appears in it.
+  - Genuinely partial funding with an exact cost breakdown stated on
+    the page: the ITC waiver covers EUR 25,000 of a EUR 74,370 two-year
+    total cost, leaving EUR 17,000 of "own contribution" the applicant
+    must independently secure.
+  - Deliberately extracts no deadline: the page states "APPLICATIONS
+    2026 CLOSED. A possible next round is expected to open in December"
+    — a real, current status, but "December" alone carries no day or
+    year for confident date extraction.
+  - Fully wired: config setting, source registry entry, Celery beat
+    schedule + dedicated sync task, and a fixture-backed test (fixture
+    captured unmodified from the live site).
+
+  Five other candidates were researched live before settling on this
+  one and found genuinely unsuitable rather than integrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass
+  (Netherlands Master's/postgraduate follow-up), not integrated"
+  entry): VU Amsterdam's Faculty of Law Fellowship Programme turned out
+  to be a visiting-researcher fellowship, not a degree scholarship;
+  Erasmus MC's Erasmus Trustfonds, Ter Kulve, and TSH Changemaker
+  Scholarships all share the same already-passed 1 April 2026 deadline
+  (the Ter Kulve Scholarship in particular was a strong candidate
+  otherwise — a genuine World Bank low/middle-income-country
+  eligibility requirement — but the stale deadline ruled it out this
+  pass); ESHPM's Erasmus Trust Fund Scholarship is EEA/EU-nationals-only
+  and also locked to 2026-2027; TU Delft's Delft Global Scholarship
+  Fund turned out to be a pure donor/fundraising page with no
+  student-facing application process (contributions feed the existing,
+  already-added Van Effen Scholarship's own application pipeline); and
+  TU Delft's CLIP Scholarship is Greek-nationals-only with applications
+  closed.
+
+  **Verified**: full backend suite green after the change (799 passed,
+  25 skipped, up from 797 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 77 -> 78
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-06] — Netherlands exhaustive university expansion: seven new opportunity sources across six universities (71st-77th opportunity sources)
 
 ### Added

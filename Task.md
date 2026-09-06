@@ -3489,3 +3489,65 @@ for the full dated history.
       against `source_registry.py`'s actual `source_type` values before
       committing, and fixed in all four locations rather than left to
       propagate.
+
+- [x] **(2026-09-06)** "Find another master's/postgraduate scholarship
+      in the Netherlands" follow-up: implemented the University of
+      Twente's ITC Excellence Scholarship Programme - see Changelog.md's
+      same-date entry and `docs/AUTHORITATIVE_SOURCES.md` #77 for full
+      detail. This platform's 78th opportunity source, and a genuinely
+      distinct scholarship from the university-wide UTS (#75) added in
+      the previous pass - administered by Twente's ITC faculty for two
+      of its own Master's programmes (Geo-information Science & Earth
+      Observation; Spatial Systems & Society), with its own eligibility
+      list and cost breakdown. Confirmed Sierra Leone directly present
+      in the page's ~100-country eligible list. Genuinely partial
+      funding with an unusually precise, page-stated cost breakdown
+      (EUR 25,000 ITC waiver against a EUR 74,370 two-year total, EUR
+      17,000 left as the applicant's own contribution) - a good example
+      of a scholarship that states its own funding_type classification
+      almost explicitly, rather than requiring inference.
+
+      A genuinely interesting judgment call, distinct from every prior
+      "stale cycle" rejection in this project: the page itself says
+      "APPLICATIONS 2026 CLOSED. A possible next round is expected to
+      open in December" - this is not a page that forgot to update
+      itself (like several Netherlands sources rejected in the previous
+      pass), but a page candidly describing its own current
+      between-rounds state with a genuine (if imprecise) expectation of
+      reopening soon. Since "December" alone has no day or year, no
+      deadline could be confidently extracted - correctly resolved to
+      None rather than guessing a specific date - but the source was
+      still added, since the underlying scholarship is real, current,
+      and about to have a fresh round, not defunct or abandoned.
+
+      Five other candidates were researched live first and rejected for
+      concrete reasons, one of which deserves a special mention: Erasmus
+      MC's **Ter Kulve Scholarship** was, on paper, an excellent fit -
+      "Your nationality falls under the World Bank country
+      classifications by income level for 2024-2025, specifically low-
+      and middle-income countries" is about as clean and verifiable an
+      eligibility criterion as this project has found anywhere, and its
+      EUR 17,500 + tuition waiver would have made it genuinely
+      comprehensive. It was still rejected, because its application
+      deadline (1 April 2026) has already passed, and - checked
+      independently - so has the identical deadline on Erasmus MC's
+      other two scholarship pages (Erasmus Trustfonds, TSH Changemaker),
+      confirming this isn't a one-off oversight but Erasmus MC's whole
+      scholarship system running on one shared, currently-closed annual
+      cycle. A strong eligibility match does not override a real,
+      confirmed staleness finding - the same discipline applied
+      throughout this project's England, Germany, and earlier
+      Netherlands passes. VU Amsterdam's Faculty of Law Fellowship
+      Programme was also checked and correctly recognized as a
+      visiting-researcher fellowship (for people who already hold or
+      are pursuing a doctorate) rather than a Master's/postgraduate
+      degree scholarship, and excluded as out of scope for this
+      specific request rather than forced in as a near-enough match.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 799 passed / 25 skipped (up from 797 - the
+      new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      77 -> 78 registered sources). The fixture
+      (`tests/fixtures/utwente_itc_scholarship.html`) was captured
+      unmodified from the live site.

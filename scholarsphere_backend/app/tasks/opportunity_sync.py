@@ -105,6 +105,7 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     UniversityOfTwenteScholarshipSource,
     UtrechtLegitsScholarshipSource,
+    UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
     UvaAmsterdamMeritScholarshipMasterSource,
     WageningenAnneVanDenBanFundSource,
@@ -477,6 +478,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_wageningen_anne_van_den_ban_fund",
             "schedule": crontab(minute=0, hour=20),
         },
+        "sync-utwente-itc-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_utwente_itc_scholarship",
+            "schedule": crontab(minute=15, hour=20),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -648,6 +653,9 @@ SOURCE_TASK_NAMES = {
     ),
     "wageningen_anne_van_den_ban_fund": (
         "app.tasks.opportunity_sync.sync_wageningen_anne_van_den_ban_fund"
+    ),
+    "utwente_itc_scholarship": (
+        "app.tasks.opportunity_sync.sync_utwente_itc_scholarship"
     ),
 }
 
@@ -1804,6 +1812,21 @@ def sync_wageningen_anne_van_den_ban_fund(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_utwente_itc_scholarship",
+    max_retries=3,
+)
+def sync_utwente_itc_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "utwente_itc_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2098,6 +2121,7 @@ def _collector(source_code: str) -> Any:
         ),
         "university_of_twente_scholarship": UniversityOfTwenteScholarshipSource,
         "wageningen_anne_van_den_ban_fund": WageningenAnneVanDenBanFundSource,
+        "utwente_itc_scholarship": UtwenteItcScholarshipSource,
     }[source_code]()
 
 

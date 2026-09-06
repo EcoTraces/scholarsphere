@@ -60,6 +60,7 @@ from app.services.national_scholarship_programs import (
     TumInternationalStudentScholarshipSource,
     UniversityOfTwenteScholarshipSource,
     UtrechtLegitsScholarshipSource,
+    UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
     UvaAmsterdamMeritScholarshipMasterSource,
     WageningenAnneVanDenBanFundSource,
@@ -2651,3 +2652,48 @@ def test_wageningen_anne_van_den_ban_fund_has_no_robots_txt_restrictions() -> No
     assert (
         WageningenAnneVanDenBanFundSource.min_request_interval_seconds == 2.0
     )
+
+
+# --- University of Twente ITC Excellence Scholarship Programme: real
+# fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_utwente_itc_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A distinct scholarship from the university-wide UTS (already
+    added): administered specifically by the ITC faculty for two of its
+    own Master's programmes, with its own explicit eligible-countries
+    list - confirmed directly that Sierra Leone appears in it. A
+    genuinely partial scholarship with an exact cost breakdown on the
+    page (EUR 25,000 waiver of a EUR 74,370 total). No deadline is
+    extracted: the page states "APPLICATIONS 2026 CLOSED. A possible
+    next round is expected to open in December" - a real, current
+    status, but "December" alone carries no day or year for
+    `extract_confident_date_after` to match."""
+    source = UtwenteItcScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("utwente_itc_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "utwente-itc-scholarship"
+    assert opportunity.title == "ITC Excellence Scholarship Programme"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "University of Twente"
+    assert opportunity.description is not None
+    assert "Sierra Leone" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_utwente_itc_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`utwente.nl/robots.txt`) does not disallow this
+    content path."""
+    assert UtwenteItcScholarshipSource.min_request_interval_seconds == 2.0

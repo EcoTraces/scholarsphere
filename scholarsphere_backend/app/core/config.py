@@ -449,6 +449,16 @@ class Settings(BaseSettings):
     # robots.txt does not disallow this content path.
     wageningen_anne_van_den_ban_fund_base_url: str = "https://www.wur.nl"
 
+    # University of Twente - ITC Excellence Scholarship Programme, a
+    # partial scholarship from the Faculty of Geo-Information Science
+    # and Earth Observation (ITC) for two specific Master's programmes,
+    # restricted to an explicit country list confirmed to include
+    # Sierra Leone. A distinct scholarship from the university-wide UTS
+    # already added - administered by ITC specifically, with its own
+    # eligibility/cost-breakdown page. robots.txt does not disallow this
+    # content path.
+    utwente_itc_scholarship_base_url: str = "https://www.utwente.nl"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -615,6 +625,7 @@ class Settings(BaseSettings):
         "maastricht_high_potential_scholarship_base_url",
         "utwente_scholarship_base_url",
         "wageningen_anne_van_den_ban_fund_base_url",
+        "utwente_itc_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

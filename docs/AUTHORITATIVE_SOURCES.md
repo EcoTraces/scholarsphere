@@ -3797,6 +3797,96 @@ Researched 2026-09-06, same pass.
   unmodified from the live fetch
   (`tests/fixtures/wageningen_anne_van_den_ban_fund.html`).
 
+## 77. ITC Excellence Scholarship Programme (University of Twente)
+
+Researched 2026-09-06, in response to a follow-up request for another
+Netherlands Master's/postgraduate scholarship. A distinct scholarship
+from the university-wide University of Twente Scholarship (#75, already
+added) — administered specifically by the Faculty of Geo-Information
+Science and Earth Observation (ITC) for two of its own Master's
+programmes, with its own eligibility list, cost breakdown, and
+application page.
+
+- **Organization**: University of Twente (Faculty of Geo-Information
+  Science and Earth Observation, ITC)
+- **Route code**: `utwente-itc-scholarship` (`utwente_itc_scholarship`
+  internally)
+- **Official domain / base URL**: `https://www.utwente.nl`
+  (`UTWENTE_ITC_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — a genuinely partial scholarship
+  with an exact cost breakdown stated on the page: the ITC waiver covers
+  EUR 25,000 of a EUR 74,370 two-year total cost (tuition + living
+  allowance + insurance + residence permit), leaving EUR 17,000 of "own
+  contribution" the applicant must independently secure.
+  `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: An explicit "Countries eligible
+  for this scholarship" enumeration of roughly 100 named low- and
+  middle-income countries — **confirmed directly that Sierra Leone
+  appears in it**, not assumed. Restricted to the Geo-information
+  Science & Earth Observation and Spatial Systems & Society Master's
+  programmes.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML)
+- **robots.txt / indexing note**: `utwente.nl/robots.txt` does not
+  disallow this content path (same finding as the UTS source, #75).
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline**: the page states plainly
+    "APPLICATIONS 2026 CLOSED. A possible next round is expected to
+    open in December" — a real, current status (the page is not stale
+    or un-updated), but "December" alone carries no day or year, so no
+    confident date literal exists to extract. Recorded transparently in
+    the description rather than a deadline being fabricated or a status
+    field being invented for it.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/utwente_itc_scholarship.html`).
+
+### Researched this pass (Netherlands Master's/postgraduate follow-up), not integrated
+
+Several other candidates were researched live before settling on the
+ITC Excellence Scholarship Programme:
+
+- **VU Amsterdam — Faculty of Law Fellowship Programme** — real, but a
+  *visiting-researcher* fellowship (for doctoral candidates and senior
+  research fellows on temporary leave from their own institutions), not
+  a Master's/postgraduate degree scholarship for enrolling students —
+  out of scope for this request.
+- **Erasmus MC (Erasmus University Rotterdam) — Erasmus Trustfonds
+  Scholarship, Ter Kulve Scholarship, and Erasmus Trustfonds/TSH
+  Changemaker Scholarship** — all three real, and the Ter Kulve
+  Scholarship in particular is genuinely well-targeted (World Bank
+  low/middle-income-country nationality requirement, EUR 17,500 +
+  tuition waiver), but all three share the exact same already-passed
+  deadline (1 April 2026, verified independently on each page) with no
+  2027 refresh yet, and the Erasmus Trustfonds Scholarship is limited to
+  a single award per year at Erasmus MC.
+- **Erasmus School of Health Policy & Management (ESHPM) — Erasmus
+  Trust Fund Scholarship** — restricted to "EEA/EU nationals" only
+  (the opposite eligibility direction from what most candidates in this
+  project need), and also locked to the already-closed 2026-2027 cycle.
+- **TU Delft — Delft Global Scholarship Fund** — real and genuinely
+  Africa/Sierra-Leone-relevant in spirit ("promising young engineers
+  from various African countries," "students from Sub-Saharan Africa"),
+  but its own page is purely a donor/fundraising page for Delft
+  University Fund with no eligibility criteria, deadline, or application
+  process for students — contributions "go 100% to the Delft Global
+  Scholarships," which appear to be administered through TU Delft's
+  existing general scholarship application pipeline (the same one
+  behind the already-added Van Effen Scholarship, #58) rather than
+  through a separately-applicable programme of their own.
+- **TU Delft — Costas Lemos Innovation Programme (CLIP) Scholarship** —
+  restricted to applicants holding "a Greek passport or Greek
+  residence," and its "Call for applications is closed" with no next
+  round mentioned.
+
 ### Researched this pass (Netherlands exhaustive expansion), not integrated
 
 Six further Netherlands universities were researched live and found

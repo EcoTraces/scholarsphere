@@ -2985,3 +2985,49 @@ class WageningenAnneVanDenBanFundSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().wageningen_anne_van_den_ban_fund_base_url
+
+
+class UtwenteItcScholarshipSource(_SingleProgramSource):
+    """University of Twente - ITC Excellence Scholarship Programme, a
+    partial scholarship administered specifically by the Faculty of
+    Geo-Information Science and Earth Observation (ITC) for two of its
+    own Master's programmes (Geo-information Science & Earth
+    Observation; Spatial Systems & Society) - a distinct scholarship
+    from the university-wide University of Twente Scholarship (UTS)
+    already added, with its own eligibility list, cost breakdown, and
+    application page.
+
+    Confirmed 2026-09-06: `robots.txt` (`utwente.nl/robots.txt`) does
+    not disallow this content path (same finding as the UTS source).
+
+    Country coverage / eligibility: an explicit "Countries eligible for
+    this scholarship" enumeration of roughly 100 named low- and
+    middle-income countries - confirmed directly that Sierra Leone
+    appears in it, not assumed.
+
+    Funding: a genuinely partial scholarship, described with an exact
+    cost breakdown on the page itself - the ITC waiver covers EUR 25,000
+    of a total EUR 74,370 two-year cost (tuition + living allowance +
+    insurance + residence permit), leaving EUR 17,000 of "own
+    contribution" applicants must independently secure before the
+    payment deadline. `funding_type = "partial_funding"`.
+
+    Deliberately extracts no deadline: the page states plainly
+    "APPLICATIONS 2026 CLOSED. A possible next round is expected to open
+    in December" - a real, current status (not a stale, un-updated
+    page), but "December" alone carries no day or year, so no confident
+    date literal exists for `extract_confident_date_after` to match -
+    correctly returns nothing rather than guessing at a specific
+    December date.
+    """
+
+    source_code = "utwente_itc_scholarship"
+    overview_path = "/en/education/scholarship-finder/itc-excellence-scholarship-programme/"
+    content_selectors = ("main",)
+    provider_name = "University of Twente"
+    country = "Netherlands"
+    external_id = "utwente-itc-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().utwente_itc_scholarship_base_url
