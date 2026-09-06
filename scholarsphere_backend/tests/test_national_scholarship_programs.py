@@ -44,6 +44,7 @@ from app.services.national_scholarship_programs import (
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
     FreiburgDeutschlandstipendiumSource,
+    GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
@@ -2952,3 +2953,50 @@ def test_mcgill_mastercard_scholars_has_no_robots_txt_restrictions() -> None:
     exactly by `min_request_interval_seconds`) and does not disallow
     this content path."""
     assert McgillMastercardScholarsSource.min_request_interval_seconds == 5.0
+
+
+# --- Gates Cambridge Scholarship: real fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_gates_cambridge_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first England source classified as genuinely
+    fully funded. Oxford's Clarendon Fund was researched first as an
+    equally strong candidate, but ox.ac.uk (every path tested,
+    including robots.txt) returns an active Cloudflare "Just a
+    moment..." managed challenge - not bypassed. Eligibility (from a
+    separate page, not itself scraped) is worldwide - "a citizen of any
+    country outside the United Kingdom" - Sierra Leone included. No
+    deadline extracted: this page states none, and the separate
+    Timeline page's dates vary by applicant category/course with no
+    single canonical value."""
+    source = GatesCambridgeScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("gates_cambridge_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "gates-cambridge-scholarship"
+    assert opportunity.title == "Gates Cambridge Scholarship"
+    assert opportunity.country == "United Kingdom"
+    assert (
+        opportunity.provider_name
+        == "Gates Cambridge Trust (University of Cambridge)"
+    )
+    assert opportunity.description is not None
+    assert "covers the full cost of studying at Cambridge" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_gates_cambridge_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`gatescambridge.org/robots.txt`) only disallows
+    `/wp-admin/`, unrelated to this content path."""
+    assert GatesCambridgeScholarshipSource.min_request_interval_seconds == 2.0

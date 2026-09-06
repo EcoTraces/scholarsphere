@@ -84,6 +84,7 @@ from app.services.national_scholarship_programs import (
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
     FreiburgDeutschlandstipendiumSource,
+    GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
@@ -507,6 +508,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_mcgill_mastercard_scholars",
             "schedule": crontab(minute=30, hour=21),
         },
+        "sync-gates-cambridge-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_gates_cambridge_scholarship",
+            "schedule": crontab(minute=45, hour=21),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -696,6 +701,9 @@ SOURCE_TASK_NAMES = {
     ),
     "mcgill_mastercard_scholars": (
         "app.tasks.opportunity_sync.sync_mcgill_mastercard_scholars"
+    ),
+    "gates_cambridge_scholarship": (
+        "app.tasks.opportunity_sync.sync_gates_cambridge_scholarship"
     ),
 }
 
@@ -1942,6 +1950,21 @@ def sync_mcgill_mastercard_scholars(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_gates_cambridge_scholarship",
+    max_retries=3,
+)
+def sync_gates_cambridge_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "gates_cambridge_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2242,6 +2265,7 @@ def _collector(source_code: str) -> Any:
         "pku_international_scholarship": PkuInternationalScholarshipSource,
         "sjtu_masters_scholarship": SjtuMastersScholarshipSource,
         "mcgill_mastercard_scholars": McgillMastercardScholarsSource,
+        "gates_cambridge_scholarship": GatesCambridgeScholarshipSource,
     }[source_code]()
 
 

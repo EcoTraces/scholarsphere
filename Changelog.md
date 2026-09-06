@@ -28,6 +28,69 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — England fully-funded Master's university scholarship engine: Gates Cambridge Scholarship (84th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::GatesCambridgeScholarshipSource`
+  — this platform's 84th opportunity source and **first England source
+  classified as genuinely fully funded** (the nine pre-existing England
+  sources — Imperial Inspires, Newcastle VC International, Sheffield
+  PG, Manchester Global Futures, Nottingham PG, Southampton's two,
+  Durham's two — are all `partial_funding`). The **Gates Cambridge
+  Scholarship** (University of Cambridge / Gates Cambridge Trust):
+  - Live-verified 2026-09-06 against
+    `https://www.gatescambridge.org/programme/the-scholarship/`.
+    `robots.txt` only disallows `/wp-admin/`, unrelated to this
+    content path.
+  - Genuinely fully funded: "A Gates Cambridge Scholarship covers the
+    full cost of studying at Cambridge" — the University Composition
+    Fee (tuition), a maintenance allowance (GBP 22,050/year at the
+    2025-26 rate), one economy return airfare, and inbound visa costs
+    plus the Immigration Health Surcharge. `funding_type =
+    "fully_funded"`.
+  - Eligibility: worldwide — "a citizen of any country outside the
+    United Kingdom," no narrower list — Sierra Leone included. Funds
+    "PhD ... MLitt ... [or a] one-year postgraduate course" (genuinely
+    Master's-eligible, e.g. MPhil, not PhD-only), with a named
+    exceptions list that does not exclude the standard Master's route.
+  - Content selector `section#funding` (a stable HTML id);
+    `title_selectors = ()` falls through to the external_id-derived
+    fallback ("Gates Cambridge Scholarship") since this page's own
+    `<h1>` ("The Scholarship") and `<title>` are both too generic.
+  - Deliberately extracts no deadline: the funding page states none,
+    and the separate Timeline page's three different deadlines (varying
+    by applicant category and course) have no single canonical value a
+    generic keyword could correctly resolve to.
+  - Fully wired: config setting, source registry entry (`source_type =
+    "university"`), Celery beat schedule + dedicated sync task, and a
+    fixture-backed test.
+
+  Oxford's Clarendon Fund was researched first as an equally strong
+  candidate (official evidence: full course-fee coverage plus a living
+  grant, no nationality restriction) — but `ox.ac.uk`, including its
+  own `robots.txt`, returns an active Cloudflare "Just a moment..."
+  managed challenge on every path tested. Per this project's "never
+  bypass CAPTCHA/anti-bot protection" rule, not circumvented; recorded
+  as `BLOCKED`, a funding-independent access blocker rather than a
+  rejection of the scholarship itself (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (England
+  fully-funded Master's university engine), not integrated" section).
+
+- **Verified**: full backend test suite — 813 passed, 25 skipped (up
+  from 811 passed before this change), 0 failed; `pyflakes` clean on
+  every changed/new file.
+
+### Changed
+—
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — China fully-funded Master's engine, continuation pass: six more universities researched, no new source qualified
 
 ### Added

@@ -4209,3 +4209,102 @@ for the full dated history.
       since no source code, test, or fixture file changed; the existing
       811-passed/25-skipped baseline from the McGill addition remains
       the accurate current count.
+
+- [x] **(2026-09-06)** "England fully funded Master's university
+      scholarship engine" mega-prompt: implemented the Gates Cambridge
+      Scholarship - see Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #83 for full detail. This
+      platform's 84th opportunity source, and this registry's *first*
+      England source classified as genuinely fully funded - all nine
+      pre-existing England sources (Imperial Inspires, Newcastle VC
+      International, Sheffield PG, Manchester Global Futures,
+      Nottingham PG, Southampton's two, Durham's two) were confirmed
+      by direct grep of the source code to be `partial_funding`, none
+      previously fully funded, before starting this pass.
+
+      As with the Netherlands/France/Germany/China/Canada mega-prompts
+      this session, the request itself (37 numbered sections: an
+      exhaustive university-by-university England search loop, a large
+      new database schema, a recommendation engine, funding scoring, UI
+      badges) was set against realistic expectations rather than
+      attempted literally - the actual deliverable was genuine,
+      live-verified research into the request's own two named
+      "important examples" (Oxford's Clarendon Fund and Cambridge's
+      Gates Cambridge Scholarship) plus enough surrounding checks to
+      confirm neither was a hasty pick.
+
+      The two examples split into a clean "implement" and a clean
+      "cannot, for reasons unrelated to funding" outcome, which is
+      itself a useful, honest result rather than a wash:
+
+      - **Cambridge - Gates Cambridge Scholarship**: verified directly
+        against `gatescambridge.org` (a dedicated Trust website, not
+        merely a page on cam.ac.uk) that the funding claim holds up
+        exactly as described - "covers the full cost of studying at
+        Cambridge," itemized into tuition, a GBP 22,050/year
+        maintenance allowance, return airfare, visa costs, and the
+        Immigration Health Surcharge. Checked the separate eligibility
+        page independently and found the broadest eligibility
+        criterion seen anywhere in this session: "a citizen of any
+        country outside the United Kingdom" - no continent, no
+        named-country list, no exceptions for Sierra Leone or anywhere
+        else. Also had to check something this project hasn't needed
+        to check before for a UK source: whether Gates Cambridge funds
+        Master's-level study at all, since its most famous cohort is
+        PhD students - confirmed directly that "MLitt" and "a one-year
+        postgraduate course" (Cambridge's standard term for taught/
+        research Master's degrees like the MPhil) are both explicitly
+        eligible, and cross-checked the page's own "exceptions" list
+        (MASt, part-time non-PhD degrees, MBA/EMBA/MFin, PGCE, medical
+        degrees) to confirm none of those exceptions accidentally
+        swallows the ordinary Master's route.
+      - **Oxford - Clarendon Fund**: by every funding measure checked
+        via search (full course-fee coverage, a living grant, no
+        nationality restriction, automatic consideration - no separate
+        application needed), Clarendon is at least as strong a
+        candidate as Gates Cambridge, arguably the single most
+        well-evidenced fully-funded England scholarship this project
+        has looked at. But fetching `ox.ac.uk` directly - the specific
+        Clarendon page, the site root, and even `robots.txt` itself -
+        returned an active Cloudflare "Just a moment..." managed
+        challenge (HTTP 403, a JavaScript browser-verification
+        interstitial) on every single attempt. This is a real
+        connectivity/access finding, not a research shortcut: per this
+        project's absolute "never bypass CAPTCHA/anti-bot protection"
+        rule, Clarendon is left unimplemented purely because of that
+        block, explicitly flagged as worth reconsidering the moment
+        Oxford's own site becomes reachable without circumventing
+        anything.
+
+      A genuinely interesting deadline-extraction decision, distinct
+      from every prior "pick the right dated section" case this
+      session: Gates Cambridge's own Timeline page has real, current,
+      2026/27-cycle-accurate dates (nothing stale here) - but there are
+      *three* different valid deadlines depending on who's applying and
+      to which course (a narrow US-citizens-resident-in-the-US round
+      closing 14 October 2026; an "all other eligible applicants" round
+      - the one nearly every Sierra Leonean applicant would actually
+      use - closing either 8 December 2026 or 6 January 2027 depending
+      on the specific course). Unlike prior cases where a *wrong*
+      dated section could be avoided by targeting the *right* one, here
+      even the *right* section has no single value - "the deadline"
+      for the general international-applicant population is genuinely
+      one of two dates depending on course choice. Rather than guess
+      which of those two to report, or misleadingly extract the narrow
+      US-only date (which a naive first-date-literal approach would
+      have done, since it appears earlier on the page), chose the page
+      that states the funding package without any dates at all as the
+      overview/content source, so `deadline` correctly and honestly
+      resolves to `None` by construction rather than by an explicit
+      override.
+
+      **Verified for real**: `pyflakes app tests` clean; a `collect()`
+      simulation against the real fixture, run before any test was
+      written, confirmed title, provider, country, `funding_type =
+      "fully_funded"`, and `deadline = None` all resolve exactly as
+      documented; full backend suite green afterward, 813 passed / 25
+      skipped (up from 811 - two new tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion, 83
+      -> 84 registered sources). The fixture
+      (`tests/fixtures/gates_cambridge_scholarship.html`) was captured
+      unmodified from the live site.

@@ -4697,6 +4697,104 @@ universities documented elsewhere in this project:
   source rather than integrated into the university-administered
   dataset here.
 
+## 83. Gates Cambridge Scholarship (University of Cambridge / Gates Cambridge Trust)
+
+Researched 2026-09-06, in response to a request to build an England
+fully-funded Master's university scholarship engine — this platform's
+**first England source classified as genuinely fully funded**. The
+nine pre-existing England sources (Imperial Inspires, Newcastle VC
+International, Sheffield PG, Manchester Global Futures, Nottingham PG,
+Southampton's Presidential Bursaries and Merit Undergraduate
+Scholarship, Durham's Inspiring Excellence UG and PG) are all
+`partial_funding`.
+
+- **Organization**: Gates Cambridge Trust, a body established at the
+  University of Cambridge by a 2000 donation from the Gates Foundation
+- **Route code**: `gates-cambridge-scholarship`
+  (`gates_cambridge_scholarship` internally)
+- **Official domain / base URL**: `https://www.gatescambridge.org`
+  (`GATES_CAMBRIDGE_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "A Gates Cambridge Scholarship
+  covers the full cost of studying at Cambridge," itemized as the
+  University Composition Fee (tuition), a maintenance allowance (GBP
+  22,050 for 12 months at the 2025-26 rate, pro rata for shorter
+  courses), one economy return airfare, and inbound visa costs plus the
+  Immigration Health Surcharge. `funding_type = "fully_funded"`,
+  comfortably exceeding the minimum tuition-plus-substantial-living
+  bar.
+- **Country coverage / eligibility**: From the separate `/apply/
+  eligibility/` page (confirmed live, not itself scraped for this
+  record): "a citizen of any country outside the United Kingdom" — no
+  narrower list at all, worldwide eligibility, Sierra Leone included.
+  Funds "PhD ... MLitt ... [or a] one-year postgraduate course," with a
+  named exceptions list (MASt, part-time degrees other than the PhD,
+  MBA/EMBA/MFin and other professional-development courses, PGCE,
+  medical degrees) that does not exclude the standard one-year taught/
+  research Master's route (e.g. MPhil) — genuinely Master's-eligible,
+  not PhD-only.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML — a WordPress site)
+- **robots.txt / indexing note**: `gatescambridge.org/robots.txt` only
+  disallows `/wp-admin/`, unrelated to this content path.
+- **API / RSS / Sitemap**: A general sitemap exists (`sitemap.xml`);
+  no dedicated funding/scholarship API
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Overview/content page is `/programme/the-scholarship/`**, not
+    the separate `/apply/eligibility/` or `/apply/timeline/` pages — it
+    is the one stating the full funding package. Content selector
+    `section#funding`: a stable, semantic HTML id, verified directly
+    via a BeautifulSoup structural walk to hold exactly the funding
+    section (Core components, Discretionary components, "What is not
+    covered?"), with none of the page's general programme description
+    or surrounding navigation.
+  - **`title_selectors = ()`, no `title_tag_separator`**: this page's
+    own `<h1>` ("The Scholarship") and `<title>` ("Postgraduate
+    Cambridge University Scholarship | Gates Cambridge") are both too
+    generic to serve as a specific scholarship title on their own —
+    falls through to the external_id-derived fallback ("Gates Cambridge
+    Scholarship"), the scholarship's own well-known name, the same
+    documented pattern already used for WMI/Yenching/HKPFS/Max Planck
+    Schools/SJTU elsewhere in this file.
+  - Deliberately extracts no deadline: the funding page itself states
+    no dates at all (verified directly). The separate Timeline page
+    does have real, current 2026/27-cycle dates, but deliberately was
+    not used as a deadline source: it lists three different deadlines
+    depending on applicant category and course (a US-citizens-
+    resident-in-the-US round closing 14 October 2026, and an "all other
+    eligible applicants" round closing either 8 December 2026 or 6
+    January 2027 depending on the specific course) — there is no single
+    canonical date a generic keyword could correctly resolve to, and
+    naively taking the first date literal on that page would surface
+    the narrow US-only round's deadline as if it applied to every
+    applicant, misleading far more readers (including Sierra Leonean
+    applicants) than it would help.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/gates_cambridge_scholarship.html`).
+
+### Researched this pass (England fully-funded Master's university engine), not integrated
+
+- **Oxford — Clarendon Fund** — official evidence (confirmed via live
+  search summaries of Oxford's own page) shows it is a genuinely
+  strong candidate: full course-fee coverage plus a living grant, no
+  nationality restriction, automatic consideration for any Master's or
+  DPhil applicant who applies by the relevant December/January
+  deadline. However, `ox.ac.uk` — every path tested directly, including
+  the specific Clarendon page itself and even `robots.txt` — returns an
+  active Cloudflare "Just a moment..." managed challenge (a JavaScript
+  browser-verification interstitial, HTTP 403). Per this project's
+  "never bypass CAPTCHA/anti-bot protection" rule, not circumvented.
+  This is a funding-independent access blocker, not a rejection of the
+  scholarship itself — Clarendon should be reconsidered in a future
+  pass if Oxford ever narrows or removes that challenge.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

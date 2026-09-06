@@ -529,6 +529,27 @@ class Settings(BaseSettings):
     # content path.
     mcgill_mastercard_scholars_base_url: str = "https://www.mcgill.ca"
 
+    # Gates Cambridge Scholarship (University of Cambridge / Gates
+    # Cambridge Trust): genuinely fully funded - "covers the full cost
+    # of studying at Cambridge" (University Composition Fee/tuition,
+    # a maintenance allowance, one economy return airfare, inbound visa
+    # costs and the Immigration Health Surcharge). Open to "a citizen of
+    # any country outside the United Kingdom" with no narrower list -
+    # worldwide eligibility, Sierra Leone included. Funds one-year
+    # postgraduate courses (Master's-level, e.g. MPhil) and MLitt, not
+    # only PhD. This platform's first England-university source
+    # classified as genuinely fully funded (the nine pre-existing
+    # England sources - Imperial, Newcastle, Sheffield, Manchester,
+    # Nottingham, Southampton x2, Durham x2 - are all
+    # `partial_funding`). Note: Oxford's Clarendon Fund was also
+    # researched as an equally strong candidate but `ox.ac.uk` (every
+    # path tested, including robots.txt) returns an active Cloudflare
+    # "Just a moment..." managed challenge - genuine bot protection,
+    # not bypassed; Clarendon remains unimplemented for that reason,
+    # not a funding concern. `gatescambridge.org/robots.txt` only
+    # disallows `/wp-admin/`, unrelated to this content path.
+    gates_cambridge_scholarship_base_url: str = "https://www.gatescambridge.org"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -701,6 +722,7 @@ class Settings(BaseSettings):
         "pku_international_scholarship_base_url",
         "sjtu_masters_scholarship_base_url",
         "mcgill_mastercard_scholars_base_url",
+        "gates_cambridge_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

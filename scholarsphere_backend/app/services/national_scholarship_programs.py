@@ -3379,3 +3379,88 @@ class McgillMastercardScholarsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().mcgill_mastercard_scholars_base_url
+
+
+class GatesCambridgeScholarshipSource(_SingleProgramSource):
+    """Gates Cambridge Scholarship (University of Cambridge / Gates
+    Cambridge Trust). This platform's first England source classified
+    as genuinely fully funded - the nine pre-existing England sources
+    (Imperial, Newcastle, Sheffield, Manchester, Nottingham,
+    Southampton's two, Durham's two) are all `partial_funding`.
+
+    Confirmed 2026-09-06: `gatescambridge.org/robots.txt` only
+    disallows `/wp-admin/`, unrelated to this content path.
+
+    Oxford's Clarendon Fund was researched first as an equally strong
+    candidate (official evidence: full course-fee coverage plus a
+    living grant, no nationality restriction), but `ox.ac.uk` -
+    including its own `robots.txt` - returns an active Cloudflare
+    "Just a moment..." managed challenge on every path tested. Per this
+    project's "never bypass CAPTCHA/anti-bot protection" rule, not
+    circumvented; Clarendon remains unimplemented for that reason
+    alone, not a funding concern, and should be reconsidered if Oxford
+    ever removes or narrows that challenge.
+
+    Overview/content page is `/programme/the-scholarship/`, not the
+    separate `/apply/eligibility/` or `/apply/timeline/` pages. Content
+    selector `section#funding`: a stable, semantic HTML id, verified
+    directly via a BeautifulSoup structural walk to hold exactly the
+    funding section (Core components, Discretionary components, "What
+    is not covered?"), with none of the page's general programme
+    description or surrounding navigation.
+
+    `title_selectors = ()`, no `title_tag_separator`: this page's own
+    `<h1>` ("The Scholarship") and `<title>` ("Postgraduate Cambridge
+    University Scholarship | Gates Cambridge") are both too generic to
+    serve as a specific scholarship title on their own - falls through
+    to the external_id-derived fallback ("Gates Cambridge Scholarship"),
+    the scholarship's own well-known name, the same documented pattern
+    already used for WMI/Yenching/HKPFS/Max Planck Schools/SJTU
+    elsewhere in this file.
+
+    Country coverage / eligibility (from the separate `/apply/
+    eligibility/` page, confirmed live but not itself scraped for this
+    record): "a citizen of any country outside the United Kingdom" -
+    no narrower list at all, worldwide eligibility, Sierra Leone
+    included. Funds "PhD ... MLitt ... [or a] one-year postgraduate
+    course," with a named list of exceptions (MASt, part-time degrees
+    other than the PhD, MBA/EMBA/MFin and other professional-
+    development courses, PGCE, medical degrees) that does not exclude
+    the standard one-year taught/research Master's route (e.g. MPhil) -
+    genuinely Master's-eligible, not PhD-only.
+
+    Funding: "A Gates Cambridge Scholarship covers the full cost of
+    studying at Cambridge," itemized as the University Composition Fee
+    (tuition), a maintenance allowance (GBP 22,050 for 12 months at the
+    2025-26 rate, pro rata for shorter courses), one economy return
+    airfare, and inbound visa costs plus the Immigration Health
+    Surcharge - `funding_type = "fully_funded"`, comfortably exceeding
+    the minimum tuition-plus-substantial-living bar.
+
+    Deliberately extracts no deadline: the funding page itself states
+    no dates at all (verified directly - neither "deadline" nor
+    "closing date" appears anywhere in its text). The separate Timeline
+    page does have real, current 2026/27-cycle dates, but deliberately
+    was not used as a `deadline_path`: it lists three different
+    deadlines depending on applicant category and course (a US-
+    citizens-resident-in-the-US round closing 14 October 2026, and an
+    "all other eligible applicants" round closing either 8 December
+    2026 or 6 January 2027 depending on the specific course) - there is
+    no single canonical date a generic keyword could correctly resolve
+    to, and naively taking the first date literal on that page would
+    surface the narrow US-only round's deadline as if it applied to
+    every applicant, which would mislead far more readers (including
+    Sierra Leonean applicants) than it would help.
+    """
+
+    source_code = "gates_cambridge_scholarship"
+    overview_path = "/programme/the-scholarship/"
+    title_selectors = ()
+    content_selectors = ("section#funding",)
+    provider_name = "Gates Cambridge Trust (University of Cambridge)"
+    country = "United Kingdom"
+    external_id = "gates-cambridge-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().gates_cambridge_scholarship_base_url
