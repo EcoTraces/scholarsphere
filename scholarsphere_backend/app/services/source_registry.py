@@ -367,6 +367,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "tudelft_van_effen_scholarship": {
+        "source_name": "TU Delft Justus & Louise van Effen Excellence Scholarships",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "tum_international_student_scholarship": {
+        "source_name": "TUM Scholarship for International Students",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -432,6 +444,10 @@ def _base_urls() -> dict[str, str]:
         "taiwan_icdf_scholarship": settings.taiwan_icdf_base_url,
         "humboldt_research_fellowship": settings.humboldt_foundation_base_url,
         "max_planck_schools": settings.max_planck_schools_base_url,
+        "tudelft_van_effen_scholarship": settings.tudelft_van_effen_base_url,
+        "tum_international_student_scholarship": (
+            settings.tum_international_scholarship_base_url
+        ),
     }
 
 
@@ -513,6 +529,8 @@ async def seed_opportunity_sources(
         "taiwan_icdf_scholarship": now + timedelta(hours=24),
         "humboldt_research_fellowship": now + timedelta(hours=24),
         "max_planck_schools": now + timedelta(hours=24),
+        "tudelft_van_effen_scholarship": now + timedelta(hours=24),
+        "tum_international_student_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

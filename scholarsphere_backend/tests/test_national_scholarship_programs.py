@@ -44,6 +44,8 @@ from app.services.national_scholarship_programs import (
     HumboldtResearchFellowshipSource,
     MaxPlanckSchoolsSource,
     TaiwanIcdfScholarshipSource,
+    TuDelftVanEffenScholarshipSource,
+    TumInternationalStudentScholarshipSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
     YenchingAcademyScholarsSource,
@@ -1726,3 +1728,90 @@ def test_max_planck_schools_has_no_robots_txt_restrictions_to_respect() -> None:
     (only a `Sitemap:` directive) - fully unrestricted, so this source
     uses the default (unraised) crawl interval."""
     assert MaxPlanckSchoolsSource.min_request_interval_seconds == 2.0
+
+
+# --- TU Delft Justus & Louise van Effen Excellence Scholarships: real
+# fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_tudelft_van_effen_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = TuDelftVanEffenScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("tudelft_van_effen_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "tudelft-van-effen-excellence-scholarship"
+    assert opportunity.title == "Justus & Louise van Effen Excellence Scholarships"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "Delft University of Technology (TU Delft)"
+    assert opportunity.description is not None
+    assert "excellent international applicant" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    # "Application deadline 1 December 2026 (23:59 CET)" - the real,
+    # current (2027/28 admission cycle) deadline, not a reused prior year.
+    assert str(opportunity.deadline) == "2026-12-01"
+
+
+def test_tudelft_van_effen_scholarship_has_no_robots_txt_restrictions_to_respect() -> (
+    None
+):
+    """robots.txt states `Allow: /` for `User-agent: *`, with only
+    TYPO3-internal and query-parameter paths disallowed - none of which
+    cover this program page - so this source uses the default
+    (unraised) crawl interval."""
+    assert TuDelftVanEffenScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- TUM Scholarship for International Students: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_tum_international_student_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This is a need-based top-up grant for currently-enrolled
+    international TUM students (not incoming applicants), so
+    `funding_type` is `partial_funding`, never `fully_funded`. The page
+    states its application window using ordinal-suffixed days ('1st
+    October - 15th October 2026') and a separate year-less recurring
+    'Deadline: 15 November / 15 May' - neither matches the shared
+    confident-date pattern, so no deadline is extracted."""
+    source = TumInternationalStudentScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("tum_international_student_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "tum-international-student-scholarship"
+    assert opportunity.title == "Scholarships for International Students"
+    assert opportunity.country == "Germany"
+    assert opportunity.provider_name == "Technical University of Munich (TUM)"
+    assert opportunity.description is not None
+    assert "not eligible for BAf" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_tum_international_student_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt only disallows `/typo3/` and a pagination pattern
+    (`/*/1000`), neither of which covers this program page, so this
+    source uses the default (unraised) crawl interval."""
+    assert (
+        TumInternationalStudentScholarshipSource.min_request_interval_seconds == 2.0
+    )

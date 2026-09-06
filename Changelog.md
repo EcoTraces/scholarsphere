@@ -28,6 +28,60 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Germany + Netherlands university expansion: TU Delft and TUM (59th and 60th opportunity sources; first Germany-university source)
+
+### Added
+- `app/services/national_scholarship_programs.py::TuDelftVanEffenScholarshipSource`
+  and `::TumInternationalStudentScholarshipSource` — this platform's 59th
+  and 60th opportunity sources, added during a dedicated Germany +
+  Netherlands university-opportunity expansion pass. University sources
+  go from 5 to 7; this is the registry's first Germany-based university
+  source.
+  - **TU Delft Justus & Louise van Effen Excellence Scholarships**
+    (Netherlands) — a genuinely university-administered, fully-funded
+    scholarship (full tuition + living-expense contribution), distinct
+    from the Dutch government's own NL Scholarship. Restricted to
+    admitted international Master's applicants — explicitly excludes TU
+    Delft's own bachelor's graduates and internationals who completed
+    their bachelor's in the Netherlands, verified directly from the
+    page's exclusion list rather than assumed. Current deadline (1
+    December 2026, for the 2027/28 round) read directly off the live
+    page; a stale "December 1, 2025" figure surfaced by secondary
+    sources during discovery was not used.
+  - **TUM Scholarship for International Students** (Germany) — a
+    Bavarian-government-funded but university-administered need-based
+    top-up grant (EUR 500-1,800 one-time per semester), correctly
+    classified `partial_funding`, never `fully_funded`. Deliberately
+    documented as **not** for incoming applicants: eligibility requires
+    the candidate to already be enrolled at TUM and ineligible for
+    BAföG "due to their nationality" — a retention grant, not a
+    study-abroad scholarship. No deadline extracted: the page states its
+    application window with ordinal-suffixed days ("1st October - 15th
+    October 2026") and a separate recurring, year-less "Deadline: 15
+    November / 15 May" — neither matches the shared confident-date
+    pattern, so nothing was guessed.
+  - Both fully wired: config settings, source registry entries, Celery
+    beat schedules + dedicated sync tasks, and fixture-backed tests
+    (fixtures captured unmodified from the live sites).
+
+  Several further university pages were researched and found genuinely
+  inaccessible or architecturally out of scope for this pass (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (Germany +
+  Netherlands), not integrated" entry): TU Delft's general scholarships
+  hub, RWTH Aachen, and University of Freiburg's Deutschlandstipendium
+  page all returned HTTP 404 on their expected (secondary-source-cited)
+  URLs — the underlying CMS content had moved; Heidelberg University's
+  Germany Scholarship page is real and current but renders its actual
+  content as a client-side JSON payload rather than server-rendered
+  HTML, which this pass's selector-based extraction can't read cleanly;
+  and both TU Delft's and TUM's general scholarship-listing pages are
+  multi-record filterable databases rather than single flagship pages.
+
+  **Verified**: full backend suite green after the change (763 passed,
+  25 skipped, up from 759 — the two new sources' four tests plus the
+  updated `test_opportunity_import.py` source-count assertion, 58 -> 60
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Source-diversity pass: Humboldt Research Fellowship and Max Planck Schools (57th and 58th opportunity sources; first Research Institution category)
 
 ### Added

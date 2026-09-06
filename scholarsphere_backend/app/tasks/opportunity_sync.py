@@ -88,6 +88,8 @@ from app.services.national_scholarship_programs import (
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TaiwanIcdfScholarshipSource,
+    TuDelftVanEffenScholarshipSource,
+    TumInternationalStudentScholarshipSource,
     TurkiyeBurslariSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -356,6 +358,16 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_max_planck_schools",
             "schedule": crontab(minute=15, hour=15),
         },
+        "sync-tudelft-van-effen-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_tudelft_van_effen_scholarship",
+            "schedule": crontab(minute=30, hour=15),
+        },
+        "sync-tum-international-student-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync.sync_tum_international_student_scholarship"
+            ),
+            "schedule": crontab(minute=45, hour=15),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -469,6 +481,12 @@ SOURCE_TASK_NAMES = {
         "app.tasks.opportunity_sync.sync_humboldt_research_fellowship"
     ),
     "max_planck_schools": "app.tasks.opportunity_sync.sync_max_planck_schools",
+    "tudelft_van_effen_scholarship": (
+        "app.tasks.opportunity_sync.sync_tudelft_van_effen_scholarship"
+    ),
+    "tum_international_student_scholarship": (
+        "app.tasks.opportunity_sync.sync_tum_international_student_scholarship"
+    ),
 }
 
 
@@ -1318,6 +1336,36 @@ def sync_max_planck_schools(
     return _execute_source_task(self, "max_planck_schools", correlation_id, triggered_by)
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_tudelft_van_effen_scholarship",
+    max_retries=3,
+)
+def sync_tudelft_van_effen_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "tudelft_van_effen_scholarship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_tum_international_student_scholarship",
+    max_retries=3,
+)
+def sync_tum_international_student_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "tum_international_student_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1575,6 +1623,10 @@ def _collector(source_code: str) -> Any:
         "taiwan_icdf_scholarship": TaiwanIcdfScholarshipSource,
         "humboldt_research_fellowship": HumboldtResearchFellowshipSource,
         "max_planck_schools": MaxPlanckSchoolsSource,
+        "tudelft_van_effen_scholarship": TuDelftVanEffenScholarshipSource,
+        "tum_international_student_scholarship": (
+            TumInternationalStudentScholarshipSource
+        ),
     }[source_code]()
 
 

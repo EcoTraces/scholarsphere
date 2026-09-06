@@ -2039,3 +2039,93 @@ class MaxPlanckSchoolsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().max_planck_schools_base_url
+
+
+class TuDelftVanEffenScholarshipSource(_SingleProgramSource):
+    """Justus & Louise van Effen Excellence Scholarships - Delft
+    University of Technology (TU Delft), Netherlands. A genuinely
+    university-administered scholarship (financed by the legacy of
+    Justus and Louise van Effen), distinct from the Dutch government's
+    NL Scholarship - `source_type` for this route is `university`, not
+    `government`, even though the scholarship page discusses tuition
+    fees set partly by national policy.
+
+    Confirmed 2026-09-05: `robots.txt` allows this content path
+    (`Allow: /`, with only TYPO3-internal and query-parameter paths
+    disallowed).
+
+    Open to "excellent international applicant(s)" (conditionally)
+    admitted to a 2-year TU Delft MSc programme - explicitly excludes
+    TU Delft's own bachelor's students and internationals who completed
+    their bachelor's at a Dutch university, so this is not simply "any
+    international student." The page states plainly: "Full tuition fees
+    per year for a TU Delft MSc programme ... AND contribution for the
+    living expenses" - a genuinely fully-funded package, not merely
+    partial support like the Dutch government's own NL Scholarship
+    (which the official Study in NL portal describes as a EUR 5,000
+    first-year-only, non-full-tuition award).
+    """
+
+    source_code = "tudelft_van_effen_scholarship"
+    overview_path = (
+        "/en/education/study-programme-orientation/practical-matters/"
+        "scholarships/justus-louise-van-effen-excellence-scholarships"
+    )
+    content_selectors = ("article.md-9",)
+    deadline_keywords = ("application deadline",)
+    provider_name = "Delft University of Technology (TU Delft)"
+    country = "Netherlands"
+    external_id = "tudelft-van-effen-excellence-scholarship"
+
+    def _base_url(self) -> str:
+        return get_settings().tudelft_van_effen_base_url
+
+
+class TumInternationalStudentScholarshipSource(_SingleProgramSource):
+    """Scholarship for International Students - Technical University of
+    Munich (TUM), Germany. Funded through Bavarian state government
+    budget resources but administered directly by TUM - `source_type`
+    for this route is `university` (the provider that runs the actual
+    application, selection, and payout is TUM, not a ministry).
+
+    Confirmed 2026-09-05: `robots.txt` only disallows `/typo3/` and a
+    pagination pattern (`/*/1000`), neither of which covers this page.
+
+    Deliberately NOT classified as "for incoming/prospective
+    applicants": the eligibility text explicitly requires the candidate
+    to already be enrolled at TUM (at least in their 2nd master's
+    semester, or 1st if their Bachelor's was also at TUM) and ineligible
+    for BAfoeG "due to their nationality" - this is a need-based top-up
+    grant for currently-enrolled international students, not a
+    scholarship an incoming international applicant can apply for
+    before admission. Funding is a one-time EUR 500-1,800 per semester
+    (reapplied for each semester, max 36 months) - `funding_type =
+    "partial_funding"`, never "fully_funded": the spec's own "never call
+    partial funding fully funded" rule applies directly here.
+
+    Deliberately extracts no deadline: the page states the current
+    "Application period winter semester 2026/27" as "1st October - 15th
+    October 2026" (ordinal-suffixed days with no space before the
+    suffix, e.g. "1st", "15th") and a separate recurring "Deadline: 15
+    November / 15 May" for supporting-document submission with no year
+    attached to either date - verified directly that `extract_confident_
+    date` matches neither: the ordinal suffixes break the shared
+    date-literal pattern's `\\d{1,2}\\s+` requirement, and the recurring
+    November/May reference never carries a year at all. Both properties
+    are exactly the ones the codebase's `extract_confident_date` was
+    designed to decline instead of guess.
+    """
+
+    source_code = "tum_international_student_scholarship"
+    overview_path = (
+        "/en/studies/fees-and-financial-aid/scholarships/tum-scholarships/"
+        "scholarship-for-international-students-of-tum"
+    )
+    content_selectors = ("main#main-content",)
+    provider_name = "Technical University of Munich (TUM)"
+    country = "Germany"
+    external_id = "tum-international-student-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().tum_international_scholarship_base_url

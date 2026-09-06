@@ -307,6 +307,22 @@ class Settings(BaseSettings):
     # world". robots.txt has no Disallow rules at all.
     max_planck_schools_base_url: str = "https://www.maxplanckschools.org"
 
+    # TU Delft - Justus & Louise van Effen Excellence Scholarships, a
+    # university-administered scholarship (full tuition + living-expense
+    # contribution) for excellent international Master's applicants,
+    # distinct from the Dutch government's NL Scholarship. robots.txt
+    # allows this content path.
+    tudelft_van_effen_base_url: str = "https://www.tudelft.nl"
+
+    # Technical University of Munich (TUM) - Scholarship for
+    # International Students, a Bavarian-government-funded but
+    # university-administered need-based top-up grant (500-1,800 EUR
+    # one-time per semester) for currently-enrolled international TUM
+    # students who are ineligible for BAfoeG due to nationality - not a
+    # scholarship for prospective/incoming applicants. robots.txt only
+    # disallows TYPO3-internal paths.
+    tum_international_scholarship_base_url: str = "https://www.tum.de"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -454,6 +470,8 @@ class Settings(BaseSettings):
         "taiwan_icdf_base_url",
         "humboldt_foundation_base_url",
         "max_planck_schools_base_url",
+        "tudelft_van_effen_base_url",
+        "tum_international_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

@@ -2886,3 +2886,62 @@ for the full dated history.
       contribution toward those targets, not as having exhausted them -
       consistent with the task's own "quality always overrides quantity"
       instruction.
+
+- [x] **(2026-09-05)** "Germany + Netherlands university opportunity
+      expansion" pass, per an explicit dedicated brief for those two
+      countries. Implemented two new university-classified sources -
+      see Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #58-59 for full detail - bringing
+      university sources from 5 to 7 and adding this platform's first
+      Germany-based university source:
+
+      **TU Delft Justus & Louise van Effen Excellence Scholarships**
+      (Netherlands) - genuinely university-administered (not the Dutch
+      government's NL Scholarship), fully-funded, restricted to admitted
+      international MSc applicants (explicitly excluding TU Delft's own
+      bachelor's graduates - read directly off the page's own exclusion
+      list, not assumed). The current 1 December 2026 deadline was
+      confirmed directly against the live page after a web search
+      surfaced a stale, already-superseded "December 1, 2025" figure
+      from a secondary source - a concrete instance of the task's own
+      "never infer a current scholarship from a previous year's
+      scholarship" warning actually mattering in practice, not just a
+      hypothetical rule.
+
+      **TUM Scholarship for International Students** (Germany) - a
+      real design decision made explicit per the task's own "GERMANY -
+      IMPORTANT FUNDING MODEL" section: this is a need-based top-up
+      grant (EUR 500-1,800/semester) for students *already enrolled* at
+      TUM, not a scholarship an incoming applicant can apply for - the
+      eligibility text requires ineligibility for BAföG "due to
+      nationality" specifically, not "any international student."
+      Correctly classified `partial_funding`, never `fully_funded`,
+      matching the task's explicit "never call partial funding fully
+      funded" rule. No deadline extracted: the live page's own date text
+      uses ordinal suffixes ("1st October", "15th October") that break
+      the shared date-literal regex's `\d{1,2}\s+` requirement, plus a
+      separate year-less recurring "15 November / 15 May" reference -
+      both correctly declined rather than guessed.
+
+      **Real friction, honestly documented rather than hidden**: three
+      other university pages found via secondary-source citations (TU
+      Delft's general scholarships hub's old URL, RWTH Aachen, Freiburg's
+      Deutschlandstipendium page) all 404'd on the live site - university
+      CMS content IDs had moved since those citations were written, the
+      same class of problem seen with UNSW Scientia last pass. Heidelberg
+      University's Germany Scholarship page is real, current, and even
+      states its own live status ("The application portal is closed...
+      results expected in November"), but its actual content renders as
+      a client-side JSON payload rather than server-rendered HTML on the
+      one subpage with real detail - correctly recognized as needing a
+      different extraction approach than this file's selector-based
+      pattern, rather than forced through it to produce garbled text.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 763 passed / 25 skipped (up from 759 - the
+      two new sources' four fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      58 -> 60 registered sources). Both fixtures
+      (`tests/fixtures/tudelft_van_effen_scholarship.html`,
+      `tests/fixtures/tum_international_student_scholarship.html`) were
+      captured unmodified from the live sites.

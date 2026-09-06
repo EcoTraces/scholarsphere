@@ -2629,6 +2629,137 @@ category that had zero entries before this pass).
   restriction). Recorded for manual verification rather than
   circumvented.
 
+## 58. TU Delft — Justus & Louise van Effen Excellence Scholarships
+
+Researched 2026-09-05, a dedicated Germany + Netherlands university
+expansion pass — this platform's 6th university-classified source (5
+existed before this pass: UAEU, Schwarzman, Knight-Hennessy, Yenching,
+ETH Zurich, none of which were in Germany or the Netherlands).
+
+- **Organization**: Delft University of Technology (TU Delft), financed
+  by the legacy of Justus and Louise van Effen — a genuinely
+  university-administered award, distinct from the Dutch government's
+  NL Scholarship
+- **Route code**: `tudelft-van-effen-excellence-scholarship`
+  (`tudelft_van_effen_scholarship` internally)
+- **Official domain / base URL**: `https://www.tudelft.nl`
+  (`TUDELFT_VAN_EFFEN_BASE_URL`)
+- **Opportunity types**: Scholarship — "Full tuition fees per year for a
+  TU Delft MSc programme ... AND contribution for the living expenses,"
+  genuinely fully-funded (2 scholarships per faculty)
+- **Country coverage**: Open to "excellent international applicant(s)"
+  (conditionally) admitted to a 2-year TU Delft MSc programme —
+  explicitly **not** open to TU Delft's own bachelor's graduates or to
+  internationals who completed their bachelor's at a Dutch university,
+  so this is narrower than "any international student," verified
+  directly from the page's own exclusion list rather than assumed
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `Allow: /` for `User-agent: *`, with
+  only TYPO3-internal and query-parameter paths disallowed — none of
+  which cover this program page
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Current cycle verified directly**: the live page states
+    "Application deadline 1 December 2026 (23:59 CET)" for the 2027/28
+    admission round — a genuinely future deadline as of the 2026-09-05
+    research date, not a stale prior-year figure (secondary sources
+    found during discovery cited a since-superseded "December 1, 2025"
+    date for the previous cycle).
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/tudelft_van_effen_scholarship.html`).
+
+## 59. TUM — Scholarship for International Students
+
+Researched 2026-09-05, the same Germany + Netherlands expansion pass as
+TU Delft (#58) — this platform's 7th university-classified source and
+its first in Germany.
+
+- **Organization**: Technical University of Munich (TUM). Funded
+  through Bavarian state government budget resources, but administered
+  directly by TUM (the application, selection, and payout are all
+  TUM's own) — `source_type = university`, not `government`, per the
+  "classify by who actually administers it" rule.
+- **Route code**: `tum-international-student-scholarship`
+  (`tum_international_student_scholarship` internally)
+- **Official domain / base URL**: `https://www.tum.de`
+  (`TUM_INTERNATIONAL_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Grant — a one-time, need-based top-up of
+  EUR 500–1,800 per semester (reapplied each semester, max 36 months of
+  total funding), correctly recorded as `funding_type = "partial_
+  funding"`, never `"fully_funded"`
+- **Country coverage / eligibility**: **Not** for incoming or
+  prospective applicants — the page's own eligibility text requires the
+  candidate to already be enrolled at TUM (2nd semester of a Master's,
+  or 1st if the Bachelor's was also at TUM) and ineligible for BAföG
+  "due to their nationality." This is a need-based retention grant for
+  currently-enrolled international students, verified directly rather
+  than assumed from "TUM has international students."
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: Only disallows `/typo3/` and a
+  pagination pattern (`/*/1000`), neither of which covers this page
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline**: the live page states the
+    current "Application period winter semester 2026/27" as "1st
+    October – 15th October 2026" (ordinal-suffixed days, e.g. "1st",
+    "15th") and, separately, a recurring "Deadline: 15 November / 15
+    May" for supporting-document submission with no year attached to
+    either date. Verified directly that `extract_confident_date`
+    matches neither: the ordinal suffix breaks the shared date-literal
+    pattern's `\d{1,2}\s+` requirement (no digit-then-space before the
+    month), and the November/May reference never carries a year at all.
+    Both are exactly the kinds of ambiguous date text this codebase's
+    shared regex is designed to decline rather than guess.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/tum_international_student_scholarship.html`).
+
+### Researched this pass (Germany + Netherlands), not integrated
+
+- **TU Delft general Excellence Scholarships hub, RWTH Aachen
+  scholarships page, University of Freiburg Deutschlandstipendium
+  page** — all three had their expected URLs (found via secondary-
+  source citation) return HTTP 404 on the live site: university CMS
+  content IDs had moved since those citations were written. Only TU
+  Delft's Van Effen page (found via a follow-up search of the live
+  site's own current link structure, not the stale cached URL) was
+  successfully re-located and verified; the others were not chased
+  further within this pass's effort budget.
+- **Heidelberg University — Germany Scholarship (Deutschlandstipendium)**
+  — real and confirmed genuinely current ("The application portal is
+  closed. Feedback on the outcome of your application is expected to be
+  sent in November," with the underlying application window "1 August –
+  31 August 2026" found on its "How can I apply?" subpage), but that
+  subpage renders its actual content as an embedded JSON payload inside
+  a client-rendered app shell rather than semantic server-rendered HTML
+  — `BeautifulSoup.get_text()` against it would return unreadable
+  fragments, not real prose. Building JSON-payload extraction for one
+  page was judged out of proportion for this pass; recorded for future
+  work rather than forced into the existing selector-based pattern.
+- **TU Delft general "scholarships.tudelft.nl" listing, TUM
+  Deutschlandstipendium listing** — both are real, multi-record,
+  filterable scholarship databases rather than single flagship pages,
+  the same architectural mismatch already documented for UNSW's general
+  scholarships page above — out of scope for this pass's
+  `_SingleProgramSource` pattern.
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**
