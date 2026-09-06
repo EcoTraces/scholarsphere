@@ -28,6 +28,47 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Fourth England follow-up (postgraduate and undergraduate): University of Southampton Presidential Bursaries and Merit Scholarships (66th and 67th opportunity sources; first England undergraduate source since Newcastle)
+
+### Added
+- `app/services/national_scholarship_programs.py::SouthamptonPresidentialBursariesSource`
+  and `::SouthamptonMeritUndergraduateScholarshipSource` — this
+  platform's 66th and 67th opportunity sources, both from the
+  University of Southampton, added in response to a request for another
+  England postgraduate *and* undergraduate scholarship.
+  - **Presidential bursaries** (postgraduate) — a PhD-level
+    fee-difference bursary ("funds the difference between UK and
+    international level tuition fees"), genuinely open to all
+    international candidates with no country restriction, unlike
+    Sheffield's (#62) or Manchester's (#63) England postgraduate
+    sources. Discovered a real extraction gotcha: the page's `<article>`
+    wrapper also carries a large sidebar of dozens of unrelated
+    scholarship names before the real content — the adapter targets the
+    narrower `div.body--content` instead, verified directly rather than
+    assumed. No deadline extracted (the only date on the page is the
+    eligibility window's opening, not an application deadline — there
+    is no separate application at all).
+  - **Merit scholarships for international undergraduates**
+    (undergraduate) — this platform's first England undergraduate
+    source since Newcastle's VCIS (#61), and structurally different
+    from it: eligibility is based on exceeding academic offer
+    conditions (A-level/IB grades above the standard offer) rather than
+    a country/region list, with no nationality restriction stated at
+    all. Up to £4,500 off first-year tuition. No deadline extracted —
+    eligibility is grade-outcome-based, not date-based.
+  - Both fully wired: config settings, source registry entries, Celery
+    beat schedules + dedicated sync tasks, and fixture-backed tests
+    (fixtures captured unmodified from the live site — noting the site
+    serves gzip/brotli-compressed responses, requiring `curl
+    --compressed` during manual verification; this codebase's own
+    `httpx`-based HTTP client already decodes this transparently, so no
+    adapter-level change was needed).
+
+  **Verified**: full backend suite green after the change (777 passed,
+  25 skipped, up from 773 — the two new sources' four tests plus the
+  updated `test_opportunity_import.py` source-count assertion, 65 -> 67
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Third England postgraduate follow-up: University of Nottingham International Postgraduate Scholarship (65th opportunity source)
 
 ### Added

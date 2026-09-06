@@ -92,6 +92,8 @@ from app.services.national_scholarship_programs import (
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     SheffieldPgScholarshipSource,
+    SouthamptonMeritUndergraduateScholarshipSource,
+    SouthamptonPresidentialBursariesSource,
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
@@ -397,6 +399,19 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_nottingham_pg_scholarship",
             "schedule": crontab(minute=0, hour=17),
         },
+        "sync-southampton-presidential-bursaries": {
+            "task": (
+                "app.tasks.opportunity_sync.sync_southampton_presidential_bursaries"
+            ),
+            "schedule": crontab(minute=15, hour=17),
+        },
+        "sync-southampton-merit-undergraduate-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_southampton_merit_undergraduate_scholarship"
+            ),
+            "schedule": crontab(minute=30, hour=17),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -530,6 +545,12 @@ SOURCE_TASK_NAMES = {
     ),
     "nottingham_pg_scholarship": (
         "app.tasks.opportunity_sync.sync_nottingham_pg_scholarship"
+    ),
+    "southampton_presidential_bursaries": (
+        "app.tasks.opportunity_sync.sync_southampton_presidential_bursaries"
+    ),
+    "southampton_merit_undergraduate_scholarship": (
+        "app.tasks.opportunity_sync.sync_southampton_merit_undergraduate_scholarship"
     ),
 }
 
@@ -1485,6 +1506,39 @@ def sync_nottingham_pg_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_southampton_presidential_bursaries",
+    max_retries=3,
+)
+def sync_southampton_presidential_bursaries(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "southampton_presidential_bursaries", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_southampton_merit_undergraduate_scholarship",
+    max_retries=3,
+)
+def sync_southampton_merit_undergraduate_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "southampton_merit_undergraduate_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1755,6 +1809,10 @@ def _collector(source_code: str) -> Any:
             ManchesterGlobalFuturesScholarshipSource
         ),
         "nottingham_pg_scholarship": NottinghamPgScholarshipSource,
+        "southampton_presidential_bursaries": SouthamptonPresidentialBursariesSource,
+        "southampton_merit_undergraduate_scholarship": (
+            SouthamptonMeritUndergraduateScholarshipSource
+        ),
     }[source_code]()
 
 

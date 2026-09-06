@@ -360,6 +360,18 @@ class Settings(BaseSettings):
     # paths.
     nottingham_pg_scholarship_base_url: str = "https://www.nottingham.ac.uk"
 
+    # University of Southampton - Presidential bursaries, a PhD-level
+    # fee-difference bursary open to all international candidates
+    # (no country restriction), automatically applied by the Faculty.
+    # robots.txt does not disallow this content path.
+    southampton_presidential_bursaries_base_url: str = "https://www.southampton.ac.uk"
+
+    # University of Southampton - Merit scholarships for international
+    # undergraduates, up to GBP 4,500 off first-year tuition for
+    # exceeding academic offer conditions, automatically awarded with
+    # no separate application and no country restriction.
+    southampton_merit_ug_base_url: str = "https://www.southampton.ac.uk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -514,6 +526,8 @@ class Settings(BaseSettings):
         "sheffield_pg_scholarship_base_url",
         "manchester_gfs_base_url",
         "nottingham_pg_scholarship_base_url",
+        "southampton_presidential_bursaries_base_url",
+        "southampton_merit_ug_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

@@ -3118,3 +3118,49 @@ for the full dated history.
       64 -> 65 registered sources). The fixture
       (`tests/fixtures/nottingham_pg_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-05)** "Add another England postgraduate, and
+      undergraduate universities scholarship" follow-up: implemented
+      two University of Southampton sources - see Changelog.md's
+      same-date entry and `docs/AUTHORITATIVE_SOURCES.md` #65-66 for
+      full detail. This platform's 66th and 67th opportunity sources.
+
+      **Presidential bursaries** (postgraduate, PhD-level) - genuinely
+      open to all international candidates, no country restriction,
+      unlike the Sheffield and Manchester England postgraduate sources
+      added in earlier follow-ups. A real bug caught before it shipped:
+      the obvious content selector (the page's `<article>` wrapper)
+      also contains a huge sidebar of dozens of unrelated scholarship
+      names ahead of the real content in document order - using it
+      would have burned the entire 5000-character description budget
+      on nav junk instead of the real eligibility/funding text. Caught
+      by actually printing the extracted text and looking at it, not by
+      assuming the obvious selector was fine. Fixed by narrowing to
+      `div.body--content`.
+
+      **Merit scholarships for international undergraduates** - this
+      platform's first England undergraduate source since Newcastle's
+      VCIS from two follow-ups ago, and deliberately structured
+      differently: eligibility here is "exceed your offer" (A-level/IB
+      grades above the standard course offer), not a country/region
+      list - a genuinely different eligibility shape than every other
+      England source added so far, found by following the sidebar link
+      on the Presidential bursaries page itself rather than a fresh web
+      search.
+
+      Both sites serve gzip/brotli-compressed responses - manual
+      verification needed `curl --compressed` to avoid fetching binary
+      garbage, a reminder to always check retrieved content is real
+      before treating a 200 status as success. This codebase's actual
+      `httpx`-based scraper client already decodes compression
+      transparently, so no adapter code needed to account for this -
+      it only affected how I verified the pages by hand.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 777 passed / 25 skipped (up from 773 - the
+      two new sources' four fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      65 -> 67 registered sources). Both fixtures
+      (`tests/fixtures/southampton_presidential_bursaries.html`,
+      `tests/fixtures/southampton_merit_undergraduate_scholarship.html`)
+      were captured unmodified from the live site.

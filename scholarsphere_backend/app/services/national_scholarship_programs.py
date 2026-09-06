@@ -2361,3 +2361,95 @@ class NottinghamPgScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().nottingham_pg_scholarship_base_url
+
+
+class SouthamptonPresidentialBursariesSource(_SingleProgramSource):
+    """Presidential bursaries - University of Southampton, England. A
+    PhD-level fee-difference bursary: "funds the difference between UK
+    and international level tuition fees," genuinely "open to all
+    international candidates demonstrating exceptional academic
+    performance" - no country/nationality restriction, unlike this
+    platform's other England postgraduate sources (Sheffield #62,
+    Manchester #63).
+
+    Confirmed 2026-09-05: `robots.txt` does not disallow this content
+    path (the one relevant disallow entry targets a different page,
+    `/study/postgraduate-research/projects/`).
+
+    `content_selectors = ("div.body--content",)` rather than a broader
+    wrapper: the page's `<article class="page--detail">` wrapper also
+    contains a large left-hand sidebar listing dozens of unrelated
+    scholarship names (Chevening, Commonwealth, Fulbright, and many
+    others) *before* the real content in document order - selecting the
+    broader wrapper would exhaust the 5000-character description cap on
+    that nav list alone, verified directly by fetching the real page,
+    not assumed. `div.body--content` is the narrower, correct target.
+
+    Eligibility requires accepting "a PhD offer and start your studies
+    between 1 August 2026 and 31 January 2027" - a start-date window,
+    not an application deadline (confirmed: "You do not need to make a
+    separate application. If you meet the eligibility criteria, your
+    Faculty will apply ... for you"). Deliberately extracts no
+    deadline: the only date literal on the page (1 August 2026) is the
+    window's *opening*, not a deadline, and default `deadline_keywords`
+    correctly match nothing - verified directly against the live
+    fixture.
+    """
+
+    source_code = "southampton_presidential_bursaries"
+    overview_path = "/study/fees-funding/scholarships/postgraduate-uk/presidential-bursaries"
+    content_selectors = ("div.body--content",)
+    provider_name = "University of Southampton"
+    country = "United Kingdom"
+    external_id = "southampton-presidential-bursaries"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().southampton_presidential_bursaries_base_url
+
+
+class SouthamptonMeritUndergraduateScholarshipSource(_SingleProgramSource):
+    """Merit scholarships for international undergraduates - University
+    of Southampton, England. This platform's first England
+    **undergraduate**-specific source since Newcastle's VCIS (#61) and
+    Imperial Inspires (#60) - and structurally distinct from both: award
+    is based on exceeding academic offer conditions (A-level/IB grades
+    above the standard offer), not a country/region eligibility list.
+    Discovered via the sidebar navigation on Southampton's own
+    Presidential bursaries page (above), which links to it directly.
+
+    Confirmed 2026-09-05: `robots.txt` does not disallow this content
+    path.
+
+    Country coverage / eligibility: open to any student who "need[s] to
+    pay the overseas tuition fee" - no nationality/country restriction
+    stated (the one country-specific carve-out on the page, the
+    "Southampton Canadian Prestige Scholarship for Law," is a distinct,
+    separate award mentioned in passing, not this scholarship's own
+    eligibility rule - preserved as-is in the description, not
+    conflated with it). Excludes PGCert/PGDip/Foundation/PGR/Distance
+    Learning/Malaysia-campus/CPD courses - recorded from the page's own
+    explicit exclusion list.
+
+    Funding: "up to £4,500 off the first year of tuition fees," varying
+    by school and grades achieved above the offer - `funding_type =
+    "partial_funding"` (first-year tuition only, not full funding).
+
+    Deliberately extracts no deadline: eligibility is grade-outcome-
+    based ("exceed your offer"), not deadline-based - "You do not need
+    to apply for merit scholarships. If you meet the eligibility
+    criteria, we will award you this scholarship" - verified directly
+    that no date literal exists anywhere on the page for
+    `extract_confident_date` to match.
+    """
+
+    source_code = "southampton_merit_undergraduate_scholarship"
+    overview_path = "/study/fees-funding/scholarships/merit-undergraduate"
+    content_selectors = ("div.body--content",)
+    provider_name = "University of Southampton"
+    country = "United Kingdom"
+    external_id = "southampton-merit-undergraduate-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().southampton_merit_ug_base_url

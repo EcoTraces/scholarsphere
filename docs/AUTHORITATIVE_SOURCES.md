@@ -3105,6 +3105,112 @@ university-classified source.
   documented for UNSW's and TU Delft's general scholarship hubs above,
   out of scope for this pass's `_SingleProgramSource` pattern.
 
+## 65. Presidential bursaries (University of Southampton)
+
+Researched 2026-09-05, a fourth "add another England postgraduate [and
+undergraduate]" follow-up in the same session — this platform's 13th
+university-classified source.
+
+- **Organization**: University of Southampton
+- **Route code**: `southampton-presidential-bursaries`
+  (`southampton_presidential_bursaries` internally)
+- **Official domain / base URL**: `https://www.southampton.ac.uk`
+  (`SOUTHAMPTON_PRESIDENTIAL_BURSARIES_BASE_URL`)
+- **Opportunity types**: Grant/bursary — a PhD-level fee-difference
+  bursary: "funds the difference between UK and international level
+  tuition fees," `funding_type = "partial_funding"` (not a stipend, not
+  full funding)
+- **Country coverage / eligibility**: "Open to all international
+  candidates demonstrating exceptional academic performance" — no
+  country/nationality restriction, unlike this platform's other England
+  postgraduate sources (Sheffield #62, Manchester #63). Requires
+  accepting a PhD offer and starting studies "between 1 August 2026 and
+  31 January 2027" plus a first-class undergraduate degree.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML behind gzip/brotli compression — required `curl
+  --compressed` during verification; the codebase's own HTTP client
+  already handles this transparently via `httpx`'s default decoding, so
+  no special-casing was needed in the adapter itself)
+- **robots.txt / indexing note**: Does not disallow this content path
+  (the one relevant disallow entry targets a different page,
+  `/study/postgraduate-research/projects/`)
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Narrow content selector, verified directly**: the page's
+    `<article class="page--detail">` wrapper also contains a large
+    left-hand sidebar listing dozens of unrelated scholarship names
+    (Chevening, Commonwealth, Fulbright, and many others) *before* the
+    real content in document order — selecting that broader wrapper
+    would exhaust the 5000-character description cap on the nav list
+    alone. `div.body--content` is the narrower, correct target,
+    confirmed by fetching the real page rather than assumed from
+    structure alone.
+  - **Deliberately extracts no deadline**: "You do not need to make a
+    separate application. If you meet the eligibility criteria, your
+    Faculty will apply ... for you" — there is no application deadline
+    to extract. The only date literal on the page (1 August 2026) is
+    the eligibility window's *opening*, not a deadline; default
+    `deadline_keywords` correctly match nothing.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/southampton_presidential_bursaries.html`).
+
+## 66. Merit scholarships for international undergraduates (University of Southampton)
+
+Researched 2026-09-05, discovered via the sidebar navigation on
+Southampton's own Presidential bursaries page (#65) above — this
+platform's first England **undergraduate**-specific source since
+Newcastle's VCIS (#61) and Imperial Inspires (#60), and its 14th
+university-classified source overall.
+
+- **Organization**: University of Southampton
+- **Route code**: `southampton-merit-undergraduate-scholarship`
+  (`southampton_merit_undergraduate_scholarship` internally)
+- **Official domain / base URL**: `https://www.southampton.ac.uk`
+  (`SOUTHAMPTON_MERIT_UG_BASE_URL`)
+- **Opportunity types**: Scholarship — "up to £4,500 off the first year
+  of tuition fees," `funding_type = "partial_funding"`. Structurally
+  distinct from every other England source in this file: award is based
+  on exceeding academic offer conditions (A-level/IB grades above the
+  standard offer), by school/subject, not a country/region eligibility
+  list.
+- **Country coverage / eligibility**: Any student who "need[s] to pay
+  the overseas tuition fee" — no nationality/country restriction stated.
+  The one country-specific carve-out mentioned on the page (the
+  "Southampton Canadian Prestige Scholarship for Law") is a distinct,
+  separate award referenced in passing, not this scholarship's own
+  eligibility rule — preserved as-is in the scraped description, not
+  conflated with it. Explicitly excludes PGCert/PGDip/Foundation/PGR/
+  Distance Learning/Malaysia-campus/CPD courses, per the page's own
+  exclusion list.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, gzip/brotli-compressed like #65 above)
+- **robots.txt / indexing note**: Does not disallow this content path
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline**: eligibility is grade-
+    outcome-based ("exceed your offer"), not deadline-based — "You do
+    not need to apply for merit scholarships. If you meet the
+    eligibility criteria, we will award you this scholarship" —
+    verified directly that no date literal exists anywhere on the page.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/southampton_merit_undergraduate_scholarship.html`).
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

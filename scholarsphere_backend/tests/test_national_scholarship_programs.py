@@ -48,6 +48,8 @@ from app.services.national_scholarship_programs import (
     NewcastleVcInternationalScholarshipSource,
     NottinghamPgScholarshipSource,
     SheffieldPgScholarshipSource,
+    SouthamptonMeritUndergraduateScholarshipSource,
+    SouthamptonPresidentialBursariesSource,
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
@@ -2055,3 +2057,92 @@ def test_nottingham_pg_scholarship_has_no_robots_txt_restrictions() -> None:
     (/search.aspx and equivalents), not this content page, so this
     source uses the default (unraised) crawl interval."""
     assert NottinghamPgScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- University of Southampton Presidential bursaries: real fixture,
+# fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_southampton_presidential_bursaries_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page's `<article>` wrapper also contains a large sidebar
+    listing dozens of unrelated scholarships before the real content -
+    `div.body--content` is the narrower, correct selector, verified
+    directly. The only date on the page (1 August 2026) is the
+    eligibility window's opening, not a deadline, so nothing is
+    extracted."""
+    source = SouthamptonPresidentialBursariesSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("southampton_presidential_bursaries.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "southampton-presidential-bursaries"
+    assert opportunity.title == "Presidential bursaries"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "University of Southampton"
+    assert opportunity.description is not None
+    assert "open to all international candidates" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_southampton_presidential_bursaries_has_no_robots_txt_restrictions() -> None:
+    """robots.txt's one relevant disallow entry targets a different
+    page (/study/postgraduate-research/projects/), not this content
+    page, so this source uses the default (unraised) crawl interval."""
+    assert (
+        SouthamptonPresidentialBursariesSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- University of Southampton Merit scholarships for international
+# undergraduates: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_southampton_merit_undergraduate_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first England undergraduate source since
+    Newcastle's VCIS (#61) and Imperial Inspires (#60), and structurally
+    distinct from both: eligibility is grade-outcome-based (exceeding
+    the academic offer), not a country list, so no deadline exists to
+    extract."""
+    source = SouthamptonMeritUndergraduateScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("southampton_merit_undergraduate_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "southampton-merit-undergraduate-scholarship"
+    assert opportunity.title == "Merit scholarships for international undergraduates"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "University of Southampton"
+    assert opportunity.description is not None
+    assert "up to £4,500 off the first year of tuition fees" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_southampton_merit_undergraduate_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    assert (
+        SouthamptonMeritUndergraduateScholarshipSource.min_request_interval_seconds
+        == 2.0
+    )

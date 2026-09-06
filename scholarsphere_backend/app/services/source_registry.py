@@ -409,6 +409,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "southampton_presidential_bursaries": {
+        "source_name": "University of Southampton Presidential Bursaries",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "southampton_merit_undergraduate_scholarship": {
+        "source_name": "University of Southampton Merit Scholarships for International Undergraduates",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -483,6 +495,12 @@ def _base_urls() -> dict[str, str]:
         "sheffield_pg_scholarship": settings.sheffield_pg_scholarship_base_url,
         "manchester_global_futures_scholarship": settings.manchester_gfs_base_url,
         "nottingham_pg_scholarship": settings.nottingham_pg_scholarship_base_url,
+        "southampton_presidential_bursaries": (
+            settings.southampton_presidential_bursaries_base_url
+        ),
+        "southampton_merit_undergraduate_scholarship": (
+            settings.southampton_merit_ug_base_url
+        ),
     }
 
 
@@ -571,6 +589,8 @@ async def seed_opportunity_sources(
         "sheffield_pg_scholarship": now + timedelta(hours=24),
         "manchester_global_futures_scholarship": now + timedelta(hours=24),
         "nottingham_pg_scholarship": now + timedelta(hours=24),
+        "southampton_presidential_bursaries": now + timedelta(hours=24),
+        "southampton_merit_undergraduate_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
