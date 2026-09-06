@@ -502,6 +502,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "pku_international_scholarship": {
+        "source_name": "Peking University Scholarship for International Students",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "sjtu_masters_scholarship": {
+        "source_name": "Shanghai Jiao Tong University Master's SJTU Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -613,6 +625,10 @@ def _base_urls() -> dict[str, str]:
         "sciencespo_mastercard_scholars": (
             settings.sciencespo_mastercard_scholars_base_url
         ),
+        "pku_international_scholarship": (
+            settings.pku_international_scholarship_base_url
+        ),
+        "sjtu_masters_scholarship": settings.sjtu_masters_scholarship_base_url,
     }
 
 
@@ -716,6 +732,8 @@ async def seed_opportunity_sources(
         "utwente_itc_scholarship": now + timedelta(hours=24),
         "upf_bsm_merit_scholarship": now + timedelta(hours=24),
         "sciencespo_mastercard_scholars": now + timedelta(hours=24),
+        "pku_international_scholarship": now + timedelta(hours=24),
+        "sjtu_masters_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

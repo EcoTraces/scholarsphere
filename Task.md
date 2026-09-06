@@ -3851,3 +3851,140 @@ for the full dated history.
       this addition does not create a new `OpportunitySource` row). The
       fixture (`tests/fixtures/daad_detail_kas.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-06)** "China fully funded Master's university
+      scholarship engine" mega-prompt: implemented the Peking
+      University Scholarship for International Students and Shanghai
+      Jiao Tong University's Master's SJTU Scholarship - see
+      Changelog.md's same-date entry and `docs/AUTHORITATIVE_SOURCES.md`
+      #80-#81 for full detail. This platform's 81st and 82nd opportunity
+      sources, and this registry's first two China *university* sources
+      (Schwarzman Scholars, #50, and Yenching Academy, #52, are elite
+      named programmes hosted at Tsinghua/PKU, not general
+      institution-wide scholarships).
+
+      As with the Netherlands and France mega-prompts earlier this
+      session, the request itself (57 numbered sections: a full
+      DISCOVER/CRAWL/EXTRACT/.../CONTINUE SEARCHING pipeline, PDF
+      processing, Chinese-language search, a 40+ new database field
+      schema, reliability scoring, UI badges, a recommendation engine,
+      an autonomous search loop) was set against realistic expectations
+      up front rather than attempted literally - no new schema fields,
+      scoring engine, or PDF-processing pipeline were built. What was
+      actually delivered: genuine, live-verified research across five
+      major Chinese universities, two real fully-funded Master's
+      opportunities added following the existing architecture, and
+      three candidates honestly rejected with evidence.
+
+      Connectivity itself was a real first question for this pass -
+      Chinese university domains carry a justified reputation for being
+      hard to reach or bot-protected. Tested this directly rather than
+      assuming either way: `robots.txt` requests to Tsinghua, Fudan,
+      Zhejiang, and SJTU's English site all resolved (some 404 - no
+      robots.txt file, which is permissive, not restrictive - one 200),
+      and their actual homepages loaded in 2-5 seconds with real HTML.
+      Only `www.pku.edu.cn` itself timed out; PKU's international
+      students division subdomain (`isd.pku.edu.cn`), reached
+      separately, loaded fine. This meant the pass could proceed as a
+      normal live-research exercise rather than an early "blocked,
+      stop here" finding - though the pre-existing China Scholarship
+      Council (CSC) finding from an earlier session pass (genuine
+      anti-bot protection, `docs/COUNTRY_PROVIDER_REGISTRY.md`'s
+      "China - BLOCKED" section) remains correct and unaddressed; the
+      two sources added here are on entirely separate, unblocked
+      university domains.
+
+      The core research finding, stated plainly in the request's own
+      warning about not trusting scholarship names: most major Chinese
+      universities checked (Tsinghua, Zhejiang, Fudan) primarily funnel
+      international Master's funding through the Chinese Government
+      Scholarship (CGS/CSC) and provincial/municipal government
+      scholarships, not a comprehensive scheme they fund and administer
+      themselves - and the request's own instruction to keep
+      government/CSC funding separate from a "university-only" dataset
+      meant most of what these universities' own scholarship pages
+      describe had to be set aside rather than counted. Tsinghua's own
+      "Financial Aid System" page is unusually explicit about this
+      split: it names its own "Tsinghua University Tuition Scholarship"
+      and states plainly that Tuition Scholarships "cover full or
+      partial tuition fees" only, correctly distinguishing itself from
+      CGS's fuller (but government-funded) package - a rare case of a
+      university's own page doing the funding-type classification work
+      for this platform. Zhejiang University's "Master's Scholarships"
+      page turned out to be a hub listing CGS Type A/B, a CGS Youth of
+      Excellence Scheme, the Zhejiang provincial scholarship, and two
+      school-specific awards - the same multi-record architecture
+      mismatch this project has repeatedly found at ESMT, WHU, IE
+      University, and Universidad de Navarra, with the added tell that
+      most individual pages carried dated 2022 URLs suggesting
+      unmaintained, non-evergreen content. Fudan's International
+      Students Office was similar: real, but every path led back to
+      CGS/Shanghai Government/Confucius Institute funding rather than a
+      standalone Fudan-funded package.
+
+      Peking University's own International Students Division page
+      stood out for being refreshingly single-purpose in a way none of
+      the above were: one plain, old-HTML page (no `<h1>`, no CSS
+      framework, no tabs) stating outright "It covers tuition, a living
+      stipend and medical insurance" for a 2-3 year Master's, with
+      eligibility framed purely around PKU's own admission requirements
+      and no mention of CGS, government funding, or a provincial
+      scheme anywhere on the page - a genuinely university-funded,
+      single-record scholarship exactly matching this project's
+      preferred shape. The page's total absence of heading markup meant
+      the standard `title_selectors = ("h1",)` default would find
+      nothing; rather than falling through to the less-precise
+      external_id-derived fallback, used `title_tag_separator = " | "`
+      - a separator that does not actually appear in the real `<title>`
+      text - specifically so the split is a no-op and the page's
+      already-clean title is used unchanged.
+
+      Shanghai Jiao Tong University's page was a more interesting
+      architectural case: `Study@SJTU` is a genuine multi-tab hub
+      (Undergraduate Programs, Graduate Programs) rather than a
+      single-scholarship page, which on its face looks like the
+      Zhejiang/hub pattern that gets rejected - but unlike Zhejiang's
+      page, each tab here is exactly one clearly-scoped panel (not a
+      list of many separately-sponsored external schemes), and the
+      Graduate Programs panel specifically and precisely describes the
+      Master's SJTU Scholarship (tuition waiver + monthly stipend +
+      insurance + accommodation subsidy) as SJTU's own funded award,
+      genuinely distinct from a sibling "Tuition Waiver Scholarship"
+      (tuition + insurance only, correctly left unintegrated as
+      `TUITION_ONLY`) named in the very same paragraph - a real example
+      of the request's own warning not to assume every scholarship
+      mentioning "full" or "waiver" is the same thing. Confirmed via a
+      direct BeautifulSoup structural walk that the page has exactly
+      two `div.page-item` tab panels before choosing a selector - a
+      naive `div.page-item` selector would have silently grabbed the
+      wrong (Undergraduate) panel, since `select_one` always returns
+      the first match. Used the adjacent-sibling CSS combinator
+      `div.page-item + div.page-item` instead, which BeautifulSoup's
+      selector engine supports natively and which unambiguously
+      resolves to the second panel by structural position rather than
+      any class/id difference (there wasn't one). Also deliberately
+      spelled the university's name out in full in `external_id`
+      ("shanghai-jiao-tong-university-masters-scholarship") rather than
+      using the common "SJTU" abbreviation, specifically so the
+      external_id-derived title fallback (needed because this page's
+      own `<title>` describes the whole hub, not this scholarship)
+      capitalizes correctly - "Shanghai Jiao Tong University Masters
+      Scholarship," not the "Sjtu Masters Scholarship" a literal
+      acronym-based id would have produced.
+
+      **Verified for real**: `pyflakes app tests` clean; a standalone
+      script confirmed `extract_confident_date_after` correctly
+      resolves to `None` for both pages' deadline-adjacent text (PKU's
+      year-less "January and March" window; SJTU's Graduate Programs
+      panel, which states no date at all); a `collect()` simulation
+      against both real fixtures, run before any test was written,
+      confirmed both sources' title, provider, country, `funding_type
+      = "fully_funded"`, and `deadline = None` all resolve exactly as
+      documented; full backend suite green afterward, 809 passed / 25
+      skipped (up from 805 - four new fixture-backed/robots-txt tests
+      across the two new sources, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      80 -> 82 registered sources). Both fixtures
+      (`tests/fixtures/pku_international_scholarship.html`,
+      `tests/fixtures/sjtu_masters_scholarship.html`) were captured
+      unmodified from their live sites.

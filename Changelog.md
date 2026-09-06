@@ -28,6 +28,112 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — China fully-funded Master's university scholarship engine: Peking University and Shanghai Jiao Tong University (81st and 82nd opportunity sources)
+
+### Added
+- `app/services/national_scholarship_programs.py::PkuInternationalScholarshipSource`
+  — this platform's 81st opportunity source and first China
+  *university* source (Schwarzman Scholars, #50, and Yenching Academy,
+  #52, are elite named programmes hosted at Tsinghua/PKU respectively,
+  not this general institution-wide scholarship). The **Peking
+  University Scholarship for International Students**:
+  - Live-verified 2026-09-06 against
+    `https://isd.pku.edu.cn/en/detail.php?id=525`. `robots.txt` returns
+    this site's own custom 404 page, not an actual robots.txt — no
+    `Disallow` rules exist for this host.
+  - Genuinely fully funded: "It covers tuition, a living stipend and
+    medical insurance," for a 2-3 year Master's duration.
+    `funding_type = "fully_funded"`.
+  - No nationality/country restriction stated anywhere — eligibility is
+    framed only around PKU's own international-admission requirements
+    — Sierra Leone applicants are eligible.
+  - The page has no `<h1>` at all; `title_tag_separator = " | "` (a
+    separator absent from the real `<title>` text) is used so the
+    clean title tag text is taken directly, unchanged.
+  - Deliberately extracts no deadline: "Application Time: Generally in
+    January and March each year" carries no year, verified directly
+    that neither the default `"deadline"` keyword nor an
+    `"Application Time"` keyword resolves to a date.
+
+- `app/services/national_scholarship_programs.py::SjtuMastersScholarshipSource`
+  — this platform's 82nd opportunity source and second China
+  university source. The **Master's SJTU Scholarship** (Shanghai Jiao
+  Tong University):
+  - Live-verified 2026-09-06 against
+    `https://global.sjtu.edu.cn/en/study-sjtu/prospective/scholarships/62`.
+    `robots.txt` returns a generic 404, not an actual robots.txt.
+  - Genuinely fully funded: "Monthly stipend, standard tuition waiver,
+    group comprehensive insurance in China, and accommodation subsidy."
+    `funding_type = "fully_funded"`. Deliberately distinct from the
+    same page's separately-named Tuition Waiver Scholarship (tuition +
+    insurance only, no stipend — not integrated).
+  - No nationality/country restriction stated — the whole hub page is
+    framed under "Prospective International Students" with a "Foreign
+    Students Apply" application portal.
+  - Content selector is an adjacent-sibling CSS selector
+    (`div.page-item + div.page-item`) deliberately targeting the
+    second of exactly two tab panels on this multi-tab hub page (the
+    Graduate-programmes panel, holding both PhD and Master's SJTU
+    Scholarship text), without pulling in the Undergraduate panel's
+    unrelated, separately-tiered scholarship scheme.
+  - `title_selectors = ()`, no `title_tag_separator`: the page's
+    `<title>` describes the whole hub, not this scholarship, so the
+    external_id-derived fallback is used instead — `external_id`
+    spells the university's name out in full so the fallback
+    capitalizes correctly ("Shanghai Jiao Tong University Masters
+    Scholarship," not "Sjtu").
+  - Deliberately extracts no deadline: this panel states no date at
+    all.
+
+  Both fully wired: config settings, source registry entries
+  (`source_type = "university"`), Celery beat schedule + dedicated sync
+  tasks, and fixture-backed tests (fixtures captured unmodified from
+  the live sites).
+
+  A necessarily non-exhaustive pass across major Chinese universities
+  (Peking, Tsinghua, Fudan, Shanghai Jiao Tong, Zhejiang) found that
+  most channel international Master's funding primarily through the
+  Chinese Government Scholarship (CGS/CSC) and provincial/municipal
+  scholarships rather than running their own comprehensive,
+  university-only fully-funded scheme — CGS and other government
+  routes are deliberately kept out of this university-classified
+  dataset even where a university administers the application, since
+  the funding provider is the Chinese government, not the university.
+  Three other candidates were researched and rejected (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (China
+  fully-funded Master's university engine), not integrated" section):
+  - **Tsinghua University** — its own "Tuition Scholarships" (distinct
+    from CGS) explicitly cover tuition only, no living stipend —
+    `TUITION_ONLY`.
+  - **Zhejiang University** — a hub page listing CGS Type A/B, CGS
+    Youth of Excellence Scheme, the Zhejiang provincial scholarship,
+    and school-specific awards — the same multi-record architecture
+    mismatch documented for ESMT/WHU/Universidad de Navarra elsewhere
+    in this project, with most individual pages carrying stale 2022
+    URLs.
+  - **Fudan University** — its International Students Office primarily
+    channels applicants toward CGS/Shanghai Government/Confucius
+    Institute scholarships; no standalone university-funded page
+    comparable to PKU's or SJTU's own was found.
+  - **SJTU's own Tuition Waiver Scholarship** — tuition + insurance
+    only, no stipend — `TUITION_ONLY`, not integrated as its own
+    record.
+
+- **Verified**: full backend test suite — 809 passed, 25 skipped (up
+  from 805 passed before this change), 0 failed; `pyflakes` clean on
+  every changed/new file.
+
+### Changed
+—
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Germany fully-funded Master's follow-up: Konrad-Adenauer-Stiftung Scholarship Programme (extends the existing DAAD source)
 
 ### Added

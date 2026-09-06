@@ -132,6 +132,8 @@ unverified).
 | 77 | ITC Excellence Scholarship Programme (University of Twente) | Netherlands | UNIVERSITY | utwente.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Netherlands Master's/postgraduate follow-up; a distinct ITC-faculty-administered scholarship from the university-wide UTS (#75); explicit ~100-country eligible list confirmed to include Sierra Leone; genuinely partial (EUR 25,000 of a EUR 74,370 total cost); no deadline extracted (page states 2026 applications closed with a next round "expected to open in December," no exact date given) (see AUTHORITATIVE_SOURCES.md #77) |
 | 78 | Merit Based Scholarship (UPF Barcelona School of Management, Universitat Pompeu Fabra) | Spain | UNIVERSITY | bsm.upf.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a Spain Master's/postgraduate follow-up, this registry's first Spain-university source (source #23, Becas MAEC-AECID, is government-classified); no nationality restriction; partial funding (25%, up to 50% with financial need, of tuition); exact deadline extracted via the specific "3rd call" round keyword (26 November 2026 — the first two of four rolling rounds had already passed) (see AUTHORITATIVE_SOURCES.md #78) |
 | 79 | Mastercard Foundation Scholars Program, graduate/Master's track (Sciences Po) | France | UNIVERSITY | sciencespo.fr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a France fully-funded-Master's-only university scholarship request; this registry's first France-*university* source (source #27, France Excellence Eiffel, is government/Campus France-classified, deliberately excluded from the university-only dataset); sole nationality criterion "citizenship of an African country," Sierra Leone not excluded (though a partner-university/bridge-programme/refugee-status condition also applies); genuinely fully funded ("covers the full financial needs," full tuition + living + reserved Paris housing); no deadline extracted (exact date "will be published ... from September 2026," only an imprecise "October to mid-December 2026" window exists so far) (see AUTHORITATIVE_SOURCES.md #79) |
+| 80 | Peking University Scholarship for International Students | China | UNIVERSITY | isd.pku.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a China fully-funded-Master's university scholarship request; this registry's first China-*university* source (Schwarzman Scholars, #50, and Yenching Academy, #52, are elite named programmes at Tsinghua/PKU, not this general institution-wide scholarship); no nationality restriction stated; genuinely fully funded ("covers tuition, a living stipend and medical insurance"); no `<h1>` on the page, title taken directly from an already-clean `<title>` tag; no deadline extracted (year-less recurring "January and March" window) (see AUTHORITATIVE_SOURCES.md #80) |
+| 81 | Master's SJTU Scholarship (Shanghai Jiao Tong University) | China | UNIVERSITY | global.sjtu.edu.cn | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass, this registry's second China-university source; content selector is an adjacent-sibling CSS selector (`div.page-item + div.page-item`) deliberately targeting the Graduate-programmes tab panel on a multi-tab hub page, distinct from the Undergraduate tab's separate tiered scholarship; no nationality restriction stated; genuinely fully funded (tuition waiver + monthly stipend + insurance + accommodation subsidy), distinct from SJTU's own separately-named tuition-only Tuition Waiver Scholarship (not integrated); no deadline stated on this panel (see AUTHORITATIVE_SOURCES.md #81) |
 
 Four other Spanish institutions were researched this pass and found
 unsuitable rather than integrated (see AUTHORITATIVE_SOURCES.md's
@@ -860,6 +862,20 @@ checking the full implementation against that exact list.
   protection blocking every access path tried, not a code defect. Not
   pursued further without an explicit, informed decision to do so via
   an authorized channel, the same standing given Cyprus.
+
+**(2026-09-06 update)** The CSC/`csc.edu.cn` block above is specific to
+the *government* scholarship portal, and remains unaddressed. A
+separate pass targeting *university-administered* fully-funded
+Master's scholarships in China found two working, unblocked sources at
+individual university domains, entirely distinct hosts from CSC —
+Peking University's `isd.pku.edu.cn` (source #80) and Shanghai Jiao
+Tong University's `global.sjtu.edu.cn` (source #81), both genuinely
+`SUPPORTED`. See rows 80–81 below and AUTHORITATIVE_SOURCES.md #80–#81
+for full detail, and its "Researched this pass (China fully-funded
+Master's university engine), not integrated" note for Tsinghua
+(university's own tuition-only offering, CGS handled separately),
+Zhejiang University (multi-record government/CGS hub), and Fudan
+(channels mainly to CGS/provincial funding, no standalone page found).
 
 ---
 

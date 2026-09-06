@@ -489,6 +489,28 @@ class Settings(BaseSettings):
     # content path.
     sciencespo_mastercard_scholars_base_url: str = "https://www.sciencespo.fr"
 
+    # Peking University Scholarship for International Students -
+    # genuinely fully funded ("It covers tuition, a living stipend and
+    # medical insurance"), open to Master's applicants (2-3 year
+    # duration) with no nationality/country restriction stated beyond
+    # ordinary PKU international-admission requirements. This
+    # platform's first China-university source (Schwarzman Scholars and
+    # Yenching Academy, sources #50/#52, are elite named programs
+    # hosted at Tsinghua/PKU respectively, not this general
+    # institution-wide scholarship). robots.txt does not exist on this
+    # host (404, no Disallow rules).
+    pku_international_scholarship_base_url: str = "https://isd.pku.edu.cn"
+
+    # Shanghai Jiao Tong University - Master's SJTU Scholarship:
+    # genuinely fully funded ("Monthly stipend, standard tuition
+    # waiver, group comprehensive insurance in China, and accommodation
+    # subsidy"), distinct from SJTU's own separately-named Tuition
+    # Waiver Scholarship (tuition + insurance only, no stipend - not
+    # integrated, see docs). This platform's second China-university
+    # source. robots.txt does not exist on this host (404, no Disallow
+    # rules).
+    sjtu_masters_scholarship_base_url: str = "https://global.sjtu.edu.cn"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -658,6 +680,8 @@ class Settings(BaseSettings):
         "utwente_itc_scholarship_base_url",
         "upf_bsm_merit_scholarship_base_url",
         "sciencespo_mastercard_scholars_base_url",
+        "pku_international_scholarship_base_url",
+        "sjtu_masters_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

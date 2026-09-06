@@ -53,7 +53,9 @@ from app.services.national_scholarship_programs import (
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
     NottinghamPgScholarshipSource,
+    PkuInternationalScholarshipSource,
     SheffieldPgScholarshipSource,
+    SjtuMastersScholarshipSource,
     SouthamptonMeritUndergraduateScholarshipSource,
     SouthamptonPresidentialBursariesSource,
     TaiwanIcdfScholarshipSource,
@@ -2796,3 +2798,107 @@ def test_sciencespo_mastercard_scholars_has_no_robots_txt_restrictions() -> None
     """robots.txt (`sciencespo.fr/robots.txt`) does not disallow the
     `/students/` content path."""
     assert SciencesPoMastercardScholarsSource.min_request_interval_seconds == 2.0
+
+
+# --- Peking University Scholarship for International Students: real
+# fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_pku_international_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first China *university* source (Schwarzman
+    Scholars and Yenching Academy, sources #50/#52, are elite named
+    programs hosted at Tsinghua/PKU, not this general institution-wide
+    scholarship). No nationality/country restriction stated anywhere -
+    Sierra Leone applicants are eligible. The page has no `<h1>` at all,
+    so `title_tag_separator = " | "` (a separator absent from the real
+    `<title>` text) is used to extract the clean title unchanged. No
+    deadline extracted: "Application Time: Generally in January and
+    March each year" carries no year."""
+    source = PkuInternationalScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("pku_international_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "pku-international-scholarship"
+    assert (
+        opportunity.title == "Peking University Scholarship for International Students"
+    )
+    assert opportunity.country == "China"
+    assert opportunity.provider_name == "Peking University"
+    assert opportunity.description is not None
+    assert "It covers tuition, a living stipend and medical insurance" in (
+        opportunity.description
+    )
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_pku_international_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`isd.pku.edu.cn/robots.txt`) returns this site's own
+    404 page, not a robots.txt - no Disallow rules exist for this
+    host."""
+    assert PkuInternationalScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Shanghai Jiao Tong University Master's SJTU Scholarship: real
+# fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_sjtu_masters_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's second China *university* source. The overview
+    page is a general prospective-students hub with exactly two
+    `div.page-item` tab panels (Undergraduate, Graduate) - the
+    adjacent-sibling selector `div.page-item + div.page-item`
+    deliberately targets the second (Graduate Programs) panel, holding
+    both the PhD and Master's SJTU Scholarship text, without pulling in
+    the Undergraduate panel's unrelated tiered-scholarship text. No
+    `<h1>` and no useful `<title>` for this specific scholarship, so
+    the external_id-derived fallback is used - `external_id` spells the
+    university's name in full so the fallback capitalizes correctly
+    ("Shanghai Jiao Tong University Masters Scholarship", not "Sjtu").
+    No nationality/country restriction stated anywhere (the whole hub
+    is framed under "Prospective International Students" with a
+    "Foreign Students Apply" portal) - Sierra Leone applicants are
+    eligible. No deadline extracted: this panel states no date at
+    all."""
+    source = SjtuMastersScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("sjtu_masters_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert (
+        opportunity.external_id == "shanghai-jiao-tong-university-masters-scholarship"
+    )
+    assert opportunity.title == "Shanghai Jiao Tong University Masters Scholarship"
+    assert opportunity.country == "China"
+    assert opportunity.provider_name == "Shanghai Jiao Tong University"
+    assert opportunity.description is not None
+    assert "Master’s SJTU Scholarship includes Monthly stipend" in (
+        opportunity.description
+    )
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_sjtu_masters_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`global.sjtu.edu.cn/robots.txt`) returns a generic 404
+    page, not a robots.txt - no Disallow rules exist for this host."""
+    assert SjtuMastersScholarshipSource.min_request_interval_seconds == 2.0

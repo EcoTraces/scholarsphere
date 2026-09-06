@@ -3165,3 +3165,137 @@ class SciencesPoMastercardScholarsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().sciencespo_mastercard_scholars_base_url
+
+
+class PkuInternationalScholarshipSource(_SingleProgramSource):
+    """Peking University Scholarship for International Students - this
+    platform's first China *university* source (Schwarzman Scholars and
+    Yenching Academy, sources #50 and #52, are elite named programs
+    hosted at Tsinghua/PKU respectively - distinct, narrower schemes,
+    not this general institution-wide scholarship open to PKU's whole
+    international-applicant pool across degree levels).
+
+    Confirmed 2026-09-06: `isd.pku.edu.cn/robots.txt` returns this
+    site's own 404 page (a custom-styled "page not found" response, not
+    a robots.txt) - no `Disallow` rules exist for this host.
+
+    The page has no `<h1>` at all (a plain, old-style institutional
+    page with no heading markup) - `title_selectors = ()` falls through
+    to `title_tag_separator = " | "`, a separator that does not appear
+    anywhere in the real `<title>` text ("Peking University Scholarship
+    for International Students"), so the split is a no-op and the full,
+    already-clean title tag text is used directly.
+
+    Content selector `div.article-cont`: verified directly via a
+    BeautifulSoup structural walk to hold exactly the real scholarship
+    text (scope, duration, eligibility, application process), with none
+    of the page's surrounding navigation sidebar.
+
+    Country coverage / eligibility: no nationality/country restriction
+    stated anywhere - eligibility is framed only around PKU's own
+    international-admission requirements ("meet the pertinent admission
+    requirements for international students of Peking University") and
+    not already holding another scholarship - Sierra Leone applicants
+    are eligible as ordinary international applicants.
+
+    Funding: the page states plainly, "It covers tuition, a living
+    stipend and medical insurance" - full tuition plus substantial
+    living support plus insurance, for a 2-3 year Master's duration -
+    `funding_type = "fully_funded"`.
+
+    Deliberately extracts no deadline: the page states "Application
+    Time: Generally in January and March each year" - a real, recurring
+    annual window with no year attached, so `extract_confident_date_after`
+    correctly resolves to `None` on both the default `"deadline"`
+    keyword and a `"Application Time"` keyword tried directly against
+    this page's own text, verified with a standalone script, rather
+    than guessing a specific year.
+    """
+
+    source_code = "pku_international_scholarship"
+    overview_path = "/en/detail.php?id=525"
+    title_selectors = ()
+    title_tag_separator = " | "
+    content_selectors = ("div.article-cont",)
+    provider_name = "Peking University"
+    country = "China"
+    external_id = "pku-international-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().pku_international_scholarship_base_url
+
+
+class SjtuMastersScholarshipSource(_SingleProgramSource):
+    """Shanghai Jiao Tong University - Master's SJTU Scholarship. This
+    platform's second China *university* source.
+
+    Confirmed 2026-09-06: `global.sjtu.edu.cn/robots.txt` returns a
+    generic 404 page, not a robots.txt - no `Disallow` rules exist for
+    this host.
+
+    The overview page (`Study@SJTU`) is a general prospective-students
+    hub covering undergraduate, graduate, and non-degree programs on
+    one page via a tabbed/accordion layout - not itself rejected as a
+    multi-record hub, because the specific scholarship being recorded
+    here (the Master's SJTU Scholarship) is precisely, separately
+    described within one identifiable panel, distinct from the
+    Undergraduate programs' own separately-tiered scholarship scheme
+    covered in a sibling panel on the same page.
+
+    Content selector `div.page-item + div.page-item` (an adjacent-
+    sibling CSS selector, not a hash class): the page has exactly two
+    `div.page-item` tab panels - "Undergraduate Programs" and "Graduate
+    Programs" - verified directly via a BeautifulSoup structural walk;
+    the sibling-combinator selector deliberately targets the second
+    (Graduate Programs) panel, which holds both the PhD and Master's
+    SJTU Scholarship descriptions, without pulling in the Undergraduate
+    panel's unrelated tiered-scholarship text.
+
+    `title_selectors = ()`, `title_tag_separator = None`: the page's own
+    `<title>` ("Study@SJTU - Shanghai Jiao Tong University") describes
+    the whole hub page, not this specific scholarship, so it is
+    deliberately not used - falls through to the external_id-derived
+    fallback ("Shanghai Jiao Tong University Masters Scholarship"), the
+    same documented pattern already used for WMI/Yenching/HKPFS/Max
+    Planck Schools elsewhere in this file. `external_id` spells the
+    university's name out in full (rather than the common "SJTU"
+    abbreviation) specifically so that fallback title-cases cleanly,
+    rather than producing "Sjtu".
+
+    Country coverage / eligibility: the page's own navigation frames
+    this entire hub under "Prospective International Students" and its
+    application portal is literally named "Foreign Students Apply" -
+    no narrower nationality/country restriction is stated anywhere -
+    Sierra Leone applicants are eligible as ordinary international
+    applicants.
+
+    Funding: "Master's SJTU Scholarship includes Monthly stipend,
+    standard tuition waiver, group comprehensive insurance in China,
+    and accommodation subsidy (covering partial accommodation
+    expenses)" - full tuition plus a monthly stipend plus insurance
+    plus accommodation subsidy - `funding_type = "fully_funded"`.
+    Deliberately distinct from, and not to be confused with, the same
+    paragraph's separately-named "Tuition Waiver Scholarship" (tuition
+    + insurance only, no stipend - `partial_funding`/`TUITION_ONLY` in
+    spirit, not integrated as its own record here).
+
+    Deliberately extracts no deadline: this panel states no deadline or
+    application-window date at all - verified directly that neither the
+    default `"deadline"` keyword nor a `"March"` keyword (checked in
+    case an application-cycle month were mentioned) matches anything on
+    the full page text, so `extract_confident_date_after` correctly
+    resolves to `None` rather than guessing one.
+    """
+
+    source_code = "sjtu_masters_scholarship"
+    overview_path = "/en/study-sjtu/prospective/scholarships/62"
+    title_selectors = ()
+    content_selectors = ("div.page-item + div.page-item",)
+    provider_name = "Shanghai Jiao Tong University"
+    country = "China"
+    external_id = "shanghai-jiao-tong-university-masters-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().sjtu_masters_scholarship_base_url

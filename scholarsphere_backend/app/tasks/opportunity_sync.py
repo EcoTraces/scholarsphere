@@ -94,10 +94,12 @@ from app.services.national_scholarship_programs import (
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
     NottinghamPgScholarshipSource,
+    PkuInternationalScholarshipSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     SheffieldPgScholarshipSource,
+    SjtuMastersScholarshipSource,
     SouthamptonMeritUndergraduateScholarshipSource,
     SouthamptonPresidentialBursariesSource,
     TaiwanIcdfScholarshipSource,
@@ -492,6 +494,14 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_sciencespo_mastercard_scholars",
             "schedule": crontab(minute=45, hour=20),
         },
+        "sync-pku-international-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_pku_international_scholarship",
+            "schedule": crontab(minute=0, hour=21),
+        },
+        "sync-sjtu-masters-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_sjtu_masters_scholarship",
+            "schedule": crontab(minute=15, hour=21),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -672,6 +682,12 @@ SOURCE_TASK_NAMES = {
     ),
     "sciencespo_mastercard_scholars": (
         "app.tasks.opportunity_sync.sync_sciencespo_mastercard_scholars"
+    ),
+    "pku_international_scholarship": (
+        "app.tasks.opportunity_sync.sync_pku_international_scholarship"
+    ),
+    "sjtu_masters_scholarship": (
+        "app.tasks.opportunity_sync.sync_sjtu_masters_scholarship"
     ),
 }
 
@@ -1873,6 +1889,36 @@ def sync_sciencespo_mastercard_scholars(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_pku_international_scholarship",
+    max_retries=3,
+)
+def sync_pku_international_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "pku_international_scholarship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_sjtu_masters_scholarship",
+    max_retries=3,
+)
+def sync_sjtu_masters_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "sjtu_masters_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2170,6 +2216,8 @@ def _collector(source_code: str) -> Any:
         "utwente_itc_scholarship": UtwenteItcScholarshipSource,
         "upf_bsm_merit_scholarship": UpfBsmMeritScholarshipSource,
         "sciencespo_mastercard_scholars": SciencesPoMastercardScholarsSource,
+        "pku_international_scholarship": PkuInternationalScholarshipSource,
+        "sjtu_masters_scholarship": SjtuMastersScholarshipSource,
     }[source_code]()
 
 
