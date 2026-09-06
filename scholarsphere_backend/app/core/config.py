@@ -352,6 +352,14 @@ class Settings(BaseSettings):
     # robots.txt does not disallow this content path.
     manchester_gfs_base_url: str = "https://www.manchester.ac.uk"
 
+    # University of Nottingham - International Postgraduate
+    # Scholarship, an automatic tuition-fee deduction for
+    # self-funded international postgraduate taught Master's students
+    # with no country restriction and no year-locked cycle stated on
+    # this page. robots.txt only disallows internal search-result
+    # paths.
+    nottingham_pg_scholarship_base_url: str = "https://www.nottingham.ac.uk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -505,6 +513,7 @@ class Settings(BaseSettings):
         "newcastle_vcis_base_url",
         "sheffield_pg_scholarship_base_url",
         "manchester_gfs_base_url",
+        "nottingham_pg_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

@@ -3019,6 +3019,92 @@ university-classified source.
   cycle as current, never fabricate a next cycle" rule, this was left
   unintegrated rather than added as a stale or invented record.
 
+## 64. International Postgraduate Scholarship (University of Nottingham)
+
+Researched 2026-09-05, a third "add another England postgraduate
+scholarship" follow-up in the same session — this platform's 12th
+university-classified source.
+
+- **Organization**: University of Nottingham
+- **Route code**: `nottingham-international-postgraduate-scholarship`
+  (`nottingham_pg_scholarship` internally)
+- **Official domain / base URL**: `https://www.nottingham.ac.uk`
+  (`NOTTINGHAM_PG_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — an automatic tuition-fee
+  deduction for self-funded international students starting a
+  full-time, UK-campus-based postgraduate taught Master's degree,
+  `funding_type = "partial_funding"`
+- **Country coverage / eligibility**: Genuinely distinct from this
+  platform's other England sources (#60–63, all restricted to a
+  specific published country list and/or a named entry year): this page
+  states no country/nationality restriction at all — only "an
+  international fee-paying student" — and no entry-year lock anywhere
+  in its text, a genuinely evergreen description rather than one tied to
+  a single admissions cycle. "No scholarship application needed. This
+  will be automatically awarded."
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed). Note: the
+  university's own `.aspx`-templated "International Postgraduate
+  Masters Scholarship" page (a different URL for the same programme)
+  renders its actual descriptive content client-side and was not used
+  for that reason — the shorter `/pgstudy/funding/...` page used
+  instead is genuinely server-rendered with the same substance.
+- **robots.txt / indexing note**: Only disallows internal search-result
+  paths (`/search.aspx` and equivalents, added specifically because a
+  parameterised search-result URL had leaked into Bing's index) — not
+  this content page
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **No funding amount asserted in code**: secondary sources
+    encountered during discovery cited "£3,000," but the actual page
+    used as this source's overview does not state a specific amount
+    (only that the award "will be deducted from your master's tuition
+    fee") — nothing beyond what the scraped description itself contains
+    is asserted, per the "never invent a funding value the source
+    doesn't state" rule.
+  - **Deliberately extracts no deadline**: none is stated on the page —
+    correctly absent, not an extraction failure.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/nottingham_pg_scholarship.html`).
+
+### Researched this pass (third England postgraduate follow-up), not integrated
+
+- **University of Leeds International Masters Regional Scholarships /
+  International Excellence Scholarships** — both real and fetchable
+  (200), but genuinely ambiguous in currency: the hub page explicitly
+  states the International Excellence Scholarships are "now closed"
+  for the 2026 cycle they describe, and the Regional Scholarships page,
+  while not marked closed, is scoped to students "starting in September
+  2026" — a cohort whose admissions window is effectively over as of
+  the 2026-09-05 research date. Checked directly for a 2027 successor
+  page (`international-regional-scholarships-2027`,
+  `international-excellence-scholarships-2027`): both URLs return
+  HTTP 200 but are soft-404s (the page's own `<title>` reads
+  "404-error" despite the 200 status) — verified directly by reading
+  the title, not assumed from the status code alone. Left unintegrated
+  rather than presented as a fresh 2027 opportunity that doesn't yet
+  exist.
+- **Queen Mary University of London** (postgraduate January 2027 start
+  page and its scholarships) — returned a genuine HTTP 403 on every
+  fetch attempt, including `robots.txt` itself. Recorded for manual
+  verification, not circumvented.
+- **University of Warwick** (Doctoral College PGR Scholarship
+  Competitions) — real and fetchable, but the page is a multi-tab
+  listing of six distinct competitions (Chancellors, AHRC, Doctoral
+  Access–Sanctuary, Doctoral Access–Pathway, Monash-Warwick, China
+  Scholarship Council-Warwick) rather than a single flagship
+  scholarship — the same multi-record architectural mismatch already
+  documented for UNSW's and TU Delft's general scholarship hubs above,
+  out of scope for this pass's `_SingleProgramSource` pattern.
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

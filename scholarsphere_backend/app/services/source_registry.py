@@ -403,6 +403,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "nottingham_pg_scholarship": {
+        "source_name": "University of Nottingham International Postgraduate Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -476,6 +482,7 @@ def _base_urls() -> dict[str, str]:
         "newcastle_vc_international_scholarship": settings.newcastle_vcis_base_url,
         "sheffield_pg_scholarship": settings.sheffield_pg_scholarship_base_url,
         "manchester_global_futures_scholarship": settings.manchester_gfs_base_url,
+        "nottingham_pg_scholarship": settings.nottingham_pg_scholarship_base_url,
     }
 
 
@@ -563,6 +570,7 @@ async def seed_opportunity_sources(
         "newcastle_vc_international_scholarship": now + timedelta(hours=24),
         "sheffield_pg_scholarship": now + timedelta(hours=24),
         "manchester_global_futures_scholarship": now + timedelta(hours=24),
+        "nottingham_pg_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

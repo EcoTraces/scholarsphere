@@ -3079,3 +3079,42 @@ for the full dated history.
       63 -> 64 registered sources). The fixture
       (`tests/fixtures/manchester_global_futures_scholarship.html`) was
       captured unmodified from the live site.
+
+- [x] **(2026-09-05)** Third "add another England postgraduate
+      universities scholarship" follow-up: implemented the **University
+      of Nottingham International Postgraduate Scholarship**, this
+      platform's 65th opportunity source - see Changelog.md's same-date
+      entry and `docs/AUTHORITATIVE_SOURCES.md` #64 for full detail.
+      Genuinely different in shape from the four England sources added
+      in the three prior follow-ups: no country restriction and no
+      entry-year lock anywhere on the page - an evergreen description,
+      not one that will need re-verifying every admissions cycle.
+      Deliberately did not carry over the "£3,000" figure that secondary
+      discovery sources cited, since the actual overview page used for
+      this record doesn't state a specific amount - only what's really
+      on the page is asserted.
+
+      **Real friction this pass**: University of Leeds' Masters
+      scholarship pages are real and fetchable, but scoped to a
+      September 2026 cohort whose admissions window has effectively
+      closed by the research date; checking for a 2027 successor
+      surfaced a genuine gotcha worth recording as a general lesson -
+      the guessed 2027 URLs returned HTTP 200, not 404, but their own
+      `<title>` read "404-error" (a soft-404 template that doesn't set
+      a real error status) - caught only by reading the actual page
+      title, not by trusting the HTTP status code alone. Queen Mary
+      University of London blocked every fetch attempt with a genuine
+      403. University of Warwick's Doctoral College page turned out to
+      be a multi-tab hub of six separate scholarship competitions
+      rather than one flagship program - correctly recognized as the
+      same multi-record architectural mismatch already seen with UNSW's
+      and TU Delft's general scholarship hubs, not forced into a
+      single-record shape it doesn't have.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 773 passed / 25 skipped (up from 771 - the
+      new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      64 -> 65 registered sources). The fixture
+      (`tests/fixtures/nottingham_pg_scholarship.html`) was captured
+      unmodified from the live site.

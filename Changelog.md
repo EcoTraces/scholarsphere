@@ -28,6 +28,43 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — Third England postgraduate follow-up: University of Nottingham International Postgraduate Scholarship (65th opportunity source)
+
+### Added
+- `app/services/national_scholarship_programs.py::NottinghamPgScholarshipSource`
+  — the **University of Nottingham International Postgraduate
+  Scholarship**, this platform's 65th opportunity source. An automatic
+  tuition-fee deduction for self-funded international students starting
+  a full-time, UK-campus-based postgraduate taught Master's degree.
+  Genuinely distinct in shape from this platform's other four England
+  sources (#60–63, all restricted to a specific country list and/or a
+  named entry year): this page states no country/nationality
+  restriction at all and no entry-year lock anywhere — a genuinely
+  evergreen description, not tied to one admissions cycle. No funding
+  amount asserted in code even though secondary sources cited "£3,000"
+  — the actual overview page used doesn't state a figure, so nothing
+  beyond what's actually scraped is asserted. No deadline extracted
+  since none is stated. Fully wired: config setting, source registry
+  entry, Celery beat schedule + dedicated sync task, and a
+  fixture-backed test (fixture captured unmodified from the live site).
+
+  Three further England candidates were researched this pass and found
+  genuinely ambiguous or out of scope rather than integrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (third
+  England postgraduate follow-up), not integrated" entry): University
+  of Leeds' Regional/Excellence Masters scholarships are scoped to a
+  September 2026 cohort whose window has effectively closed, with their
+  2027-suffixed successor URLs confirmed to be soft-404s (HTTP 200 but
+  a `<title>` reading "404-error"); Queen Mary University of London
+  returned a genuine HTTP 403 on every fetch; and University of
+  Warwick's Doctoral College scholarship page is a multi-tab listing of
+  six distinct competitions rather than a single flagship page.
+
+  **Verified**: full backend suite green after the change (773 passed,
+  25 skipped, up from 771 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 64 -> 65
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-05] — Second England postgraduate follow-up: University of Manchester Global Futures Scholarships (64th opportunity source)
 
 ### Added

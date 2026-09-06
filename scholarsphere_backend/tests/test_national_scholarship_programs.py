@@ -46,6 +46,7 @@ from app.services.national_scholarship_programs import (
     ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
+    NottinghamPgScholarshipSource,
     SheffieldPgScholarshipSource,
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
@@ -2011,3 +2012,46 @@ def test_manchester_global_futures_scholarship_has_no_robots_txt_restrictions() 
     assert (
         ManchesterGlobalFuturesScholarshipSource.min_request_interval_seconds == 2.0
     )
+
+
+# --- University of Nottingham International Postgraduate Scholarship:
+# real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_nottingham_pg_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unlike this platform's other England sources, this page states no
+    country/nationality restriction and no entry-year lock - a
+    genuinely evergreen description, not tied to one admissions cycle.
+    No deadline is extracted since none is stated."""
+    source = NottinghamPgScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("nottingham_pg_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "nottingham-international-postgraduate-scholarship"
+    )
+    assert opportunity.title == "International Postgraduate Scholarships"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "University of Nottingham"
+    assert opportunity.description is not None
+    assert "international fee-paying student" in opportunity.description
+    assert "No scholarship application needed" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_nottingham_pg_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt only disallows internal search-result paths
+    (/search.aspx and equivalents), not this content page, so this
+    source uses the default (unraised) crawl interval."""
+    assert NottinghamPgScholarshipSource.min_request_interval_seconds == 2.0

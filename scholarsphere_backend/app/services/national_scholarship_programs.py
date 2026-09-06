@@ -2322,3 +2322,42 @@ class ManchesterGlobalFuturesScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().manchester_gfs_base_url
+
+
+class NottinghamPgScholarshipSource(_SingleProgramSource):
+    """International Postgraduate Scholarship - University of
+    Nottingham, England. An automatic tuition-fee deduction for
+    self-funded international students starting a full-time,
+    UK-campus-based postgraduate taught Master's degree.
+
+    Confirmed 2026-09-05: `robots.txt` only disallows internal
+    search-result paths (`/search.aspx` and equivalents) - not this
+    content page.
+
+    Genuinely distinct in shape from this platform's other England
+    sources (Imperial Inspires #60, Newcastle's VCIS #61, Sheffield's PG
+    Scholarship #62, Manchester's Global Futures #63, all of which are
+    restricted to a specific country list and/or a named entry year):
+    this page states no country/nationality restriction at all - only
+    "an international fee-paying student" - and no entry-year lock
+    anywhere in its text, making it a genuinely evergreen description
+    rather than one tied to a single admissions cycle. "No scholarship
+    application needed. This will be automatically awarded."
+
+    Deliberately extracts no deadline (none stated - correctly absent,
+    not omitted by error) and does not assert a specific funding amount
+    in code: the page itself doesn't state one (only that the award "will
+    be deducted from your master's tuition fee"), so nothing beyond what
+    the scraped description actually contains is asserted.
+    """
+
+    source_code = "nottingham_pg_scholarship"
+    overview_path = "/pgstudy/funding/international-postgraduate-scholarships"
+    content_selectors = ("div#content",)
+    provider_name = "University of Nottingham"
+    country = "United Kingdom"
+    external_id = "nottingham-international-postgraduate-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().nottingham_pg_scholarship_base_url
