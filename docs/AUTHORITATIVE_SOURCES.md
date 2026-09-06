@@ -3478,6 +3478,367 @@ single-flagship-page shape:
   not appear in this platform's plain-HTTP fetch of the on-campus
   overview page.
 
+## 70. Amsterdam Merit Scholarship, Master's (University of Amsterdam)
+
+Researched 2026-09-06, in response to a directive for a deep, exhaustive
+Netherlands university scholarship expansion — this platform's second
+Netherlands *university* source (TU Delft's Van Effen Scholarship, #58,
+was the first; #22 is the Nuffic-administered, government-classified NL
+Scholarship, not a university source), and its 18th university-classified
+source overall.
+
+- **Organization**: University of Amsterdam
+- **Route code**: `uva-amsterdam-merit-scholarship-master`
+  (`uva_amsterdam_merit_scholarship_master` internally)
+- **Official domain / base URL**: `https://www.uva.nl`
+  (`UVA_AMSTERDAM_MERIT_SCHOLARSHIP_MASTER_BASE_URL`)
+- **Opportunity types**: Scholarship — a merit award, no specific amount
+  stated on this general overview page (a EUR 25,900 figure for
+  2026-2027 was seen on one Faculty-specific subpage — Amsterdam Law
+  School's — but never on this general page, so it is not asserted
+  here). `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: "Students who hold a non-EU/EEA
+  passport" — Sierra Leone applicants are eligible.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML)
+- **robots.txt / indexing note**: `uva.nl/robots.txt` is a genuine empty
+  file — HTTP 200, zero bytes — so no restrictions are declared at all.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline and states no specific amount**:
+    this general overview page says outright that "Deadlines for the AMS
+    differ per Faculty or Graduate School" and links to nine separate
+    faculty pages, each administering its own deadline — verified
+    directly, not assumed. Per-faculty administered variants (e.g. the
+    Faculty of Economics and Business also separately runs an "Amsterdam
+    Economics and Business Talent Fund" alongside the AMS) were not
+    modeled as separate sources this pass.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/uva_amsterdam_merit_scholarship_master.html`).
+
+## 71. Amsterdam Merit Scholarship, Bachelor's (University of Amsterdam)
+
+Researched 2026-09-06, same pass — the undergraduate counterpart of #70,
+on its own separate overview page with its own continuation-of-funding
+condition (approximately 80% credits/year).
+
+- **Organization**: University of Amsterdam
+- **Route code**: `uva-amsterdam-merit-scholarship-bachelor`
+  (`uva_amsterdam_merit_scholarship_bachelor` internally)
+- **Official domain / base URL**: `https://www.uva.nl`
+  (`UVA_AMSTERDAM_MERIT_SCHOLARSHIP_BACHELOR_BASE_URL`)
+- **Opportunity types**: Scholarship — same merit-award shape as #70,
+  no specific amount stated on this page. `funding_type =
+  "partial_funding"`.
+- **Country coverage / eligibility**: Same as #70 — non-EU/EEA passport
+  holders; Sierra Leone applicants are eligible.
+- **Discovery method / robots.txt / API / Authentication / Reliability /
+  Verification / Sync cadence**: Same as #70.
+- **Deliberate design choices**: Same "deadlines differ per Faculty, no
+  deadline extracted" reasoning as #70, verified independently on this
+  page's own fetched HTML.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/uva_amsterdam_merit_scholarship_bachelor.html`).
+
+## 72. Eric Bleumink Fellowship (University of Groningen)
+
+Researched 2026-09-06, same pass.
+
+- **Organization**: University of Groningen
+- **Route code**: `groningen-eric-bleumink-fellowship`
+  (`groningen_eric_bleumink_fellowship` internally)
+- **Official domain / base URL**: `https://www.rug.nl`
+  (`GRONINGEN_ERIC_BLEUMINK_FELLOWSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "covers tuition fee, costs of
+  international travel, subsistence, books, and health insurance," a
+  genuinely comprehensive package. `funding_type = "fully_funded"` — a
+  deliberate, evidence-based classification, not a default.
+- **Country coverage / eligibility**: Restricted to an explicit list of
+  roughly 80 named developing countries — **Sierra Leone is confirmed
+  present in that list directly** (`Countries of Origin: ... Sierra
+  Leone ...`), not inferred from a vague "developing countries" label.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML). The URL search results index
+  (`.../eric-bleumink-fund`) 302-redirects to the canonical
+  `.../eric-bleumink-fellowship` URL used directly.
+- **robots.txt / indexing note**: `rug.nl/robots.txt` does not disallow
+  this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Nomination-based, not a separate scholarship application**: "It
+    is not possible to actively apply... Suitable candidates will be
+    informed about a nomination" — made entirely by the University of
+    Groningen's own Admission Office as a byproduct of a regular
+    Master's application submitted before 1 December, not by a separate
+    third-party institution's own quota. A materially different shape
+    from Vanier Canada Graduate Scholarships (documented at #66's
+    "researched previous pass" note as unsuitable for exactly that
+    reason) and closer to this platform's existing "automatic
+    consideration" sources (e.g. Nottingham's PG Scholarship, #64).
+  - **Deliberately extracts no deadline**: both stated dates ("before
+    February," "before 1st of December") are recurring annual points
+    with no year attached, and the page's own "Last modified: 11 August
+    2026" timestamp confirms it is current, not a stale prior-year
+    snapshot.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/groningen_eric_bleumink_fellowship.html`).
+
+## 73. Law, Economics and Governance International Talent Scholarship (Utrecht University)
+
+Researched 2026-09-06, same pass.
+
+- **Organization**: Utrecht University (Faculty of Law, Economics and
+  Governance)
+- **Route code**: `utrecht-legits-scholarship`
+  (`utrecht_legits_scholarship` internally)
+- **Official domain / base URL**: `https://www.uu.nl`
+  (`UTRECHT_LEGITS_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "will cover the tuition fee"
+  (statutory rate for EU/EEA, institutional rate for non-EU/EEA) — no
+  living-cost, travel, or insurance coverage mentioned, so
+  `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: "Both EU/EEA and non-EU/EEA
+  students are eligible to apply" — Sierra Leone applicants are
+  eligible. Restricted to applicants without a Dutch secondary
+  education qualification or Dutch Bachelor's degree, for a Sept 2027
+  intake.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML)
+- **robots.txt / indexing note**: `uu.nl/robots.txt` is a standard
+  Drupal file that does not disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Utrecht's central, university-wide Utrecht Excellence Scholarship
+    was deliberately NOT used**: confirmed live and directly on
+    Utrecht's own page that it has been discontinued — "Due to
+    significant budget cuts, the Utrecht Excellence Scholarship (UES)
+    will no longer be offered for programmes starting in the 2026-2027
+    academic year. No new UES applications will be accepted." Utrecht's
+    separate **Bright Minds Fellowships** were also not used — confirmed
+    restricted to "EU/EEA students (including Dutch students)" only, so
+    Sierra Leone applicants would not be eligible.
+  - **Deliberately extracts no deadline**: the stated deadline ("before
+    February 1st 23:59 CET") never carries a year on this page, even
+    though a *different*, unrelated date on the same page (the
+    application portal's "1 November 2026" opening) does — verified
+    directly that `extract_confident_date_after` does not accidentally
+    resolve to that unrelated date.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/utrecht_legits_scholarship.html`).
+
+## 74. UM NL-High Potential Scholarship (Maastricht University)
+
+Researched 2026-09-06, same pass.
+
+- **Organization**: Maastricht University
+- **Route code**: `maastricht-high-potential-scholarship`
+  (`maastricht_high_potential_scholarship` internally)
+- **Official domain / base URL**: `https://www.maastrichtuniversity.nl`
+  (`MAASTRICHT_HIGH_POTENTIAL_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "18 full scholarships, including
+  tuition fee waiver and monthly stipend, each academic year."
+  `funding_type = "fully_funded"` — a deliberate, evidence-based
+  classification, not a default.
+- **Country coverage / eligibility**: Open to nationals of "a country
+  outside the EU/EEA, Switzerland or Surinam" — Sierra Leone applicants
+  are eligible (the Suriname carve-out is a historical NL-Suriname
+  relationship exception, recorded as-is).
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML)
+- **robots.txt / indexing note**: `maastrichtuniversity.nl/robots.txt`
+  does not disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Already updated for the *next* application cycle as of this
+    research date**: applicants must have "applied for admission to a
+    participating full-time master's programme at Maastricht University
+    for the 2027-2028 academic year" with a full application submitted
+    "before 10 December 2026" — a real, not-yet-passed deadline, unlike
+    several other Netherlands candidates researched this pass (VU
+    Amsterdam's VUFP, TU Eindhoven's Scholarship for Excellence,
+    Erasmus's Trustfonds Scholarship — see the "not integrated" note
+    below) which were all still locked to their already-closed
+    2026-2027 cycles with no next-cycle page published yet.
+  - `deadline_keywords` uses the specific phrase "before 10 December"
+    (appearing exactly once on the page) rather than the generic
+    "deadline" keyword, whose first occurrence has no date literal
+    nearby.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/maastricht_high_potential_scholarship.html`).
+
+## 75. University of Twente Scholarship (UTS)
+
+Researched 2026-09-06, same pass.
+
+- **Organization**: University of Twente
+- **Route code**: `university-of-twente-scholarship`
+  (`university_of_twente_scholarship` internally)
+- **Official domain / base URL**: `https://www.utwente.nl`
+  (`UTWENTE_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — a cash award of EUR 3,000-22,000
+  for one year, "meant as a compensation for study related costs...
+  No costs (e.g. tuition fees) will be paid on your behalf" —
+  `funding_type = "partial_funding"` rather than a tuition waiver.
+- **Country coverage / eligibility**: The page lists an explicit
+  "Countries eligible for this scholarship" enumeration of nearly every
+  non-EU/EEA country in the world — **confirmed directly that Sierra
+  Leone appears in it**, in correct alphabetical position between
+  Seychelles and Singapore, not assumed from "non-EU/EEA."
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML)
+- **robots.txt / indexing note**: `utwente.nl/robots.txt` does not
+  disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Already updated for the 2027/2028 intake** as of this research
+    date: "Application deadline 1 April 2027" — a real, not-yet-passed
+    date, verified to resolve reliably via `extract_confident_date_after`
+    (its only three occurrences on the page all refer to this same
+    date).
+  - The huge eligible-countries enumeration sits well past this
+    platform's 5000-character description truncation point, so it does
+    not crowd out the more informative opening sections in the stored
+    description.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/university_of_twente_scholarship.html`).
+
+## 76. Anne van den Ban Fund (Wageningen University & Research)
+
+Researched 2026-09-06, same pass.
+
+- **Organization**: Wageningen University & Research
+- **Route code**: `wageningen-anne-van-den-ban-fund`
+  (`wageningen_anne_van_den_ban_fund` internally)
+- **Official domain / base URL**: `https://www.wur.nl`
+  (`WAGENINGEN_ANNE_VAN_DEN_BAN_FUND_BASE_URL`)
+- **Opportunity types**: Scholarship — "full or partial funding for an
+  MSc programme," varying by selected student, so `funding_type =
+  "partial_funding"` rather than asserting `fully_funded` for every
+  award this fund makes.
+- **Country coverage / eligibility**: Restricted to "students from
+  low-income countries" — a real World Bank income-classification term
+  (not a vague "developing countries" or "Africa" label) that Sierra
+  Leone falls under. Unlike this platform's Eric Bleumink Fellowship
+  source (#72), this page does not itself enumerate a specific country
+  list, so this is recorded with that caveat rather than as a
+  directly-confirmed-on-page fact the way Groningen's is.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML). The URL search results index
+  (`.../named-funds/anne-van-den-ban-fonds`) 308-redirects to the
+  canonical `.../anne-van-den-ban-fund` URL; the "Selection Anne van den
+  Ban Fund" applicant-information page is used directly rather than the
+  fund's own donor/fundraising page (fetched and compared directly
+  before choosing).
+- **robots.txt / indexing note**: `wur.nl/robots.txt` does not disallow
+  this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Nomination-based, not a separate application**: "The fund does
+    not consider individual applications... interested parties must
+    wait until an Anne van den Ban scholarship is offered" from among
+    already-admitted Master's applicants, selected annually each spring
+    by the fund's own board together with Wageningen University — the
+    same "internal nomination, not a third-party quota" shape as
+    Groningen's Eric Bleumink Fellowship (#72).
+  - **Deliberately extracts no deadline**: the only timing given
+    (spring/May notification, "if you have not received an offer by 1
+    June") is a recurring annual window with no year attached.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/wageningen_anne_van_den_ban_fund.html`).
+
+### Researched this pass (Netherlands exhaustive expansion), not integrated
+
+Six further Netherlands universities were researched live and found
+genuinely unsuitable — either blocked, stale, or lacking a real
+international-facing scholarship — rather than integrated:
+
+- **Vrije Universiteit Amsterdam** — the VU Fellowship Programme (VUFP)
+  master's page explicitly ties itself to the already-closed 2025/2026
+  application cycle (deadline 1 December 2025, for September 2026
+  entry) with no next-cycle info published; its own text confirms this
+  ("students... not awarded the VUFP scholarship in 2025/2026 are not
+  eligible... for 2026/2027"). VU's Bachelor's scholarships page has
+  only the external, Aon-funded, tiny (2 awards), already-enrolled-
+  students-only Aon Scholarship — not a VU-administered incoming-
+  applicant award.
+- **TU Eindhoven** — explicitly states it offers no Bachelor's
+  scholarships at all ("TU/e does not offer scholarships for bachelor's
+  students"); its one Master's scholarship (Scholarship for Excellence)
+  explicitly scopes itself to the already-closed 2026-2027 cycle
+  (deadline 1 February 2026) with no 2027-2028 cycle published yet
+  ("Conditions and deadlines may differ in future academic years").
+- **Leiden University** — `universiteitleiden.nl` returns a genuine
+  bot-protection CAPTCHA challenge ("Access Blocked," an F5/Shape-style
+  obfuscated JS challenge) on every path tested, including robots.txt
+  itself. Per this platform's "never bypass CAPTCHA/bot-protection"
+  rule, not circumvented.
+- **Erasmus University Rotterdam** — the Erasmus School of Economics'
+  Erasmus Trustfonds Scholarship page is explicitly titled and locked to
+  the already-closed 2026-2027 cycle (h1 literally reads "Erasmus
+  Trustfonds Scholarship 2026-2027," deadline 1 February 2026);
+  Rotterdam School of Management's MSc Scholarships page returned only
+  navigation/footer text via a plain HTTP fetch, consistent with
+  client-side-rendered content not present in the initial HTML response.
+- **Radboud University** — the Radboud Scholarship Programme page
+  explicitly states "The deadline for 2026-2027 has passed" with no
+  2027-2028 cycle information anywhere on the page; the separate Radboud
+  Encouragement Scholarship page requires SURFconext login (HTTP 403 for
+  anonymous access).
+- **Tilburg University** — `tilburguniversity.edu` returns a genuine
+  Cloudflare bot-protection challenge ("Just a moment...", HTTP 403) on
+  every path tested, including the homepage. Not circumvented.
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

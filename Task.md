@@ -3304,3 +3304,188 @@ for the full dated history.
       captured unmodified from the live site, following the page's own
       301 redirect from the URL search engines index to its canonical
       `uni-freiburg.de` host.
+
+- [x] **(2026-09-06)** "Netherlands complete university scholarship &
+      funding discovery engine" directive: a deep, exhaustive,
+      multi-pass Netherlands expansion request explicitly asking for
+      coverage across every major Dutch research university, every
+      applied-sciences institution, every faculty/department/programme,
+      Bachelor's/Master's/postgraduate/PhD levels, and 25 named audit
+      passes. Set realistic expectations up front rather than pretending
+      to execute all 40 sections literally: the same live-verification
+      rigor this project has used throughout (robots.txt check,
+      BeautifulSoup structural walk for content selectors, real fixture
+      capture, fixture-backed tests, docs) makes each source take real
+      research time, so a genuinely exhaustive per-faculty/per-programme
+      sweep across 15+ institutions was not attempted - instead ran a
+      real, honest multi-university pass and reported findings
+      transparently rather than claiming false completeness (per the
+      directive's own section 28: "quality over quantity" and section
+      39's completion checklist, most of which cannot be honestly
+      checked off from a single session).
+
+      Researched 13 Dutch institutions live (University of Amsterdam,
+      Vrije Universiteit Amsterdam, TU Eindhoven, University of
+      Groningen, Leiden University, Utrecht University, Erasmus
+      University Rotterdam, Maastricht University, Radboud University,
+      University of Twente, Wageningen University & Research, Tilburg
+      University, plus reconfirming TU Delft's existing source). Added
+      **seven new real, verified opportunity sources** across **six
+      universities** - see Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #70-76 for full technical detail
+      on each. This platform's 71st-77th opportunity sources, and its
+      19th-24th university-classified sources (TU Delft, #58, remains
+      the first Netherlands-university source).
+
+      The single biggest real finding of this pass, worth recording
+      because it explains most of the rejections below: as of this
+      research date (6 September 2026), the great majority of Dutch
+      universities' Master's scholarship pages for the September 2026
+      intake had *already closed* their application windows (deadlines
+      clustering December-February) with *no* 2027-2028 cycle page
+      published yet on the same URL. This is a genuine seasonal gap in
+      the Dutch academic calendar's publication cycle, not a research
+      shortfall - confirmed independently, over and over, by fetching
+      the actual live page and reading its own stated cycle year rather
+      than trusting a search-result snippet's freshness.
+
+      **What got added, and why each one is trustworthy:**
+      - University of Amsterdam's **Amsterdam Merit Scholarship**
+        (Master's + Bachelor's, two sources): the university-wide
+        overview pages honestly state "deadlines differ per Faculty,"
+        so no deadline or amount is asserted centrally - a EUR 25,900
+        figure seen on one Faculty's own subpage (Law) was *not*
+        promoted to the general record, since the general page itself
+        never states it.
+      - University of Groningen's **Eric Bleumink Fellowship**: the one
+        candidate this pass with an *explicit*, named ~80-country
+        eligibility list rather than a vague "developing countries"
+        label - checked the list character by character and confirmed
+        Sierra Leone is actually in it, not assumed. Nomination-based
+        (apply to the Master's programme, the university's own
+        Admission Office nominates you - no separate scholarship
+        application), which is a materially different, acceptable shape
+        from the Vanier Canada Graduate Scholarships case rejected
+        earlier in this project (there, nomination runs through a
+        *different, autonomous* Canadian university's own quota).
+        Genuinely `fully_funded`: tuition, travel, subsistence, books,
+        and health insurance, all explicitly listed.
+      - Utrecht University's **LEGITS scholarship**: only found after
+        first confirming, directly on Utrecht's own page, that the
+        university's flagship Utrecht Excellence Scholarship has been
+        *discontinued* ("due to significant budget cuts") - a genuinely
+        new and different kind of finding from every prior "stale cycle"
+        rejection in this project, since this one will never reopen on
+        its own. Utrecht's Bright Minds Fellowships were also checked
+        and rejected for being EU/EEA-only.
+      - Maastricht University's **UM NL-High Potential Scholarship** and
+        University of Twente's **UTS**: both already-updated for the
+        *next* cycle (2027-2028 / 2027) with real, not-yet-passed
+        deadlines (10 December 2026 and 1 April 2027 respectively) -
+        the two clearest "this is genuinely open right now" finds of
+        the whole pass. Twente's page also has an exhaustive
+        "Countries eligible for this scholarship" list, and Sierra
+        Leone was confirmed present in it directly (alphabetically
+        between Seychelles and Singapore).
+      - Wageningen University's **Anne van den Ban Fund**: same
+        nomination-based shape as Groningen's, for "students from
+        low-income countries" - a real World Bank income-classification
+        term, though this particular page doesn't enumerate a country
+        list the way Groningen's does, so that distinction is recorded
+        explicitly rather than papered over.
+
+      **What got rejected, and why each rejection is a real finding, not
+      a shortcut:**
+      - **Vrije Universiteit Amsterdam** - the VU Fellowship Programme
+        page explicitly says students not awarded it "in 2025/2026 are
+        not eligible... for 2026/2027," i.e. it's narrating an
+        already-closed cycle with a passed deadline (1 December 2025),
+        and there's no 2027/2028 version yet. VU's Bachelor's page has
+        only an external, Aon-funded, 2-award, enrolled-students-only
+        scholarship - not a real VU-administered incoming-student award.
+      - **TU Eindhoven** - states outright, in its own words, that it
+        offers no Bachelor's scholarships at all. Its one Master's
+        scholarship explicitly scopes itself to "the academic year
+        2026-2027" only, with a deadline of 1 February 2026 already
+        passed and an explicit note that "conditions and deadlines may
+        differ in future academic years" - i.e. next year's page doesn't
+        exist yet.
+      - **Leiden University** - every path tested, including robots.txt
+        itself, returned a genuine bot-protection CAPTCHA challenge
+        page ("Access Blocked," an F5/Shape-style obfuscated JS
+        challenge). Recorded as blocked and left alone, per this
+        project's absolute "never bypass CAPTCHA/bot-protection" rule -
+        not worked around with a headless browser or any other trick.
+      - **Tilburg University** - same story, different vendor: every
+        path, including the homepage, returned Cloudflare's "Just a
+        moment..." challenge page (HTTP 403). Also left alone.
+      - **Erasmus University Rotterdam** - the Erasmus School of
+        Economics' Trustfonds Scholarship page's own `<h1>` literally
+        reads "Erasmus Trustfonds Scholarship 2026-2027" with a passed
+        deadline (1 February 2026); Rotterdam School of Management's
+        scholarships page returned only navigation and footer text on a
+        plain HTTP fetch, consistent with content that only renders
+        client-side - not force-rendered with a browser engine, per this
+        project's established pattern of recording such pages as
+        inaccessible via the plain-HTTP path rather than escalating to
+        headless rendering for a single candidate page.
+      - **Radboud University** - its Scholarship Programme page states,
+        in these exact words, "The deadline for 2026-2027 has passed,"
+        with zero mentions of 2027-2028 anywhere on the page. Its
+        separate Encouragement Scholarship page requires a SURFconext
+        institutional login (HTTP 403 for an anonymous fetch) - not an
+        opportunity a scraper can verify without credentials it
+        shouldn't have.
+
+      All thirteen of the above are documented in
+      `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass
+      (Netherlands exhaustive expansion), not integrated" section with
+      the specific evidence for each, not just a one-line dismissal.
+
+      **What this pass explicitly did NOT do**, stated plainly rather
+      than glossed over, because the directive asked for an honest
+      completion check (its own section 39): it did not search every
+      faculty and department page at every university (hundreds of
+      pages); it did not search individual Master's-programme pages one
+      by one for programme-specific scholarships (the directive's
+      section 33's full vision); it did not attempt PhD "vacancy" or
+      "position" discovery at all, since those are salaried employment
+      relationships this platform has never modeled as scholarship
+      opportunities, and inventing a new opportunity taxonomy
+      (`FULLY_FUNDED_PHD` / `PAID_PHD_POSITION` / `RESEARCH_POSITION`
+      distinct fields) would have meant redesigning the schema, which
+      the directive's own section 29 explicitly says not to do
+      unnecessarily; it did not investigate the ~20 named Universities
+      of Applied Sciences (Amsterdam UAS, Fontys, Saxion, HAN, HZ, NHL
+      Stenden, Rotterdam UAS, and the rest); and it did not perform the
+      25 separate formal "audit passes" the directive lists (deadline
+      audit, broken-link audit, eligibility audit, etc.) as discrete
+      exercises - though the equivalent verification work (checking
+      every deadline, every eligibility claim, every URL) was in fact
+      done inline for every source actually added or rejected.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 797 passed / 25 skipped (up from 783 - the
+      seven new sources' fourteen fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      70 -> 77 registered sources). All seven fixtures
+      (`tests/fixtures/uva_amsterdam_merit_scholarship_master.html`,
+      `.../uva_amsterdam_merit_scholarship_bachelor.html`,
+      `.../groningen_eric_bleumink_fellowship.html`,
+      `.../utrecht_legits_scholarship.html`,
+      `.../maastricht_high_potential_scholarship.html`,
+      `.../university_of_twente_scholarship.html`,
+      `.../wageningen_anne_van_den_ban_fund.html`) were captured
+      unmodified from their live sites.
+
+      One self-caught error during this pass, corrected before commit:
+      an early draft of the AUTHORITATIVE_SOURCES.md entry, the
+      COUNTRY_PROVIDER_REGISTRY.md row, the source class's own
+      docstring, and its test's docstring all initially and incorrectly
+      claimed the Amsterdam Merit Scholarship was "this platform's first
+      Netherlands university source" - it is actually the *second*, since
+      TU Delft's Van Effen Scholarship (source #58, added in an earlier
+      pass) already holds that title. Caught by cross-checking the claim
+      against `source_registry.py`'s actual `source_type` values before
+      committing, and fixed in all four locations rather than left to
+      propagate.

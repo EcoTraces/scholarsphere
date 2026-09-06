@@ -2629,3 +2629,359 @@ class FreiburgDeutschlandstipendiumSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().freiburg_deutschlandstipendium_base_url
+
+
+class UvaAmsterdamMeritScholarshipMasterSource(_SingleProgramSource):
+    """University of Amsterdam - Amsterdam Merit Scholarship (AMS),
+    Master's level - this platform's second Netherlands *university*
+    source (TU Delft's Van Effen Scholarship, #58, was the first; #22 is
+    the Nuffic-administered, government-classified NL Scholarship, not a
+    university source).
+
+    Confirmed 2026-09-06: `robots.txt` (`uva.nl/robots.txt`) is a
+    genuine empty file - HTTP 200, zero bytes - so no restrictions are
+    declared at all (a stronger case than the "genuine 404" pattern used
+    for other sources: here the file exists and is simply empty).
+
+    Content selector: `main` - verified directly via a BeautifulSoup
+    structural walk that it contains only the page's own lead paragraph
+    and body content (`div.c-lead__zone` + `div.pagecontent`), with no
+    header/nav junk mixed in.
+
+    Country coverage / eligibility: "Students who hold a non-EU/EEA
+    passport" - Sierra Leone applicants are eligible (Sierra Leone is
+    non-EU/EEA).
+
+    Deliberately extracts no deadline and states no specific amount:
+    this general overview page itself says "Deadlines for the AMS
+    differ per Faculty or Graduate School" and links out to nine
+    separate faculty pages, each with its own deadline (verified
+    directly - Amsterdam Law School's own AMS subpage states "15
+    January," no year given, so no confident-date extraction would be
+    possible even there). A single EUR 25,900 figure for 2026-2027 was
+    seen on that same Law School subpage but never on this general
+    overview page - not asserted here since it isn't stated on the page
+    actually scraped, and per-faculty administered variants (e.g. the
+    Faculty of Economics and Business also separately runs an "Amsterdam
+    Economics and Business Talent Fund" alongside the AMS) were not
+    modeled as separate sources this pass.
+    """
+
+    source_code = "uva_amsterdam_merit_scholarship_master"
+    overview_path = (
+        "/en/education/fees-and-funding/masters-scholarships-and-loans/"
+        "amsterdam-merit-scholarship/amsterdam-merit-scholarship.html"
+    )
+    content_selectors = ("main",)
+    provider_name = "University of Amsterdam"
+    country = "Netherlands"
+    external_id = "uva-amsterdam-merit-scholarship-master"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().uva_amsterdam_merit_scholarship_master_base_url
+
+
+class UvaAmsterdamMeritScholarshipBachelorSource(_SingleProgramSource):
+    """University of Amsterdam - Amsterdam Merit Scholarship (AMS),
+    Bachelor's level - the undergraduate counterpart of the Master's
+    source above, on its own separate overview page with its own
+    continuation-of-funding condition (approximately 80% credits/year).
+
+    Same site, same empty-`robots.txt` finding, same `main` content
+    selector (verified independently on this page's own fetched HTML),
+    and the same "deadlines differ per Faculty" reasoning for extracting
+    no deadline and no specific amount.
+
+    Country coverage / eligibility: "Students who hold a non-EU/EEA
+    passport" - Sierra Leone applicants are eligible.
+    """
+
+    source_code = "uva_amsterdam_merit_scholarship_bachelor"
+    overview_path = (
+        "/en/education/fees-and-funding/bachelors-scholarships-and-loans/"
+        "amsterdam-merit-scholarship/amsterdam-merit-scholarship.html"
+    )
+    content_selectors = ("main",)
+    provider_name = "University of Amsterdam"
+    country = "Netherlands"
+    external_id = "uva-amsterdam-merit-scholarship-bachelor"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().uva_amsterdam_merit_scholarship_bachelor_base_url
+
+
+class GroningenEricBleuminkFellowshipSource(_SingleProgramSource):
+    """University of Groningen - Eric Bleumink Fellowship, a Master's
+    grant restricted to an explicit list of roughly 80 named developing
+    countries - Sierra Leone is confirmed present in that list directly
+    (`Countries of Origin: ... Sierra Leone ...`), not inferred from a
+    vague "developing countries" label.
+
+    Confirmed 2026-09-06: `robots.txt` (`rug.nl/robots.txt`) does not
+    disallow this content path. The URL search results index
+    (`.../eric-bleumink-fund`) 302-redirects to the canonical
+    `.../eric-bleumink-fellowship` URL used here directly.
+
+    Content selector: `div.rug-width-m-16-24` - the page's two-column
+    grid layout puts the site's left-hand navigation in a sibling
+    `rug-width-m-8-24` column; this selector captures only the real
+    right-hand content column, verified directly via a BeautifulSoup
+    structural walk of the fetched page.
+
+    Nomination-based, not a separate scholarship application: "It is
+    not possible to actively apply for an Eric Bleumink Fellowship
+    Scholarship. Suitable candidates will be informed about a
+    nomination" - the nomination is made entirely by the University of
+    Groningen's own Admission Office as a byproduct of a regular Master's
+    application submitted before 1 December, not by a separate
+    third-party institution's own quota. This is a materially different
+    shape from Vanier Canada Graduate Scholarships (documented elsewhere
+    as unsuitable, since nomination there runs through *other* Canadian
+    universities' own separate quotas) and closer to this platform's
+    existing "automatic consideration, no separate application" sources
+    (e.g. Nottingham's PG Scholarship, #64).
+
+    Deliberately extracts no deadline: both stated dates ("before
+    February" for the admission decision, "before 1st of December" for
+    the underlying Master's application) are recurring annual points
+    with no year attached on this page, and the page's own "Last
+    modified: 11 August 2026" timestamp confirms it is current, not a
+    stale prior-year snapshot locked to an already-closed round (unlike
+    several other Netherlands candidates researched this pass - see
+    Task.md).
+
+    Funding: "The grant covers tuition fee, costs of international
+    travel, subsistence, books, and health insurance" - a genuinely
+    comprehensive package (tuition + living costs + travel + insurance),
+    unlike this platform's other Netherlands-university sources so far
+    (UvA's AMS, Southampton's bursaries, etc.) which only state a partial
+    tuition contribution - so `funding_type = "fully_funded"` here is a
+    deliberate, evidence-based classification, not a default.
+    """
+
+    source_code = "groningen_eric_bleumink_fellowship"
+    overview_path = "/education/scholarships/eric-bleumink-fellowship?lang=en"
+    content_selectors = ("div.rug-width-m-16-24",)
+    provider_name = "University of Groningen"
+    country = "Netherlands"
+    external_id = "groningen-eric-bleumink-fellowship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().groningen_eric_bleumink_fellowship_base_url
+
+
+class UtrechtLegitsScholarshipSource(_SingleProgramSource):
+    """Utrecht University - Law, Economics and Governance International
+    Talent Scholarship (LEGITS), a Faculty of Law, Economics and
+    Governance-administered tuition-fee scholarship for the Graduate
+    Schools of Law and Economics.
+
+    Confirmed 2026-09-06: `robots.txt` (`uu.nl/robots.txt`) is a
+    standard Drupal file that does not disallow this content path.
+
+    Utrecht's central, university-wide **Utrecht Excellence Scholarship**
+    was deliberately NOT used instead - confirmed live and directly on
+    Utrecht's own page that it has been discontinued: "Due to
+    significant budget cuts, the Utrecht Excellence Scholarship (UES)
+    will no longer be offered for programmes starting in the 2026-2027
+    academic year. No new UES applications will be accepted as of the
+    upcoming admissions cycle." Utrecht's separate Bright Minds
+    Fellowships were also not used - confirmed on their own page to be
+    restricted to "EU/EEA students (including Dutch students)" only, so
+    Sierra Leone applicants would not be eligible.
+
+    Country coverage / eligibility: "Both EU/EEA and non-EU/EEA students
+    are eligible to apply" - Sierra Leone applicants are eligible.
+    Restricted to applicants without a Dutch secondary education
+    qualification or Dutch Bachelor's degree, applying for their first
+    Master's degree in the Netherlands, in an eligible Law or Economics
+    Master's programme starting 1 September 2027 (a currently live,
+    upcoming intake as of this research date, not a stale prior cycle).
+
+    Deliberately extracts no deadline: the stated deadline ("apply ...
+    before February 1st 23:59 CET") never carries a year on this page,
+    even though a *different* date on the same page (the application
+    portal's opening date, "1 November 2026") does carry one - verified
+    directly that `extract_confident_date_after` correctly returns None
+    for every `deadline_keywords` entry rather than accidentally
+    resolving to that unrelated opening date.
+
+    Funding: "will cover the tuition fee" only (statutory rate for
+    EU/EEA, institutional rate for non-EU/EEA) - no living-cost,
+    travel, or insurance coverage mentioned, so `funding_type =
+    "partial_funding"`.
+    """
+
+    source_code = "utrecht_legits_scholarship"
+    overview_path = (
+        "/en/masters/general-information/application-and-admission/"
+        "scholarships-and-grants/"
+        "law-economics-and-governance-international-talent-scholarship"
+    )
+    content_selectors = ("main",)
+    provider_name = "Utrecht University"
+    country = "Netherlands"
+    external_id = "utrecht-legits-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().utrecht_legits_scholarship_base_url
+
+
+class MaastrichtHighPotentialScholarshipSource(_SingleProgramSource):
+    """Maastricht University - UM NL-High Potential Scholarship, offering
+    "18 full scholarships, including tuition fee waiver and monthly
+    stipend, each academic year" - a genuinely fully-funded Master's
+    scholarship (funded jointly by the Maastricht University Scholarship
+    Fund and the Nuffic-administered NL Scholarship).
+
+    Confirmed 2026-09-06: `robots.txt`
+    (`maastrichtuniversity.nl/robots.txt`) does not disallow this
+    content path.
+
+    Country coverage / eligibility: open to nationals of "a country
+    outside the EU/EEA, Switzerland or Surinam" - Sierra Leone applicants
+    are eligible (the Suriname carve-out is a historical NL-Suriname
+    relationship exception, recorded as-is rather than glossed over).
+
+    Already updated for the *next* application cycle as of this research
+    date: applicants must have "applied for admission to a participating
+    full-time master's programme at Maastricht University for the
+    2027-2028 academic year" with a full application submitted "before
+    10 December 2026" - a real, not-yet-passed deadline, unlike several
+    other Netherlands candidates researched this pass (VU Amsterdam's
+    VUFP, TU Eindhoven's Scholarship for Excellence, Erasmus's Trustfonds
+    Scholarship - see Task.md) which were all still locked to their
+    already-closed 2026-2027 cycles with no next-cycle page published
+    yet. `deadline_keywords` uses the specific phrase "before 10
+    December" (appearing exactly once on the page) to reliably resolve
+    to 2026-12-10, since the generic "deadline" keyword's first page
+    occurrence has no date literal nearby.
+
+    Funding: `funding_type = "fully_funded"` - a deliberate, evidence-
+    based classification given the explicit "tuition fee waiver and
+    monthly stipend" coverage, not a default.
+    """
+
+    source_code = "maastricht_high_potential_scholarship"
+    overview_path = (
+        "/studeren/toelating-inschrijving/financing-your-studies/"
+        "scholarships/maastricht-university-nl-high"
+    )
+    content_selectors = ("main",)
+    deadline_keywords = ("before 10 December",)
+    provider_name = "Maastricht University"
+    country = "Netherlands"
+    external_id = "maastricht-high-potential-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().maastricht_high_potential_scholarship_base_url
+
+
+class UniversityOfTwenteScholarshipSource(_SingleProgramSource):
+    """University of Twente Scholarship (UTS), a cash award (EUR
+    3,000-22,000 for one year) for non-EU/EEA Master's applicants -
+    "meant as a compensation for study related costs... It is up to the
+    scholarship student to decide how to spend the money. No costs (e.g.
+    tuition fees) will be paid on your behalf," so `funding_type =
+    "partial_funding"` rather than a tuition waiver.
+
+    Confirmed 2026-09-06: `robots.txt` (`utwente.nl/robots.txt`) does
+    not disallow this content path.
+
+    Country coverage / eligibility: the page lists an explicit
+    "Countries eligible for this scholarship" enumeration of nearly
+    every non-EU/EEA country in the world (not a short/restrictive
+    list) - confirmed directly that Sierra Leone appears in it, in
+    correct alphabetical position between Seychelles and Singapore, not
+    assumed from "non-EU/EEA."
+
+    Already updated for the 2027/2028 intake as of this research date:
+    "Application deadline 1 April 2027" - a real, not-yet-passed date,
+    unlike several other Netherlands candidates researched this pass
+    still locked to their already-closed 2026-2027 cycles (see
+    Task.md). `deadline_keywords` uses the default "deadline" keyword,
+    verified directly to resolve reliably to 2027-04-01 here (its only
+    three occurrences on the page all refer to this same date).
+
+    The huge eligible-countries enumeration sits well past this
+    platform's 5000-character description truncation point (starting
+    around character 7,500 of the page's ~13,000-character main content
+    block), so it does not crowd out the more informative opening
+    sections (scholarship value, two-year continuation rules, the
+    programme-specific "Kipaji Scholarship" add-on) in the stored
+    description - a happy consequence of the truncation limit, not a
+    selector choice made to exploit it.
+    """
+
+    source_code = "university_of_twente_scholarship"
+    overview_path = "/en/education/scholarship-finder/university-of-twente-scholarship/"
+    content_selectors = ("main",)
+    provider_name = "University of Twente"
+    country = "Netherlands"
+    external_id = "university-of-twente-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().utwente_scholarship_base_url
+
+
+class WageningenAnneVanDenBanFundSource(_SingleProgramSource):
+    """Wageningen University & Research - Anne van den Ban Fund, "the
+    biggest scholarship named fund within University Fund Wageningen,"
+    providing "full or partial funding for an MSc programme" to
+    "outstanding students from low-income countries" who have already
+    been accepted to a Wageningen Master's programme.
+
+    Confirmed 2026-09-06: `robots.txt` (`wur.nl/robots.txt`) does not
+    disallow this content path. The URL search results index
+    (`.../named-funds/anne-van-den-ban-fonds`) 308-redirects to the
+    canonical `.../anne-van-den-ban-fund` URL - `overview_path` uses the
+    "Selection Anne van den Ban Fund" applicant-information page
+    directly (a different, more application-relevant page than the
+    fund's own donor/fundraising page, which was fetched and compared
+    directly rather than assumed to be the better source).
+
+    Nomination-based like this platform's existing Eric Bleumink
+    Fellowship source (Groningen, above): "The fund does not consider
+    individual applications... interested parties must wait until an
+    Anne van den Ban scholarship is offered" from among already-admitted
+    Master's applicants, selected annually each spring by the fund's own
+    board together with Wageningen University - not a third-party
+    institution's separate quota.
+
+    Country coverage / eligibility: restricted to "students from
+    low-income countries," a real World Bank income-classification term
+    (not a vague "developing countries" or "Africa" label) that Sierra
+    Leone falls under - however, unlike this platform's Eric Bleumink
+    Fellowship source, this page does not itself enumerate a specific
+    country list the way Groningen's does, so this is recorded with that
+    caveat rather than as a directly-confirmed-on-page fact.
+
+    Deliberately extracts no deadline: the only timing given ("This
+    happens in the spring around May... If you have not received an
+    offer by 1 June, you have not been selected") is a recurring annual
+    window with no year attached on this page.
+
+    Funding: "full or partial funding" - varies by selected student, not
+    guaranteed full - so `funding_type = "partial_funding"` rather than
+    asserting `fully_funded` for every award this fund makes.
+    """
+
+    source_code = "wageningen_anne_van_den_ban_fund"
+    overview_path = (
+        "/en/about-wur/university-fund/information-applicants/"
+        "applications-anne-van-den-ban-fund"
+    )
+    content_selectors = ("main",)
+    provider_name = "Wageningen University & Research"
+    country = "Netherlands"
+    external_id = "wageningen-anne-van-den-ban-fund"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().wageningen_anne_van_den_ban_fund_base_url

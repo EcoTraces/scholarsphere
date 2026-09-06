@@ -28,6 +28,89 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Netherlands exhaustive university expansion: seven new opportunity sources across six universities (71st-77th opportunity sources)
+
+### Added
+Seven new `_SingleProgramSource` classes in
+`app/services/national_scholarship_programs.py`, added in response to a
+directive for a deep, multi-pass Netherlands university scholarship and
+funding expansion covering undergraduate, Master's/postgraduate, and PhD
+levels across all major Dutch research universities. This platform's
+71st through 77th opportunity sources, and its 19th through 24th
+university-classified sources (TU Delft's Van Effen Scholarship, #58,
+remains the first Netherlands-university source; these seven are the
+second through eighth):
+
+- `UvaAmsterdamMeritScholarshipMasterSource` /
+  `UvaAmsterdamMeritScholarshipBachelorSource` — University of
+  Amsterdam's Amsterdam Merit Scholarship, separate Master's and
+  Bachelor's overview pages, non-EU/EEA-only, no deadline/amount
+  asserted since the pages themselves state both vary per Faculty.
+- `GroningenEricBleuminkFellowshipSource` — University of Groningen's
+  Eric Bleumink Fellowship, restricted to an explicit ~80-country list
+  **confirmed to include Sierra Leone directly**, nomination-based (no
+  separate application — the university's own Admission Office
+  nominates from regular Master's applications), genuinely
+  `fully_funded` (tuition + travel + subsistence + books + insurance).
+- `UtrechtLegitsScholarshipSource` — Utrecht University's Law, Economics
+  and Governance International Talent Scholarship, open to EU/EEA and
+  non-EU/EEA alike, tuition-only `partial_funding`. Utrecht's central
+  Utrecht Excellence Scholarship was confirmed **discontinued** for
+  2026-2027 entry onward ("due to significant budget cuts") and its
+  Bright Minds Fellowships confirmed EU/EEA-only — neither used instead.
+- `MaastrichtHighPotentialScholarshipSource` — Maastricht University's
+  UM NL-High Potential Scholarship, genuinely `fully_funded` (tuition
+  waiver + monthly stipend), already updated for the 2027-2028 cycle
+  with a real, not-yet-passed deadline (10 December 2026).
+- `UniversityOfTwenteScholarshipSource` — a cash award (not a tuition
+  waiver), explicit eligible-countries list **confirmed to include
+  Sierra Leone**, already updated for 2027/2028 with a real deadline (1
+  April 2027).
+- `WageningenAnneVanDenBanFundSource` — nomination-based (like
+  Groningen's) full-or-partial Master's funding for students from
+  low-income countries, no deadline extracted (year-less recurring
+  dates).
+
+Six further Netherlands universities were researched live and found
+genuinely unsuitable rather than integrated (see
+`docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (Netherlands
+exhaustive expansion), not integrated" entry): **Vrije Universiteit
+Amsterdam** and **TU Eindhoven** were both locked to already-closed
+2026-2027 cycles with no next-cycle page published (TU/e additionally
+states outright that it offers no Bachelor's scholarships at all);
+**Leiden University** and **Tilburg University** are both behind genuine
+bot-protection challenges (an F5/Shape-style JS challenge and a
+Cloudflare "Just a moment..." challenge respectively) and were never
+bypassed, per this platform's standing rule; **Erasmus University
+Rotterdam**'s Trustfonds Scholarship is explicitly titled and locked to
+the 2026-2027 cycle, and Rotterdam School of Management's scholarships
+page appears client-side-rendered; **Radboud University**'s Scholarship
+Programme explicitly states its 2026-2027 deadline "has passed" with no
+next cycle published, and its Encouragement Scholarship requires
+SURFconext login.
+
+A recurring finding across this pass, worth recording explicitly: as of
+this research date (6 September 2026), most Dutch universities' Master's
+scholarship pages for the September 2026 intake had already closed
+their application windows (deadlines typically falling
+December-February) with no 2027-2028 cycle page published yet — a
+genuine timing gap, not a research shortfall. The universities that did
+yield a viable source either (a) had already refreshed their pages for
+the next cycle (Maastricht, Twente), (b) described a nomination-based
+mechanism with no year-specific deadline to go stale (Groningen,
+Wageningen), or (c) had a genuinely evergreen, deadline-varies-by-faculty
+structure (UvA), or (d) had a scholarship whose stated deadline never
+carried a year at all (Utrecht).
+
+Fully wired end-to-end for all seven sources: config settings, source
+registry entries, Celery beat schedules + dedicated sync tasks, and
+fixture-backed tests (fixtures captured unmodified from the live sites).
+
+**Verified**: full backend suite green after the change (797 passed, 25
+skipped, up from 783 — the seven new sources' fourteen tests plus the
+updated `test_opportunity_import.py` source-count assertion, 70 -> 77
+registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-06] — Germany postgraduate, masters, and undergraduate: University of Freiburg Deutschlandstipendium (70th opportunity source; this platform's second Germany-university source)
 
 ### Added

@@ -43,9 +43,11 @@ from app.services.national_scholarship_programs import (
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
     FreiburgDeutschlandstipendiumSource,
+    GroningenEricBleuminkFellowshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
+    MaastrichtHighPotentialScholarshipSource,
     ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
@@ -56,6 +58,11 @@ from app.services.national_scholarship_programs import (
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
+    UniversityOfTwenteScholarshipSource,
+    UtrechtLegitsScholarshipSource,
+    UvaAmsterdamMeritScholarshipBachelorSource,
+    UvaAmsterdamMeritScholarshipMasterSource,
+    WageningenAnneVanDenBanFundSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
     YenchingAcademyScholarsSource,
@@ -2301,3 +2308,346 @@ def test_freiburg_deutschlandstipendium_has_no_robots_txt_restrictions() -> None
     """robots.txt (`uni-freiburg.de/robots.txt`) only disallows
     `/wp-admin/`, not this content path."""
     assert FreiburgDeutschlandstipendiumSource.min_request_interval_seconds == 2.0
+
+
+# --- University of Amsterdam Amsterdam Merit Scholarship (Master's and
+# Bachelor's): real fixtures, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_uva_amsterdam_merit_scholarship_master_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's second Netherlands *university* source (TU
+    Delft's Van Effen Scholarship, #58, was the first). No deadline or
+    specific amount is extracted: this general overview
+    page states outright that "Deadlines for the AMS differ per Faculty
+    or Graduate School" and links to nine separate faculty pages, each
+    administering its own deadline - verified directly, not assumed."""
+    source = UvaAmsterdamMeritScholarshipMasterSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("uva_amsterdam_merit_scholarship_master.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "uva-amsterdam-merit-scholarship-master"
+    assert opportunity.title == "Amsterdam Merit Scholarships"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "University of Amsterdam"
+    assert opportunity.description is not None
+    assert "non-EU/EEA passport" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_uva_amsterdam_merit_scholarship_master_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt (`uva.nl/robots.txt`) is a genuine empty file - HTTP
+    200, zero bytes - so no restrictions are declared at all."""
+    assert (
+        UvaAmsterdamMeritScholarshipMasterSource.min_request_interval_seconds == 2.0
+    )
+
+
+@pytest.mark.asyncio
+async def test_uva_amsterdam_merit_scholarship_bachelor_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The undergraduate counterpart of the Master's source above, on
+    its own separate overview page with its own continuation-of-funding
+    condition (~80% credits/year). Same "deadlines differ per Faculty"
+    reasoning for extracting no deadline."""
+    source = UvaAmsterdamMeritScholarshipBachelorSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("uva_amsterdam_merit_scholarship_bachelor.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "uva-amsterdam-merit-scholarship-bachelor"
+    assert opportunity.title == "Amsterdam Merit Scholarship"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "University of Amsterdam"
+    assert opportunity.description is not None
+    assert "non-EU/EEA passport" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_uva_amsterdam_merit_scholarship_bachelor_has_no_robots_txt_restrictions() -> (
+    None
+):
+    assert (
+        UvaAmsterdamMeritScholarshipBachelorSource.min_request_interval_seconds
+        == 2.0
+    )
+
+
+# --- University of Groningen Eric Bleumink Fellowship: real fixture,
+# fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_groningen_eric_bleumink_fellowship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Restricted to an explicit list of ~80 named developing countries
+    that includes Sierra Leone - confirmed directly in the scraped
+    description text, not inferred from a vague "developing countries"
+    label. Nomination-based (no separate scholarship application - the
+    University of Groningen's own Admission Office nominates candidates
+    from regular Master's applications submitted before 1 December), a
+    materially different shape from Vanier Canada's third-party-
+    institution nomination model. `funding_type = "fully_funded"` is a
+    deliberate, evidence-based classification: the page states the grant
+    "covers tuition fee, costs of international travel, subsistence,
+    books, and health insurance." No deadline is extracted since neither
+    stated date ("before February", "before 1st of December") carries a
+    year on this page."""
+    source = GroningenEricBleuminkFellowshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("groningen_eric_bleumink_fellowship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "groningen-eric-bleumink-fellowship"
+    assert opportunity.title == "Eric Bleumink Fellowship"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "University of Groningen"
+    assert opportunity.description is not None
+    assert "Sierra Leone" in opportunity.description
+    assert (
+        "covers tuition fee, costs of international travel, subsistence"
+        in opportunity.description
+    )
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_groningen_eric_bleumink_fellowship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`rug.nl/robots.txt`) does not disallow this content
+    path."""
+    assert (
+        GroningenEricBleuminkFellowshipSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- Utrecht University Law, Economics and Governance International
+# Talent Scholarship (LEGITS): real fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_utrecht_legits_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Utrecht's central Utrecht Excellence Scholarship was confirmed
+    live and directly on Utrecht's own page to be discontinued for
+    2026-2027 entry onward ("due to significant budget cuts"), and its
+    Bright Minds Fellowships confirmed restricted to EU/EEA students
+    only - neither used instead. LEGITS covers "both EU/EEA and
+    non-EU/EEA students," for a currently live 1 September 2027 intake.
+    No deadline is extracted: the stated deadline ("before February 1st
+    23:59 CET") never carries a year on this page, even though a
+    *different*, unrelated date on the same page (the application
+    portal's 1 November 2026 opening) does - verified directly that
+    `extract_confident_date_after` does not accidentally resolve to
+    that unrelated date."""
+    source = UtrechtLegitsScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("utrecht_legits_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "utrecht-legits-scholarship"
+    assert (
+        opportunity.title
+        == "Law, Economics and Governance International Talent Scholarship"
+    )
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "Utrecht University"
+    assert opportunity.description is not None
+    assert "Both EU/EEA and non-EU/EEA students are eligible" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_utrecht_legits_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`uu.nl/robots.txt`) is a standard Drupal file that
+    does not disallow this content path."""
+    assert UtrechtLegitsScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Maastricht University NL-High Potential Scholarship: real fixture,
+# fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_maastricht_high_potential_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Already updated for the *next* application cycle as of this
+    research date: the page states applicants must apply for the
+    2027-2028 academic year before 10 December 2026 - a real,
+    not-yet-passed deadline, unlike several other Netherlands candidates
+    researched this pass (VU Amsterdam, TU Eindhoven, Erasmus
+    Rotterdam - see Task.md) which were all still locked to their
+    already-closed 2026-2027 cycles. `funding_type = "fully_funded"` is
+    a deliberate, evidence-based classification: the page states "18
+    full scholarships, including tuition fee waiver and monthly
+    stipend." `deadline_keywords` uses the specific phrase "before 10
+    December" (appearing exactly once on the page) since the generic
+    "deadline" keyword's first occurrence has no date literal nearby."""
+    source = MaastrichtHighPotentialScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("maastricht_high_potential_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "maastricht-high-potential-scholarship"
+    assert opportunity.title == "Maastricht University NL-High Potential scholarship"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "Maastricht University"
+    assert opportunity.description is not None
+    assert "tuition fee waiver and monthly stipend" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline == date(2026, 12, 10)
+
+
+def test_maastricht_high_potential_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt (`maastrichtuniversity.nl/robots.txt`) does not
+    disallow this content path."""
+    assert (
+        MaastrichtHighPotentialScholarshipSource.min_request_interval_seconds
+        == 2.0
+    )
+
+
+# --- University of Twente Scholarship (UTS): real fixture, fetched
+# 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_university_of_twente_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A cash award, not a tuition waiver - "No costs (e.g. tuition
+    fees) will be paid on your behalf" - so `funding_type =
+    "partial_funding"`. The page's "Countries eligible for this
+    scholarship" enumeration includes nearly every non-EU/EEA country;
+    confirmed directly that Sierra Leone appears in it (alphabetically
+    between Seychelles and Singapore), not assumed from "non-EU/EEA."
+    Already updated for the 2027/2028 intake with a real, not-yet-passed
+    deadline (1 April 2027), unlike several other Netherlands candidates
+    researched this pass still locked to their already-closed 2026-2027
+    cycles (see Task.md)."""
+    source = UniversityOfTwenteScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("university_of_twente_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "university-of-twente-scholarship"
+    assert opportunity.title == "University of Twente Scholarship (UTS)"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "University of Twente"
+    assert opportunity.description is not None
+    assert "non-EU/EER countries" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline == date(2027, 4, 1)
+
+
+def test_university_of_twente_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`utwente.nl/robots.txt`) does not disallow this
+    content path."""
+    assert (
+        UniversityOfTwenteScholarshipSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- Wageningen University & Research Anne van den Ban Fund: real
+# fixture, fetched 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_wageningen_anne_van_den_ban_fund_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Nomination-based like this platform's existing Eric Bleumink
+    Fellowship source (Groningen): "The fund does not consider
+    individual applications... interested parties must wait until an
+    Anne van den Ban scholarship is offered" from among already-admitted
+    Master's applicants. `funding_type = "partial_funding"` since the
+    page states "full or partial funding" varying by student, not a
+    guaranteed full award. No deadline is extracted: the only timing
+    given (spring/May notification, "if you have not received an offer
+    by 1 June") is a recurring annual window with no year on this
+    page."""
+    source = WageningenAnneVanDenBanFundSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("wageningen_anne_van_den_ban_fund.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "wageningen-anne-van-den-ban-fund"
+    assert opportunity.title == "Selection Anne van den Ban Fund"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == "Wageningen University & Research"
+    assert opportunity.description is not None
+    assert "low-income countries" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_wageningen_anne_van_den_ban_fund_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`wur.nl/robots.txt`) does not disallow this content
+    path."""
+    assert (
+        WageningenAnneVanDenBanFundSource.min_request_interval_seconds == 2.0
+    )

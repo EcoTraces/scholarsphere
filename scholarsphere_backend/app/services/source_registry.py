@@ -439,6 +439,51 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "uva_amsterdam_merit_scholarship_master": {
+        "source_name": "University of Amsterdam Amsterdam Merit Scholarship (Master's)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "uva_amsterdam_merit_scholarship_bachelor": {
+        "source_name": "University of Amsterdam Amsterdam Merit Scholarship (Bachelor's)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "groningen_eric_bleumink_fellowship": {
+        "source_name": "University of Groningen Eric Bleumink Fellowship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "utrecht_legits_scholarship": {
+        "source_name": (
+            "Utrecht University Law, Economics and Governance "
+            "International Talent Scholarship"
+        ),
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "maastricht_high_potential_scholarship": {
+        "source_name": "Maastricht University NL-High Potential Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "university_of_twente_scholarship": {
+        "source_name": "University of Twente Scholarship (UTS)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "wageningen_anne_van_den_ban_fund": {
+        "source_name": "Wageningen University Anne van den Ban Fund",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -527,6 +572,23 @@ def _base_urls() -> dict[str, str]:
         ),
         "freiburg_deutschlandstipendium": (
             settings.freiburg_deutschlandstipendium_base_url
+        ),
+        "uva_amsterdam_merit_scholarship_master": (
+            settings.uva_amsterdam_merit_scholarship_master_base_url
+        ),
+        "uva_amsterdam_merit_scholarship_bachelor": (
+            settings.uva_amsterdam_merit_scholarship_bachelor_base_url
+        ),
+        "groningen_eric_bleumink_fellowship": (
+            settings.groningen_eric_bleumink_fellowship_base_url
+        ),
+        "utrecht_legits_scholarship": settings.utrecht_legits_scholarship_base_url,
+        "maastricht_high_potential_scholarship": (
+            settings.maastricht_high_potential_scholarship_base_url
+        ),
+        "university_of_twente_scholarship": settings.utwente_scholarship_base_url,
+        "wageningen_anne_van_den_ban_fund": (
+            settings.wageningen_anne_van_den_ban_fund_base_url
         ),
     }
 
@@ -621,6 +683,13 @@ async def seed_opportunity_sources(
         "durham_inspiring_excellence_undergraduate_scholarship": now + timedelta(hours=24),
         "durham_inspiring_excellence_postgraduate_scholarship": now + timedelta(hours=24),
         "freiburg_deutschlandstipendium": now + timedelta(hours=24),
+        "uva_amsterdam_merit_scholarship_master": now + timedelta(hours=24),
+        "uva_amsterdam_merit_scholarship_bachelor": now + timedelta(hours=24),
+        "groningen_eric_bleumink_fellowship": now + timedelta(hours=24),
+        "utrecht_legits_scholarship": now + timedelta(hours=24),
+        "maastricht_high_potential_scholarship": now + timedelta(hours=24),
+        "university_of_twente_scholarship": now + timedelta(hours=24),
+        "wageningen_anne_van_den_ban_fund": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

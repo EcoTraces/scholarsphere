@@ -84,10 +84,12 @@ from app.services.national_scholarship_programs import (
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
     FreiburgDeutschlandstipendiumSource,
+    GroningenEricBleuminkFellowshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
     KnightHennessyScholarsSource,
+    MaastrichtHighPotentialScholarshipSource,
     ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
     NewcastleVcInternationalScholarshipSource,
@@ -101,6 +103,11 @@ from app.services.national_scholarship_programs import (
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
     TurkiyeBurslariSource,
+    UniversityOfTwenteScholarshipSource,
+    UtrechtLegitsScholarshipSource,
+    UvaAmsterdamMeritScholarshipBachelorSource,
+    UvaAmsterdamMeritScholarshipMasterSource,
+    WageningenAnneVanDenBanFundSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
     YenchingAcademyScholarsSource,
@@ -433,6 +440,43 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_freiburg_deutschlandstipendium",
             "schedule": crontab(minute=15, hour=18),
         },
+        "sync-uva-amsterdam-merit-scholarship-master": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_uva_amsterdam_merit_scholarship_master"
+            ),
+            "schedule": crontab(minute=30, hour=18),
+        },
+        "sync-uva-amsterdam-merit-scholarship-bachelor": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_uva_amsterdam_merit_scholarship_bachelor"
+            ),
+            "schedule": crontab(minute=45, hour=18),
+        },
+        "sync-groningen-eric-bleumink-fellowship": {
+            "task": "app.tasks.opportunity_sync.sync_groningen_eric_bleumink_fellowship",
+            "schedule": crontab(minute=0, hour=19),
+        },
+        "sync-utrecht-legits-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_utrecht_legits_scholarship",
+            "schedule": crontab(minute=15, hour=19),
+        },
+        "sync-maastricht-high-potential-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_maastricht_high_potential_scholarship"
+            ),
+            "schedule": crontab(minute=30, hour=19),
+        },
+        "sync-university-of-twente-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_university_of_twente_scholarship",
+            "schedule": crontab(minute=45, hour=19),
+        },
+        "sync-wageningen-anne-van-den-ban-fund": {
+            "task": "app.tasks.opportunity_sync.sync_wageningen_anne_van_den_ban_fund",
+            "schedule": crontab(minute=0, hour=20),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -583,6 +627,27 @@ SOURCE_TASK_NAMES = {
     ),
     "freiburg_deutschlandstipendium": (
         "app.tasks.opportunity_sync.sync_freiburg_deutschlandstipendium"
+    ),
+    "uva_amsterdam_merit_scholarship_master": (
+        "app.tasks.opportunity_sync.sync_uva_amsterdam_merit_scholarship_master"
+    ),
+    "uva_amsterdam_merit_scholarship_bachelor": (
+        "app.tasks.opportunity_sync.sync_uva_amsterdam_merit_scholarship_bachelor"
+    ),
+    "groningen_eric_bleumink_fellowship": (
+        "app.tasks.opportunity_sync.sync_groningen_eric_bleumink_fellowship"
+    ),
+    "utrecht_legits_scholarship": (
+        "app.tasks.opportunity_sync.sync_utrecht_legits_scholarship"
+    ),
+    "maastricht_high_potential_scholarship": (
+        "app.tasks.opportunity_sync.sync_maastricht_high_potential_scholarship"
+    ),
+    "university_of_twente_scholarship": (
+        "app.tasks.opportunity_sync.sync_university_of_twente_scholarship"
+    ),
+    "wageningen_anne_van_den_ban_fund": (
+        "app.tasks.opportunity_sync.sync_wageningen_anne_van_den_ban_fund"
     ),
 }
 
@@ -1628,6 +1693,117 @@ def sync_freiburg_deutschlandstipendium(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_uva_amsterdam_merit_scholarship_master",
+    max_retries=3,
+)
+def sync_uva_amsterdam_merit_scholarship_master(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "uva_amsterdam_merit_scholarship_master",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_uva_amsterdam_merit_scholarship_bachelor",
+    max_retries=3,
+)
+def sync_uva_amsterdam_merit_scholarship_bachelor(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "uva_amsterdam_merit_scholarship_bachelor",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_groningen_eric_bleumink_fellowship",
+    max_retries=3,
+)
+def sync_groningen_eric_bleumink_fellowship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "groningen_eric_bleumink_fellowship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_utrecht_legits_scholarship",
+    max_retries=3,
+)
+def sync_utrecht_legits_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "utrecht_legits_scholarship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_maastricht_high_potential_scholarship",
+    max_retries=3,
+)
+def sync_maastricht_high_potential_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "maastricht_high_potential_scholarship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_university_of_twente_scholarship",
+    max_retries=3,
+)
+def sync_university_of_twente_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "university_of_twente_scholarship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_wageningen_anne_van_den_ban_fund",
+    max_retries=3,
+)
+def sync_wageningen_anne_van_den_ban_fund(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "wageningen_anne_van_den_ban_fund", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1909,6 +2085,19 @@ def _collector(source_code: str) -> Any:
             DurhamInspiringExcellencePostgraduateScholarshipSource
         ),
         "freiburg_deutschlandstipendium": FreiburgDeutschlandstipendiumSource,
+        "uva_amsterdam_merit_scholarship_master": (
+            UvaAmsterdamMeritScholarshipMasterSource
+        ),
+        "uva_amsterdam_merit_scholarship_bachelor": (
+            UvaAmsterdamMeritScholarshipBachelorSource
+        ),
+        "groningen_eric_bleumink_fellowship": GroningenEricBleuminkFellowshipSource,
+        "utrecht_legits_scholarship": UtrechtLegitsScholarshipSource,
+        "maastricht_high_potential_scholarship": (
+            MaastrichtHighPotentialScholarshipSource
+        ),
+        "university_of_twente_scholarship": UniversityOfTwenteScholarshipSource,
+        "wageningen_anne_van_den_ban_fund": WageningenAnneVanDenBanFundSource,
     }[source_code]()
 
 

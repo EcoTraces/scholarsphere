@@ -391,6 +391,64 @@ class Settings(BaseSettings):
     # content path.
     freiburg_deutschlandstipendium_base_url: str = "https://uni-freiburg.de"
 
+    # University of Amsterdam - Amsterdam Merit Scholarship (AMS), a
+    # non-EU/EEA-only merit scholarship with separate overview pages for
+    # Master's and Bachelor's level. Deadlines/amounts vary per Faculty
+    # or Graduate School (stated directly on this general overview page),
+    # so none is asserted here. robots.txt is a genuine empty file (200,
+    # zero bytes) - no restrictions declared at all.
+    uva_amsterdam_merit_scholarship_master_base_url: str = "https://www.uva.nl"
+    uva_amsterdam_merit_scholarship_bachelor_base_url: str = "https://www.uva.nl"
+
+    # University of Groningen - Eric Bleumink Fellowship, a genuinely
+    # fully-funded (tuition + international travel + subsistence + books
+    # + health insurance) Master's grant restricted to an explicit list
+    # of ~80 named developing countries that includes Sierra Leone
+    # (confirmed directly, not assumed from "developing countries").
+    # Nomination-based (no separate scholarship application - applying
+    # to a UG Master's programme by 1 December is what gets you
+    # considered), administered entirely by UG's own Admission Office,
+    # unlike Vanier Canada's third-party-institution nomination model
+    # documented elsewhere as unsuitable. robots.txt does not disallow
+    # this content path.
+    groningen_eric_bleumink_fellowship_base_url: str = "https://www.rug.nl"
+
+    # Utrecht University - Law, Economics and Governance International
+    # Talent Scholarship (LEGITS), a tuition-fee scholarship for the
+    # Graduate Schools of Law and Economics, open to both EU/EEA and
+    # non-EU/EEA applicants, for the currently-live September 2027
+    # intake. Utrecht's central Utrecht Excellence Scholarship was
+    # confirmed discontinued for 2026-2027 entry onward ("due to
+    # significant budget cuts") and is not used instead. robots.txt does
+    # not disallow this content path.
+    utrecht_legits_scholarship_base_url: str = "https://www.uu.nl"
+
+    # Maastricht University - UM NL-High Potential Scholarship, a
+    # genuinely fully-funded (tuition waiver + monthly stipend) Master's
+    # scholarship for non-EU/EEA/Switzerland/Suriname applicants. Already
+    # updated for the 2027-2028 academic year with a real, not-yet-passed
+    # deadline (10 December 2026) as of this research date. robots.txt
+    # does not disallow this content path.
+    maastricht_high_potential_scholarship_base_url: str = (
+        "https://www.maastrichtuniversity.nl"
+    )
+
+    # University of Twente Scholarship (UTS), a cash-award (not tuition-
+    # deducted) scholarship of EUR 3,000-22,000/year for non-EU/EEA
+    # Master's applicants, with an explicit "Countries eligible for this
+    # scholarship" list confirmed to include Sierra Leone. Already
+    # updated for the 2027/2028 intake with a real, not-yet-passed
+    # deadline (1 April 2027) as of this research date. robots.txt does
+    # not disallow this content path.
+    utwente_scholarship_base_url: str = "https://www.utwente.nl"
+
+    # Wageningen University & Research - Anne van den Ban Fund, a
+    # nomination-based (no direct application) partial-or-full Master's
+    # scholarship for students from low-income countries, selected
+    # annually each spring from already-admitted MSc applicants.
+    # robots.txt does not disallow this content path.
+    wageningen_anne_van_den_ban_fund_base_url: str = "https://www.wur.nl"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -550,6 +608,13 @@ class Settings(BaseSettings):
         "durham_inspiring_excellence_ug_base_url",
         "durham_inspiring_excellence_pg_base_url",
         "freiburg_deutschlandstipendium_base_url",
+        "uva_amsterdam_merit_scholarship_master_base_url",
+        "uva_amsterdam_merit_scholarship_bachelor_base_url",
+        "groningen_eric_bleumink_fellowship_base_url",
+        "utrecht_legits_scholarship_base_url",
+        "maastricht_high_potential_scholarship_base_url",
+        "utwente_scholarship_base_url",
+        "wageningen_anne_van_den_ban_fund_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
