@@ -381,6 +381,16 @@ class Settings(BaseSettings):
     durham_inspiring_excellence_ug_base_url: str = "https://www.durham.ac.uk"
     durham_inspiring_excellence_pg_base_url: str = "https://www.durham.ac.uk"
 
+    # University of Freiburg - Deutschlandstipendium ("Germany
+    # Scholarship"), a EUR 300/month, one-year public-private stipend
+    # open to undergraduate AND Master's students of all nationalities
+    # (no country restriction) enrolled at the university. Genuinely
+    # covers this platform's "postgraduate/masters" and "undergraduate"
+    # request in a single page, unlike the England sources above which
+    # needed one page per level. robots.txt does not disallow this
+    # content path.
+    freiburg_deutschlandstipendium_base_url: str = "https://uni-freiburg.de"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -539,6 +549,7 @@ class Settings(BaseSettings):
         "southampton_merit_ug_base_url",
         "durham_inspiring_excellence_ug_base_url",
         "durham_inspiring_excellence_pg_base_url",
+        "freiburg_deutschlandstipendium_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

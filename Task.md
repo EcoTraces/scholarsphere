@@ -3223,3 +3223,84 @@ for the full dated history.
       (`tests/fixtures/durham_inspiring_excellence_undergraduate_scholarship.html`,
       `tests/fixtures/durham_inspiring_excellence_postgraduate_scholarship.html`)
       were captured unmodified from the live site.
+
+- [x] **(2026-09-06)** "Germany postgraduate, masters, and undergraduate
+      universities scholarship" request: implemented the University of
+      Freiburg's Deutschlandstipendium source - see Changelog.md's
+      same-date entry and `docs/AUTHORITATIVE_SOURCES.md` #69 for full
+      detail. This platform's 70th opportunity source, and its second
+      Germany-university source - TUM's International Student
+      Scholarship (#59) remains the first.
+
+      Unlike every England source added in the four follow-ups just
+      above (one page per degree level), this single Freiburg page
+      genuinely covers both halves of the request at once: its
+      eligibility text names both undergraduate and Master's degree
+      programme students as eligible for the same EUR 300/month,
+      one-year stipend, with no nationality restriction stated at all.
+
+      Ten other Germany candidates were researched live first and every
+      one of them was a genuine dead end, not a shortcut skipped:
+      Heidelberg's scholarship pages turned out to be for *outgoing*
+      Heidelberg students studying abroad, not incoming applicants;
+      Bonn's scholarships require existing enrollment with funding
+      details still "to be published," and its own (German-only)
+      Deutschlandstipendium page states the 2026/2027 round "has ended"
+      with nothing next announced; Constructor University Bremen's three
+      named scholarships (two JetBrains Foundation-funded, one Sparkasse
+      Bank-funded) each have a single March 2026 deadline already passed
+      with no next-cycle date in sight; Mannheim's two named scholarships
+      both explicitly say their 2026/2027 application windows "have
+      ended." The biggest recurring pattern, though: ESMT Berlin, WHU -
+      Otto Beisheim School of Management, and Frankfurt School of
+      Finance & Management all present their scholarship/financing pages
+      as hubs of roughly ten separately-named, separately-sponsored
+      awards (gender/diversity scholarships, regional scholarships,
+      corporate-sponsored fellowships, alumni-network scholarships, and
+      more) sharing one page - structurally the same "multi-record
+      architecture mismatch" already correctly rejected for Warwick's
+      Doctoral College page and TU Delft's general scholarship hub
+      earlier in this project, and rejected here for the same reason
+      rather than arbitrarily forcing one of the ten sub-scholarships
+      into a single-record shape it doesn't have. Göttingen's advertised
+      "university" scholarship turned out to be DAAD-administered
+      (already covered by this platform's existing DAAD source, #10),
+      with a deadline that carries no year on its own page. IU
+      International University of Applied Sciences never surfaced a
+      scholarship page at all through a plain HTTP fetch - its on-campus
+      content appears to be a client-side-rendered Vue/Nuxt app.
+
+      A genuine judgment call, documented rather than glossed over: the
+      Freiburg page states an application-portal-open date of 1 March
+      2027 *and* a closing date of 31 March 2028 for the "2027/2028
+      scholarship round" - a thirteen-month window that flatly
+      contradicts the same page's own description elsewhere of a
+      roughly one-month March application period each year (echoed by
+      the university's own FAQ: "you can only apply the following March
+      for a scholarship"). Rather than either reporting "31 March 2028"
+      verbatim as if it were a normal deadline, or silently "fixing" it
+      to the year that would make sense, the deadline was left
+      unextracted entirely - consistent with this project's long-
+      standing "extract nothing rather than guess wrong" rule, applied
+      here to a suspected *site* error rather than the usual case of
+      genuinely no date being stated at all.
+
+      Content-selector care, same discipline as every England source
+      before it: the page's `main` element is 42KB, almost entirely a
+      tabbed FAQ accordion that repeats the same eligibility/process
+      detail several times over; the first `div.wp-block-columns`
+      instead captures the real ~1.7KB description (general summary,
+      funding amount, and the page's current application-cycle status)
+      cleanly, verified via a BeautifulSoup structural walk of the
+      actual fetched page before committing to the selector - not
+      assumed from the element's name.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 783 passed / 25 skipped (up from 781 - the
+      new source's two fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      69 -> 70 registered sources). The fixture
+      (`tests/fixtures/freiburg_deutschlandstipendium.html`) was
+      captured unmodified from the live site, following the page's own
+      301 redirect from the URL search engines index to its canonical
+      `uni-freiburg.de` host.

@@ -42,6 +42,7 @@ from app.services.national_scholarship_programs import (
     DurhamInspiringExcellencePostgraduateScholarshipSource,
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
+    FreiburgDeutschlandstipendiumSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
@@ -2249,3 +2250,54 @@ def test_durham_inspiring_excellence_postgraduate_scholarship_has_no_robots_txt_
         DurhamInspiringExcellencePostgraduateScholarshipSource.min_request_interval_seconds
         == 2.0
     )
+
+
+# --- University of Freiburg Deutschlandstipendium: real fixture, fetched
+# 2026-09-06
+
+
+@pytest.mark.asyncio
+async def test_freiburg_deutschlandstipendium_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's second Germany-university source (after TUM,
+    #59), and the first single page to
+    cover both the "postgraduate/masters" and "undergraduate" parts of a
+    request at once: the page's full eligibility text (in a separate FAQ
+    accordion section not part of the scraped description below) names
+    both undergraduate and Master's degree programme students as
+    eligible. `div.wp-block-columns` (the first one on the page) is the
+    correct content selector for the description itself - chosen over
+    the much larger `main` element, which is mostly a tabbed FAQ
+    accordion repeating the same detail. No deadline is extracted despite
+    two dates being present: the page's stated "31 March 2028" closing
+    date for the "2027/2028 scholarship round" contradicts its own
+    description elsewhere of a roughly one-month March application
+    window each year, reading as a likely site typo rather than a
+    literal fact - so nothing is extracted rather than reporting a
+    suspect date."""
+    source = FreiburgDeutschlandstipendiumSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("freiburg_deutschlandstipendium.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "freiburg-deutschlandstipendium"
+    assert opportunity.title == "Deutschlandstipendium"
+    assert opportunity.country == "Germany"
+    assert opportunity.provider_name == "University of Freiburg"
+    assert opportunity.description is not None
+    assert "€300 each per month for one year" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_freiburg_deutschlandstipendium_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`uni-freiburg.de/robots.txt`) only disallows
+    `/wp-admin/`, not this content path."""
+    assert FreiburgDeutschlandstipendiumSource.min_request_interval_seconds == 2.0

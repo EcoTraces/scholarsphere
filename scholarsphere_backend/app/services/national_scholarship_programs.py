@@ -2561,3 +2561,71 @@ class DurhamInspiringExcellencePostgraduateScholarshipSource(_SingleProgramSourc
 
     def _base_url(self) -> str:
         return get_settings().durham_inspiring_excellence_pg_base_url
+
+
+class FreiburgDeutschlandstipendiumSource(_SingleProgramSource):
+    """University of Freiburg - Deutschlandstipendium ("Germany
+    Scholarship") - this platform's second Germany-university source
+    (after TumInternationalStudentScholarshipSource, #59) added in
+    response to a request for another Germany postgraduate, masters, and
+    undergraduate universities scholarship. Unlike the England sources
+    above (one page per degree level), this single page explicitly
+    covers both parts of the request at once: "students enrolled on an
+    undergraduate degree programme or a Master's degree programme" are
+    both eligible.
+
+    Confirmed 2026-09-06: `robots.txt` (`uni-freiburg.de/robots.txt`)
+    only disallows `/wp-admin/`, not this content path. The page itself
+    canonicalizes to `uni-freiburg.de` from the
+    `studium.uni-freiburg.de` URL search engines index (a 301 redirect,
+    confirmed identical content on both) - `overview_path` targets the
+    canonical URL directly rather than relying on the scraper's HTTP
+    client to follow the redirect.
+
+    Content selector: `div.wp-block-columns` (the first one on the page)
+    - deliberately chosen over the much larger `main` (42KB, mostly a
+    tabbed FAQ accordion repeating the same eligibility/process detail)
+    because it captures both the program's general
+    description/funding/eligibility summary *and* the page's current
+    application-cycle status in one clean ~1.7KB block, verified
+    directly via a BeautifulSoup structural walk of the fetched page.
+
+    Country coverage / eligibility: "Students of all nationalities may
+    apply for the Deutschlandstipendium" - no nationality/country
+    restriction, so Sierra Leone applicants are eligible. Requires being
+    enrolled as a regular student at the University of Freiburg (like
+    this platform's existing TUM International Student Scholarship
+    source, #59) rather than being a brand-new applicant - the same
+    "already enrolled" shape, not a barrier to listing it.
+
+    Deliberately extracts no deadline despite two dates being present:
+    the page states the 2026/2027 award year's application deadline "has
+    passed" (no date literal within reach of that phrase) and that "you
+    can apply for the 2027/2028 scholarship round from 1 March 2027 to
+    31 March 2028" - a thirteen-month window that contradicts the page's
+    own description elsewhere of a short, roughly one-month March
+    application period each year (and this university's own FAQ text:
+    "you can only apply the following March for a scholarship"). Given
+    that internal inconsistency, this reads as a likely typo on the
+    university's own page (probably meant 31 March **2027**) rather than
+    a literal fact to report - so, per this platform's "extract nothing
+    rather than guess wrong" rule, no deadline is extracted rather than
+    reporting a suspect date verbatim or silently correcting it.
+
+    Funding: EUR 300/month for one year (a stipend supplement, not full
+    tuition/living coverage) - `funding_type = "partial_funding"`.
+    """
+
+    source_code = "freiburg_deutschlandstipendium"
+    overview_path = (
+        "/en/studies/during-your-studies/financing-your-studies/"
+        "deutschlandstipendium/"
+    )
+    content_selectors = ("div.wp-block-columns",)
+    provider_name = "University of Freiburg"
+    country = "Germany"
+    external_id = "freiburg-deutschlandstipendium"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().freiburg_deutschlandstipendium_base_url

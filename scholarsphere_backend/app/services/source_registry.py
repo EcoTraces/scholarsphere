@@ -433,6 +433,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "freiburg_deutschlandstipendium": {
+        "source_name": "University of Freiburg Deutschlandstipendium",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -518,6 +524,9 @@ def _base_urls() -> dict[str, str]:
         ),
         "durham_inspiring_excellence_postgraduate_scholarship": (
             settings.durham_inspiring_excellence_pg_base_url
+        ),
+        "freiburg_deutschlandstipendium": (
+            settings.freiburg_deutschlandstipendium_base_url
         ),
     }
 
@@ -611,6 +620,7 @@ async def seed_opportunity_sources(
         "southampton_merit_undergraduate_scholarship": now + timedelta(hours=24),
         "durham_inspiring_excellence_undergraduate_scholarship": now + timedelta(hours=24),
         "durham_inspiring_excellence_postgraduate_scholarship": now + timedelta(hours=24),
+        "freiburg_deutschlandstipendium": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

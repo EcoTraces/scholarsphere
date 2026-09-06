@@ -3339,6 +3339,145 @@ its own flagship page with its own eligibility rules.
   guessing" reasoning as Bristol above. Worth revisiting once York
   publishes its next cycle's page.
 
+## 69. Deutschlandstipendium (University of Freiburg)
+
+Researched 2026-09-06, in response to a request for another Germany
+postgraduate, masters, and undergraduate universities scholarship — this
+platform's second Germany-university source (after TUM's International
+Student Scholarship, #59), and its 17th university-classified source
+overall. Unlike the England sources above
+(one page per degree level), this single page explicitly covers both
+halves of the request: "students enrolled on an undergraduate degree
+programme or a Master's degree programme" are both eligible.
+
+- **Organization**: University of Freiburg
+- **Route code**: `freiburg-deutschlandstipendium`
+  (`freiburg_deutschlandstipendium` internally)
+- **Official domain / base URL**: `https://uni-freiburg.de`
+  (`FREIBURG_DEUTSCHLANDSTIPENDIUM_BASE_URL`) — the page search engines
+  index under `studium.uni-freiburg.de` 301-redirects to this canonical
+  host; confirmed identical content on both, and `overview_path` targets
+  the canonical URL directly rather than relying on the scraper's HTTP
+  client to follow the redirect.
+- **Opportunity types**: Scholarship — EUR 300/month for one year (a
+  stipend supplement, not full tuition/living coverage), half funded by
+  the federal government and half by private sponsors.
+  `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: "Students of all nationalities may
+  apply for the Deutschlandstipendium" — no nationality/country
+  restriction, so Sierra Leone applicants are eligible. Requires being
+  enrolled as a regular student at the University of Freiburg — the same
+  "already enrolled, not a brand-new applicant" shape as this platform's
+  existing TUM International Student Scholarship source (#59), which is
+  not a barrier to listing it.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  WordPress-rendered HTML)
+- **robots.txt / indexing note**: `uni-freiburg.de/robots.txt` only
+  disallows `/wp-admin/`, not this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector is the first `div.wp-block-columns`, deliberately
+    NOT the much larger `main`** (42KB, mostly a tabbed FAQ accordion
+    repeating the same eligibility/process detail): the chosen selector
+    captures both the program's general description/funding/eligibility
+    summary *and* the page's current application-cycle status in one
+    clean ~1.7KB block — verified directly via a BeautifulSoup structural
+    walk of the fetched page before choosing it.
+  - **Deliberately extracts no deadline despite two dates being
+    present**: the page states the 2026/2027 award year's application
+    deadline "has passed" (no date literal within reach of that phrase)
+    and that "you can apply for the 2027/2028 scholarship round from 1
+    March 2027 to 31 March 2028" — a thirteen-month window that
+    contradicts the page's own description elsewhere of a short, roughly
+    one-month March application period each year (and the university's
+    own FAQ text: "you can only apply the following March for a
+    scholarship"). Given that internal inconsistency, this reads as a
+    likely typo on the university's own page (probably meant 31 March
+    **2027**) rather than a literal fact to report — so, per this
+    platform's "extract nothing rather than guess wrong" rule, no
+    deadline is extracted rather than reporting a suspect date verbatim
+    or silently correcting it.
+- **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/freiburg_deutschlandstipendium.html`).
+
+### Researched this pass (Germany postgraduate/masters/undergraduate
+follow-up), not integrated
+
+Ten other Germany candidates were researched live before settling on
+Freiburg's Deutschlandstipendium above, and none fit this platform's
+single-flagship-page shape:
+
+- **Heidelberg University** — its "Scholarship Programmes" and
+  "Scholarships and Fundings" pages are both about Heidelberg students
+  studying *abroad* (outgoing), not incoming international applicants to
+  Heidelberg; no incoming-applicant flagship page was found.
+- **University of Bonn** — its "Degree Completion Scholarship" and
+  related scholarships require the student to already be enrolled and
+  expected to graduate within 12 months, with funding/application
+  details for the current round "to be published" — not yet concrete;
+  its own Deutschlandstipendium page (German-only, no English version)
+  states the 2026/2027 application round "has ended"
+  (*Das Bewerbungsverfahren ... ist beendet*) with no next round dates
+  published yet.
+- **Constructor University Bremen** (formerly Jacobs University) — three
+  named scholarships checked (BSc Software/Data/Technology and MSc
+  Advanced Software Technology JetBrains Foundation scholarships, and the
+  Sparkasse Mathematics Scholarship): all three state a single deadline
+  in the March 2026 range for the current intake, already passed as of
+  this research date, with no next-cycle dates published on the same
+  pages.
+  Its general financing pages are also, like ESMT and WHU below, a hub of
+  many separately-named scholarships rather than one flagship program.
+- **University of Mannheim** — the "Opportunity Mannheim Scholarship"
+  (excludes Master's applicants entirely) and the general "Mannheim
+  Scholarship" both state their 2026/2027 application windows "have
+  ended," with no next round dates published yet.
+- **ESMT Berlin** (MBA and Master's programs) — genuinely live, rolling
+  application cycles (January 2027 MBA intake still open), but each
+  "Fees & Financing"/"Scholarships" page is a hub of roughly ten
+  separately-named, separately-sponsored awards (Gender pay gap
+  scholarship, Rainbow scholarship, five Regional scholarships, Dean's
+  Excellence, Vali Berlin entrepreneurship, BMW Group Change Maker
+  Fellowship, e-Fellows scholarship, and more) — the same multi-record
+  architecture mismatch already documented for Warwick's Doctoral College
+  page (source research, `docs/AUTHORITATIVE_SOURCES.md` #64's "not
+  integrated" note) and TU Delft's general scholarship hub, not forced
+  into a single-record shape it doesn't have.
+- **WHU – Otto Beisheim School of Management** (Bachelor and MSc
+  programs) — same multi-record hub shape as ESMT: roughly ten
+  separately-named scholarships (Merit, Excellence, Responsible Leader,
+  Social Impact, In Praxi Diversity, In Praxi Women in Business,
+  e-Fellows, Women in Management, Women in Finance, Business Leaders,
+  Female Founders, Global Community, Global IB, and more) sharing one
+  page and one deadline but each with its own distinct eligibility
+  criterion — not integrated for the same reason as ESMT above. Its
+  separate "Germany Scholarship" (Deutschlandstipendium) page is a
+  donor/fundraising page with no application process or deadline
+  described for students.
+- **Frankfurt School of Finance & Management** — same multi-record hub
+  pattern again (Corporate Governance Scholarship, Beyond Capital
+  Partners Scholarship, Alumni Association Scholarship, Klaus-Peter
+  Müller Scholarship, and more).
+- **University of Göttingen** — its widely-advertised "DAAD Scholarship"
+  for Göttingen's agricultural/forestry/environmental Master's programs
+  is DAAD-administered (already covered by this platform's existing DAAD
+  source, #10), not a distinct Göttingen-university program, and its
+  stated deadline window ("October 1st to November 15th") carries no
+  year.
+- **IU International University of Applied Sciences** — no reachable
+  official scholarship page found; its on-campus scholarship content
+  appears to be rendered client-side (a Vue/Nuxt single-page app) and did
+  not appear in this platform's plain-HTTP fetch of the on-campus
+  overview page.
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

@@ -28,6 +28,71 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Germany postgraduate, masters, and undergraduate: University of Freiburg Deutschlandstipendium (70th opportunity source; this platform's second Germany-university source)
+
+### Added
+- `app/services/national_scholarship_programs.py::FreiburgDeutschlandstipendiumSource`
+  — this platform's 70th opportunity source, added in response to a
+  request for another Germany postgraduate, masters, and undergraduate
+  universities scholarship. Unlike the recent England sources (one page
+  per degree level), this single University of Freiburg page explicitly
+  covers **both** halves of the request at once: its eligibility text
+  names both undergraduate and Master's degree programme students.
+  - The **Deutschlandstipendium** ("Germany Scholarship") is a
+    EUR 300/month, one-year public-private stipend, half funded by the
+    federal government and half by private sponsors — genuinely open to
+    "students of all nationalities," so Sierra Leone applicants are
+    eligible. Requires being enrolled as a regular student at the
+    University of Freiburg, the same "already enrolled" shape as this
+    platform's existing TUM International Student Scholarship source
+    (#59) — TUM remains this platform's *first* Germany-university
+    source, Freiburg is its second.
+  - Deliberately extracts no deadline despite two dates being present:
+    the page states the 2026/2027 award year's application deadline "has
+    passed" (no date literal within reach) and that "you can apply for
+    the 2027/2028 scholarship round from 1 March 2027 to 31 March 2028"
+    — a thirteen-month window that contradicts the page's own
+    description elsewhere of a roughly one-month March application
+    period each year. Read as a likely site typo (probably meant 31
+    March 2027) rather than a literal fact — per this platform's
+    "extract nothing rather than guess wrong" rule, no deadline is
+    extracted rather than reporting a suspect date verbatim.
+  - Content selector: the first `div.wp-block-columns` on the page,
+    deliberately not the much larger `main` element (42KB, mostly a
+    tabbed FAQ accordion repeating the same eligibility detail) —
+    verified directly via a structural walk of the fetched page.
+  - Fully wired: config setting, source registry entry, Celery beat
+    schedule + dedicated sync task, and a fixture-backed test (fixture
+    captured unmodified from the live site, following the page's own
+    301 redirect to its canonical `uni-freiburg.de` host).
+
+  Ten other Germany candidates were researched live before settling on
+  Freiburg and found genuinely unsuitable rather than integrated (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (Germany
+  postgraduate/masters/undergraduate follow-up), not integrated" entry):
+  Heidelberg's scholarship pages are for outgoing students, not incoming
+  applicants; Bonn's scholarships require existing enrollment with
+  details "to be published," and its own Deutschlandstipendium round has
+  ended with no next round announced; Constructor University Bremen's
+  three named scholarships (two JetBrains Foundation, one Sparkasse) all
+  have March 2026 deadlines already passed with no next cycle published;
+  Mannheim's two named scholarships have both "ended" their 2026/2027
+  windows; ESMT Berlin, WHU, and Frankfurt School all present their
+  financing pages as hubs of roughly ten separately-named,
+  separately-sponsored scholarships each — the same multi-record
+  architecture mismatch already established for Warwick's Doctoral
+  College page, not forced into a single-record shape; Göttingen's
+  advertised scholarship is DAAD-administered (already covered by this
+  platform's existing DAAD source, #10) with a year-less deadline; and IU
+  International University of Applied Sciences' scholarship content
+  appears to be rendered client-side and did not surface in a plain-HTTP
+  fetch.
+
+  **Verified**: full backend suite green after the change (783 passed,
+  25 skipped, up from 781 — the new source's two tests plus the updated
+  `test_opportunity_import.py` source-count assertion, 69 -> 70
+  registered sources). `pyflakes app tests` clean (no new issues).
+
 ## [2026-09-06] — Fifth England follow-up (postgraduate, masters, and undergraduate): Durham University Inspiring Excellence Scholarships (68th and 69th opportunity sources; this platform's first Durham University source)
 
 ### Added

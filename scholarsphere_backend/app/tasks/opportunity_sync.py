@@ -83,6 +83,7 @@ from app.services.national_scholarship_programs import (
     DurhamInspiringExcellencePostgraduateScholarshipSource,
     DurhamInspiringExcellenceUndergraduateScholarshipSource,
     EthZurichExcellenceScholarshipSource,
+    FreiburgDeutschlandstipendiumSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
@@ -428,6 +429,10 @@ celery_app.conf.update(
             ),
             "schedule": crontab(minute=0, hour=18),
         },
+        "sync-freiburg-deutschlandstipendium": {
+            "task": "app.tasks.opportunity_sync.sync_freiburg_deutschlandstipendium",
+            "schedule": crontab(minute=15, hour=18),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -575,6 +580,9 @@ SOURCE_TASK_NAMES = {
     "durham_inspiring_excellence_postgraduate_scholarship": (
         "app.tasks.opportunity_sync."
         "sync_durham_inspiring_excellence_postgraduate_scholarship"
+    ),
+    "freiburg_deutschlandstipendium": (
+        "app.tasks.opportunity_sync.sync_freiburg_deutschlandstipendium"
     ),
 }
 
@@ -1605,6 +1613,21 @@ def sync_durham_inspiring_excellence_postgraduate_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_freiburg_deutschlandstipendium",
+    max_retries=3,
+)
+def sync_freiburg_deutschlandstipendium(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "freiburg_deutschlandstipendium", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1885,6 +1908,7 @@ def _collector(source_code: str) -> Any:
         "durham_inspiring_excellence_postgraduate_scholarship": (
             DurhamInspiringExcellencePostgraduateScholarshipSource
         ),
+        "freiburg_deutschlandstipendium": FreiburgDeutschlandstipendiumSource,
     }[source_code]()
 
 
