@@ -4795,6 +4795,79 @@ Scholarship, Durham's Inspiring Excellence UG and PG) are all
   scholarship itself — Clarendon should be reconsidered in a future
   pass if Oxford ever narrows or removes that challenge.
 
+### Researched this pass (Netherlands fully-funded Master's university engine, continuation), not integrated
+
+The Netherlands fully-funded-only mega-prompt was resubmitted after
+three genuinely fully-funded Dutch university sources already existed
+(TU Delft's Van Effen Scholarship #58, Groningen's Eric Bleumink
+Fellowship #72, Maastricht's High Potential Scholarship #74 — confirmed
+by direct source-code inspection before starting, not assumed) and
+seven partial ones (Nuffic, UvA Master's/Bachelor's, Utrecht LEGITS,
+UTwente's UTS and ITC, Wageningen's Anne van den Ban Fund). A further
+live pass found no new qualifying candidate, for four distinct reasons:
+
+- **TU Delft** — searched specifically for other MSc scholarships
+  beyond Van Effen (already integrated); the only other named
+  full-scholarship route found was the Fulbright Scholarship, which is
+  US-government-funded and restricted to the Faculty of Industrial
+  Design Engineering — `EXTERNAL_ONLY`, not a TU Delft-administered
+  scheme.
+- **University of Twente's scholarship finder** — fetched the full
+  finder listing directly (22 named schemes) and checked the three
+  that looked most likely to be UTwente-administered rather than
+  merely listed external funders: the **Kipaji Scholarship** (up to
+  EUR 12,000) and the **Professor De Winter Scholarship** (EUR 10,000)
+  are both explicitly *dependent add-ons* — their own pages state they
+  are "meant as additional support for UTS scholarship students" and
+  cannot be applied for independently, with no official statement that
+  UTS-plus-add-on together constitute full funding — per the "do not
+  pretend combined awards form one full scholarship without official
+  confirmation" rule, not integrated as fully funded. The **STEM for
+  ALL scholarship** is a small (EUR 5,000), externally-funded (Thales
+  Solidarity Charitable Fund) award primarily aimed at Bachelor's-level
+  applicants — `PARTIAL_TUITION_ONLY`/`EXTERNAL_ONLY`.
+- **Radboud University — Radboud Encouragement Scholarship** — the
+  most interesting finding of this pass. Radboud's own scholarships hub
+  page (`ru.nl/en/education/scholarships`) exposes a filter facet
+  confirming exactly one of its listed scholarships is tagged "Full
+  scholarship" by the university's own classification system (the
+  other five scholarship-type results are tagged "Partial scholarship")
+  — and live search results independently identify that one as the
+  Radboud Encouragement Scholarship, described as covering "the full
+  tuition fee and living costs ... for the duration of the Master's
+  programme," open to non-EU/EEA applicants across multiple faculties.
+  However, fetching the specific detail page directly
+  (`ru.nl/en/education/scholarships/radboud-encouragement-scholarship`)
+  returned HTTP 403 with the page's own `<title>` reading "Login |
+  Radboud University" and body text "Log in to view this content" (a
+  SURFconext institutional login wall) — genuinely different from the
+  general scholarships hub page, which remains publicly readable. Per
+  this project's "never bypass authentication barriers" rule, not
+  circumvented. Left unintegrated as `VERIFICATION_REQUIRED` due to an
+  access barrier, not a funding classification failure — a strong
+  candidate to re-check if Radboud ever exposes this specific page
+  publicly, or via an official PDF/handbook copy of its terms.
+- **Erasmus University Rotterdam — Joint Japan/World Bank Graduate
+  Scholarship Program (JJ/WBGSP) at ISS** — genuinely fully funded
+  (full tuition, living allowance, travel, health insurance) for the
+  Master in Development Studies at Erasmus's International Institute
+  of Social Studies, but this is the same World Bank-funded,
+  Japan-government-financed programme already on this platform as
+  source #45 (`world_bank_jjwbgsp`), which funds 44 participating
+  programmes across 24 universities worldwide and is correctly
+  government/multilateral-classified rather than tied to any single
+  host university — not re-integrated as a separate Erasmus-specific
+  record, since doing so would double-count an existing source under a
+  different institutional label.
+
+No new source was added this continuation pass — per this project's
+own "accuracy over quantity, do not pad the database" standard
+(explicit in this pass's own section 39), a genuine second round of
+research that finds no qualifying candidate — while still surfacing a
+real, credible lead (Radboud Encouragement Scholarship) blocked purely
+by an access barrier rather than a funding shortfall — is itself the
+correct, complete outcome to report.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

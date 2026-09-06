@@ -28,6 +28,65 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Netherlands fully-funded Master's engine, continuation pass: no new source qualified
+
+### Added
+—
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — the Netherlands fully-funded-only mega-prompt was resubmitted after
+  three genuinely fully-funded Dutch university sources already
+  existed (TU Delft's Van Effen Scholarship #58, Groningen's Eric
+  Bleumink Fellowship #72, Maastricht's High Potential Scholarship #74
+  — confirmed by direct source-code inspection before starting). A
+  further live pass found no new qualifying candidate:
+  - **TU Delft** — the only other named full-scholarship route beyond
+    Van Effen is the Fulbright Scholarship, US-government-funded and
+    restricted to one faculty — external, not TU Delft's own.
+  - **University of Twente** — fetched the full scholarship-finder
+    listing (22 named schemes) directly. The Kipaji Scholarship (up to
+    EUR 12,000) and Professor De Winter Scholarship (EUR 10,000) are
+    both explicitly dependent add-ons to the already-partial UTS, not
+    independently full, with no official statement that the
+    combination reaches full funding. The STEM for ALL scholarship is
+    small (EUR 5,000), externally funded (Thales Solidarity), and
+    primarily Bachelor's-oriented.
+  - **Radboud University — Radboud Encouragement Scholarship**: the
+    most interesting finding. Radboud's own scholarships hub page
+    exposes a filter facet confirming exactly one listed scholarship
+    is tagged "Full scholarship" by the university's own system, and
+    live search independently identifies it as the Radboud
+    Encouragement Scholarship (full tuition + living costs for
+    non-EU/EEA Master's applicants). Its specific detail page,
+    however, returns an HTTP 403 SURFconext institutional login wall
+    ("Login | Radboud University") — genuinely inaccessible without
+    authentication, unlike the general hub page which remains public.
+    Not bypassed, per this project's standing policy; recorded as
+    `VERIFICATION_REQUIRED` due to an access barrier, not a funding
+    shortfall — worth re-checking if Radboud ever exposes this page
+    publicly.
+  - **Erasmus University Rotterdam** — its Joint Japan/World Bank
+    Graduate Scholarship Program (JJ/WBGSP) at ISS is genuinely fully
+    funded, but it is the same global World Bank/Japan-government
+    programme already on this platform as source #45
+    (`world_bank_jjwbgsp`), not a separate Erasmus-specific scheme —
+    not re-integrated to avoid double-counting.
+
+  No new opportunity source was added this pass. Per this project's
+  own "accuracy over quantity, do not pad the database" standard, a
+  genuine second round of research that finds no qualifying candidate
+  — while still surfacing one real, credible lead blocked purely by an
+  access barrier — is the correct, complete outcome to report.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — England fully-funded Master's university scholarship engine: Gates Cambridge Scholarship (84th opportunity source)
 
 ### Added

@@ -4308,3 +4308,121 @@ for the full dated history.
       -> 84 registered sources). The fixture
       (`tests/fixtures/gates_cambridge_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-06)** Netherlands fully-funded Master's engine,
+      continuation pass: the Netherlands mega-prompt was resubmitted,
+      this time with an explicit, much stricter "FULLY FUNDED ONLY"
+      framing than the earlier exhaustive-expansion pass, and its own
+      text specifically warned against three known misclassification
+      traps (Radboud's tuition-only reduction, University of Twente's
+      own "not a full scholarship" disclaimer, Leiden's Excellence
+      Scholarship covering tuition but not living costs). Before
+      researching anything new, checked what this platform already had
+      on record: three genuinely fully-funded Dutch university sources
+      already existed (TU Delft's Van Effen Scholarship #58,
+      Groningen's Eric Bleumink Fellowship #72, Maastricht's High
+      Potential Scholarship #74) and seven correctly-partial ones
+      (Nuffic, UvA's Master's and Bachelor's Merit Scholarships,
+      Utrecht's LEGITS, UTwente's UTS and ITC, Wageningen's Anne van
+      den Ban Fund) - confirmed by grepping the actual source code
+      rather than trusting memory, exactly matching what this new
+      mega-prompt itself predicted would be found for Radboud/UTwente/
+      Leiden (none of which have ever been added as fully-funded
+      sources on this platform, consistent with the prompt's own
+      warnings).
+
+      With the existing ground already solid, this pass's job was
+      genuinely new discovery, not re-litigating settled
+      classifications. Checked four more angles the prompt itself
+      flagged as under-explored:
+
+      - **TU Delft**: the prompt specifically warned "the official TU
+        Delft scholarship page provides multiple MSc scholarship
+        opportunities... inspect each individual award rather than
+        treating the page as one scholarship." Searched specifically
+        for a second full scheme beyond Van Effen - found only the
+        Fulbright Scholarship, US-government-funded and restricted to
+        one faculty (Industrial Design Engineering) - correctly
+        excluded as `EXTERNAL_ONLY`, not a second TU Delft-administered
+        full scholarship.
+      - **University of Twente's scholarship finder**: fetched the
+        actual finder listing directly rather than trusting a search
+        summary, and found 22 named schemes total - most obviously
+        external funders merely listed there (Aga Khan Foundation,
+        ASML, FirstRand Foundation, Onassis Foundation, and similar).
+        Checked the three that looked most plausibly UTwente's own:
+        Kipaji Scholarship and Professor De Winter Scholarship both
+        turned out, on their own pages, to be explicit *dependent
+        add-ons* - "meant as additional support for UTS scholarship
+        students," not independently applicable, with no official
+        statement anywhere that UTS-plus-add-on together constitute a
+        full scholarship. This is exactly the "combination_rules" case
+        this pass's own section 23 anticipated ("If the university
+        officially confirms that the awards can be combined: record
+        the combined package. If they cannot be combined: do not
+        pretend they form one full scholarship") - resolved by finding
+        no such official combination statement, so neither was
+        integrated as fully funded. STEM for ALL turned out to be a
+        small (EUR 5,000), externally-funded (Thales Solidarity
+        Charitable Fund), Bachelor's-oriented award - straightforwardly
+        excluded.
+      - **Radboud University**: the most genuinely interesting result
+        of this pass. Rather than stop at confirming the already-known
+        "Radboud Scholarship is partial" finding (which this new
+        mega-prompt itself already stated as fact), searched instead
+        for *other* Radboud scholarships, and found the Radboud
+        Encouragement Scholarship - described independently by search
+        summaries as covering "the full tuition fee and living costs
+        ... for the duration of the Master's programme." Verified this
+        wasn't just an aggregator's overstatement by fetching Radboud's
+        own scholarships hub page directly: it exposes a filter facet
+        reading "Scholarship coverage: Full scholarship (1), Partial
+        scholarship (5)" - Radboud's *own* site classifies exactly one
+        of its scholarships as "Full," corroborating the search
+        results. But fetching the actual Radboud Encouragement
+        Scholarship detail page returned HTTP 403 with its own
+        `<title>` reading "Login | Radboud University" and body text
+        "Log in to view this content" - a SURFconext institutional
+        single-sign-on wall, genuinely different from the general hub
+        page (which stayed publicly readable throughout). This is a
+        real, freshly-discovered access barrier, not a funding
+        question - per this project's absolute "never bypass
+        authentication barriers" rule, left unintegrated and flagged
+        explicitly as `VERIFICATION_REQUIRED` rather than silently
+        dropped, since the underlying scholarship is credible and real.
+      - **Erasmus University Rotterdam**: the prompt specifically asked
+        to check Erasmus MC and multiple schools individually. Found
+        the Joint Japan/World Bank Graduate Scholarship Program
+        (JJ/WBGSP) at Erasmus's International Institute of Social
+        Studies, genuinely fully funded (tuition, living allowance,
+        travel, health insurance) - but recognized it as the same
+        World Bank/Japan-government programme already on this platform
+        as source #45 (`world_bank_jjwbgsp`, which funds 44
+        participating programmes across 24 universities worldwide, not
+        tied to any single host). Correctly did not re-integrate it as
+        a separate "Erasmus-specific" record, since that would
+        double-count an existing government/multilateral-classified
+        source under a different institutional label rather than add
+        genuinely new coverage.
+
+      No new opportunity source qualified this round. This is reported
+      as the correct outcome, not a shortfall, consistent with this
+      pass's own explicit instruction (section 39, "if only 5 genuine
+      fully funded university Master's scholarships exist, return 5" -
+      here, the honest count after two full Netherlands passes remains
+      3, with a fourth real candidate identified but currently
+      inaccessible without bypassing authentication).
+
+      **No code was changed this pass** - only
+      `docs/AUTHORITATIVE_SOURCES.md` and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md` were updated, appending this
+      continuation's findings. No new test run was required since no
+      source code, test, or fixture file changed; the existing
+      813-passed/25-skipped baseline from the Gates Cambridge addition
+      remains the accurate current count. One self-caught correction
+      during this pass: an early draft cited the existing World Bank
+      JJ/WBGSP source as "#57" from memory before writing it into the
+      documentation - checked the actual heading in
+      `docs/AUTHORITATIVE_SOURCES.md` before committing and found it is
+      actually "#45," fixed before finalizing rather than left to
+      propagate.

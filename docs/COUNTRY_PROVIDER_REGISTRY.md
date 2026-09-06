@@ -137,6 +137,27 @@ unverified).
 | 82 | Mastercard Foundation Scholars Program (McGill University) | Canada | UNIVERSITY | mcgill.ca | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for a Canada fully-funded Master's follow-up request; this registry's first Canada source of any kind (Canada was previously found NOT_SUITABLE at the national/government level via EduCanada's institution-initiated SICS program, a finding that remains correct and unaffected — this is a university-administered source instead); genuinely fully funded (full international student tuition + on-campus housing + monthly stipend + book allowance + return flight); eligibility page (not itself scraped) lists an explicit ~54-country table naming Sierra Leone directly; `Crawl-delay: 5` respected via a source-specific `min_request_interval_seconds = 5.0`; no deadline extracted (see AUTHORITATIVE_SOURCES.md #82) |
 | 83 | Gates Cambridge Scholarship (University of Cambridge / Gates Cambridge Trust) | England | UNIVERSITY | gatescambridge.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for an England fully-funded Master's university scholarship engine request; this registry's first England source classified as genuinely fully funded (the nine pre-existing England sources, #60-#68, are all partial); worldwide eligibility ("a citizen of any country outside the United Kingdom," no narrower list, Sierra Leone included); covers tuition + a GBP 22,050/year maintenance allowance + return airfare + visa costs + the Immigration Health Surcharge; funds one-year postgraduate courses (Master's-level) and MLitt, not only PhD; no deadline extracted (the separate Timeline page's dates vary by applicant category/course with no single canonical value) (see AUTHORITATIVE_SOURCES.md #83). Oxford's Clarendon Fund was researched as an equally strong candidate but `ox.ac.uk` is behind an active Cloudflare managed challenge on every path tested (including robots.txt) — not bypassed, `BLOCKED`. |
 
+**(2026-09-06, Netherlands continuation pass)** The Netherlands
+fully-funded-only mega-prompt was resubmitted after three genuinely
+fully-funded Dutch university sources already existed (TU Delft's Van
+Effen Scholarship #58, Groningen's Eric Bleumink Fellowship #72,
+Maastricht's High Potential Scholarship #74). A further live pass
+found no new qualifying source — see AUTHORITATIVE_SOURCES.md #83's
+continuation-pass note for full detail: TU Delft (only other full
+scheme found is the US-government-funded, faculty-restricted Fulbright
+Scholarship — external, not TU Delft's own); University of Twente's
+Kipaji and Professor De Winter scholarships (both dependent add-ons to
+the already-partial UTS, not independently full) and STEM for ALL
+(small, externally-funded, Bachelor's-oriented); Radboud University's
+Encouragement Scholarship (the one scholarship Radboud's own site
+filter tags "Full scholarship" — a strong, credible lead — but its
+detail page returns a SURFconext institutional login wall, "Login |
+Radboud University," genuinely inaccessible without authentication,
+not bypassed); and Erasmus University Rotterdam's Joint Japan/World
+Bank Graduate Scholarship Program at ISS (genuinely fully funded, but
+the same global World Bank programme already on this platform as
+source #45, not a separate Erasmus-specific scheme).
+
 Four other Spanish institutions were researched this pass and found
 unsuitable rather than integrated (see AUTHORITATIVE_SOURCES.md's
 "Researched this pass (Spain Master's/postgraduate follow-up), not
