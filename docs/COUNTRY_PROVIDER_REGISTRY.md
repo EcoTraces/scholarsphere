@@ -893,6 +893,23 @@ Master's university engine), not integrated" note for Tsinghua
 Zhejiang University (multi-record government/CGS hub), and Fudan
 (channels mainly to CGS/provincial funding, no standalone page found).
 
+**(2026-09-06, continuation pass)** The same request was resubmitted
+asking for continued search. Six further universities were checked
+live and no new qualifying source was found this round — see
+AUTHORITATIVE_SOURCES.md #81's continuation-pass note for full detail:
+Nanjing University and Wuhan University (CGS/municipal-only, no
+standalone university scheme); University of Science and Technology of
+China (its own scholarship page is stale, dated 2020, last updated
+2017); Renmin University of China (ambiguous tiered tuition awards,
+no described living stipend); Sun Yat-sen University (a real,
+distinct, non-CGS scheme, but its own page's `<h1>` literally reads
+"CLOSED | 2026 Guidelines," with no 2027/next-cycle language anywhere
+— a strong re-check candidate for a future pass); and Xi'an Jiaotong
+University's Siyuan International Student Scholarship (a real,
+distinct, non-CGS scheme, but its detail page is behind a genuine,
+active JavaScript anti-bot challenge — `BLOCKED`, not bypassed, the
+same category as China's own CSC portal above).
+
 ---
 
 ## Country coverage summary

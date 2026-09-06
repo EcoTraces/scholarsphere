@@ -28,6 +28,62 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — China fully-funded Master's engine, continuation pass: six more universities researched, no new source qualified
+
+### Added
+—
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — the China fully-funded Master's university scholarship request was
+  resubmitted verbatim, asking for continued search per its own
+  "automatic continuation" framing. Six further Chinese universities
+  were researched live, each rejected for a distinct, concrete reason
+  rather than a blanket "none found":
+  - **Nanjing University** — its central Scholarships page auto-
+    redirects via inline JavaScript straight to the Chinese Government
+    Scholarship page; the only other listed routes are the Nanjing
+    Municipal Scholarship (municipal government), the International
+    Chinese Language Teachers Scholarship (Confucius Institute-
+    specific), and the Confucius China Studies Program — no standalone
+    NJU-funded Master's scheme exists.
+  - **University of Science and Technology of China (USTC)** — its
+    international admissions site is genuinely stale: its own
+    scholarship detail page is titled "2020 USTC Scholarship Program"
+    (last updated 2017), and its Notice board's most recent
+    scholarship-relevant post is from 2022 — no 2023-2027 content found
+    anywhere.
+  - **Wuhan University** — every scholarship route found is Chinese
+    Government Scholarship-branded; no distinct WHU-funded scheme.
+  - **Sun Yat-sen University** — a genuinely real, distinct,
+    non-CGS-combinable scheme (tiered tuition waiver + up to RMB
+    30,000/year living allowance), but its own page's `<h1>` reads
+    verbatim "CLOSED | 2026 Guidelines," with no 2027/next-cycle
+    language anywhere on the page — a strong re-check candidate for a
+    future pass once a next cycle is published.
+  - **Renmin University of China** — only ambiguous, tiered "tuition
+    scholarships" with no described living-stipend component found.
+  - **Xi'an Jiaotong University — Siyuan International Student
+    Scholarship** — a real, distinct, non-CGS scheme (tiered monthly
+    stipends up to RMB 3,500/month), but its detail page is behind a
+    genuine, active JavaScript anti-bot challenge (browser
+    fingerprinting, a computed challenge hash posted to a
+    `/dynamic_challenge` endpoint) — `BLOCKED`, not bypassed, per this
+    project's standing anti-bot policy.
+
+  No new opportunity source was added this pass. Per this project's own
+  "accuracy over quantity" standard, a genuine second round of research
+  that finds no qualifying candidate is the correct, honest outcome to
+  report, not a gap to paper over with a weaker source.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Canada fully-funded Master's follow-up: McGill University Mastercard Foundation Scholars Program (83rd opportunity source)
 
 ### Added

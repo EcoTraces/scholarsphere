@@ -4108,3 +4108,104 @@ for the full dated history.
       `Crawl-delay: 5` directive exactly, rather than leaving this
       file's usual 2.0-second default in place for a site that asked
       for something more conservative.
+
+- [x] **(2026-09-06)** China fully-funded Master's engine, continuation
+      pass: the same 57-section China mega-prompt was resubmitted
+      verbatim after the first pass (which added PKU and SJTU, sources
+      #80-#81). Its own "AUTOMATIC CONTINUATION RULE" (section 55)
+      explicitly says not to stop after the first version and to keep
+      searching until no meaningful new authoritative sources remain -
+      treated this literally: continued the same university-by-
+      university search rather than re-implementing anything already
+      built, and reported back honestly on what six more universities'
+      own official pages actually said.
+
+      Checked Nanjing University, University of Science and Technology
+      of China, Wuhan University, Sun Yat-sen University, Renmin
+      University of China, and Xi'an Jiaotong University - six
+      genuinely distinct outcomes, not one repeated excuse:
+
+      - **Nanjing University**: its own "Scholarships" index page
+        (fetched directly) contains a single inline `<script>` that
+        immediately redirects to the Chinese Government Scholarship
+        page - about as concrete a piece of evidence as this project
+        has found anywhere that a university's scholarship story
+        begins and ends with CGS. The only other listed routes
+        (Nanjing Municipal, Confucius Institute Teachers, Confucius
+        China Studies) are all government/institute-branded, not
+        NJU's own money.
+      - **USTC**: found via search summaries claiming a comprehensive
+        "USTC Scholarship" package, but fetching the university's own
+        page directly (with the correct GB18030 encoding, since the
+        first UTF-8 attempt threw a decode error) revealed a page
+        titled "2020 USTC Scholarship Program," last updated
+        2017-04-10, with an application deadline of "March 31, 2020."
+        Checked the site's own Notice board for anything more recent -
+        the newest scholarship-relevant item found was a 2022 CGS
+        announcement. A textbook case of exactly the trap this
+        project's "never present stale content as current" rule exists
+        to catch: the 2020 page's own funding description (tuition +
+        accommodation + stipend + insurance) was genuinely
+        comprehensive, but presenting six-year-old figures as today's
+        offer would have been fabrication by omission.
+      - **Wuhan University**: every route surfaced was CGS-branded;
+        no standalone WHU page found.
+      - **Sun Yat-sen University**: the most interesting near-miss of
+        this round. Its own official 2026 guidelines page describes a
+        genuinely real, non-CGS-combinable, three-tier scheme (tuition
+        waiver + up to RMB 30,000/year living allowance for the top
+        tier) - exactly the shape this project looks for. But the
+        page's own `<h1>` is not a neutral title; it is literally
+        "CLOSED | 2026 Guidelines for the Application of Scholarship
+        for International Students at Sun Yat-sen University." Searched
+        the full page text directly for "2027" and "next" - neither
+        appears anywhere. Unlike University of Twente's ITC
+        scholarship (whose page volunteers "a possible next round is
+        expected to open in December"), SYSU's page gives no forward-
+        looking signal at all. Correctly left unintegrated per the
+        "never guess a future cycle from a stale prior one" rule,
+        flagged explicitly as worth re-checking once SYSU publishes a
+        2027 cycle.
+      - **Renmin University of China**: search results describe only
+        ambiguous "tuition scholarships" (full, partial, or a refund)
+        plus small named merit awards, with no living-stipend component
+        described anywhere - didn't fit the "tuition AND substantial
+        living support" bar clearly enough to warrant fetching the
+        official page directly for a second look this round.
+      - **Xi'an Jiaotong University's Siyuan International Student
+        Scholarship**: the other genuinely real near-miss - a named,
+        university-funded, tiered-stipend scheme distinct from CGS
+        (up to RMB 3,500/month for Master's students). Fetching its
+        official detail page directly (`sie.xjtu.edu.cn`) returned a
+        page titled "网站正在加载中..." ("website is loading...")
+        containing an inline JavaScript bot-detection challenge -
+        checking for `navigator.webdriver`/PhantomJS markers,
+        collecting browser fingerprint data, computing a hash, and
+        POSTing it to a `/dynamic_challenge` endpoint before a
+        client-side redirect to the real content. This is the same
+        category of active anti-bot defense already encountered and
+        correctly left alone for China's own CSC portal, Cyprus, and
+        Brazil earlier in this project - recognized quickly specifically
+        because this project has now seen this exact pattern (dynamic
+        JS challenge computing a token before granting access) several
+        times before. Not bypassed; recorded as `BLOCKED`.
+
+      No new opportunity source qualified this round. This is reported
+      as the correct outcome, not a shortfall: this project's own
+      "accuracy over quantity" standard (echoed in the request's own
+      section 57, "a verified list of 15... is better than 200
+      inaccurate") means a genuine second pass that finds zero new
+      qualifying sources is exactly what should happen once the
+      easiest, cleanest candidates (PKU, SJTU) have already been
+      found and the remaining candidates are all either government-
+      branded, stale, ambiguous, closed-with-no-next-cycle, or
+      bot-protected.
+
+      **No code was changed this pass** - only
+      `docs/AUTHORITATIVE_SOURCES.md` and
+      `docs/COUNTRY_PROVIDER_REGISTRY.md` were updated, appending this
+      continuation's findings to the existing "Researched this pass"
+      sections from the prior China pass. No new test run was required
+      since no source code, test, or fixture file changed; the existing
+      811-passed/25-skipped baseline from the McGill addition remains
+      the accurate current count.

@@ -4494,6 +4494,78 @@ provider is the Chinese government, not the university itself:
   monthly stipend — `TUITION_ONLY`, correctly not classified as fully
   funded and not integrated as its own record.
 
+**(2026-09-06, continuation pass)** The same request was resubmitted
+asking for continued search. Six further Chinese universities were
+researched live and found genuinely unsuitable rather than integrated,
+none for the same reason twice:
+
+- **Nanjing University** — its central "Scholarships" page (English
+  site) auto-redirects via inline JavaScript straight to the Chinese
+  Government Scholarship page, and the only other listed options are
+  the Nanjing Municipal Scholarship (municipal government), the
+  International Chinese Language Teachers Scholarship (Confucius
+  Institute-specific, not a general Master's route), and the Confucius
+  China Studies Program (China-studies research fellowship) — no
+  standalone NJU-funded Master's scheme exists at all, confirmed by
+  reading the university's own scholarship menu directly rather than a
+  third-party summary.
+- **University of Science and Technology of China (USTC)** — its
+  international admissions site (`isa.ustc.edu.cn`) is genuinely stale:
+  its own "Scholarship" detail page is titled "2020 USTC Scholarship
+  Program" (last updated 2017-04-10, application deadline "March 31,
+  2020"), and its Notice board's most recent scholarship-relevant post
+  is a "2022 USTC 'Chinese Government Scholarship – Chinese University
+  Program'" announcement — no 2023-2027 content of any kind was found
+  anywhere on the site. Per this project's "never present stale content
+  as current" rule, not integrated regardless of how the 2020-era page
+  itself described the funding package.
+- **Wuhan University** — every scholarship route found (live search,
+  not the university's own page directly, since no standalone WHU-
+  funded page turned up) is Chinese Government Scholarship-branded;
+  no distinct Wuhan University-funded Master's scheme was found.
+- **Sun Yat-sen University** — a genuinely real, distinct,
+  university-funded scheme (First/Second/Third-Class tiers, tuition
+  waiver plus a living allowance up to RMB 30,000/year for the top
+  tier, explicitly *not* combinable with CGS/CLEC funding, so a real
+  non-government alternative in spirit) — but its own official page's
+  `<h1>` reads, verbatim, "CLOSED | 2026 Guidelines for the Application
+  of Scholarship for International Students at Sun Yat-sen University."
+  No "2027," "next cycle," or forward-looking language of any kind
+  appears anywhere on the page (confirmed by a direct text search) —
+  unlike University of Twente's ITC Excellence Scholarship (which
+  states "a possible next round is expected to open in December"),
+  this page gives no evidence a next cycle is coming, so per the "never
+  guess a future cycle from a stale prior one" rule, not integrated. A
+  strong candidate to re-check in a future pass once a 2027 cycle is
+  published.
+- **Renmin University of China** — a live search found only ambiguous,
+  tiered "tuition scholarships" described as covering "full tuition or
+  partial tuition, or a tuition refund," plus small named merit awards
+  (Academic Performance/Progress/Social Activity/Leadership) with no
+  living-stipend component described — `UNVERIFIED`/`PARTIALLY_FUNDED`
+  in spirit; the official page itself was not fetched directly since
+  the available evidence already read as insufficiently comprehensive
+  to warrant it.
+- **Xi'an Jiaotong University — Siyuan International Student
+  Scholarship** — a real, named, university-funded scheme (tiered
+  monthly stipends up to RMB 3,500/month for Master's students,
+  distinct from CGS) discovered via live search, but its own detail
+  page (`sie.xjtu.edu.cn`) returned a genuine, active JavaScript
+  anti-bot challenge on direct fetch — a "网站正在加载中..." ("website
+  is loading...") interstitial that fingerprints the browser
+  (`navigator.webdriver`/PhantomJS detection), computes a challenge
+  hash, and POSTs it to a `/dynamic_challenge` endpoint before
+  redirecting — the same class of active bot-protection already
+  documented for China's own CSC portal, Cyprus, and Brazil elsewhere
+  in this project. Per this project's "never bypass CAPTCHA/anti-bot
+  protection" rule, not circumvented; recorded as `BLOCKED`, not
+  pursued further.
+
+No new source was added this continuation pass — per this project's
+own "accuracy over quantity" standard, a genuine second round of
+research that finds no qualifying candidate is itself the correct,
+honest outcome, not a gap to paper over.
+
 ## 82. McGill University — Mastercard Foundation Scholars Program
 
 Researched 2026-09-06, in response to a request for another fully
