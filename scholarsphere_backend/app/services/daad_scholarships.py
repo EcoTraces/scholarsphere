@@ -25,6 +25,14 @@ Confirmed 2026-08-22 against the real site:
   (no JavaScript needed to read it) with the programme name in `<title>`
   (before the " - DAAD" suffix) and its content inside
   `#ifa-stipendien-detail`, including an "Application deadline" `<h3>`.
+
+`_FUNDING_TYPE_OVERRIDES` (added 2026-09-06): none of the original six
+seed ids had a `funding_type` classification at all - this adapter
+predates that field being used elsewhere in the codebase. Rather than
+retroactively guess a classification for programmes not researched with
+that question in mind, this dict only classifies detail ids that were
+*specifically* researched for their funding completeness; every other id
+keeps `funding_type = None` exactly as before, unaffected.
 """
 
 import logging
@@ -41,6 +49,23 @@ from app.services.web_scraper_base import WebScraperSource, clean_text
 logger = logging.getLogger(__name__)
 
 _TITLE_SUFFIX = " - DAAD"
+
+#: Explicit funding-completeness classification for individually
+#: researched detail ids only - see module docstring. Detail id
+#: "10000108" is the Konrad-Adenauer-Stiftung (KAS): Scholarship
+#: Programme for International Students - genuinely fully funded for
+#: Bachelor's/Master's recipients (monthly grant of EUR 992, pegged to
+#: Germany's standard BAfoeG maximum living-cost rate, plus health- and
+#: long-term-care insurance and child/family allowances where
+#: applicable) at German public universities, which charge no tuition
+#: fees for a first Master's degree in 15 of Germany's 16 federal
+#: states - documented honestly rather than glossed over: the one
+#: well-known exception is Baden-Wuerttemberg, which has charged non-EU
+#: students tuition (around EUR 1,500/semester) since 2017, and this
+#: programme's own page does not separately address that state's fee.
+_FUNDING_TYPE_OVERRIDES: dict[str, str] = {
+    "10000108": "fully_funded",
+}
 
 
 class DaadScholarshipsSource(WebScraperSource):
@@ -105,6 +130,7 @@ class DaadScholarshipsSource(WebScraperSource):
             country="Germany",
             description=description,
             deadline=deadline,
+            funding_type=_FUNDING_TYPE_OVERRIDES.get(detail_id),
             opportunity_status="posted",
             official_source_url=url,
             official_application_url=url,

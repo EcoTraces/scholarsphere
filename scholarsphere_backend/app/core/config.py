@@ -162,6 +162,14 @@ class Settings(BaseSettings):
         "57742130",
         "57135739",
         "10000486",
+        # Konrad-Adenauer-Stiftung (KAS): Scholarship Programme for
+        # International Students - added 2026-09-06 in response to a
+        # request for another fully funded Master's scholarship in
+        # Germany. Genuinely fully funded (see
+        # `daad_scholarships.py::_FUNDING_TYPE_OVERRIDES`); this DAAD
+        # detail page's own country-eligibility dropdown lists "Sierra
+        # Leone" by name.
+        "10000108",
     ]
     china_embassy_sl_base_url: str = "https://sl.china-embassy.gov.cn"
     mthe_sl_base_url: str = "https://www.mthe.gov.sl"

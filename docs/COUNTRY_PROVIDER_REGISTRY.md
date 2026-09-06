@@ -95,6 +95,33 @@ that were actually built this session (in two batches).
 | 67 | Durham Inspiring Excellence Scholarship (Undergraduate) (Durham University) | England | UNIVERSITY | durham.ac.uk | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, a fifth England postgraduate/masters/undergraduate follow-up, this registry's first Durham University source; competitive partial tuition-fee discount (GBP 15,000-30,000 over 3 years) for self-funded international applicants, Sept 2027 entry; no country restriction; exact deadline extracted (7 December 2026, the first of three application rounds) (see AUTHORITATIVE_SOURCES.md #67) |
 | 68 | Durham Inspiring Excellence Scholarship (Postgraduate) (Durham University) | England | UNIVERSITY | durham.ac.uk | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass, Master's-level counterpart of #67; competitive partial tuition-fee discount (up to GBP 10,000) for a one-year taught Master's programme, Sept 2027 entry; no country restriction; same exact deadline extracted (7 December 2026) (see AUTHORITATIVE_SOURCES.md #68) |
 | 69 | Deutschlandstipendium (University of Freiburg) | Germany | UNIVERSITY | uni-freiburg.de | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, this registry's second Germany-university source (after TUM, #59), in response to a Germany postgraduate/masters/undergraduate follow-up; EUR 300/month one-year stipend for enrolled undergraduate *or* Master's students, no country restriction; deliberately no deadline extracted (page's stated "31 March 2028" closing date contradicts its own one-month-window description elsewhere, reading as a likely site typo, not a fact to report) (see AUTHORITATIVE_SOURCES.md #69) |
+
+**(2026-09-06, separate pass)** In response to a request for another
+fully funded Master's scholarship in Germany, added the
+**Konrad-Adenauer-Stiftung (KAS): Scholarship Programme for
+International Students** — not as a new numbered row, but as a seventh
+monitored detail id (`10000108`) added to the *existing* DAAD source
+(#10, GOVERNMENT-classified, pre-existing before this registry), per
+that adapter's own documented "extend by adding ids" design. Genuinely
+fully funded (EUR 992/month, Germany's BAfoeG maximum living-cost rate,
+plus insurance/family allowances, at universities charging no tuition
+for a first Master's in 15 of 16 federal states — Baden-Württemberg's
+narrower non-EU tuition fee is the one documented exception); the live
+page's own country dropdown lists Sierra Leone by name. Two other
+German candidates were researched and rejected: Konrad-Adenauer-
+Stiftung's own website (`kas.de`) is blocked by a Web Application
+Firewall — not bypassed, used the identical programme's DAAD-hosted
+mirror instead; and Friedrich-Ebert-Stiftung's International Students
+Scholarship, whose own page requires the applicant to "already study in
+Germany" — support for already-enrolled students, not a scholarship a
+prospective Sierra Leonean applicant could use to fund initial
+admission from abroad (see AUTHORITATIVE_SOURCES.md #10's 2026-09-06
+update and its "Researched this pass (Germany fully-funded Master's
+follow-up), not integrated" note for full detail, including RWTH
+Aachen, the Elite Network of Bavaria's Max Weber Programme, Constructor
+University, and Hertie School Berlin, all rejected as partial or
+unverified).
+
 | 70 | Amsterdam Merit Scholarship, Master's (University of Amsterdam) | Netherlands | UNIVERSITY | uva.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, an exhaustive Netherlands university expansion pass, this registry's second Netherlands-university source (after TU Delft, #58); non-EU/EEA-only merit scholarship, no deadline/amount asserted (page states both vary per faculty) (see AUTHORITATIVE_SOURCES.md #70) |
 | 71 | Amsterdam Merit Scholarship, Bachelor's (University of Amsterdam) | Netherlands | UNIVERSITY | uva.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass, undergraduate counterpart of #70; same non-EU/EEA eligibility and no-deadline reasoning (see AUTHORITATIVE_SOURCES.md #71) |
 | 72 | Eric Bleumink Fellowship (University of Groningen) | Netherlands | UNIVERSITY | rug.nl | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, same pass; restricted to an explicit ~80-country list confirmed to include Sierra Leone; nomination-based (no separate application), genuinely fully-funded (tuition + travel + subsistence + insurance); no deadline extracted (year-less recurring dates) (see AUTHORITATIVE_SOURCES.md #72) |
@@ -846,7 +873,7 @@ checking the full implementation against that exact list.
 | Sweden | SUPPORTED | Live-verified |
 | Italy | SUPPORTED | Live-verified |
 | Greece | SUPPORTED | Live-verified |
-| Germany | SUPPORTED | Pre-existing (DAAD) |
+| Germany | SUPPORTED | Pre-existing (DAAD); a fully funded Master's addition (Konrad-Adenauer-Stiftung, monitored via a new DAAD detail id) added 2026-09-06 — see row 69 area / AUTHORITATIVE_SOURCES.md #10's 2026-09-06 update; also has two Germany-university sources, TUM (#59) and Freiburg Deutschlandstipendium (#69), both partial funding |
 | India | PARTIALLY_SUPPORTED | Blocked by ICCR's TLS chain issue |
 | Eswatini | NOT_SUITABLE | Reachability fixed 2026-08-29 (bare host, not "www."), but real content is a domestic student-loan portal with no scholarship/SADC text - adapter correctly extracts nothing |
 | South Africa | PARTIALLY_SUPPORTED | Blocked by the same TLS chain issue class as India |

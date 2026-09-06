@@ -28,6 +28,86 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-06] — Germany fully-funded Master's follow-up: Konrad-Adenauer-Stiftung Scholarship Programme (extends the existing DAAD source)
+
+### Added
+- `app/services/daad_scholarships.py` — a seventh monitored detail id
+  (`10000108`) added to the *existing* DAAD Scholarship Database source
+  (#10), in response to a request for another fully funded Master's
+  scholarship in Germany: the **Konrad-Adenauer-Stiftung (KAS):
+  Scholarship Programme for International Students**. This is an
+  addition to an existing multi-record source, not a new
+  `OpportunitySource` row — the adapter's own module docstring already
+  documents "adding more ids to that setting" as the intended way to
+  grow its coverage, so the platform's total registered-source count is
+  unaffected by this change.
+  - Genuinely fully funded: a monthly grant of EUR 992 for Bachelor's/
+    Master's recipients (Germany's standard BAföG maximum living-cost
+    rate) plus health- and long-term-care insurance and child/family
+    allowances where applicable, at German public universities, which
+    charge no tuition for a first Master's degree in 15 of Germany's 16
+    federal states. Documented honestly rather than glossed over: the
+    one well-known exception is Baden-Württemberg, which has charged
+    non-EU students tuition (around EUR 1,500/semester) since 2017,
+    and this programme's own page does not separately address that
+    state.
+  - Eligibility: the live page's own country-eligibility dropdown lists
+    "Sierra Leone" by name among roughly 150 countries — confirmed
+    directly against the live site during research, not inferred from
+    a vague regional label.
+  - New `_FUNDING_TYPE_OVERRIDES` dict in `daad_scholarships.py`:
+    the adapter's original six seed ids were never individually
+    researched for funding completeness and predate this field's use
+    elsewhere in the codebase, so rather than retroactively guess a
+    classification for them, only this specifically-researched id is
+    classified — the other six keep `funding_type = None` exactly as
+    before, unaffected.
+  - Deliberately extracts no deadline: the page states "Closing date
+    for applications is 15 July (12 o'clock noon) of each year" — a
+    real, recurring annual cycle with no year attached, so
+    `extract_confident_date_after` correctly resolves to `None` rather
+    than guessing a year, verified directly with a standalone script.
+  - Fully wired within the existing adapter (no new config base URL,
+    Celery task, or source-registry entry needed — this source already
+    syncs every 24 hours); one new fixture-backed test plus a
+    regression test confirming the other six seed ids remain
+    unclassified.
+
+  Two other German candidates were researched live and rejected (see
+  `docs/AUTHORITATIVE_SOURCES.md`'s new "Researched this pass (Germany
+  fully-funded Master's follow-up), not integrated" section for full
+  detail, including RWTH Aachen, the Elite Network of Bavaria's Max
+  Weber Programme, Constructor University, and Hertie School Berlin):
+  - **Konrad-Adenauer-Stiftung's own website** (`kas.de`) — genuine
+    bot-protection: `kas.de/robots.txt` itself returns a Web
+    Application Firewall block page, not a robots.txt. Per this
+    project's "never bypass CAPTCHA/bot-protection" rule, not
+    circumvented — used the identical programme's DAAD-hosted mirror
+    page instead (already an audited, unblocked source for this
+    platform).
+  - **Friedrich-Ebert-Stiftung (FES): Scholarship for International
+    Students** — a real, generous programme with an explicit,
+    checkable eligibility rule (Sierra Leone qualifies), but its own
+    page states applicants must "already study in Germany" — support
+    for already-enrolled students, not a scholarship a prospective
+    Sierra Leonean applicant could use to fund initial admission from
+    abroad, unlike KAS.
+
+- **Verified**: full backend test suite — 805 passed, 25 skipped (up
+  from 803 passed before this change), 0 failed; `pyflakes` clean on
+  every changed/new file.
+
+### Changed
+—
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — France fully-funded Master's university scholarship engine: Sciences Po Mastercard Foundation Scholars Program (80th opportunity source)
 
 ### Added

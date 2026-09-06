@@ -89,3 +89,78 @@ async def test_no_year_adjacent_deadline_text_is_left_null(
     result = await source.collect()
 
     assert result[0].deadline is None
+
+
+@pytest.mark.asyncio
+async def test_kas_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Konrad-Adenauer-Stiftung (KAS): Scholarship Programme for
+    International Students (detail id 10000108) - added 2026-09-06 in
+    response to a request for another fully funded Master's scholarship
+    in Germany. Real HTML fetched from www2.daad.de on 2026-09-06.
+
+    Genuinely fully funded per `_FUNDING_TYPE_OVERRIDES`: a monthly
+    grant of EUR 992 (Germany's standard BAfoeG maximum living-cost
+    rate) plus health/long-term-care insurance and family allowances,
+    and German public universities charge no tuition for a first
+    Master's degree in 15 of 16 federal states (Baden-Wuerttemberg's
+    narrower non-EU tuition fee is the one documented exception, noted
+    in the source rather than hidden).
+
+    The live page's own country-eligibility dropdown lists "Sierra
+    Leone" by name (confirmed directly against the live site during
+    research) - though that dropdown text falls past the shared
+    adapter's 5000-character description truncation for this
+    particular (longer than usual) page, so it is not itself asserted
+    on the stored `description` here.
+
+    No deadline extracted: the page states "Closing date for
+    applications is 15 July (12 o'clock noon) of each year" - a
+    real, recurring annual cycle with no year attached, so
+    `extract_confident_date_after` correctly resolves to `None` rather
+    than guessing a year - the same pattern already covered by
+    `test_no_year_adjacent_deadline_text_is_left_null` for a different
+    detail id."""
+    source = DaadScholarshipsSource()
+    source.detail_ids = ["10000108"]
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("daad_detail_kas.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "10000108"
+    assert (
+        opportunity.title
+        == "Konrad-Adenauer-Stiftung (KAS): Scholarship Programme for International Students"
+    )
+    assert opportunity.country == "Germany"
+    assert opportunity.provider_name == "DAAD (German Academic Exchange Service)"
+    assert opportunity.description is not None
+    assert "992 EUR" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_other_seed_ids_keep_no_funding_type_classification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The five original seed ids were never individually researched for
+    funding completeness - adding the KAS override must not retroactively
+    assign them a classification."""
+    from app.services.daad_scholarships import _FUNDING_TYPE_OVERRIDES
+
+    for original_id in (
+        "50026200",
+        "50076777",
+        "57742121",
+        "57742130",
+        "57135739",
+        "10000486",
+    ):
+        assert _FUNDING_TYPE_OVERRIDES.get(original_id) is None

@@ -3727,3 +3727,127 @@ for the full dated history.
       assertion, 79 -> 80 registered sources). The fixture
       (`tests/fixtures/sciencespo_mastercard_scholars.html`) was
       captured unmodified from the live site.
+
+- [x] **(2026-09-06)** "Find another fully funded master's scholarship
+      in Germany" request: added the Konrad-Adenauer-Stiftung (KAS):
+      Scholarship Programme for International Students - see
+      Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #10's 2026-09-06 update for full
+      detail. Unlike every other addition this session, this is *not* a
+      new `OpportunitySource` row - it is a seventh monitored detail id
+      added to the pre-existing DAAD Scholarship Database source (#10),
+      via `Settings.daad_scholarship_detail_ids`, exactly as that
+      adapter's own module docstring already describes as the intended
+      way to extend its coverage ("extending coverage means adding more
+      ids to that setting... not writing more scraping code"). The
+      platform's registered-source count stays at 80; a new individual
+      scholarship record is added within an existing source instead.
+
+      Before reaching that shape, first checked whether Germany already
+      had a fully-funded Master's option: the DAAD adapter's existing
+      six seed ids already include "Study Scholarships - Master Studies
+      for All Academic Disciplines" (id 50026200) and two other
+      Master's-eligible DAAD programmes (EPOS, STEM disciplines) -
+      DAAD's own flagship Master's scholarship was therefore already
+      covered, ruling it out as "another" option and pointing the
+      search toward German university-administered or foundation-
+      administered alternatives instead.
+
+      The core research finding was that Germany's free-public-tuition
+      norm changes what "fully funded" has to mean in practice: unlike
+      France or Spain, where full tuition coverage is itself the hard
+      part, German public universities already charge no tuition for a
+      first Master's degree in 15 of 16 federal states, so the real bar
+      became "does this programme's own page state a living-cost
+      package comprehensive enough to not need the tuition question at
+      all." Two political-party-affiliated foundations came up
+      repeatedly in this space, both discoverable through DAAD's own
+      scholarship database (each foundation has its own `?detail=<id>`
+      entry there, confirmed via direct HTML fetch of both):
+
+      - **Konrad-Adenauer-Stiftung (KAS)**, detail id 10000108: a
+        monthly grant of EUR 992 for Bachelor's/Master's recipients
+        (Germany's own standard BAfoeG maximum living-cost reference
+        rate) plus health/long-term-care insurance and family
+        allowances, over a standard 2-year Master's funding period. Its
+        own page's country-eligibility dropdown - a literal `<select>`
+        of ~150 countries used to gate who may even start an
+        application - was checked directly and confirmed to list
+        "Sierra Leone" by name, satisfying this project's "never infer
+        eligibility from a vague label" rule about as concretely as
+        possible. Added.
+      - **Friedrich-Ebert-Stiftung (FES)**, detail id 10000153: on
+        paper an even more generous package (up to EUR 1,500/month per
+        some third-party aggregators, though DAAD's own page states EUR
+        992 base + insurance + child allowance) with an explicit,
+        checkable eligibility rule (Global South/post-Soviet/eastern-
+        and-south-eastern-EU applicants, explicitly excluding OECD
+        countries - Sierra Leone is African and not OECD, so it
+        qualifies on both the inclusion and exclusion halves of that
+        rule). Rejected anyway for a reason worth stating plainly: its
+        own Academic Requirements section says applicants need
+        "enrolment at a state or state-recognised higher education
+        institution in Germany" and its Target Group description says
+        candidates "already study in Germany" - this is ongoing support
+        for students already admitted and enrolled, not a scholarship a
+        prospective Sierra Leonean applicant could use to fund *initial*
+        admission from abroad, unlike KAS (whose own text has no such
+        prior-enrolment requirement for Master's applicants). This
+        distinction mirrors the earlier-session discipline around not
+        conflating "PhD employment" with "PhD scholarship" - here it is
+        "already-enrolled support" vs. "new-applicant scholarship,"
+        and getting it right matters for whether this platform's actual
+        target users could use the opportunity at all.
+
+      A third finding worth recording: KAS's *own* website (`kas.de`)
+      returned a Web Application Firewall block page in place of a
+      robots.txt when checked directly - genuine bot-protection, not
+      circumvented per this project's absolute rule. The identical
+      programme remains real and usable because DAAD's own database
+      (`www2.daad.de`, this platform's existing, already-audited,
+      unblocked host for six other programmes) independently hosts and
+      maintains the same programme's official detail page - so the
+      programme was still added, sourced from DAAD's mirror rather than
+      KAS's blocked site, rather than treated as unreachable.
+
+      Implementation-wise, this required one small, deliberately
+      isolated code change beyond adding the id itself: the existing
+      `DaadScholarshipsSource._normalize` method has never set
+      `funding_type` at all (it predates that field's use elsewhere in
+      this codebase) - rather than either leaving the new KAS record
+      unclassified (failing to answer the user's actual "fully funded"
+      question) or retroactively guessing a classification for the
+      other six long-standing seed ids that were never researched with
+      that question in mind, added a small `_FUNDING_TYPE_OVERRIDES`
+      dict keyed by detail id, defaulting to `None` for every id not
+      explicitly present - confirmed via a dedicated regression test
+      that the other six ids' classification is unaffected.
+
+      Four other German candidates were researched live and rejected:
+      RWTH Aachen's High Potential Student Grant and Global Talent
+      Scholarship (both explicitly partial tuition coverage); the Elite
+      Network of Bavaria's Max Weber Programme (a "Semester Allowance,"
+      not an explicit full-cost statement, plus a German B2/C1 language
+      precondition); Constructor University/Jacobs University Bremen
+      (current scholarships explicitly partial; a historical "full
+      tuition" one-off from 2022 could not be confirmed as a current,
+      recurring programme); and Hertie School Berlin (its full
+      scholarships are explicitly tuition-only, with living-cost
+      support, where it exists, coming from separate third-party
+      organisations rather than the school itself).
+
+      **Verified for real**: `pyflakes app tests` clean; a standalone
+      script confirmed `extract_confident_date_after` correctly
+      resolves to `None` on the KAS page's year-less "15 July" recurring
+      deadline text, and a `collect()` simulation against the real
+      fixture confirmed title, funding_type = "fully_funded", and
+      deadline = None all resolve exactly as documented before any test
+      was written; full backend suite green afterward, 805 passed / 25
+      skipped (up from 803 - two new tests in
+      `test_daad_scholarships.py`: one fixture-backed collect test for
+      the new detail id, one regression test confirming the other six
+      seed ids keep no funding_type classification). No change to
+      `test_opportunity_import.py`'s source-count assertion (still 80 -
+      this addition does not create a new `OpportunitySource` row). The
+      fixture (`tests/fixtures/daad_detail_kas.html`) was captured
+      unmodified from the live site.

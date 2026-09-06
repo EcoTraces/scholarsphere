@@ -258,6 +258,102 @@ program.
 - **Notes**: `scholarsphere_backend/tests/test_daad_scholarships.py`, tested
   against real HTML fetched from the live site on 2026-08-22 (see
   `tests/fixtures/daad_detail.html`)
+- **(2026-09-06 update)** Added a seventh monitored detail id,
+  `10000108` — **Konrad-Adenauer-Stiftung (KAS): Scholarship Programme
+  for International Students** — in response to a request for another
+  fully funded Master's scholarship in Germany. This is an addition to
+  this *existing* multi-record source (extending
+  `Settings.daad_scholarship_detail_ids`, exactly as this adapter's own
+  module docstring describes as the intended way to grow coverage), not
+  a new 81st `OpportunitySource` row — the platform's total registered-
+  source count is unaffected.
+  - Genuinely fully funded: a monthly grant of EUR 992 for Bachelor's/
+    Master's recipients (Germany's standard BAfoeG maximum living-cost
+    rate) plus health- and long-term-care insurance and child/family
+    allowances where applicable, at German public universities, which
+    charge no tuition for a first Master's degree in 15 of Germany's 16
+    federal states. Documented honestly rather than glossed over: the
+    one well-known exception is Baden-Württemberg, which has charged
+    non-EU students tuition (around EUR 1,500/semester) since 2017, and
+    this programme's own page does not separately address that state.
+  - **Country coverage / eligibility**: the live page's own
+    country-eligibility dropdown (used to gate which country's
+    applicants may apply) lists "Sierra Leone" by name among ~150
+    countries — confirmed directly against the live site during
+    research. That dropdown text falls past this shared adapter's
+    5000-character description-truncation for this particular (longer
+    than most) detail page, so it is not itself present in the stored
+    `description`, but eligibility was still verified against the live
+    page's actual HTML, not inferred from a vague label.
+  - **`funding_type` implementation note**: the original six seed ids
+    were never individually researched for funding completeness and
+    predate this field's use elsewhere in the codebase — rather than
+    retroactively guessing a classification for programmes not
+    researched with that question in mind, a new
+    `_FUNDING_TYPE_OVERRIDES` dict in `daad_scholarships.py` classifies
+    only this specifically-researched id; the other six keep
+    `funding_type = None` exactly as before, unaffected.
+  - Deliberately extracts no deadline: the page states "Closing date
+    for applications is 15 July (12 o'clock noon) of each year" — a
+    real, recurring annual cycle with no year attached, so
+    `extract_confident_date_after` correctly resolves to `None` rather
+    than guessing a year, the same pattern already covered by this
+    source's own `test_no_year_adjacent_deadline_text_is_left_null`
+    test for a different detail id.
+  - **LIVE SOURCE TEST: PASSED 2026-09-06.** Verified through this
+    backend's actual HTTP path — 200, real server-rendered HTML from
+    `www2.daad.de`. Implemented and unit-tested against a real fixture,
+    captured unmodified from the live fetch
+    (`tests/fixtures/daad_detail_kas.html`).
+
+### Researched this pass (Germany fully-funded Master's follow-up), not integrated
+
+- **Konrad-Adenauer-Stiftung's own website** (`kas.de`) — genuine
+  bot-protection: `kas.de/robots.txt` itself returns a Web Application
+  Firewall block page ("Your request was blocked due to security
+  reasons"), not a robots.txt. Per this project's "never bypass
+  CAPTCHA/bot-protection" rule, not circumvented — used the identical
+  programme's DAAD-hosted mirror page instead (`www2.daad.de`, already
+  an audited, unblocked source for this platform), which is not
+  KAS's own site but is DAAD's own official database entry for the
+  programme.
+- **Friedrich-Ebert-Stiftung (FES): Scholarship for International
+  Students** — a real, generous programme (base stipend EUR 992-1,500/
+  month, health insurance, child allowance) with an explicit,
+  checkable eligibility rule (Global South/post-Soviet/eastern-and-
+  south-eastern-EU applicants, explicitly excluding OECD countries —
+  Sierra Leone qualifies on both counts), but its own DAAD-hosted page
+  states applicants must "already study in Germany" and have
+  "enrolment at a state or state-recognised higher education
+  institution in Germany" as an Academic Requirement — this is
+  support for students already admitted/enrolled in Germany, not a
+  scholarship a prospective Sierra Leonean applicant could use to fund
+  initial admission from abroad, unlike KAS (whose own page does not
+  state a prior-enrolment requirement for Master's applicants). Left
+  unintegrated for this specific "another Master's scholarship"
+  request rather than presented as an equivalent option.
+- **RWTH Aachen** — its "High Potential Student Grant" (up to 25%
+  tuition reduction) and "Global Talent Scholarship" (up to 35% tuition
+  coverage, restricted to five named countries not including Sierra
+  Leone) are both explicitly partial — `PARTIALLY_FUNDED`.
+- **Elite Network of Bavaria — Max Weber Programme** — a real, well-
+  regarded programme extending to Master's students at Bavarian
+  universities, but its own materials describe a "Semester Allowance"
+  of EUR 1,800/semester (not an explicit full-cost statement) and
+  require German language proficiency at B2/C1 level as a precondition
+  — `PARTIALLY_FUNDED`/out of scope for an English-medium applicant.
+- **Constructor University (formerly Jacobs University Bremen)** — its
+  current, generally-available scholarships (Academic Achievement,
+  Talent) are explicitly partial tuition coverage (EUR 7,000-10,000/
+  year against tuition well above that); a historical one-off "full
+  tuition" scholarship reported for fall 2022 could not be confirmed as
+  a current, recurring programme on the university's own site —
+  `PARTIALLY_FUNDED`/`UNVERIFIED`.
+- **Hertie School Berlin** — full scholarships exist but are explicitly
+  tuition-only ("cannot be used for anything other than tuition"),
+  with living-cost support, where available at all, coming from
+  separate third-party organisations rather than the school itself —
+  `TUITION_ONLY` relative to the school's own funding.
 
 ## 11. Chinese Embassy in Sierra Leone (Scholarship Announcements)
 
