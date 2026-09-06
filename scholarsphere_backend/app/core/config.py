@@ -323,6 +323,20 @@ class Settings(BaseSettings):
     # disallows TYPO3-internal paths.
     tum_international_scholarship_base_url: str = "https://www.tum.de"
 
+    # Imperial College London - Imperial Inspires scholarships, a
+    # partial scholarship (GBP 15,000/year, at least 300 awards) for
+    # international (Overseas-fee) undergraduate and selected
+    # postgraduate taught applicants for 2027 entry. robots.txt does not
+    # disallow this content path.
+    imperial_inspires_base_url: str = "https://www.imperial.ac.uk"
+
+    # Newcastle University - Vice-Chancellor's International
+    # Scholarships (Undergraduate), a partial (GBP 7,000/year) tuition
+    # fee award for international undergraduate applicants from a
+    # specific, explicitly-listed set of eligible countries/regions.
+    # robots.txt only disallows specific old PDF files, not this page.
+    newcastle_vcis_base_url: str = "https://www.ncl.ac.uk"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -472,6 +486,8 @@ class Settings(BaseSettings):
         "max_planck_schools_base_url",
         "tudelft_van_effen_base_url",
         "tum_international_scholarship_base_url",
+        "imperial_inspires_base_url",
+        "newcastle_vcis_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

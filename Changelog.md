@@ -28,6 +28,60 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-05] — England university expansion: Imperial Inspires and Newcastle VCIS (61st and 62nd opportunity sources; first England-university sources)
+
+### Added
+- `app/services/national_scholarship_programs.py::ImperialInspiresScholarshipSource`
+  and `::NewcastleVcInternationalScholarshipSource` — this platform's
+  61st and 62nd opportunity sources, added during a dedicated England
+  university-opportunity expansion pass. University sources go from 7
+  to 9; these are the registry's first two England-based university
+  sources.
+  - **Imperial Inspires scholarships** (Imperial College London) — a
+    new-for-2027-entry partial scholarship (GBP 15,000/year, "at least
+    300" awards) for international (Overseas-fee) undergraduate and
+    selected postgraduate taught applicants across four faculties.
+    Correctly classified `partial_funding`: the page itself says
+    applicants remain responsible for any remaining tuition and living
+    costs. No deadline extracted — the page states only "September
+    2026" (opening) and "mid-April 2027" (awarding), never a specific
+    calendar date.
+  - **Newcastle University Vice-Chancellor's International
+    Scholarships** — a partial (GBP 7,000/year) undergraduate tuition
+    award for the 2027/28 academic year, restricted to a specific,
+    explicitly-published list of eligible countries/regions (verified
+    directly from the live page). **Sierra Leone is not on that list** —
+    checked explicitly rather than assumed from "international
+    students," per this platform's standing Sierra-Leone-eligibility
+    discipline; the full list is preserved in the scraped description
+    so this is auditable from the stored record itself. A real
+    extraction subtlety: the page's raw HTML carries a second, stale
+    `<h1>` inside an HTML comment, which BeautifulSoup correctly never
+    surfaces as a real element (verified directly, not assumed). No
+    deadline extracted: the page's only dates are either open-ended
+    ("throughout the academic year") or ordinal-suffixed UCAS dates
+    that don't match the shared date-literal pattern — and are the
+    separate UCAS course-application deadline, not a distinct
+    scholarship deadline that doesn't actually exist here.
+  - Both fully wired: config settings, source registry entries, Celery
+    beat schedules + dedicated sync tasks, and fixture-backed tests
+    (fixtures captured unmodified from the live sites).
+
+  **Verified**: full backend suite green after the change (767 passed,
+  25 skipped, up from 763 — the two new sources' four tests plus the
+  updated `test_opportunity_import.py` source-count assertion, 60 -> 62
+  registered sources). `pyflakes app tests` clean (no new issues).
+
+  **Honest scope note**: the requesting brief named 40-60+ English
+  universities as a coverage goal. This pass verified 2 — both from the
+  brief's own named "important current examples," both real, both
+  fully wired and tested. The much larger university/faculty/department/
+  PhD-vacancy sweep the brief describes was not attempted at that scale
+  in this pass; quality-per-source (live HTTP verification, robots.txt
+  check, honest eligibility transcription, no fabricated deadlines) was
+  prioritized over breadth, consistent with the brief's own "quality
+  over quantity" and "if only 37 are found, report 37" instructions.
+
 ## [2026-09-05] — Germany + Netherlands university expansion: TU Delft and TUM (59th and 60th opportunity sources; first Germany-university source)
 
 ### Added

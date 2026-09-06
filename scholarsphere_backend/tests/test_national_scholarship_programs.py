@@ -42,7 +42,9 @@ from app.services.national_scholarship_programs import (
     EthZurichExcellenceScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
+    ImperialInspiresScholarshipSource,
     MaxPlanckSchoolsSource,
+    NewcastleVcInternationalScholarshipSource,
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
@@ -1814,4 +1816,96 @@ def test_tum_international_student_scholarship_has_no_robots_txt_restrictions() 
     source uses the default (unraised) crawl interval."""
     assert (
         TumInternationalStudentScholarshipSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- Imperial Inspires scholarships: real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_imperial_inspires_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = ImperialInspiresScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("imperial_inspires_scholarships.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "imperial-inspires-scholarships"
+    assert opportunity.title == "Imperial Inspires scholarships"
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "Imperial College London"
+    assert opportunity.description is not None
+    assert "at least 300 scholarships worth" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    # Applications open "September 2026" and awards are made "by
+    # mid-April 2027" - neither is a specific calendar date, so no
+    # deadline is extracted.
+    assert opportunity.deadline is None
+
+
+def test_imperial_inspires_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt only disallows unrelated Business School CMS/admin
+    paths, not this content page, so this source uses the default
+    (unraised) crawl interval."""
+    assert ImperialInspiresScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Newcastle University Vice-Chancellor's International Scholarships:
+# real fixture, fetched 2026-09-05
+
+
+@pytest.mark.asyncio
+async def test_newcastle_vc_international_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page's raw HTML has a second, stale <h1> wrapped inside an
+    HTML comment - BeautifulSoup correctly parses only the real, current
+    one ('...(2027)'). No deadline is extracted: the only dates on the
+    page are ordinal-suffixed ('13th January 2027') or describe the
+    separate UCAS course-application deadline, not this scholarship's
+    own ('Awards will be allocated throughout the academic year')."""
+    source = NewcastleVcInternationalScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("newcastle_vc_international_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "newcastle-vc-international-scholarship"
+    assert opportunity.title == (
+        "Vice-Chancellor's International Scholarships (Undergraduate) (2027)"
+    )
+    assert opportunity.country == "United Kingdom"
+    assert opportunity.provider_name == "Newcastle University"
+    assert opportunity.description is not None
+    assert "£7,000 per academic year" in opportunity.description
+    # Sierra Leone is not on the published eligible-country list -
+    # verified directly from the scraped description, not assumed.
+    assert "Sierra Leone" not in opportunity.description
+    assert "Ghana" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_newcastle_vc_international_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt only disallows a set of specific, unrelated old PDF
+    filenames, not this HTML page, so this source uses the default
+    (unraised) crawl interval."""
+    assert (
+        NewcastleVcInternationalScholarshipSource.min_request_interval_seconds == 2.0
     )

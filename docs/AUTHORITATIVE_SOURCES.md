@@ -2760,6 +2760,113 @@ its first in Germany.
   scholarships page above — out of scope for this pass's
   `_SingleProgramSource` pattern.
 
+## 60. Imperial Inspires scholarships (Imperial College London)
+
+Researched 2026-09-05, a dedicated England university expansion pass —
+this platform's 8th university-classified source and its first in
+England.
+
+- **Organization**: Imperial College London
+- **Route code**: `imperial-inspires-scholarships`
+  (`imperial_inspires_scholarship` internally)
+- **Official domain / base URL**: `https://www.imperial.ac.uk`
+  (`IMPERIAL_INSPIRES_BASE_URL`)
+- **Opportunity types**: Scholarship — "at least 300 scholarships worth
+  £15,000 per year" for 2027 entry, across undergraduate and selected
+  postgraduate taught courses in Engineering, Natural Sciences,
+  Medicine, and Imperial Business School
+- **Country coverage / eligibility**: International students eligible
+  to pay the "Overseas" rate of tuition. Explicitly a **partial**
+  scholarship — the page itself states "you will be responsible for
+  covering any remaining tuition fees and living costs not covered by
+  the award" — `funding_type = "partial_funding"`, never
+  `"fully_funded"`.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: Does not disallow this content path
+  (only unrelated Imperial Business School CMS/admin paths are
+  disallowed)
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline**: applications open "in
+    September 2026" and undergraduate scholarships are "awarded by
+    mid-April 2027" — both stated only as a month (or month + "mid-"),
+    never a specific calendar date, verified directly to not match the
+    shared confident-date pattern.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/imperial_inspires_scholarships.html`).
+
+## 61. Vice-Chancellor's International Scholarships (Newcastle University)
+
+Researched 2026-09-05, the same England expansion pass as Imperial
+Inspires (#60) — this platform's 9th university-classified source.
+
+- **Organization**: Newcastle University
+- **Route code**: `newcastle-vc-international-scholarship`
+  (`newcastle_vc_international_scholarship` internally)
+- **Official domain / base URL**: `https://www.ncl.ac.uk`
+  (`NEWCASTLE_VCIS_BASE_URL`)
+- **Opportunity types**: Scholarship — a partial (GBP 7,000/year)
+  tuition fee award for undergraduate applicants starting the 2027/28
+  academic year, `funding_type = "partial_funding"`
+- **Country coverage / eligibility**: Restricted to applicants domiciled
+  in a specific, explicitly-published list — verified directly from the
+  live page, not assumed from "international students eligible":
+  Algeria, Bahrain, Bangladesh, Brazil, Canada, Colombia, Egypt, Ghana,
+  Hong Kong, India, Indonesia, Japan, Jordan, Kenya, Malaysia, Mexico,
+  Morocco, Myanmar, Nepal, Nigeria, Norway, Pakistan, Peru, Singapore,
+  South Africa, South Korea, Sri Lanka, Switzerland, Taiwan, Thailand,
+  Turkey, UAE, Ukraine, USA, Vietnam, Zimbabwe, and all EU member
+  states. **Sierra Leone is not on this list** — checked explicitly per
+  this platform's standing "never assume African eligibility, verify
+  the actual list" rule; the description scraped for this record
+  preserves the full list so this is auditable from the stored data
+  itself, not just this document.
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-
+  rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: Only disallows a set of specific,
+  unrelated old PDF filenames — not this HTML page
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Title selector robustness**: the page's raw HTML contains a
+    *second*, stale `<h1>` wrapped inside an HTML comment — verified
+    directly that BeautifulSoup's tag parser only surfaces the real,
+    current one ("Vice-Chancellor's International Scholarships
+    (Undergraduate) (2027)"), confirming the commented-out duplicate
+    poses no risk of being picked up by `title_selectors = ("h1",)`.
+  - **Admission vs funding, recorded accurately**: the page states
+    eligible candidates are "automatically considered ... as part of
+    their academic course application" — no separate scholarship
+    application exists, preserved as-is in the scraped description
+    rather than a fabricated "apply here" step.
+  - **Deliberately extracts no deadline**: the page states "Awards will
+    be allocated throughout the academic year before the start of the
+    student's degree" (no fixed date) and separately references a UCAS
+    "Equal Consideration Deadline of 13th January 2027" and later dates
+    — all written with ordinal suffixes ("13th", "31st", "3rd") that
+    break the shared date-literal pattern's day-then-space requirement,
+    verified directly that none match. This also correctly avoids
+    conflating the *UCAS course-application* deadline with a distinct
+    *scholarship* deadline that doesn't actually exist here.
+- **LIVE SOURCE TEST: PASSED 2026-09-05.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/newcastle_vc_international_scholarship.html`).
+
 ### Researched previous pass, not integrated
 
 - **EU Marie Skłodowska-Curie Actions (MSCA) Postdoctoral Fellowships**

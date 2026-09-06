@@ -2129,3 +2129,94 @@ class TumInternationalStudentScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().tum_international_scholarship_base_url
+
+
+class ImperialInspiresScholarshipSource(_SingleProgramSource):
+    """Imperial Inspires scholarships - Imperial College London,
+    England. A new scholarship programme first offered for 2027 entry:
+    "at least 300 scholarships worth £15,000 per year for international
+    students eligible to pay our Overseas rate of tuition," covering
+    undergraduate and selected postgraduate taught courses across the
+    Faculties of Engineering, Natural Sciences, Medicine, and Imperial
+    Business School.
+
+    Confirmed 2026-09-05: `robots.txt` does not disallow this content
+    path (only unrelated Business School CMS/admin paths are
+    disallowed).
+
+    Explicitly a **partial** scholarship (`funding_type =
+    "partial_funding"`), not fully-funded - the page itself states
+    "you will be responsible for covering any remaining tuition fees and
+    living costs not covered by the award."
+
+    Deliberately extracts no deadline: applications open in September
+    2026 (stated only as a month/year, never a specific calendar date),
+    and undergraduate scholarships are "awarded by mid-April 2027"
+    (again no specific day) - neither matches the shared confident-date
+    pattern, verified directly against the live fixture, so nothing is
+    guessed.
+    """
+
+    source_code = "imperial_inspires_scholarship"
+    overview_path = "/study/fees-and-funding/imperial-inspires-scholarships/"
+    content_selectors = ("main#content",)
+    provider_name = "Imperial College London"
+    country = "United Kingdom"
+    external_id = "imperial-inspires-scholarships"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().imperial_inspires_base_url
+
+
+class NewcastleVcInternationalScholarshipSource(_SingleProgramSource):
+    """Vice-Chancellor's International Scholarships (Undergraduate) -
+    Newcastle University, England. A partial (GBP 7,000/year) tuition
+    fee award for the 2027/28 academic year, restricted to applicants
+    domiciled in a specific, explicitly-published list of countries/
+    regions (verified directly from the live page rather than assumed):
+    Algeria, Bahrain, Bangladesh, Brazil, Canada, Colombia, Egypt, Ghana,
+    Hong Kong, India, Indonesia, Japan, Jordan, Kenya, Malaysia, Mexico,
+    Morocco, Myanmar, Nepal, Nigeria, Norway, Pakistan, Peru, Singapore,
+    South Africa, South Korea, Sri Lanka, Switzerland, Taiwan, Thailand,
+    Turkey, UAE, Ukraine, USA, Vietnam, Zimbabwe, and all EU member
+    states. Sierra Leone is **not** on this list - verified directly,
+    not assumed from "African students eligible."
+
+    Confirmed 2026-09-05: `robots.txt` only disallows a set of specific,
+    unrelated old PDF filenames - not this HTML page.
+
+    `title_selectors = ("h1",)`: the page's raw HTML contains a *second*,
+    stale `<h1>` wrapped inside an HTML comment (`<!-- ... -->`) - the
+    real, current one ("Vice-Chancellor's International Scholarships
+    (Undergraduate) (2027)") is the only one BeautifulSoup actually
+    parses as an element (verified directly: `soup.find_all("h1")`
+    returns exactly one result, confirming the commented-out duplicate
+    is correctly invisible to a tag-based selector, not a risk of
+    picking the wrong one).
+
+    Eligible candidates are "automatically considered ... as part of
+    their academic course application" - no separate scholarship
+    application exists.
+
+    Deliberately extracts no deadline: the page states "Awards will be
+    allocated throughout the academic year before the start of the
+    student's degree" (no fixed date) and separately references a UCAS
+    "Equal Consideration Deadline of 13th January 2027" and later dates,
+    all written with ordinal suffixes ("13th", "31st", "3rd") that break
+    the shared date-literal pattern's `\\d{1,2}\\s+` requirement -
+    verified directly that none of these match, so no deadline is
+    invented from what is really the separate UCAS course-application
+    deadline, not this scholarship's own.
+    """
+
+    source_code = "newcastle_vc_international_scholarship"
+    overview_path = "/undergraduate/fees-funding/scholarships-bursaries/vc-international/"
+    content_selectors = ("div.contentContainer",)
+    provider_name = "Newcastle University"
+    country = "United Kingdom"
+    external_id = "newcastle-vc-international-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().newcastle_vcis_base_url

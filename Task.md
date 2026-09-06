@@ -2945,3 +2945,58 @@ for the full dated history.
       (`tests/fixtures/tudelft_van_effen_scholarship.html`,
       `tests/fixtures/tum_international_student_scholarship.html`) were
       captured unmodified from the live sites.
+
+- [x] **(2026-09-05)** "England university opportunity expansion" pass,
+      per an explicit dedicated brief naming 40-60+ target universities.
+      Implemented two new university-classified sources - see
+      Changelog.md's same-date entry and
+      `docs/AUTHORITATIVE_SOURCES.md` #60-61 for full detail - bringing
+      university sources from 7 to 9 and adding this platform's first
+      two England-based university sources, both taken directly from
+      the brief's own named "important current examples":
+
+      **Imperial Inspires scholarships** (Imperial College London) - a
+      new-for-2027-entry partial scholarship (GBP 15,000/year, 300+
+      awards). Correctly `partial_funding`, never `fully_funded` - the
+      page itself says applicants remain responsible for remaining
+      costs, matching the brief's explicit "never classify a fee
+      reduction as fully funded" rule. No deadline extracted since the
+      page states only months ("September 2026", "mid-April 2027"),
+      never exact calendar dates.
+
+      **Newcastle University Vice-Chancellor's International
+      Scholarships** - a real design decision made explicit per the
+      brief's own "Special Focus: Sierra Leone" section: the scholarship
+      is restricted to an explicit, published list of eligible countries
+      (Ghana, Kenya, Nigeria, South Africa, Zimbabwe and others are on
+      it) - Sierra Leone is checked explicitly against that list and
+      found **not** eligible, rather than assumed either way from
+      "African students eligible." A real HTML-parsing subtlety worth
+      recording: the live page's raw source contains a second, stale
+      `<h1>` wrapped inside an HTML comment - verified directly (not
+      assumed) that BeautifulSoup's tag-based parser only ever surfaces
+      the real, current heading, so `title_selectors = ("h1",)` was safe
+      to use as-is. No deadline extracted: the scholarship itself has no
+      fixed deadline ("allocated throughout the academic year"); the
+      page's other dates belong to the separate UCAS course-application
+      process and are ordinal-suffixed ("13th January 2027") in a way
+      that correctly fails to match the shared date-literal pattern
+      anyway.
+
+      **Verified for real**: `pyflakes app tests` clean; full backend
+      suite green afterward, 767 passed / 25 skipped (up from 763 - the
+      two new sources' four fixture-backed tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      60 -> 62 registered sources). Both fixtures
+      (`tests/fixtures/imperial_inspires_scholarships.html`,
+      `tests/fixtures/newcastle_vc_international_scholarship.html`)
+      were captured unmodified from the live sites.
+
+      **Honest scope note, stated plainly rather than inflated**: the
+      brief named a 40-60+ university coverage goal spanning
+      university-wide, faculty, department, and PhD-vacancy pages
+      across all of England. This pass verified 2 real, fully-wired,
+      fully-tested sources - not the full sweep the brief describes.
+      Per the brief's own repeated "quality over quantity" and "if only
+      37 are found, report 37" instructions, this is reported as a
+      partial, honest contribution, not a completed England expansion.

@@ -379,6 +379,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "imperial_inspires_scholarship": {
+        "source_name": "Imperial Inspires Scholarships",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "newcastle_vc_international_scholarship": {
+        "source_name": "Newcastle University Vice-Chancellor's International Scholarships",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -448,6 +460,8 @@ def _base_urls() -> dict[str, str]:
         "tum_international_student_scholarship": (
             settings.tum_international_scholarship_base_url
         ),
+        "imperial_inspires_scholarship": settings.imperial_inspires_base_url,
+        "newcastle_vc_international_scholarship": settings.newcastle_vcis_base_url,
     }
 
 
@@ -531,6 +545,8 @@ async def seed_opportunity_sources(
         "max_planck_schools": now + timedelta(hours=24),
         "tudelft_van_effen_scholarship": now + timedelta(hours=24),
         "tum_international_student_scholarship": now + timedelta(hours=24),
+        "imperial_inspires_scholarship": now + timedelta(hours=24),
+        "newcastle_vc_international_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

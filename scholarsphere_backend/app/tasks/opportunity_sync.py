@@ -83,8 +83,10 @@ from app.services.national_scholarship_programs import (
     EthZurichExcellenceScholarshipSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
+    ImperialInspiresScholarshipSource,
     KnightHennessyScholarsSource,
     MaxPlanckSchoolsSource,
+    NewcastleVcInternationalScholarshipSource,
     RotaryPeaceFellowshipSource,
     SchwarzmanScholarsSource,
     TaiwanIcdfScholarshipSource,
@@ -368,6 +370,16 @@ celery_app.conf.update(
             ),
             "schedule": crontab(minute=45, hour=15),
         },
+        "sync-imperial-inspires-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_imperial_inspires_scholarship",
+            "schedule": crontab(minute=0, hour=16),
+        },
+        "sync-newcastle-vc-international-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync.sync_newcastle_vc_international_scholarship"
+            ),
+            "schedule": crontab(minute=15, hour=16),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -486,6 +498,12 @@ SOURCE_TASK_NAMES = {
     ),
     "tum_international_student_scholarship": (
         "app.tasks.opportunity_sync.sync_tum_international_student_scholarship"
+    ),
+    "imperial_inspires_scholarship": (
+        "app.tasks.opportunity_sync.sync_imperial_inspires_scholarship"
+    ),
+    "newcastle_vc_international_scholarship": (
+        "app.tasks.opportunity_sync.sync_newcastle_vc_international_scholarship"
     ),
 }
 
@@ -1366,6 +1384,36 @@ def sync_tum_international_student_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_imperial_inspires_scholarship",
+    max_retries=3,
+)
+def sync_imperial_inspires_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "imperial_inspires_scholarship", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_newcastle_vc_international_scholarship",
+    max_retries=3,
+)
+def sync_newcastle_vc_international_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "newcastle_vc_international_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -1626,6 +1674,10 @@ def _collector(source_code: str) -> Any:
         "tudelft_van_effen_scholarship": TuDelftVanEffenScholarshipSource,
         "tum_international_student_scholarship": (
             TumInternationalStudentScholarshipSource
+        ),
+        "imperial_inspires_scholarship": ImperialInspiresScholarshipSource,
+        "newcastle_vc_international_scholarship": (
+            NewcastleVcInternationalScholarshipSource
         ),
     }[source_code]()
 
