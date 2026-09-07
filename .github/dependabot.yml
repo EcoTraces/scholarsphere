@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # scholarsphere_backend/'s Python dependencies (requirements.txt /
+  # requirements-dev.txt) - CI already runs pip-audit on every push/PR
+  # (.github/workflows/ci.yml); this adds the missing other half, automatic
+  # update PRs so a fix doesn't wait for someone to notice a CVE manually.
+  - package-ecosystem: "pip"
+    directory: "/scholarsphere_backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Firebase Cloud Functions (functions/package.json) - CI already runs
+  # `npm audit --omit=dev --audit-level=high` on every push/PR.
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # The GitHub Actions workflows themselves (actions/checkout, etc.) -
+  # pinned action versions go stale/vulnerable the same way any other
+  # dependency does.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Flutter/Dart packages (root pubspec.yaml). Dependabot's pub support
+  # doesn't run a vulnerability scanner the way pip-audit/npm audit do
+  # (see docs/PRODUCTION_SECURITY_AUDIT.md §4), but it still opens PRs for
+  # outdated versions, which is the automation this file exists to add.
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10

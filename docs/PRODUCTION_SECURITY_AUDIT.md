@@ -386,15 +386,19 @@ this document's existing §2-§18 rather than repeated from scratch:
   user- or admin-controlled outbound-fetch endpoint exists anywhere in
   `app/api/` — grepped; every scraper/API-source URL is a fixed,
   developer-configured `Settings` field).
+- **Closed in a follow-up to this pass**: `.github/dependabot.yml` now
+  exists (weekly, covering `pip`/`scholarsphere_backend`, `npm`/
+  `functions`, `github-actions`, and `pub` for the Flutter root) — closes
+  §19's standing recommendation. CI's own `pip-audit`/`npm audit` steps
+  already catch known CVEs on every push/PR; this adds the other half,
+  automatic update PRs so a fix doesn't wait for someone to notice one
+  manually.
 - **Documented, not built this pass** (scope/time tradeoff, not silently
   skipped): a Firebase Emulator Suite test harness for `firestore.rules`/
   `storage.rules` (`@firebase/rules-unit-testing`) does not exist yet —
   both rule sets were verified by careful reading against the same idiom
   this document already validated in §2.2, not by an automated allow/deny
-  test matrix. `.github/dependabot.yml` also does not exist yet despite
-  §19's standing recommendation to add it — CI's own `pip-audit`/
-  `npm audit` steps catch known CVEs on every push/PR in the meantime, so
-  this is a monitoring-cadence gap, not an unguarded one.
+  test matrix.
 - **Tests**: full backend suite green after this pass's changes — **851
   passed, 25 skipped** (up from 849 passed before this pass's 2 new
   regression tests: `test_docs_routes_are_exempt_from_the_strict_csp`,
