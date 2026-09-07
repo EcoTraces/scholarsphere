@@ -3979,3 +3979,76 @@ class SkoltechScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().skoltech_scholarship_base_url
+
+
+class UtokyoPeakScholarshipSource(_SingleProgramSource):
+    """The University of Tokyo Scholarship, via PEAK (Programs in
+    English at Komaba) - researched 2026-09-07 in response to a "find
+    another Japanese university fully funded scholarship" request.
+    This platform's first Japan **university** source (the only prior
+    Japan source, MEXT #25, is government-classified).
+
+    Confirmed 2026-09-07: `peak.c.u-tokyo.ac.jp/robots.txt` returns
+    HTTP 404 (no robots.txt file published at all) - treated as no
+    restrictions declared, the same precedent already used for UvA's
+    genuinely empty robots.txt elsewhere in this file.
+
+    Overview/content page is PEAK's own "Fees & Scholarships >
+    Scholarships" page, which lists five distinct items in sequence:
+    (1) The University of Tokyo Scholarship, (2) the Japanese
+    Government (MEXT) Scholarship (already covered separately by this
+    platform's existing source #25, not re-integrated here), (3) a
+    Malaysia-specific JAGAM supplementary award, (4) a Singapore-
+    specific JUGAS supplementary award, and (5) two nationality-
+    specific Fast Retailing Foundation awards (Vietnam, Indonesia) -
+    the same multi-record architecture already documented elsewhere in
+    this file. Rather than skip the page entirely or force a selector
+    onto the whole list, isolated just item (1) - the one genuinely
+    UTokyo-administered, nationality-unrestricted award - via a
+    BeautifulSoup structural walk that found each numbered item's body
+    text in its own `div.cmsSec-A` element, all direct siblings under a
+    shared `div.last` wrapper; `div.cmsSec-A:nth-of-type(2)` (the first,
+    `:nth-of-type(1)`, is the page's own general introductory
+    paragraph) lands exactly on item (1)'s own text, with none of the
+    other four items' content mixed in.
+
+    `title_selectors = ()`, no `title_tag_separator`: the page's
+    relevant heading, `<h2>(1) The University of Tokyo Scholarship
+    </h2>`, carries a numeral prefix that would read oddly as a stored
+    title - falls through to the external_id-derived fallback
+    ("University Of Tokyo Scholarship"), the same documented pattern
+    used elsewhere in this file for a page whose own heading isn't a
+    clean title on its own.
+
+    Country coverage / eligibility: no nationality restriction stated
+    - open to any student admitted to PEAK, Sierra Leone included
+    (distinct from the two nationality-specific supplementary awards on
+    the same page, which this record does not represent). Awarded
+    automatically to admitted students "of exceptional merit," with "no
+    separate application," per the page's own general introductory
+    text (in the `:nth-of-type(1)` div, not itself scraped for this
+    record since it describes the whole list, not this one award).
+
+    Funding: "a four-year scholarship that covers the admission fee,
+    tuition, and living expenses (JPY126,000 a month)," for "[u]p to
+    ten students" - `funding_type = "fully_funded"`, genuinely
+    comprehensive (comparable to, though administered independently of,
+    PEAK's own listed MEXT Scholarship figures).
+
+    Deliberately extracts no deadline: the page states plainly that
+    "all scholarships are offered when successful applicants are
+    notified of their admission to the university... There is no
+    separate application" - no date literal appears anywhere in this
+    specific item's text, verified directly rather than assumed.
+    """
+
+    source_code = "utokyo_peak_scholarship"
+    overview_path = "/fees_scholarships/l3/Vcms3_00000232.html"
+    content_selectors = ("div.cmsSec-A:nth-of-type(2)",)
+    provider_name = "University of Tokyo (PEAK - Programs in English at Komaba)"
+    country = "Japan"
+    external_id = "university-of-tokyo-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().utokyo_peak_scholarship_base_url

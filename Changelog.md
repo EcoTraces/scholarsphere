@@ -28,6 +28,60 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Japan follow-up: The University of Tokyo Scholarship (PEAK) added
+
+### Added
+- **The University of Tokyo Scholarship** (via PEAK — Programs in
+  English at Komaba) (`app/services/national_scholarship_programs.py::
+  UtokyoPeakScholarshipSource`, source #91) — this platform's 92nd
+  registered `OpportunitySource`, in response to a "find another
+  Japanese university fully funded scholarship" request. This
+  platform's first Japan **university** source (the only prior Japan
+  source, the Japanese Government MEXT Scholarship, #25, is
+  government-classified).
+  - Genuinely fully funded: "a four-year scholarship that covers the
+    admission fee, tuition, and living expenses (JPY126,000 a month),"
+    for up to 10 students, awarded automatically upon admission — no
+    separate application, no nationality restriction.
+  - **Deliberate design choice**: the overview page is a genuine
+    multi-record hub listing five distinct scholarships (this one,
+    MEXT, two nationality-specific supplements, two Fast Retailing
+    Foundation awards). Rather than skip the page or force a selector
+    onto the whole list, isolated just this one item via
+    `div.cmsSec-A:nth-of-type(2)`, a BeautifulSoup structural selector
+    verified directly to land on exactly this scholarship's own text
+    with none of the other four items mixed in.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/utokyo_peak_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected two further Japan candidates this same
+  pass:
+  - **Kyoto University** — its own scholarships page is a nomination
+    hub for ~90 separate private scholarship programmes plus a general
+    Tuition Exemption track and the semi-governmental JASSO
+    Scholarship — the same multi-record architecture mismatch
+    documented throughout this project, no single flagship award
+    comparable to UTokyo's PEAK scholarship.
+  - **The University of Tokyo Fellowship** (UTokyo's own main "Special
+    Scholarship for International Students," distinct from the
+    PEAK-specific award added above) — real and UTokyo-administered,
+    but explicitly a supplementary research grant-in-aid "to support
+    outstanding, **self-funded** international students" — no
+    tuition-waiver component of its own, `PARTIAL_FUNDING` at best,
+    not integrated in favor of the genuinely fully-funded PEAK
+    scholarship.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Five-country autonomous engine: Russia pass — first Russia source added (engine complete)
 
 ### Added

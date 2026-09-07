@@ -5721,6 +5721,103 @@ Russia). This platform's **first Russia source of any kind**.
   terms per Master's programme rather than one flagship page — the
   same multi-record mismatch as Open Doors above.
 
+## 91. The University of Tokyo Scholarship (via PEAK — Programs in English at Komaba)
+
+Researched 2026-09-07, in response to a "find another Japanese
+university fully funded scholarship" request. This platform's first
+Japan **university** source — the only prior Japan source, the
+Japanese Government (MEXT) Scholarship (#25), is government-
+classified.
+
+- **Organization**: The University of Tokyo, via PEAK (Programs in
+  English at Komaba), its English-taught undergraduate liberal arts
+  programme
+- **Route code**: `university-of-tokyo-scholarship`
+  (`utokyo_peak_scholarship` internally)
+- **Official domain / base URL**: `https://peak.c.u-tokyo.ac.jp`
+  (`UTOKYO_PEAK_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "a four-year scholarship that
+  covers the admission fee, tuition, and living expenses (JPY126,000 a
+  month)," for "[u]p to ten students." `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: No nationality restriction stated
+  — open to any student admitted to PEAK, Sierra Leone included.
+  Awarded automatically to admitted students "of exceptional merit,"
+  with "no separate application," per the page's own general
+  introductory text (not itself scraped for this record, since it
+  describes the whole scholarship list rather than this one award).
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `peak.c.u-tokyo.ac.jp/robots.txt`
+  returns HTTP 404 — no robots.txt file published at all — treated as
+  no restrictions declared, the same precedent already used for UvA's
+  genuinely empty robots.txt elsewhere in this file.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **A genuine multi-record page, carefully narrowed to one item
+    rather than skipped or forced whole**: PEAK's own "Fees &
+    Scholarships > Scholarships" overview page lists five distinct
+    items in sequence — (1) this University of Tokyo Scholarship, (2)
+    the Japanese Government (MEXT) Scholarship (already covered
+    separately by this platform's existing source #25, not
+    re-integrated here), (3) a Malaysia-specific JAGAM supplementary
+    award, (4) a Singapore-specific JUGAS supplementary award, and (5)
+    two nationality-specific Fast Retailing Foundation awards (Vietnam,
+    Indonesia) — the same multi-record architecture already documented
+    elsewhere in this file. A BeautifulSoup structural walk found each
+    numbered item's body text in its own `div.cmsSec-A` element, all
+    direct siblings under a shared `div.last` wrapper;
+    `div.cmsSec-A:nth-of-type(2)` (the first, `:nth-of-type(1)`, is the
+    page's own general introductory paragraph) lands exactly on item
+    (1)'s own text, with none of the other four items' content mixed
+    in — verified directly against the live fixture, confirming
+    neither "MEXT" nor any of the other items' text appears in the
+    extracted description.
+  - **`title_selectors = ()`, no `title_tag_separator`**: the page's
+    relevant heading, `<h2>(1) The University of Tokyo Scholarship
+    </h2>`, carries a numeral prefix that would read oddly as a stored
+    title — falls through to the external_id-derived fallback
+    ("University Of Tokyo Scholarship"), the same documented pattern
+    used elsewhere in this file for a page whose own heading isn't a
+    clean title on its own.
+  - **Deliberately extracts no deadline**: the page states plainly
+    that "all scholarships are offered when successful applicants are
+    notified of their admission to the university... There is no
+    separate application" — no date literal appears anywhere in this
+    specific item's text, verified directly rather than assumed.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/utokyo_peak_scholarship.html`).
+
+### Researched this pass (2026-09-07, Japan follow-up), not integrated
+
+- **Kyoto University — "Scholarships for international students"** —
+  the university's own page describes annually nominating candidates
+  for approximately 90 separate private scholarship programmes (each
+  offering JPY 30,000–180,000/month to one or two students), plus a
+  separate general "Tuition Exemption" track and the (semi-
+  governmental, JASSO-administered) "JASSO Scholarship" — a nomination
+  hub of many separately-sponsored, separately-valued awards rather
+  than one flagship university-administered scholarship, the same
+  multi-record architecture mismatch documented throughout this file.
+  No single UTokyo-PEAK-style flagship award was found on Kyoto's own
+  pages.
+- **The University of Tokyo Fellowship** (the university's own main
+  "Special Scholarship for International Students," distinct from the
+  PEAK-specific award above) — real and UTokyo-administered, but
+  explicitly described as "a research grant-in-aid... to support
+  outstanding, **self-funded** international students," a JPY
+  200,000/month supplementary stipend with no tuition-waiver component
+  of its own — `PARTIAL_FUNDING` at best, and not integrated this pass
+  in favor of the genuinely fully-funded PEAK scholarship found
+  instead.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

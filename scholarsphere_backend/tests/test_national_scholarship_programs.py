@@ -71,6 +71,7 @@ from app.services.national_scholarship_programs import (
     UpfBsmMeritScholarshipSource,
     UqGraduateResearchScholarshipsSource,
     UsydRtpInternationalSource,
+    UtokyoPeakScholarshipSource,
     UtrechtLegitsScholarshipSource,
     UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
@@ -3325,3 +3326,49 @@ def test_skoltech_scholarship_has_no_robots_txt_restrictions() -> None:
     `User-agent: *`, disallowing only `/admin/`, `/api/`, and query-
     string/JSON/XML paths - none of which cover this content path."""
     assert SkoltechScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- The University of Tokyo Scholarship (PEAK): real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_utokyo_peak_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Japan *university* source (MEXT, #25, is
+    government-classified). The overview page lists five distinct
+    scholarships (this one, MEXT, two nationality-specific supplements,
+    two Fast Retailing Foundation awards) - content selector
+    `div.cmsSec-A:nth-of-type(2)` isolates only item (1)'s own text.
+    Genuinely fully_funded: admission fee + tuition + JPY126,000/month
+    living expenses, no nationality restriction, no deadline (awarded
+    automatically upon admission, no separate application)."""
+    source = UtokyoPeakScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("utokyo_peak_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "university-of-tokyo-scholarship"
+    assert opportunity.title == "University Of Tokyo Scholarship"
+    assert opportunity.country == "Japan"
+    assert (
+        opportunity.provider_name
+        == "University of Tokyo (PEAK - Programs in English at Komaba)"
+    )
+    assert opportunity.description is not None
+    assert "JPY126,000 a month" in opportunity.description
+    assert "MEXT" not in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_utokyo_peak_scholarship_has_no_robots_txt_restrictions() -> None:
+    """`peak.c.u-tokyo.ac.jp/robots.txt` returns HTTP 404 (no file
+    published) - treated as no restrictions declared."""
+    assert UtokyoPeakScholarshipSource.min_request_interval_seconds == 2.0

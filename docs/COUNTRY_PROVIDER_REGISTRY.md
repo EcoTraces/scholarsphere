@@ -164,6 +164,22 @@ unverified).
 | 88 | UT Austin Harrington Graduate Fellows Program | United States | UNIVERSITY | harrington.utexas.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fourth country (USA) of the five-country pass; this registry's first USA *university* source (Knight-Hennessy Scholars, #51, is hosted at Stanford but not a USA-specific-search result); genuinely fully funded — USD 40,000/year stipend + full tuition/fees + health insurance stipend + USD 2,000/year expenses, for up to 5 years; no nationality restriction ("from around the world"); genuinely includes a Master's track ("Harrington Master's Fellows," for professional/terminal Master's degrees), not PhD-only; a nomination-only award, documented honestly; no deadline extracted (see AUTHORITATIVE_SOURCES.md #88) |
 | 89 | Vanderbilt University Cornelius Vanderbilt Scholarship | United States | UNIVERSITY | vanderbilt.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second USA university source and its first at the undergraduate level; genuinely `partial_funding` — guaranteed full tuition + summer stipend, not full cost of attendance, consistent with this project's "full tuition ≠ fully funded" standard; confirmed genuinely open to international applicants via Vanderbilt's own international-admissions page (89 students from 54 countries for fall 2026); a separate, differently-focused Ingram Scholars programme sharing the same page/deadline is explicitly not represented by this record; exact deadline extracted (1 December 2026) (see AUTHORITATIVE_SOURCES.md #89) |
 | 90 | Skoltech Admissions Scholarship | Russia | UNIVERSITY | skoltech.ru | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fifth and final country (Russia) of the five-country pass; this registry's **first Russia source of any kind**; site confirmed genuinely reachable from this environment, contrary to any assumption sanctions/geo-blocking would block access; covers both MSc and PhD together, no nationality restriction; deliberately conservative `partial_funding` classification — the page states a competitively-awarded monthly stipend (40,000 RUB/month for MSc) plus insurance but does not itself state tuition is waived for every admitted student, classified from the official page's own text rather than aggregator "fully funded" claims; no deadline extracted (2027-cycle dates not yet published, page explicitly says "check back in autumn") (see AUTHORITATIVE_SOURCES.md #90) |
+| 91 | The University of Tokyo Scholarship (PEAK) | Japan | UNIVERSITY | peak.c.u-tokyo.ac.jp | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find another Japanese university fully funded scholarship" follow-up; this registry's first Japan *university* source (Japanese Government MEXT Scholarship, #25, is government-classified); the overview page is a genuine multi-record hub of five distinct scholarships (this one, MEXT, two nationality-specific supplements, two Fast Retailing Foundation awards) — isolated via `div.cmsSec-A:nth-of-type(2)`, a structural selector that lands exactly on this one item's own text; no nationality restriction; genuinely `fully_funded` — admission fee + tuition + JPY126,000/month living expenses, four years, up to 10 students, no separate application; no deadline extracted (awarded automatically upon admission) (see AUTHORITATIVE_SOURCES.md #91) |
+
+**(2026-09-07, Japan follow-up)** Checked Kyoto University's own
+scholarships page and found a nomination hub for ~90 separate private
+scholarship programmes plus a general Tuition Exemption track and the
+semi-governmental JASSO Scholarship — the same multi-record
+architecture mismatch documented throughout this file, no single
+flagship award comparable to UTokyo's PEAK scholarship. Also checked
+UTokyo's own main "University of Tokyo Fellowship" (distinct from the
+PEAK-specific award added above): real and UTokyo-administered, but
+explicitly a supplementary research grant-in-aid "to support
+outstanding, self-funded international students" — no tuition-waiver
+component of its own, `PARTIAL_FUNDING` at best, not integrated in
+favor of the genuinely fully-funded PEAK scholarship. See
+AUTHORITATIVE_SOURCES.md #91's "Researched this pass (2026-09-07,
+Japan follow-up), not integrated" note for full detail.
 
 **(2026-09-07, five-country autonomous engine — Austria)** Checked five
 further Austrian universities live (TU Wien, University of Vienna,

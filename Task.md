@@ -5064,3 +5064,79 @@ for the full dated history.
       updated source-count assertion, 90 -> 91 registered sources). The
       fixture (`tests/fixtures/skoltech_admissions.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-07)** Japan follow-up: "find another Japanese
+      university fully funded universities scholarship" - reviewed
+      this platform's existing Japan coverage first (only the Japanese
+      Government MEXT Scholarship, #25, government-classified - no
+      university source existed yet) before searching.
+
+      Found and **implemented** **The University of Tokyo Scholarship**
+      (via PEAK - Programs in English at Komaba) as source #91 - this
+      platform's first Japan university source:
+      - Started from UTokyo's main "Fellowship" page (its top search
+        result), read it carefully, and correctly rejected it: the
+        page's own text describes it as a research grant-in-aid "to
+        support outstanding, **self-funded** international students" -
+        a supplementary stipend on top of self-funding, not itself
+        covering tuition, so genuinely `partial_funding` rather than
+        the fully-funded result being sought.
+      - Found UTokyo's separate PEAK undergraduate programme page
+        instead and confirmed live that "The University of Tokyo
+        Scholarship" there is a genuinely different, fully-funded
+        award: admission fee + tuition + JPY126,000/month living
+        expenses, four years, up to 10 students, automatic upon
+        admission.
+      - Recognized immediately that the page listing it is a real
+        multi-record hub (five distinct scholarships - this one, MEXT,
+        two nationality-specific supplements for Malaysia and
+        Singapore, two Fast Retailing Foundation awards for Vietnam
+        and Indonesia) and did the selector engineering needed to
+        isolate just the one relevant item rather than skip the page
+        or force a whole-page selector: inspected the raw HTML,
+        found each numbered item lives in its own `div.cmsSec-A`
+        element as a direct sibling under one shared wrapper, and used
+        `div.cmsSec-A:nth-of-type(2)` (item 1's own div; `:nth-of-
+        type(1)` is the page's general preamble) to land exactly on
+        the target scholarship's text - verified directly via a
+        standalone `collect()` simulation that neither "MEXT" nor any
+        of the other four items' content leaked into the extracted
+        description.
+      - Chose the external_id-derived title fallback over the page's
+        own `<h2>(1) The University of Tokyo Scholarship</h2>` heading,
+        since the "(1) " numeral prefix would read oddly as a stored
+        title on its own.
+      - Confirmed `peak.c.u-tokyo.ac.jp/robots.txt` returns a genuine
+        HTTP 404 (no file published) rather than assuming this meant
+        no restrictions without checking - treated the same as this
+        project's existing precedent for a genuinely empty robots.txt.
+
+      Two further Japan candidates were researched and rejected this
+      same pass:
+      - **Kyoto University** - its own scholarships page describes
+        annually nominating candidates for approximately 90 separate
+        private scholarship programmes (each JPY 30,000-180,000/month
+        to one or two students) plus a general Tuition Exemption track
+        and the semi-governmental JASSO Scholarship - the same
+        multi-record architecture mismatch documented repeatedly
+        elsewhere in this project, with no single flagship award
+        comparable to UTokyo's PEAK scholarship found.
+      - **The University of Tokyo Fellowship** - UTokyo's own main
+        international-student scholarship (distinct from the
+        PEAK-specific award actually implemented), already covered
+        above as the initially-rejected candidate - documented
+        explicitly as `PARTIAL_FUNDING` rather than silently dropped,
+        since it's a real, genuine UTokyo-administered award, just not
+        the fully-funded one this request specifically asked for.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "fully_funded"`, `deadline = None`, and that the
+      description contains none of the other four scholarships' text -
+      all exactly as documented. Full backend suite green afterward,
+      829 passed / 25 skipped (up from 827 passed/25 skipped - two new
+      tests, plus `test_opportunity_import.py`'s updated source-count
+      assertion, 91 -> 92 registered sources). The fixture
+      (`tests/fixtures/utokyo_peak_scholarship.html`) was captured
+      unmodified from the live site.

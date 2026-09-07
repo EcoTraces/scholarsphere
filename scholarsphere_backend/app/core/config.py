@@ -692,6 +692,26 @@ class Settings(BaseSettings):
     # guessing" rule.
     skoltech_scholarship_base_url: str = "https://www.skoltech.ru"
 
+    # The University of Tokyo Scholarship, via PEAK (Programs in
+    # English at Komaba) - researched 2026-09-07 in response to a
+    # "find another Japanese university fully funded scholarship"
+    # request. This platform's first Japan *university* source (the
+    # only prior Japan source, MEXT #25, is government-classified).
+    # Genuinely fully funded: covers the admission fee, tuition, and
+    # living expenses (JPY 126,000/month) for up to 10 students, for
+    # 4 years, no separate application (automatically considered upon
+    # PEAK admission) - confirmed directly on PEAK's own "Fees &
+    # Scholarships" page, distinct from PEAK's own listing of the
+    # (separately-classified) MEXT Scholarship, two nationality-
+    # specific supplementary awards (JAGAM/Malaysia, JUGAS/Singapore),
+    # and Fast Retailing Foundation awards (Vietnam/Indonesia-specific)
+    # on the same page - none of which this record represents.
+    # `peak.c.u-tokyo.ac.jp/robots.txt` returns HTTP 404 (no file
+    # published at all) - treated as no restrictions declared, the
+    # same precedent as UvA's genuinely empty robots.txt elsewhere in
+    # this file.
+    utokyo_peak_scholarship_base_url: str = "https://peak.c.u-tokyo.ac.jp"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -872,6 +892,7 @@ class Settings(BaseSettings):
         "harrington_graduate_fellows_base_url",
         "vanderbilt_cornelius_scholarship_base_url",
         "skoltech_scholarship_base_url",
+        "utokyo_peak_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
