@@ -4633,3 +4633,58 @@ for the full dated history.
       assertion, 84 -> 85 registered sources). The fixture
       (`tests/fixtures/heinrich_boll_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-07)** Five-country autonomous scholarship research
+      engine (Austria/Eswatini/Australia/USA/Russia) - Eswatini pass:
+      researched Eswatini as a scholarship *study destination* (an
+      international applicant coming to study at an Eswatini
+      institution), distinct from this platform's existing Eswatini
+      SLAS source (#18, the reverse - outbound funding for Eswatini
+      nationals). Checked every accredited institution named in the
+      research brief live:
+      - **UNESWA** - fetched `www.uneswa.ac.sz` directly and got a
+        genuine TLS handshake failure; ran a verbose trace
+        (`curl -v`) to understand exactly why rather than assuming a
+        proxy problem, and confirmed the server's own certificate
+        chain is incomplete ("unable to get local issuer certificate")
+        - a real misconfiguration on UNESWA's own infrastructure, not
+        this sandbox's fault (plain `http://` to the same host works
+        and redirects to the broken `https://` URL). Tried a second,
+        independent fetch path (`WebFetch`) as a sanity check, which
+        also failed (HTTP 503) - consistent with a genuinely unreliable
+        server. Left unintegrated as `VERIFICATION_REQUIRED` rather
+        than disabling certificate verification, which would create a
+        real MITM-vulnerable code path.
+      - **SANU** - found its `/scholarship-information/` page via the
+        site's own sitemap and read it directly rather than trusting
+        an aggregator's vague "scholarships available" claim; the
+        page's actual text states funding is "the student's
+        responsibility" and that international students must "seek for
+        their funding" themselves - an explicit disclaimer, not an
+        opportunity.
+      - **EMCU** - reachable and unrestricted, but its homepage's only
+        funding-related link points straight to `slas.gov.sz` - the
+        same government programme already on this platform, not a
+        distinct EMCU scholarship.
+      - **Limkokwing University (Eswatini campus)** - `limkokwing.net`
+        returned an active Cloudflare "Just a moment..." challenge on
+        every path including `robots.txt` - genuine bot protection,
+        not circumvented.
+      - Also confirmed via live search that both of Eswatini's
+        government scholarship channels (the Ministry of Labour's SLAS
+        and the Ministry of Foreign Affairs' international-scholarship
+        listings) are outbound programmes for Eswatini nationals, not
+        inbound programmes for international students - no government
+        inbound source exists to discover.
+
+      No new source was added. Per the research brief's own explicit
+      instruction not to invent opportunities to make a small country
+      look complete, the honest, real count for Eswatini as a study
+      destination is zero - reported as such rather than padded.
+
+      **No code was changed this pass** - only
+      `docs/AUTHORITATIVE_SOURCES.md`, `docs/COUNTRY_PROVIDER_
+      REGISTRY.md`, `Changelog.md`, and this file were updated. No new
+      test run was required since no source code, test, or fixture
+      file changed; the existing 815-passed/25-skipped baseline
+      remains the accurate current count.

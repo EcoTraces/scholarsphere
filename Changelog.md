@@ -28,6 +28,48 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Five-country autonomous engine (Austria/Eswatini/Australia/USA/Russia): Eswatini pass — no new source qualified
+
+### Added
+—
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — first country of a simultaneous five-country research pass
+  (Austria, Eswatini, Australia, USA, Russia). Researched Eswatini as
+  a scholarship *study destination* (distinct from this platform's
+  existing Eswatini SLAS source, #18, which is the reverse — outbound
+  funding for Eswatini nationals) and found no qualifying source:
+  - **University of Eswatini (UNESWA)** — genuinely inaccessible: a
+    verbose TLS handshake trace confirms the server's own certificate
+    chain is incomplete (missing intermediate CA), not a proxy or
+    bot-block issue (plain HTTP to the same host redirects to the
+    broken HTTPS URL). Per this project's absolute rule against
+    disabling certificate verification, left `VERIFICATION_REQUIRED`
+    rather than bypassed.
+  - **Southern Africa Nazarene University (SANU)** — its own
+    `/scholarship-information/` page explicitly states funding is
+    "the student's responsibility," an explicit no-institutional-
+    scholarship disclaimer, not an opportunity.
+  - **Eswatini Medical Christian University (EMCU)** — its only
+    funding link points to the government SLAS portal (#18), already
+    covered, not a distinct EMCU-administered scheme.
+  - **Limkokwing University (Eswatini campus)** — `limkokwing.net` is
+    behind an active Cloudflare managed challenge — `BLOCKED`, not
+    circumvented.
+
+  No source added. Per the research brief's own explicit "never invent
+  opportunities to make the country look complete" instruction, the
+  honest current count for Eswatini as a study destination is zero.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-06] — Germany, open-scope follow-up: Heinrich Böll Foundation Scholarship added
 
 ### Added

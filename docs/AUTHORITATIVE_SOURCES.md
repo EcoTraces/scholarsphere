@@ -5081,6 +5081,75 @@ consistent, genuine access barrier common to most of them:
   DAAD source, #10) or to unrelated political-foundation scholarships,
   not a distinct TU Berlin-run scheme.
 
+### Researched this pass (2026-09-07, Eswatini — five-country autonomous engine), not integrated
+
+Part of a simultaneous five-country research pass (Austria, Eswatini,
+Australia, USA, Russia). Eswatini was researched as a scholarship
+*study destination* (i.e. genuine opportunities for an international
+applicant, such as one from Sierra Leone, to study *at* an Eswatini
+institution) — not to be confused with this platform's existing
+Eswatini SLAS source (#18), which is the reverse: a domestic
+Eswatini-government loan/scholarship for **Eswatini nationals** to
+study locally or in the SADC region, already correctly classified
+`NOT_SUITABLE` for that reason. Checked every accredited Eswatini
+higher-education institution named in the research brief, live,
+finding no qualifying inbound scholarship at any of them:
+
+- **University of Eswatini (UNESWA)** — genuinely inaccessible from
+  this environment, and for a reason distinct from every other access
+  barrier documented elsewhere in this file: `https://www.uneswa.ac.sz`
+  fails TLS negotiation with "SSL certificate problem: unable to get
+  local issuer certificate" (confirmed via a verbose TLS handshake
+  trace — the server presents an incomplete certificate chain, missing
+  its intermediate CA) — a genuine misconfiguration on the university's
+  own server, not a proxy artifact (plain `http://` to the same host
+  succeeds and 301-redirects to the broken `https://` URL) and not a
+  bot-block. Per this project's absolute rule against disabling
+  certificate verification (that would create a real
+  man-in-the-middle-vulnerable code path — an OWASP-class security
+  regression), not bypassed with `-k`/`verify=False`. A second,
+  independent fetch attempt via a different tool (`WebFetch`) also
+  failed (HTTP 503), consistent with a genuinely unreliable server
+  rather than an environment-specific block. Left unintegrated as
+  `VERIFICATION_REQUIRED` — a real institution with real content that
+  cannot currently be safely reached.
+- **Southern Africa Nazarene University (SANU)** — fully reachable
+  (`www.sanu.ac.sz`, no robots.txt restriction), with a dedicated
+  `/scholarship-information/` page located via its own sitemap. Read
+  directly: the page states plainly "It is the student's responsibility
+  to look for educational funding, ... International students undergo
+  the application process like all prospective students and **seek for
+  their funding**" — an explicit self-funding disclaimer, not a
+  scholarship offer. SANU does not administer its own scholarship
+  programme for international students; not fabricated into one.
+- **Eswatini Medical Christian University (EMCU)** — reachable
+  (`emcu.ac.sz`, redirects cleanly from `www.`, no robots.txt
+  restriction), but its own homepage's only funding-related link is a
+  "Government Scholarship Application" pointing to `slas.gov.sz` — the
+  same domestic/SADC-only government programme already on this
+  platform as source #18, not a distinct EMCU-administered scholarship.
+- **Limkokwing University of Creative Technology (Eswatini campus)** —
+  `limkokwing.net` returns an active Cloudflare managed challenge
+  ("Just a moment...", HTTP 403 on every path including `robots.txt`)
+  — genuine bot protection, not circumvented, per this project's
+  standing rule.
+- **Eswatini government scholarship apparatus more broadly** — live
+  search confirms the Ministry of Labour and Social Security's SLAS
+  programme (#18) and the Ministry of Foreign Affairs' international
+  scholarship listings are both outbound programmes *for Eswatini
+  nationals* studying elsewhere, not inbound programmes for
+  international students to study in Eswatini. No government-run
+  inbound international scholarship was found.
+
+No new source was added for Eswatini this pass. Per this project's own
+explicit "never invent opportunities to make the country look
+complete" instruction for this exact scenario, the honest result — a
+real institution blocked by its own broken TLS configuration, one
+institution with an explicit no-scholarship disclaimer, one
+institution merely redirecting to an already-covered government
+programme, and one institution genuinely bot-protected — is reported
+as-is rather than padded.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

@@ -44,6 +44,27 @@ that were actually built this session (in two batches).
 | 16 | ICCR Scholarship Programme | India | GOVERNMENT | iccr.gov.in | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by a TLS certificate-chain issue on ICCR's own server (see #16 in AUTHORITATIVE_SOURCES.md) |
 | 17 | Swedish Institute Scholarships for Global Professionals | Sweden | GOVERNMENT | si.se | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 18 | Eswatini SLAS | Eswatini | GOVERNMENT | slas.gov.sz | WEB_SCRAPER | **NOT_SUITABLE** — the "www." host still times out, but the bare host is reachable as of 2026-08-29 (base URL corrected); its real content is a domestic student-loan portal for Eswatini nationals with no scholarship/SADC text anywhere, so this adapter correctly extracts nothing from it (see docs/AUTHORITATIVE_SOURCES.md #18) |
+
+**(2026-09-07, five-country autonomous engine — Eswatini)** Researched
+Eswatini as a scholarship *study destination* (distinct from SLAS
+above, which is the reverse — outbound funding for Eswatini nationals)
+and found no qualifying inbound source: UNESWA's own site
+(`www.uneswa.ac.sz`) fails TLS negotiation with an incomplete
+certificate chain on the server's own end (confirmed via a verbose
+handshake trace, not a proxy artifact — plain HTTP to the same host
+redirects to the broken HTTPS URL) — genuinely `VERIFICATION_REQUIRED`,
+never bypassed with disabled certificate verification; SANU's own
+`/scholarship-information/` page explicitly disclaims institutional
+funding ("It is the student's responsibility to look for educational
+funding... seek for their funding"); EMCU's only funding link points
+back to SLAS (#18, already covered, not a distinct EMCU scheme); and
+Limkokwing's Eswatini-campus domain (`limkokwing.net`) is behind an
+active Cloudflare managed challenge — `BLOCKED`, not circumvented. See
+AUTHORITATIVE_SOURCES.md's "Researched this pass (2026-09-07, Eswatini
+— five-country autonomous engine), not integrated" note for full
+detail. No source added — the real, honest count for Eswatini as a
+study destination remains zero, per this project's standing "never pad
+a small country to look complete" rule.
 | 19 | Italian Government Scholarships (MAECI) | Italy | GOVERNMENT | esteri.it / studyinitaly.esteri.it | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 20 | IKY Foreign Nationals Scholarships | Greece | GOVERNMENT | iky.gr | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-08-23 |
 | 21 | NRF Postgraduate Funding | South Africa | GOVERNMENT | nrf.ac.za | WEB_SCRAPER | **PARTIALLY_SUPPORTED** — implemented, blocked by the same TLS certificate-chain issue class as ICCR (see #21 in AUTHORITATIVE_SOURCES.md) |
