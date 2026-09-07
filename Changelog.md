@@ -28,6 +28,61 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Five-country autonomous engine: Russia pass — first Russia source added (engine complete)
+
+### Added
+- **Skoltech (Skolkovo Institute of Science and Technology) —
+  Admissions Scholarship**
+  (`app/services/national_scholarship_programs.py::
+  SkoltechScholarshipSource`, source #90) — this platform's 91st
+  registered `OpportunitySource`, and its **first Russia source of any
+  kind**. Covers both MSc and PhD programmes on one page, no
+  nationality restriction. Deliberately conservative funding
+  classification: `partial_funding`, not `fully_funded` — the page
+  states a competitively-awarded monthly stipend (40,000 RUB/month for
+  MSc, ~$500) plus insurance, but does not itself state that tuition is
+  waived for every admitted student, so classified from what the
+  official page actually says rather than from aggregator "fully
+  funded" claims. Also confirmed the site is genuinely reachable from
+  this environment, contrary to any assumption that sanctions or
+  geo-blocking would prevent access. No deadline extracted — the page
+  states plainly that 2027-cycle dates are not yet published.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.**
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — this was the fifth and final country of the simultaneous
+  Austria/Eswatini/Australia/USA/Russia research pass. Three further
+  Russia candidates were researched and deferred/rejected:
+  - **"Open Doors: Russian Scholarship Project"** — a genuinely
+    enormous, credible consortium programme (100,000+ participants/
+    year), but architecturally a large multi-university, multi-
+    programme catalogue closer to the Erasmus Mundus catalogue's shape
+    (#47) than a single-record flagship page — deferred for a future
+    multi-record-architecture pass.
+  - **`education-in-russia.com`** (the official government Quota
+    portal) — reachable and unrestricted per its own robots.txt, but
+    its homepage is a client-side-rendered SPA shell with no readable
+    content in plain HTTP — a technical limitation, not a bot-block.
+  - **HSE University's own merit/tuition-discount scholarships** —
+    real but spread across multiple programme-specific pages with
+    differing terms — the same multi-record mismatch.
+
+  This concludes the simultaneous five-country research pass: 6 new
+  sources implemented across Austria (1), Australia (2), USA (2), and
+  Russia (1), plus an honest zero-new-source finding for Eswatini —
+  the platform's total registered-source count moved from 85 (before
+  this pass, following the earlier same-session Heinrich Böll/Germany
+  addition) to 91.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Five-country autonomous engine: USA pass — two university sources added
 
 ### Added

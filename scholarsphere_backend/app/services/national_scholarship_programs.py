@@ -3912,3 +3912,70 @@ class VanderbiltCorneliusScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().vanderbilt_cornelius_scholarship_base_url
+
+
+class SkoltechScholarshipSource(_SingleProgramSource):
+    """Skolkovo Institute of Science and Technology (Skoltech) -
+    admissions/scholarship page - researched 2026-09-07, the fifth and
+    final country (Russia) of the simultaneous five-country pass
+    (Austria, Eswatini, Australia, USA, Russia). This platform's first
+    Russia source of any kind.
+
+    Confirmed 2026-09-07: `skoltech.ru/robots.txt` sets `Allow: /` for
+    `User-agent: *`, disallowing only `/admin/`, `/api/`, and query-
+    string/JSON/XML paths - none of which cover this content path.
+    Also confirmed the site is genuinely reachable from this
+    environment (a real live fetch, 200, server-rendered HTML) -
+    contrary to any assumption that sanctions or geo-blocking would
+    prevent access; this is an outbound-facing international-
+    admissions page, not a Russia-internal service.
+
+    Content selector `main`: verified directly via a BeautifulSoup
+    structural walk to hold the admissions status, programme list, and
+    "scholarships and benefits" section with none of the site's
+    navigation or footer chrome.
+
+    `title_selectors = ()`, no `title_tag_separator`: the page has no
+    `<h1>`, and its `<title>` ("Admissions | Сколтех") is too generic
+    on its own - falls through to the external_id-derived fallback
+    ("Skoltech Scholarship"), the same documented pattern already used
+    for WMI/Gates Cambridge/Helmut Veith elsewhere in this file.
+
+    Country coverage / eligibility: covers both MSc and PhD programmes
+    together on one page (14 fields listed for each degree level); no
+    nationality restriction stated - "international environment,"
+    English-taught, open to applicants worldwide.
+
+    **Deliberately conservative funding classification**: the page's
+    own text states "Students receive a scholarship based on the
+    results of the competitive selection: for MSc students: 40,000
+    rubles per month; for PhD students: 75,000 rubles per month" plus
+    insurance - a real, substantial stipend - but this page does
+    **not** itself state that tuition is waived for every admitted
+    student. Secondary sources describe Skoltech as broadly tuition-
+    free, but also note a listed tuition fee for MSc applicants who do
+    not receive the competitive scholarship - consistent with "only
+    the highest-scoring applicants" receiving the monthly scholarship
+    mentioned earlier on the same page. Classified `funding_type =
+    "partial_funding"` from what this specific official page actually
+    states, not from aggregator claims, per this project's "official
+    source over aggregator" rule.
+
+    Deliberately extracts no deadline: the page states plainly "The
+    application period for Skoltech master's and PhD programs is now
+    closed. To apply for the 2027 start, check back in autumn" - no
+    date literal for the next cycle exists yet, verified directly
+    rather than guessed from a prior cycle's dates.
+    """
+
+    source_code = "skoltech_scholarship"
+    overview_path = "/en/admissions"
+    title_selectors = ()
+    content_selectors = ("main",)
+    provider_name = "Skolkovo Institute of Science and Technology (Skoltech)"
+    country = "Russia"
+    external_id = "skoltech-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().skoltech_scholarship_base_url

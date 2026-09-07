@@ -5620,6 +5620,107 @@ researched and found blocked:
   Foundation channels) — not researched further as a candidate for a
   Sierra Leonean applicant.
 
+## 90. Skoltech (Skolkovo Institute of Science and Technology) — Admissions Scholarship
+
+Researched 2026-09-07, the fifth and final country (Russia) of the
+simultaneous five-country pass (Austria, Eswatini, Australia, USA,
+Russia). This platform's **first Russia source of any kind**.
+
+- **Organization**: Skolkovo Institute of Science and Technology
+  (Skoltech)
+- **Route code**: `skoltech-scholarship` (`skoltech_scholarship`
+  internally)
+- **Official domain / base URL**: `https://www.skoltech.ru`
+  (`SKOLTECH_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship, covering both MSc and PhD
+  programmes together on one page (14 fields listed for each degree
+  level). A competitively-awarded monthly stipend — "for MSc students:
+  40,000 rubles per month; for PhD students: 75,000 rubles per month"
+  — plus insurance. **Deliberately conservative funding
+  classification**: `funding_type = "partial_funding"`, not
+  `fully_funded`. This page's own text does **not** state that tuition
+  is waived for every admitted student; secondary sources describe
+  Skoltech as broadly tuition-free but also note a listed tuition fee
+  for MSc applicants who do not receive the competitive scholarship
+  (consistent with the page's own "for highest-scoring applicants"
+  framing for the top-tier stipend rate). Classified from what this
+  specific official page actually states, not from aggregator "fully
+  funded" claims, per this project's "official source over aggregator"
+  rule.
+- **Country coverage / eligibility**: no nationality restriction
+  stated — "international environment," English-taught, worldwide
+  applicability.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `skoltech.ru/robots.txt` sets
+  `Allow: /` for `User-agent: *`, disallowing only `/admin/`, `/api/`,
+  and query-string/JSON/XML paths — none of which cover this content
+  path. Also confirmed the site is genuinely reachable from this
+  environment (a real live fetch, 200, server-rendered HTML) — contrary
+  to any assumption that sanctions or geo-blocking would prevent
+  access; this is an outbound-facing international-admissions page,
+  not a Russia-internal service.
+- **API / RSS / Sitemap**: A sitemap exists (`skoltech.ru/sitemap.xml`)
+  but is not itself scraped
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector `main`**: verified directly via a BeautifulSoup
+    structural walk to hold the admissions status, programme list, and
+    "scholarships and benefits" section with none of the site's
+    navigation or footer chrome.
+  - **`title_selectors = ()`, no `title_tag_separator`**: the page has
+    no `<h1>`, and its `<title>` ("Admissions | Сколтех") is too
+    generic on its own — falls through to the external_id-derived
+    fallback ("Skoltech Scholarship"), the same documented pattern
+    already used for WMI/Gates Cambridge/Helmut Veith elsewhere in this
+    file.
+  - **Deliberately extracts no deadline**: the page states plainly
+    "The application period for Skoltech master's and PhD programs is
+    now closed. To apply for the 2027 start, check back in autumn" —
+    no date literal for the next cycle exists yet, per this project's
+    "no stale-cycle guessing" rule.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch (`tests/fixtures/skoltech_admissions.html`).
+
+### Researched this pass (2026-09-07, Russia — five-country autonomous engine), not integrated
+
+- **"Open Doors: Russian Scholarship Project" (Global Universities
+  Association, hosted on `admissions.hse.ru/en/globaluni/`)** — a
+  genuinely enormous and credible programme (100,000+ participants a
+  year, 6,000+ admitted over 7 years, tuition-free admission with no
+  entrance exams for competition winners), but architecturally a
+  large multi-university, multi-programme catalogue listing dozens of
+  distinct Bachelor's and Master's programmes across many different
+  Russian universities and fields, each with its own selection
+  criteria — the same multi-record architecture mismatch documented
+  repeatedly elsewhere in this file (closer to the Erasmus Mundus
+  catalogue's shape, #47, than a single-record flagship page). Out of
+  scope for this pass's `_SingleProgramSource` pattern; a strong
+  candidate for a dedicated future pass using this platform's
+  multi-record/pagination architecture instead.
+- **`education-in-russia.com`** — the official Russian government
+  portal for the international Government Quota programme
+  (Rossotrudnichestvo) — reachable and unrestricted per its own
+  `robots.txt` (a large named-bot blocklist with no catch-all `User-
+  agent: *` rule, so this platform's own identified `ScholarSphere/1.0`
+  scraper is not disallowed), but its homepage is a client-side-
+  rendered single-page application shell (5.4 KB of HTML, no readable
+  programme content without executing JavaScript) — a technical
+  limitation, not a bot-block, consistent with this project's
+  documented distinction between the two categories.
+- **HSE University's own general merit/tuition-discount scholarships**
+  — real (up to 50% tuition discount at the Master's level, a smaller
+  number of full-tuition-waiver "top applicant" places), but described
+  across multiple separate programme-specific pages with differing
+  terms per Master's programme rather than one flagship page — the
+  same multi-record mismatch as Open Doors above.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

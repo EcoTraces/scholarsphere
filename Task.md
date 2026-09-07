@@ -4973,3 +4973,94 @@ for the full dated history.
       The fixtures (`tests/fixtures/harrington_graduate_fellows.html`,
       `tests/fixtures/vanderbilt_cornelius_scholarship.html`) were
       captured unmodified from the live sites.
+
+- [x] **(2026-09-07)** Five-country autonomous scholarship research
+      engine - Russia pass (fifth and final country): the research
+      brief specifically asked to search in both English and Russian,
+      to distinguish university scholarships from government
+      quota/state-funded places, and not to assume a "state-funded
+      place" is automatically equivalent to a fully funded scholarship.
+      Also did not assume connectivity to Russian university sites
+      would be blocked from this environment - tested a batch of major
+      Russian universities' domains live first (HSE, ITMO, MIPT, SPbU,
+      Kazan, Ural, RUDN) and found most genuinely reachable, since
+      these are outbound-facing international-admissions pages, not
+      Russia-internal services.
+
+      Found and **implemented** the **Skoltech Admissions Scholarship**
+      (source #90) - this platform's first Russia source of any kind:
+      - Verified the page's own text carefully rather than trusting
+        aggregator claims that Skoltech is unconditionally "fully
+        funded": the official admissions page states a competitively-
+        awarded monthly stipend ("for MSc students: 40,000 rubles per
+        month... for highest-scoring applicants") but does not itself
+        state that tuition is waived for every admitted student. Cross-
+        checked against secondary sources, which confirmed a listed
+        tuition fee exists for MSc applicants who do not receive the
+        scholarship - consistent with the official page's own
+        "highest-scoring" framing. Classified `partial_funding` from
+        what the official page actually says, per this project's
+        "official source over aggregator" rule, rather than accepting
+        the more generous "fully funded" label used by several
+        aggregator sites.
+      - Confirmed the page is genuinely real, current, server-rendered
+        HTML (not a JS shell) before proceeding, and read its honest
+        status statement directly: "The application period ... is now
+        closed. To apply for the 2027 start, check back in autumn" -
+        correctly extracted no deadline rather than guessing a future
+        date from a prior cycle.
+      - Selected `main` as the content selector after confirming
+        directly that it holds the admissions status, programme list,
+        and scholarship terms with none of the site's navigation.
+
+      Three further Russia candidates were researched and deferred or
+      rejected this same pass:
+      - **"Open Doors: Russian Scholarship Project"** - a genuinely
+        enormous, credible international academic Olympiad (100,000+
+        participants a year, 6,000+ admitted over 7 years, tuition-free
+        admission for competition winners with no entrance exams), read
+        in full detail on its official HSE-hosted page. Recognized this
+        as architecturally a large multi-university, multi-programme
+        catalogue - dozens of distinct Bachelor's and Master's
+        programmes across many different Russian universities, each
+        with its own selection criteria - much closer to the Erasmus
+        Mundus catalogue's existing multi-record architecture (#47)
+        than this session's single-record `_SingleProgramSource`
+        pattern. Deferred honestly as a strong future-pass candidate
+        rather than forced into an architecture that doesn't fit it.
+      - **`education-in-russia.com`** (the official government Quota/
+        Rossotrudnichestvo portal) - checked its robots.txt in detail
+        (a long list of specifically-named blocked bots, but critically
+        no catch-all "User-agent: *" rule, so confirmed this platform's
+        own identified scraper is not disallowed) before concluding the
+        real blocker: the homepage itself is only a 5.4 KB client-side-
+        rendered single-page-application shell with no readable
+        programme content in plain HTTP - a technical limitation
+        distinct from a bot-block, documented as such.
+      - **HSE University's own general merit/tuition-discount
+        scholarships** - real (up to 50% tuition discount at the
+        Master's level, a smaller number of full-tuition-waiver "top
+        applicant" places), but spread across multiple separate
+        programme-specific pages with differing terms per Master's
+        programme rather than one flagship page - the same multi-record
+        mismatch as Open Doors above.
+
+      This concludes the simultaneous five-country autonomous research
+      engine (Austria, Eswatini, Australia, USA, Russia): 6 new sources
+      implemented in total across this pass (Helmut Veith Stipend for
+      Austria; USYD RTP and UQ Graduate Research School Scholarships
+      for Australia; Harrington Graduate Fellows and Vanderbilt
+      Cornelius Vanderbilt Scholarship for USA; Skoltech for Russia),
+      plus an honest, well-researched zero-new-source finding for
+      Eswatini reported as the correct outcome rather than padded.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, and `deadline = None` all
+      resolve exactly as documented. Full backend suite green
+      afterward, 827 passed / 25 skipped (up from 825 passed/25
+      skipped - two new tests, plus `test_opportunity_import.py`'s
+      updated source-count assertion, 90 -> 91 registered sources). The
+      fixture (`tests/fixtures/skoltech_admissions.html`) was captured
+      unmodified from the live site.

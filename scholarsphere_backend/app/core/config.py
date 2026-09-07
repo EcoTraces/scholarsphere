@@ -668,6 +668,30 @@ class Settings(BaseSettings):
     # not represented by this record, documented in the source class.
     vanderbilt_cornelius_scholarship_base_url: str = "https://www.vanderbilt.edu"
 
+    # Skolkovo Institute of Science and Technology (Skoltech) -
+    # admissions/scholarship page - researched 2026-09-07, the fifth
+    # country (Russia) of the simultaneous five-country pass. This
+    # platform's first Russia source of any kind. Confirmed live and
+    # reachable from this environment (contrary to any assumption that
+    # sanctions or geo-blocking would prevent access - this is an
+    # outbound-facing international-admissions page, not a
+    # Russia-internal service). `skoltech.ru/robots.txt` sets
+    # `Allow: /` for `User-agent: *`, disallowing only `/admin/`,
+    # `/api/`, and query-string/JSON/XML paths - none of which cover
+    # this content path. Conservatively classified `partial_funding`,
+    # not `fully_funded`: the page's own text states a competitively-
+    # awarded monthly stipend ("for MSc students: 40,000 rubles per
+    # month") plus insurance, but does NOT itself state that tuition is
+    # waived for every admitted student (secondary sources suggest
+    # tuition coverage may be conditional on the same competitive
+    # selection) - classified from what this specific page actually
+    # says, not from aggregator claims. No deadline extracted: the page
+    # states plainly "The application period ... is now closed. To
+    # apply for the 2027 start, check back in autumn" - no date literal
+    # for the next cycle exists yet, per this project's "no stale-cycle
+    # guessing" rule.
+    skoltech_scholarship_base_url: str = "https://www.skoltech.ru"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -847,6 +871,7 @@ class Settings(BaseSettings):
         "uq_graduate_research_scholarships_base_url",
         "harrington_graduate_fellows_base_url",
         "vanderbilt_cornelius_scholarship_base_url",
+        "skoltech_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

@@ -163,6 +163,7 @@ unverified).
 | 87 | University of Queensland Graduate Research School Scholarships (UQGRSS) | Australia | UNIVERSITY | scholarships.uq.edu.au | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second Australia university source; genuinely covers Master's-by-Research (MPhil), not PhD-only, verified directly from the page's own text; no nationality restriction for the flagship UQGRSS award (two narrower scholarships mentioned on the same page — domestic-only and Aboriginal/Torres-Strait-Islander-restricted — are explicitly not represented by this record); genuinely `fully_funded` — tuition + AUD 39.2K/year tax-free stipend + OSHC; no deadline extracted (page states only that awards are "offered in rounds," no date literal present) (see AUTHORITATIVE_SOURCES.md #87) |
 | 88 | UT Austin Harrington Graduate Fellows Program | United States | UNIVERSITY | harrington.utexas.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fourth country (USA) of the five-country pass; this registry's first USA *university* source (Knight-Hennessy Scholars, #51, is hosted at Stanford but not a USA-specific-search result); genuinely fully funded — USD 40,000/year stipend + full tuition/fees + health insurance stipend + USD 2,000/year expenses, for up to 5 years; no nationality restriction ("from around the world"); genuinely includes a Master's track ("Harrington Master's Fellows," for professional/terminal Master's degrees), not PhD-only; a nomination-only award, documented honestly; no deadline extracted (see AUTHORITATIVE_SOURCES.md #88) |
 | 89 | Vanderbilt University Cornelius Vanderbilt Scholarship | United States | UNIVERSITY | vanderbilt.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second USA university source and its first at the undergraduate level; genuinely `partial_funding` — guaranteed full tuition + summer stipend, not full cost of attendance, consistent with this project's "full tuition ≠ fully funded" standard; confirmed genuinely open to international applicants via Vanderbilt's own international-admissions page (89 students from 54 countries for fall 2026); a separate, differently-focused Ingram Scholars programme sharing the same page/deadline is explicitly not represented by this record; exact deadline extracted (1 December 2026) (see AUTHORITATIVE_SOURCES.md #89) |
+| 90 | Skoltech Admissions Scholarship | Russia | UNIVERSITY | skoltech.ru | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fifth and final country (Russia) of the five-country pass; this registry's **first Russia source of any kind**; site confirmed genuinely reachable from this environment, contrary to any assumption sanctions/geo-blocking would block access; covers both MSc and PhD together, no nationality restriction; deliberately conservative `partial_funding` classification — the page states a competitively-awarded monthly stipend (40,000 RUB/month for MSc) plus insurance but does not itself state tuition is waived for every admitted student, classified from the official page's own text rather than aggregator "fully funded" claims; no deadline extracted (2027-cycle dates not yet published, page explicitly says "check back in autumn") (see AUTHORITATIVE_SOURCES.md #90) |
 
 **(2026-09-07, five-country autonomous engine — Austria)** Checked five
 further Austrian universities live (TU Wien, University of Vienna,
@@ -217,6 +218,23 @@ found restricted to Egyptian nationals resident in Egypt — not
 relevant to a Sierra Leonean applicant, not researched further. See
 AUTHORITATIVE_SOURCES.md's "Researched this pass (2026-09-07, USA —
 five-country autonomous engine), not integrated" note for full detail.
+
+**(2026-09-07, five-country autonomous engine — Russia)** The fifth and
+final country of this pass. "Open Doors: Russian Scholarship Project"
+(a Global Universities Association consortium programme, 100,000+
+participants/year, tuition-free for competition winners) is genuinely
+enormous and credible, but architecturally a large multi-university,
+multi-programme catalogue — closer to the Erasmus Mundus catalogue's
+shape (#47) than a single-record flagship page — deferred for a future
+multi-record-architecture pass. `education-in-russia.com`, the official
+government Quota portal, is reachable and unrestricted by its own
+robots.txt, but its homepage is a client-side-rendered SPA shell with
+no readable content in plain HTTP — a technical limitation, not a
+bot-block. HSE University's own merit/tuition-discount scholarships are
+real but spread across multiple programme-specific pages with differing
+terms — the same multi-record mismatch. See AUTHORITATIVE_SOURCES.md's
+"Researched this pass (2026-09-07, Russia — five-country autonomous
+engine), not integrated" note for full detail.
 
 **(2026-09-06, Netherlands continuation pass)** The Netherlands
 fully-funded-only mega-prompt was resubmitted after three genuinely

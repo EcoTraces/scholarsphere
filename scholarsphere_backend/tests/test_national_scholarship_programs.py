@@ -61,6 +61,7 @@ from app.services.national_scholarship_programs import (
     PkuInternationalScholarshipSource,
     SheffieldPgScholarshipSource,
     SjtuMastersScholarshipSource,
+    SkoltechScholarshipSource,
     SouthamptonMeritUndergraduateScholarshipSource,
     SouthamptonPresidentialBursariesSource,
     TaiwanIcdfScholarshipSource,
@@ -3277,3 +3278,50 @@ def test_vanderbilt_cornelius_scholarship_has_no_robots_txt_restrictions() -> (
     assert (
         VanderbiltCorneliusScholarshipSource.min_request_interval_seconds == 2.0
     )
+
+
+# --- Skoltech Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_skoltech_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Russia source of any kind - the site is
+    genuinely reachable from this environment, contrary to any
+    assumption that sanctions or geo-blocking would prevent access.
+    Deliberately conservative funding classification: the page states
+    a competitively-awarded monthly stipend but does not itself state
+    tuition is waived for every admitted student, so classified
+    partial_funding rather than trusting aggregator "fully funded"
+    claims. No deadline extracted: the page states the 2027 cycle's
+    dates are not yet published."""
+    source = SkoltechScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("skoltech_admissions.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "skoltech-scholarship"
+    assert opportunity.title == "Skoltech Scholarship"
+    assert opportunity.country == "Russia"
+    assert (
+        opportunity.provider_name
+        == "Skolkovo Institute of Science and Technology (Skoltech)"
+    )
+    assert opportunity.description is not None
+    assert "40,000 rubles per month" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_skoltech_scholarship_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`skoltech.ru/robots.txt`) sets `Allow: /` for
+    `User-agent: *`, disallowing only `/admin/`, `/api/`, and query-
+    string/JSON/XML paths - none of which cover this content path."""
+    assert SkoltechScholarshipSource.min_request_interval_seconds == 2.0

@@ -105,6 +105,7 @@ from app.services.national_scholarship_programs import (
     SciencesPoMastercardScholarsSource,
     SheffieldPgScholarshipSource,
     SjtuMastersScholarshipSource,
+    SkoltechScholarshipSource,
     SouthamptonMeritUndergraduateScholarshipSource,
     SouthamptonPresidentialBursariesSource,
     TaiwanIcdfScholarshipSource,
@@ -542,6 +543,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_vanderbilt_cornelius_scholarship",
             "schedule": crontab(minute=15, hour=23),
         },
+        "sync-skoltech-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_skoltech_scholarship",
+            "schedule": crontab(minute=30, hour=23),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -753,6 +758,7 @@ SOURCE_TASK_NAMES = {
     "vanderbilt_cornelius_scholarship": (
         "app.tasks.opportunity_sync.sync_vanderbilt_cornelius_scholarship"
     ),
+    "skoltech_scholarship": "app.tasks.opportunity_sync.sync_skoltech_scholarship",
 }
 
 
@@ -2103,6 +2109,21 @@ def sync_vanderbilt_cornelius_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_skoltech_scholarship",
+    max_retries=3,
+)
+def sync_skoltech_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "skoltech_scholarship", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2410,6 +2431,7 @@ def _collector(source_code: str) -> Any:
         "uq_graduate_research_scholarships": UqGraduateResearchScholarshipsSource,
         "harrington_graduate_fellows": HarringtonGraduateFellowsSource,
         "vanderbilt_cornelius_scholarship": VanderbiltCorneliusScholarshipSource,
+        "skoltech_scholarship": SkoltechScholarshipSource,
     }[source_code]()
 
 
