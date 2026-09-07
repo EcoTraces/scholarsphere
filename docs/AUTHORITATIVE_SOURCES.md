@@ -6910,6 +6910,157 @@ program from a Portuguese-speaking country's own official portal.
   keep the fixture a reasonable size — the extracted text itself is
   untouched from the live page).
 
+## 103. Berea College (Kentucky) — Fully Funded Degree
+
+Researched 2026-09-07, following up on a screenshot of ten US liberal
+arts colleges the user asked to be checked for genuine "fully funded, no
+application fee" status. Live research (not the aggregator sites the
+screenshot's list style resembles) found a real, important distinction:
+of the ten, Berea is the only one that is unconditionally fully funded
+for every enrolled student. The other nine (Grinnell, Carleton,
+Davidson, Bates, Colby, Kenyon, Oberlin, Macalester, Skidmore) are all
+genuine "meets 100% of demonstrated need" liberal arts colleges, but
+every one is need-*aware* for international applicants specifically
+(financial need can affect the admission decision itself, unlike their
+need-blind treatment of domestic applicants), and none guarantee funding
+independent of a limited, competitive international aid budget — see
+their entries below, added the same pass with that distinction stated
+plainly rather than oversold.
+
+- **Organization**: Berea College, Berea, Kentucky
+- **Route code**: `berea-college-fully-funded`
+  (`berea_college_fully_funded` internally)
+- **Official domain / base URL**: `https://www.berea.edu`
+  (`BEREA_COLLEGE_FULLY_FUNDED_BASE_URL`)
+- **Opportunity types**: Scholarship (undergraduate) — not a
+  competitive award a subset of admits win, but Berea's entire
+  operating model: "the nation's first fully funded, no-loan
+  degree—covering 100% of tuition, housing, food, fees, and supplies—for
+  every enrolled student." `funding_type = "fully_funded"`, genuinely
+  unconditional on demonstrated need level (everyone pays $0).
+- **Country coverage / eligibility**: no nationality restriction found
+  anywhere on the site — confirmed directly on Berea's own
+  international-student FAQ page, which states the college admits
+  roughly 40 international students a year from "over 70 different
+  countries," with no country list, quota-per-country, or exclusion
+  mentioned. Highly competitive on admission itself (small international
+  cohort), but not on funding once admitted.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML — a Next.js site, but fully server-rendered; no
+  JavaScript execution needed)
+- **robots.txt / indexing note**: `berea.edu/robots.txt` sets `Allow: /`
+  for all user-agents (the only disallow rule is `/search`). Confirmed
+  directly: `RobotFileParser.can_fetch()` with a `ScholarSphere/1.0`
+  user-agent returns `True`.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **No application fee**: confirmed by the absence of any fee mention
+    across Berea's deadlines, application, and international-FAQ pages
+    (inconsistent with a real fee, given how central "tuition-free" is
+    to the college's own messaging) and independently by secondary
+    reporting citing berea.edu directly.
+  - **A real, currently-open deadline exists but is deliberately not
+    extracted**: Berea's own dedicated deadlines page states
+    "International Students... Application Deadline November 30" — a
+    genuinely upcoming, non-stale date for the next intake as of this
+    research date (2026-09-07), unlike several other US/Italy sources
+    checked this session. But that page (and the international FAQ
+    page, which repeats the identical phrasing) never states a year
+    anywhere near "November 30." This project's own
+    `extract_confident_date` deliberately refuses to guess a year for a
+    day+month-only literal (`docs/OPPORTUNITY_VERIFICATION_SYSTEM.md`
+    §10's "never invent data" rule) — a missing deadline is safe for a
+    human officer to fill in from context; a wrong one is not. Set
+    `deadline_keywords = ()` accordingly, and skipped fetching the
+    separate deadlines page entirely, since it offers no year-qualified
+    date to extract either way.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured from the
+  live fetch (`tests/fixtures/berea_college_fully_funded.html`; trimmed
+  to the `<title>` and `<main>` elements to keep the fixture a
+  reasonable size — the extracted text itself is untouched from the
+  live page).
+
+## 104–109. Six more US liberal arts colleges — need-based financial aid, honestly framed
+
+Same 2026-09-07 pass as Berea (#103). After confirming Berea was the one
+unconditional match for the screenshot's "fully funded, no application
+fee" claim, the other nine schools on that list were checked directly
+against their own official pages (not the aggregator-site summaries a
+screenshot like this typically originates from). Six qualified as real,
+substantial, verifiable sources and are added here; three did not (see
+below). Every one of the six is need-*aware* for international
+admission specifically — financial need can affect the admission
+decision itself, unlike the need-blind treatment each gives domestic
+applicants — and every one caps aid within a limited, competitive
+international budget. That distinction is stated in each source's own
+docstring and is not softened here.
+
+Two of the six explicitly make loans a standard part of how they cover
+demonstrated need (Carleton: "grants, student employment, and
+manageable loans to cover the rest"; Oberlin: "grants, scholarships,
+loans, and on-campus employment to meet 100%") — classified
+`partial_funding`, consistent with this project's standing rule that a
+loan-inclusive package isn't "fully funded." The other four (Grinnell,
+Davidson, Bates, Macalester) state or imply a grant/employment-only
+package for international students with no loan component found in
+their own aid-policy text — classified `fully_funded`.
+
+| # | School | Route code | Base URL | `funding_type` | Key selector note |
+|---|---|---|---|---|---|
+| 104 | Grinnell College | `grinnell-international-aid` | grinnell.edu | `fully_funded` | Four-panel Drupal accordion (Deadlines, Required Materials, Optional Materials, Financial Aid Policy) — isolated via `div.accordion__item:nth-of-type(4)`, the only panel with the "100%"/need-aware text; `main` alone would include all four panels plus heavy site navigation, pushing the real text past the 5,000-character description cap |
+| 105 | Davidson College | `davidson-international-aid` | davidson.edu | `fully_funded` | `main` matches the whole page (37,543 characters, almost entirely sitewide navigation) — isolated via `article.body-section`, a 2,485-character real content article, verified unique on the page |
+| 106 | Bates College | `bates-international-aid` | bates.edu | `fully_funded` | Explicitly no-loan ("Bates does not include loans in the aid awards for non-U.S. citizens") — the strongest of the six on that specific point. Page has 5 `<h1>` elements; a generic "Student Financial Services" heading precedes the real one, so `title_selectors = ("main h1",)` is used instead of the bare default |
+| 107 | Macalester College | `macalester-international-aid` | macalester.edu | `fully_funded` | Explicitly states competition for international aid is "extremely keen"; a separate, *optional* institutional loan program exists for students who choose it, distinct from — not a mandatory component of — the need-based grant award itself, so this doesn't change the `fully_funded` classification |
+| 108 | Carleton College | `carleton-international-aid` | carleton.edu | `partial_funding` | Own wording: "grants, student employment, and manageable loans to cover the rest" — loans are a standard component of meeting need, not optional |
+| 109 | Oberlin College | `oberlin-international-aid` | oberlin.edu | `partial_funding` | Own wording: "grants, scholarships, loans, and on-campus employment to meet 100% of calculated financial need" — same reasoning as Carleton |
+
+Shared details across all six:
+- **Discovery method**: Web scraper (plain HTTPS GET, real server-rendered HTML, no JavaScript execution needed)
+- **robots.txt**: confirmed 2026-09-07 for all six — none disallow the content path used, verified via `RobotFileParser.can_fetch()` with a `ScholarSphere/1.0` user-agent
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberately extracts no deadline** on all six (`deadline_keywords = ()`): each is a general aid-policy page, not a page stating a specific dated deadline
+- **LIVE SOURCE TEST: PASSED 2026-09-07** for all six. Verified through this backend's actual HTTP path — 200, real server-rendered HTML on every one. Implemented and unit-tested against real fixtures captured from the live fetches (`tests/fixtures/grinnell_international_aid.html`, `davidson_international_aid.html`, `bates_international_aid.html`, `macalester_international_aid.html`, `carleton_international_aid.html`, `oberlin_international_aid.html`; each trimmed to keep the fixture size reasonable while preserving the exact DOM structure the selector logic depends on — e.g. Grinnell's fixture keeps all four accordion panels, not just the fourth, since `:nth-of-type(4)` depends on sibling position).
+
+### Three of the ten screenshot schools, researched, not integrated this pass
+
+- **Colby College** — `BLOCKED`. Both `afa.colby.edu` (the admissions
+  subdomain) and the main `www.colby.edu` domain returned `HTTP 403` to
+  a plain HTTPS GET with this project's real `ScholarSphere/1.0`
+  user-agent, confirmed on 3 separate URLs including `robots.txt`
+  itself. The same class of finding as Cyprus's WAF and China's anti-bot
+  challenge elsewhere in this document — not attempted to bypass.
+- **Kenyon College** — `NOT_SUITABLE` (weak commitment, not a verifiable
+  guarantee). Kenyon's *general* financial-aid page states "We meet 100%
+  of demonstrated financial need" as a headline claim, but its
+  *international-student-specific* pages never restate that guarantee —
+  secondary reporting independently described Kenyon's international
+  policy as "need-sensitive" and only making "an effort to meet full
+  demonstrated need," a materially weaker commitment than the other six
+  colleges in this pass, none of which required a hedge like that.
+  Representing Kenyon as equivalent to Grinnell/Davidson/Bates/
+  Macalester would overstate what its own site actually promises
+  international applicants specifically.
+- **Skidmore College** — `NOT_VERIFIED` (insufficient direct evidence
+  this pass). Three of Skidmore's own pages were fetched
+  (`admissions/apply/international.php`, `financial-aid/`,
+  `catalog.skidmore.edu/financial-aid/`) and none contained an explicit
+  "100%"/need-blind/need-aware policy statement for international
+  students in the fetched content — only application-process and
+  deadline information. Secondary reporting claims a 100%-of-need
+  commitment, but this project's standard is to verify claims against
+  the institution's own page before implementing, not to implement from
+  aggregator synthesis. Not implemented; a future pass could locate the
+  right page and revisit.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

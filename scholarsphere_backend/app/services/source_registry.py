@@ -640,6 +640,48 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "berea_college_fully_funded": {
+        "source_name": "Berea College - Fully Funded Degree",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "grinnell_international_aid": {
+        "source_name": "Grinnell College - International Student Financial Aid",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "davidson_international_aid": {
+        "source_name": "Davidson College - International Student Financial Aid",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "bates_international_aid": {
+        "source_name": "Bates College - International Student Financial Aid",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "macalester_international_aid": {
+        "source_name": "Macalester College - International Student Financial Aid",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "carleton_international_aid": {
+        "source_name": "Carleton College - International Student Financial Aid",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "oberlin_international_aid": {
+        "source_name": "Oberlin College - International Student Financial Aid",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -792,6 +834,15 @@ def _base_urls() -> dict[str, str]:
         ),
         "santanna_phd_funding": settings.santanna_phd_funding_base_url,
         "brazil_pecpg_scholarship": settings.brazil_pecpg_scholarship_base_url,
+        "berea_college_fully_funded": settings.berea_college_fully_funded_base_url,
+        "grinnell_international_aid": settings.grinnell_international_aid_base_url,
+        "davidson_international_aid": settings.davidson_international_aid_base_url,
+        "bates_international_aid": settings.bates_international_aid_base_url,
+        "macalester_international_aid": (
+            settings.macalester_international_aid_base_url
+        ),
+        "carleton_international_aid": settings.carleton_international_aid_base_url,
+        "oberlin_international_aid": settings.oberlin_international_aid_base_url,
     }
 
 
@@ -918,6 +969,13 @@ async def seed_opportunity_sources(
         "jcu_global_explorer_scholarship": now + timedelta(hours=24),
         "santanna_phd_funding": now + timedelta(hours=24),
         "brazil_pecpg_scholarship": now + timedelta(hours=24),
+        "berea_college_fully_funded": now + timedelta(hours=24),
+        "grinnell_international_aid": now + timedelta(hours=24),
+        "davidson_international_aid": now + timedelta(hours=24),
+        "bates_international_aid": now + timedelta(hours=24),
+        "macalester_international_aid": now + timedelta(hours=24),
+        "carleton_international_aid": now + timedelta(hours=24),
+        "oberlin_international_aid": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

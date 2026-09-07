@@ -28,6 +28,66 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — US liberal arts colleges verified: 7 of 10 screenshot schools added, 3 honestly declined
+
+### Added
+Following a screenshot of ten US liberal arts colleges claimed to offer
+"fully funded scholarship with no application fee," each was checked
+live against its own official page rather than trusted at face value.
+Only one (Berea College) is unconditionally fully funded; the other
+nine are real "meets 100% of demonstrated need" colleges, all
+need-*aware* for international applicants specifically (unlike their
+need-blind treatment of domestic applicants) with capped international
+budgets. Six of those nine had strong enough evidence on their own
+sites to implement, framed honestly rather than oversold; three did not
+and were declined rather than implemented speculatively.
+
+- **Berea College - Fully Funded Degree** (source #103) - the one
+  unconditional match: 100% of tuition/housing/food/fees/supplies
+  covered for every enrolled student, no loans, no nationality
+  restriction, no application fee. A real, current "November 30"
+  international deadline exists but states no year anywhere on Berea's
+  own site, so no deadline is extracted (`deadline_keywords = ()`) -
+  this project's "never invent data" rule refuses to guess a year for a
+  day+month-only literal.
+- **Grinnell, Davidson, Bates, Macalester College International
+  Financial Aid** (sources #104-107) - each meets 100% of demonstrated
+  need for admitted international students with no loan mentioned in
+  the standard package - `fully_funded`.
+- **Carleton, Oberlin College International Financial Aid** (sources
+  #108-109) - each meets 100% of need but explicitly includes loans as
+  a standard component ("manageable loans to cover the rest" /
+  "grants, scholarships, loans, and on-campus employment") -
+  `partial_funding`, consistent with this project's standard that a
+  loan-inclusive package isn't "fully funded."
+- **Declined, documented honestly, not implemented**: Colby College
+  (`BLOCKED` - HTTP 403 on every domain/path tried, the same class of
+  bot-protection as Cyprus/China elsewhere in this project); Kenyon
+  College (`NOT_SUITABLE` - its international-specific pages never
+  restate its general "100%" headline claim, and secondary sources
+  independently describe the policy as merely "need-sensitive," too
+  weak a commitment to represent confidently); Skidmore College
+  (`NOT_VERIFIED` - three of its own pages fetched, none stated an
+  explicit need-met policy for international students; not implemented
+  from secondary-aggregator claims alone).
+- Two real selector bugs caught and fixed before shipping (both via a
+  `collect()` simulation, before any test was written, per this
+  project's standing discipline): Grinnell's page is a four-panel
+  accordion where only the fourth panel holds the relevant policy text
+  (`div.accordion__item:nth-of-type(4)`); Davidson's `<main>` element
+  is almost entirely sitewide navigation, with the real content isolated
+  via `article.body-section` instead.
+- **LIVE SOURCE TEST: PASSED 2026-09-07** for all 7 new sources.
+  `pyflakes` clean. `test_opportunity_import.py`'s source-count
+  assertion updated, 103 → 110 registered sources.
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  updated with all 7 new sources and the 3 declined candidates'
+  reasoning.
+
+---
+
 ## [2026-09-07] — Brazil follow-up: PEC-PG (Master's/PhD) government scholarship added
 
 ### Added

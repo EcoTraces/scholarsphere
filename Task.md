@@ -6077,3 +6077,83 @@ for the full dated history.
     updated source-count assertion, 102 -> 103 registered sources; see
     Changelog.md for the exact pass/skip counts from the run right
     after this addition).
+
+  - **[2026-09-07] Screenshot of ten US liberal arts colleges, asked to
+    verify "fully funded scholarship with no application fee" and
+    implement whichever hold up.** Refused to trust the list at face
+    value - fetched each school's own official page directly rather
+    than the aggregator-site summaries a screenshot like this usually
+    traces back to.
+
+    Only **Berea College** turned out unconditionally fully funded:
+    100% of tuition/housing/food/fees/supplies for every enrolled
+    student, no loans, no application fee, no nationality restriction.
+    A real "November 30" international deadline exists on Berea's own
+    deadlines page, but genuinely nowhere on the site does that date
+    carry a year - confirmed directly, not assumed - so no deadline was
+    extracted; guessing the year would have violated this project's own
+    "never invent data" rule.
+
+    The other nine are all real "meets 100% of demonstrated need"
+    colleges, but every one turned out need-*aware* for international
+    admission specifically (unlike their need-blind treatment of
+    domestic applicants) with a capped international aid budget - a
+    materially different, weaker claim than "fully funded scholarship"
+    implies, and said so plainly rather than papering over it. Six had
+    strong enough evidence on their own sites to implement anyway, since
+    the aid is still real and substantial: **Grinnell, Davidson, Bates,
+    and Macalester** state or imply a grant/employment-only package for
+    international students (no loan found in their own aid-policy text)
+    - classified `fully_funded`. **Carleton and Oberlin** explicitly
+    make loans a standard part of how they cover demonstrated need
+    ("manageable loans to cover the rest" / "loans... to meet 100%") -
+    classified `partial_funding` instead, the same standard already
+    applied elsewhere in this project to loan-inclusive packages.
+
+    Two real selector bugs were caught before shipping, both via a
+    `collect()` simulation run before any test was written:
+    - Grinnell's international page is a four-panel Drupal accordion
+      (Deadlines, Required Materials, Optional Materials, Financial Aid
+      Policy); the naive `main` selector included all four plus heavy
+      site navigation, pushing the real "100%"/need-aware text well
+      past the 5,000-character description truncation. Fixed with
+      `div.accordion__item:nth-of-type(4)`, verified directly that only
+      that fourth panel contains the relevant text.
+    - Davidson's `<main>` element is 37,543 characters, almost entirely
+      a sitewide navigation tree unrelated to financial aid. Fixed with
+      `article.body-section`, a 2,485-character real content article
+      verified unique on the page.
+
+    The remaining three were researched and honestly declined, not
+    implemented on weak or unverifiable evidence:
+    - **Colby College**: `BLOCKED` - both `afa.colby.edu` and
+      `www.colby.edu` returned HTTP 403 to a plain HTTPS GET with this
+      project's real user-agent, on every URL tried including
+      `robots.txt` itself - the same class of finding as Cyprus's WAF
+      block elsewhere in this project.
+    - **Kenyon College**: `NOT_SUITABLE` - its general financial-aid
+      page states "We meet 100% of demonstrated financial need" as a
+      headline, but its international-student-specific pages never
+      restate that guarantee; secondary reporting independently
+      describes Kenyon's international policy as merely
+      "need-sensitive"/making "an effort to meet" full need - a
+      materially weaker, unverifiable commitment compared to the six
+      colleges actually implemented, none of which needed that hedge.
+    - **Skidmore College**: `NOT_VERIFIED` - fetched three of Skidmore's
+      own pages (international admissions, financial aid, and the
+      academic catalog's financial-aid section) and none stated an
+      explicit need-met policy for international students in the
+      content actually returned. Secondary sources claim one, but this
+      project's standard is verifying against the institution's own
+      page before implementing, not implementing from aggregator
+      synthesis - left for a future pass to locate the right page.
+
+    **Verified for real**: `pyflakes` clean on every changed file.
+    `collect()` simulations against all 7 real fixtures (captured
+    unmodified from their live fetches, trimmed only for size while
+    preserving the exact DOM structure the selectors depend on),
+    confirmed before any test was written for each: correct title,
+    provider, funding_type, `deadline = None`, and the specific policy
+    phrase each source's classification rests on. Full backend suite
+    green afterward, plus `test_opportunity_import.py`'s updated
+    source-count assertion, 103 -> 110 registered sources.

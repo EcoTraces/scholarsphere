@@ -823,6 +823,27 @@ class Settings(BaseSettings):
     # user-agent.
     brazil_pecpg_scholarship_base_url: str = "https://www.gov.br"
 
+    # Berea College (Kentucky) - 100% of tuition/housing/food/fees/
+    # supplies covered for every enrolled student, domestic or
+    # international, no loans; not a competitive subset-of-admits award.
+    # Confirmed 2026-09-07: `berea.edu/robots.txt` sets `Allow: /` for
+    # all user-agents.
+    berea_college_fully_funded_base_url: str = "https://www.berea.edu"
+
+    # US liberal-arts colleges researched together (2026-09-07) after a
+    # request to verify ten schools claimed to offer "fully funded, no
+    # application fee" scholarships. Each is need-*aware* for
+    # international applicants and caps aid within a limited
+    # international budget - documented plainly in each source class's
+    # own docstring, not oversold. Confirmed for all six: the relevant
+    # robots.txt does not disallow the content path used.
+    grinnell_international_aid_base_url: str = "https://www.grinnell.edu"
+    davidson_international_aid_base_url: str = "https://www.davidson.edu"
+    bates_international_aid_base_url: str = "https://www.bates.edu"
+    macalester_international_aid_base_url: str = "https://www.macalester.edu"
+    carleton_international_aid_base_url: str = "https://www.carleton.edu"
+    oberlin_international_aid_base_url: str = "https://www.oberlin.edu"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -1015,6 +1036,13 @@ class Settings(BaseSettings):
         "jcu_global_explorer_scholarship_base_url",
         "santanna_phd_funding_base_url",
         "brazil_pecpg_scholarship_base_url",
+        "berea_college_fully_funded_base_url",
+        "grinnell_international_aid_base_url",
+        "davidson_international_aid_base_url",
+        "bates_international_aid_base_url",
+        "macalester_international_aid_base_url",
+        "carleton_international_aid_base_url",
+        "oberlin_international_aid_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

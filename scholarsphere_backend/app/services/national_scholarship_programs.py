@@ -4724,3 +4724,351 @@ class BrazilPecpgScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().brazil_pecpg_scholarship_base_url
+
+
+class BereaCollegeFullyFundedSource(_SingleProgramSource):
+    """Berea College (Kentucky) - a genuinely unique case among US
+    "meets full need" liberal arts colleges: 100% of every enrolled
+    student's tuition, housing, food, fees, and supplies is covered, for
+    every student, domestic or international, with no loans. Not a
+    competitive scholarship a subset of admits win - it is Berea's
+    entire operating model (endowment-funded), described on the
+    college's own site as "the nation's first fully funded, no-loan
+    degree." Distinguished from every other US source researched this
+    pass (Grinnell, Carleton, Davidson, Bates, Colby, Kenyon, Oberlin,
+    Macalester, Skidmore): those are all need-*aware* for international
+    applicants (financial need can affect the admission decision itself)
+    and only guarantee aid to students who are both admitted and found
+    to have fundable need within a limited international budget. Berea
+    has no such caveat - confirmed directly on its own international
+    FAQ page that it admits roughly 40 international students a year
+    from "over 70 different countries," with no nationality restriction
+    or separate funding cap mentioned anywhere.
+
+    Confirmed 2026-09-07: `berea.edu/robots.txt` sets `Allow: /` for all
+    user-agents (only `/search` is disallowed) -
+    `RobotFileParser.can_fetch()` with a `ScholarSphere/1.0` user-agent
+    returns `True` for both URLs used here.
+
+    `overview_path` (`/no-tuition`) carries the actual "fully funded"
+    claim in Berea's own words ("$0 - the amount every enrolled student
+    pays for tuition, housing, food, fees, and supplies") -
+    `title_selectors = ("h1",)` matches the page's one h1, "College.
+    Fully Funded."; `content_selectors = ("main",)` is the one `<main>`
+    wrapper holding that copy (verified unique on the page).
+
+    Deliberately extracts no deadline (`deadline_keywords = ()`):
+    Berea's own dedicated deadlines page
+    (`/admissions/admission-information/apply/deadlines-and-important-dates`)
+    does state a real, upcoming, non-stale International Students
+    deadline - "Application Deadline November 30" - genuinely ahead of
+    this research date (2026-09-07) for the following fall's intake,
+    unlike several other US/Italy sources found this session whose
+    published cycle had already closed. But that page states only
+    "November 30" with no year anywhere near it (confirmed directly - no
+    "2026"/"2027" appears within the same sentence or table row on
+    Berea's own site, on either this page or the international
+    admissions FAQ page, which repeats the identical bare "November 30"
+    phrasing). `extract_confident_date`'s own documented behavior
+    intentionally refuses to guess a year for a day+month-only date
+    literal (this project's "never invent data" rule -
+    `docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` SS10) - a missing deadline
+    is safe for a human officer to fill in from context; a wrong one is
+    not. This is why `deadline_path` isn't used here at all: fetching
+    that page would add a second request for no benefit, since no
+    year-qualified date exists on it to extract either way.
+
+    No application fee: confirmed both by the absence of any fee
+    mention across the deadlines, application, and international-FAQ
+    pages (inconsistent with a fee if one existed, given how central
+    "tuition-free" is to Berea's own messaging), and independently by
+    secondary reporting citing berea.edu directly.
+    """
+
+    source_code = "berea_college_fully_funded"
+    overview_path = "/no-tuition"
+    title_selectors = ("h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = "Berea College"
+    country = None
+    external_id = "berea-college-fully-funded"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().berea_college_fully_funded_base_url
+
+
+class GrinnellCollegeInternationalAidSource(_SingleProgramSource):
+    """Grinnell College's own international-applicants page: "Grinnell is
+    committed to meeting 100% of institutionally determined need for all
+    admitted international students who complete a financial aid
+    application by the deadline." No loan mention anywhere on this page
+    (unlike Carleton/Oberlin below) - `funding_type = "fully_funded"`.
+
+    Need-*aware* for international admission specifically (need-blind
+    only for domestic applicants, per the same page) - stated plainly
+    rather than oversold: this is real, substantial aid for admitted
+    students, not a guarantee independent of admission itself or of a
+    limited international aid budget.
+
+    No application fee ("We don't charge an application fee so applying
+    to Grinnell is free!", found on the same page in a different
+    accordion panel than the one selected below).
+
+    Confirmed 2026-09-07: `grinnell.edu/robots.txt` does not disallow
+    this content path for any user-agent.
+
+    Multi-panel accordion page: the page is a Drupal-built accordion of
+    four collapsed panels (Deadlines, Required Application Materials,
+    Optional Application Materials, Financial Aid Policy), each
+    thousands of characters of unrelated FAQ/checklist content aside
+    from the fourth. `content_selectors =
+    ("div.accordion__item:nth-of-type(4)",)` isolates that fourth panel
+    specifically - verified directly that it is the only one of the
+    four containing the "100%"/need-aware policy text, and that
+    `main`'s full text (which includes all four panels plus substantial
+    site navigation before them) would push that text well past the
+    5,000-character description truncation, hence not used.
+
+    Deliberately extracts no deadline (`deadline_keywords = ()`): this
+    selected panel states policy, not a specific dated deadline.
+    """
+
+    source_code = "grinnell_international_aid"
+    overview_path = "/admission/apply/international"
+    title_selectors = ("h1",)
+    content_selectors = ("div.accordion__item:nth-of-type(4)",)
+    deadline_keywords = ()
+    provider_name = "Grinnell College"
+    country = None
+    external_id = "grinnell-international-aid"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().grinnell_international_aid_base_url
+
+
+class DavidsonCollegeInternationalAidSource(_SingleProgramSource):
+    """Davidson College's own international-students page: "Davidson is
+    committed to meeting 100 percent of the calculated financial need
+    for those admitted, with the exception of recruited athletes." No
+    loan mention in the standard package on this page -
+    `funding_type = "fully_funded"`.
+
+    Need-*aware* for international admission (Davidson is explicit that
+    it is "aware of financial circumstances during the admission
+    process for international students") - stated plainly, not oversold.
+
+    No application fee: Davidson permanently dropped its $50 admission
+    fee for all applicants in July 2026 (`davidson.edu/news/2026/07/31/
+    davidson-college-drops-application-fee`).
+
+    Confirmed 2026-09-07: `davidson.edu/robots.txt` does not disallow
+    this content path for any user-agent.
+
+    `main` matches the whole page (37,543 characters), most of it a
+    sitewide navigation tree unrelated to this content - the actual
+    policy paragraph would fall well past the 5,000-character
+    description truncation if sourced from there.
+    `content_selectors = ("article.body-section",)` isolates the one
+    real content article instead (2,485 characters, verified unique on
+    the page) - the "committed to meeting 100 percent" sentence appears
+    at character 196 of that element's text.
+
+    Deliberately extracts no deadline: policy page, not a dated call.
+    """
+
+    source_code = "davidson_international_aid"
+    overview_path = (
+        "/admission-and-financial-aid/financial-aid/applying-aid/"
+        "international-students"
+    )
+    title_selectors = ("h1",)
+    content_selectors = ("article.body-section",)
+    deadline_keywords = ()
+    provider_name = "Davidson College"
+    country = None
+    external_id = "davidson-international-aid"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().davidson_international_aid_base_url
+
+
+class BatesCollegeInternationalAidSource(_SingleProgramSource):
+    """Bates College's own international-students page: "Bates meets the
+    full demonstrated financial need for all admitted students,
+    regardless of citizenship status, for all four years... Bates does
+    not include loans in the aid awards for non-U.S. citizens" - grants
+    plus on-campus employment only, explicitly no loans -
+    `funding_type = "fully_funded"`, the strongest of this batch on that
+    specific point.
+
+    Need-*aware* for international admission ("Bates is not need-blind
+    for non-U.S. citizens") - stated plainly, not oversold.
+
+    Confirmed 2026-09-07: `bates.edu/robots.txt` does not disallow this
+    content path for any user-agent.
+
+    Multi-heading page (5 `<h1>` elements - a "Student Financial
+    Services" site-wide heading appears before the page's own real
+    title): `title_selectors = ("main h1",)`, not the bare default
+    `("h1",)`, specifically to skip that first, wrong h1 and land on
+    "International Students" - verified directly that `soup.select_one
+    ("h1")` alone would have returned the wrong heading before this fix.
+    `content_selectors = ("main",)` is otherwise the one wrapper holding
+    the real policy text.
+
+    Deliberately extracts no deadline: policy page, not a dated call.
+    """
+
+    source_code = "bates_international_aid"
+    overview_path = "/financial-services/financial-aid/international-undergraduates"
+    title_selectors = ("main h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = "Bates College"
+    country = None
+    external_id = "bates-international-aid"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().bates_international_aid_base_url
+
+
+class MacalesterCollegeInternationalAidSource(_SingleProgramSource):
+    """Macalester College's own international-students financial aid
+    page: "Macalester's long-standing commitment to internationalism
+    includes a significant financial aid fund for qualified
+    international students... all awards are based on need and...
+    competition for these funds is extremely keen." An optional
+    supplemental "Macalester College International Student Loan"
+    program exists for students who choose to use it, separate from -
+    not a mandatory component of - the need-based grant award itself
+    (the same shape as a generic institutional loan-for-anyone-who-wants-
+    one FAQ found on several of this batch's other sources, not a sign
+    the core aid package requires borrowing) - `funding_type =
+    "fully_funded"`.
+
+    Need-*aware* for international admission, and explicitly the most
+    competitive tier for applicants needing more than roughly $40,000/
+    year - stated plainly, not oversold: this is real, substantial,
+    genuinely need-met aid for admitted students, not an unconditional
+    guarantee independent of a capped international budget.
+
+    No application fee (confirmed directly: "Macalester does not have
+    an application fee for either first-year or transfer applicants").
+
+    Confirmed 2026-09-07: `macalester.edu/robots.txt` does not disallow
+    this content path for any user-agent.
+
+    `content_selectors = ("main",)`: the one `<main>` wrapper, verified
+    unique on the page.
+
+    Deliberately extracts no deadline: this is the general aid-policy
+    page, not the specific financial-aid-forms deadline page (which
+    lists several different dates for different admission rounds - the
+    same multi-deadline-table risk already handled for Berea College
+    above by not sourcing a deadline from it at all).
+    """
+
+    source_code = "macalester_international_aid"
+    overview_path = "/financial-aid/apply/international"
+    title_selectors = ("h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = "Macalester College"
+    country = None
+    external_id = "macalester-international-aid"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().macalester_international_aid_base_url
+
+
+class CarletonCollegeInternationalAidSource(_SingleProgramSource):
+    """Carleton College's own financial-aid page: "We meet 100 percent
+    of every student's demonstrated need... We use a combination of
+    need-based grants, student employment, and manageable loans to
+    cover the rest." Unlike Bates/Davidson/Grinnell/Macalester above,
+    Carleton's own wording explicitly makes loans a standard component
+    of how it covers demonstrated need, not an optional extra -
+    `funding_type = "partial_funding"` accordingly, consistent with
+    this project's standard of not calling a loan-inclusive package
+    "fully funded."
+
+    Need-*aware* for international admission, with explicitly "limited"
+    international funding (Carleton's own international-students page:
+    "Given the limited funding available to international students,
+    Carleton will not consider new or revised financial aid applications
+    once you have received your offer of admission") - stated plainly.
+
+    Confirmed 2026-09-07: `carleton.edu/robots.txt` does not disallow
+    this content path for any user-agent.
+
+    `content_selectors = ("main",)`, also matched by `#content` on this
+    page (verified identical) - `main` used for consistency with every
+    other source in this batch.
+
+    Deliberately extracts no deadline: policy/process page, not a dated
+    call.
+    """
+
+    source_code = "carleton_international_aid"
+    overview_path = "/financial-aid/apply-for-aid/international-students"
+    title_selectors = ("h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = "Carleton College"
+    country = None
+    external_id = "carleton-international-aid"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().carleton_international_aid_base_url
+
+
+class OberlinCollegeInternationalAidSource(_SingleProgramSource):
+    """Oberlin College's own international-students aid page: "Oberlin
+    provides grants, scholarships, loans, and on-campus employment to
+    meet 100% of calculated financial need for all international
+    students who apply for financial aid." Oberlin's own wording
+    explicitly includes loans as one of the components meeting that
+    100% - `funding_type = "partial_funding"` accordingly, the same
+    standard already applied to Carleton above.
+
+    Need-*aware* ("Oberlin considers a student's financial circumstances
+    when making admissions decisions"), with an explicitly limited
+    international aid budget - Oberlin's own page states applicants able
+    to contribute at least $35,000/year are the most competitive for
+    admission, and students who don't apply for aid at admission become
+    ineligible for it in later years - stated plainly, not oversold.
+
+    No application fee for the College of Arts and Sciences (confirmed
+    directly on Oberlin's own page).
+
+    Confirmed 2026-09-07: `oberlin.edu/robots.txt` does not disallow
+    this content path for any user-agent.
+
+    `content_selectors = ("main",)`, also matched identically by
+    `article` on this page - `main` used for consistency with the rest
+    of this batch.
+
+    Deliberately extracts no deadline: policy page, not a dated call.
+    """
+
+    source_code = "oberlin_international_aid"
+    overview_path = (
+        "/admissions-and-aid/financial-aid/applying-aid-international-students"
+    )
+    title_selectors = ("h1",)
+    content_selectors = ("main",)
+    deadline_keywords = ()
+    provider_name = "Oberlin College"
+    country = None
+    external_id = "oberlin-international-aid"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().oberlin_international_aid_base_url

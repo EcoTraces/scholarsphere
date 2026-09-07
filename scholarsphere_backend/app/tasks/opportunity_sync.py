@@ -54,23 +54,30 @@ from app.services.link_health import check_link_reachable
 from app.services.national_scholarship_programs import (
     AustraliaDfatAwardsSource,
     AustriaOeadErnstMachSource,
+    BatesCollegeInternationalAidSource,
     BelgiumAresScholarshipSource,
+    BereaCollegeFullyFundedSource,
     BrazilPecpgScholarshipSource,
+    CarletonCollegeInternationalAidSource,
     ChileAgcidScholarshipSource,
     CmuqNeedBasedGrantSource,
     ColombiaIcetexBecaExtranjerosSource,
     CzechRepublicMsmtScholarshipSource,
+    DavidsonCollegeInternationalAidSource,
     FranceEiffelScholarshipSource,
     GreeceIkyScholarshipSource,
+    GrinnellCollegeInternationalAidSource,
     HungaryStipendiumHungaricumSource,
     IndiaIccrSource,
     IrelandGoiIesSource,
     ItalyMaeciScholarshipSource,
     JapanMextScholarshipSource,
     JcuGlobalExplorerScholarshipSource,
+    MacalesterCollegeInternationalAidSource,
     MexicoAmexcidScholarshipSource,
     MoroccoAmciScholarshipSource,
     NetherlandsNufficScholarshipSource,
+    OberlinCollegeInternationalAidSource,
     PeruPronabecAlianzaPacificoSource,
     PolandNawaMyFirstChoiceSource,
     PortugalCamoesScholarshipSource,
@@ -621,6 +628,34 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_brazil_pecpg_scholarship",
             "schedule": crontab(minute=30, hour=2),
         },
+        "sync-berea-college-fully-funded": {
+            "task": "app.tasks.opportunity_sync.sync_berea_college_fully_funded",
+            "schedule": crontab(minute=45, hour=2),
+        },
+        "sync-grinnell-international-aid": {
+            "task": "app.tasks.opportunity_sync.sync_grinnell_international_aid",
+            "schedule": crontab(minute=1, hour=0),
+        },
+        "sync-davidson-international-aid": {
+            "task": "app.tasks.opportunity_sync.sync_davidson_international_aid",
+            "schedule": crontab(minute=2, hour=0),
+        },
+        "sync-bates-international-aid": {
+            "task": "app.tasks.opportunity_sync.sync_bates_international_aid",
+            "schedule": crontab(minute=3, hour=0),
+        },
+        "sync-macalester-international-aid": {
+            "task": "app.tasks.opportunity_sync.sync_macalester_international_aid",
+            "schedule": crontab(minute=4, hour=0),
+        },
+        "sync-carleton-international-aid": {
+            "task": "app.tasks.opportunity_sync.sync_carleton_international_aid",
+            "schedule": crontab(minute=5, hour=0),
+        },
+        "sync-oberlin-international-aid": {
+            "task": "app.tasks.opportunity_sync.sync_oberlin_international_aid",
+            "schedule": crontab(minute=6, hour=0),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -871,6 +906,27 @@ SOURCE_TASK_NAMES = {
     ),
     "brazil_pecpg_scholarship": (
         "app.tasks.opportunity_sync.sync_brazil_pecpg_scholarship"
+    ),
+    "berea_college_fully_funded": (
+        "app.tasks.opportunity_sync.sync_berea_college_fully_funded"
+    ),
+    "grinnell_international_aid": (
+        "app.tasks.opportunity_sync.sync_grinnell_international_aid"
+    ),
+    "davidson_international_aid": (
+        "app.tasks.opportunity_sync.sync_davidson_international_aid"
+    ),
+    "bates_international_aid": (
+        "app.tasks.opportunity_sync.sync_bates_international_aid"
+    ),
+    "macalester_international_aid": (
+        "app.tasks.opportunity_sync.sync_macalester_international_aid"
+    ),
+    "carleton_international_aid": (
+        "app.tasks.opportunity_sync.sync_carleton_international_aid"
+    ),
+    "oberlin_international_aid": (
+        "app.tasks.opportunity_sync.sync_oberlin_international_aid"
     ),
 }
 
@@ -2456,6 +2512,132 @@ def sync_brazil_pecpg_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_berea_college_fully_funded",
+    max_retries=3,
+)
+def sync_berea_college_fully_funded(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "berea_college_fully_funded",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_grinnell_international_aid",
+    max_retries=3,
+)
+def sync_grinnell_international_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "grinnell_international_aid",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_davidson_international_aid",
+    max_retries=3,
+)
+def sync_davidson_international_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "davidson_international_aid",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_bates_international_aid",
+    max_retries=3,
+)
+def sync_bates_international_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "bates_international_aid",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_macalester_international_aid",
+    max_retries=3,
+)
+def sync_macalester_international_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "macalester_international_aid",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_carleton_international_aid",
+    max_retries=3,
+)
+def sync_carleton_international_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "carleton_international_aid",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_oberlin_international_aid",
+    max_retries=3,
+)
+def sync_oberlin_international_aid(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "oberlin_international_aid",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2782,6 +2964,13 @@ def _collector(source_code: str) -> Any:
         "jcu_global_explorer_scholarship": JcuGlobalExplorerScholarshipSource,
         "santanna_phd_funding": SantannaPhdFundingSource,
         "brazil_pecpg_scholarship": BrazilPecpgScholarshipSource,
+        "berea_college_fully_funded": BereaCollegeFullyFundedSource,
+        "grinnell_international_aid": GrinnellCollegeInternationalAidSource,
+        "davidson_international_aid": DavidsonCollegeInternationalAidSource,
+        "bates_international_aid": BatesCollegeInternationalAidSource,
+        "macalester_international_aid": MacalesterCollegeInternationalAidSource,
+        "carleton_international_aid": CarletonCollegeInternationalAidSource,
+        "oberlin_international_aid": OberlinCollegeInternationalAidSource,
     }[source_code]()
 
 

@@ -47,6 +47,13 @@ from app.services.national_scholarship_programs import (
     JcuGlobalExplorerScholarshipSource,
     SantannaPhdFundingSource,
     BrazilPecpgScholarshipSource,
+    BereaCollegeFullyFundedSource,
+    GrinnellCollegeInternationalAidSource,
+    DavidsonCollegeInternationalAidSource,
+    BatesCollegeInternationalAidSource,
+    MacalesterCollegeInternationalAidSource,
+    CarletonCollegeInternationalAidSource,
+    OberlinCollegeInternationalAidSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3887,3 +3894,227 @@ def test_brazil_pecpg_scholarship_has_no_robots_txt_restrictions() -> None:
     user-agent."""
     assert BrazilPecpgScholarshipSource.min_request_interval_seconds == 2.0
     assert BrazilPecpgScholarshipSource.deadline_keywords == ()
+
+
+# --- Berea College Fully Funded: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_berea_college_fully_funded_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`main` is the one wrapper on the page holding the "$0" / "fully
+    funded, no-loan degree" copy; no deadline is extracted since
+    Berea's own deadlines page states "November 30" with no year
+    anywhere near it."""
+    source = BereaCollegeFullyFundedSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("berea_college_fully_funded.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "berea-college-fully-funded"
+    assert opportunity.title == "College. Fully Funded."
+    assert opportunity.country is None
+    assert opportunity.provider_name == "Berea College"
+    assert opportunity.description is not None
+    assert "fully funded, no-loan degree" in opportunity.description
+    assert "$0" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_berea_college_fully_funded_has_no_robots_txt_restrictions() -> None:
+    """`berea.edu/robots.txt` sets `Allow: /` for all user-agents (only
+    `/search` is disallowed)."""
+    assert BereaCollegeFullyFundedSource.min_request_interval_seconds == 2.0
+    assert BereaCollegeFullyFundedSource.deadline_keywords == ()
+
+
+# --- US liberal-arts colleges (need-aware financial aid): real
+# fixtures, fetched 2026-09-07, following up on a request to verify a
+# list of ten claimed "fully funded, no fee" schools.
+
+
+@pytest.mark.asyncio
+async def test_grinnell_international_aid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page is a four-panel accordion (Deadlines, Required
+    Materials, Optional Materials, Financial Aid Policy); isolated via
+    `div.accordion__item:nth-of-type(4)`, the only panel containing the
+    "100%"/need-aware policy text."""
+    source = GrinnellCollegeInternationalAidSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("grinnell_international_aid.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "grinnell-international-aid"
+    assert opportunity.title == "International Applicants"
+    assert opportunity.provider_name == "Grinnell College"
+    assert opportunity.description is not None
+    assert "100% of institutionally determined need" in opportunity.description
+    assert "need-aware" in opportunity.description.lower()
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+@pytest.mark.asyncio
+async def test_davidson_international_aid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`main` matches the whole page (mostly sitewide navigation);
+    isolated via `article.body-section`, the one real content article."""
+    source = DavidsonCollegeInternationalAidSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("davidson_international_aid.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "davidson-international-aid"
+    assert opportunity.title == "International Students"
+    assert opportunity.provider_name == "Davidson College"
+    assert opportunity.description is not None
+    assert "committed to meeting 100 percent" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+@pytest.mark.asyncio
+async def test_bates_international_aid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page has 5 `<h1>` elements; a generic "Student Financial
+    Services" site heading appears before the real one, so
+    `title_selectors = ("main h1",)` is required, not the bare default
+    `("h1",)`."""
+    source = BatesCollegeInternationalAidSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("bates_international_aid.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "bates-international-aid"
+    assert opportunity.title == "International Students"
+    assert opportunity.provider_name == "Bates College"
+    assert opportunity.description is not None
+    assert "does not include loans" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+@pytest.mark.asyncio
+async def test_macalester_international_aid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = MacalesterCollegeInternationalAidSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("macalester_international_aid.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "macalester-international-aid"
+    assert opportunity.title == "International Students"
+    assert opportunity.provider_name == "Macalester College"
+    assert opportunity.description is not None
+    assert "extremely keen" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+@pytest.mark.asyncio
+async def test_carleton_international_aid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Carleton's own wording makes "manageable loans" a standard
+    component of how it covers demonstrated need (confirmed on its
+    general financial-aid page, not just this international-specific
+    one) - classified `partial_funding`, not `fully_funded`, unlike the
+    no-loan sources in this same batch."""
+    source = CarletonCollegeInternationalAidSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("carleton_international_aid.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "carleton-international-aid"
+    assert opportunity.title == "International Students"
+    assert opportunity.provider_name == "Carleton College"
+    assert opportunity.description is not None
+    assert "limited funding" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+@pytest.mark.asyncio
+async def test_oberlin_international_aid_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Oberlin's own wording explicitly includes loans as one of the
+    components meeting 100% of calculated need - classified
+    `partial_funding`, the same standard applied to Carleton above."""
+    source = OberlinCollegeInternationalAidSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("oberlin_international_aid.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "oberlin-international-aid"
+    assert opportunity.title == "Applying for Aid: International Students"
+    assert opportunity.provider_name == "Oberlin College"
+    assert opportunity.description is not None
+    assert "100% of calculated financial need" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_us_liberal_arts_batch_has_no_robots_txt_restrictions() -> None:
+    """None of `grinnell.edu`, `davidson.edu`, `bates.edu`,
+    `macalester.edu`, `carleton.edu`, or `oberlin.edu`'s `robots.txt`
+    disallow the content path used, confirmed 2026-09-07."""
+    for cls in (
+        GrinnellCollegeInternationalAidSource,
+        DavidsonCollegeInternationalAidSource,
+        BatesCollegeInternationalAidSource,
+        MacalesterCollegeInternationalAidSource,
+        CarletonCollegeInternationalAidSource,
+        OberlinCollegeInternationalAidSource,
+    ):
+        assert cls.min_request_interval_seconds == 2.0
+        assert cls.deadline_keywords == ()
