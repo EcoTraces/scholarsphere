@@ -5818,6 +5818,131 @@ classified.
   in favor of the genuinely fully-funded PEAK scholarship found
   instead.
 
+## 92. Universiapolis (Agadir) — Subvention d'encouragement international
+
+Researched 2026-09-07, in response to a "find Morocco undergraduate and
+postgraduate university scholarship" request. This platform's first
+Morocco **university** source — the only prior Morocco source, the
+AMCI Scholarships of the Kingdom of Morocco (#29), is
+government-classified.
+
+- **Organization**: Universiapolis (a private university in Agadir,
+  Morocco, part of the same institutional family as Université
+  Mundiapolis in Casablanca)
+- **Route code**: `universiapolis-international-encouragement-grant`
+  (`universiapolis_international_grant` internally)
+- **Official domain / base URL**: `https://universiapolis.ma`
+  (`UNIVERSIAPOLIS_INTERNATIONAL_GRANT_BASE_URL`)
+- **Opportunity types**: Scholarship/grant ("Subvention d'encouragement
+  international") — covers 20% of tuition fees. `funding_type =
+  "partial_funding"`.
+- **Country coverage / eligibility**: "Cette subvention s'adresse aux
+  étudiants subsahariens ayant un excellent dossier académique" ("This
+  grant is for Sub-Saharan students with an excellent academic
+  record") — Sierra Leone is a Sub-Saharan African country, genuinely
+  covered, not merely un-excluded. Also requires "Mention Très Bien"
+  (an excellent prior academic record) and passing a selection
+  interview.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered WordPress/Gutenberg HTML)
+- **robots.txt / indexing note**: `universiapolis.ma/robots.txt` (a
+  Yoast SEO default) sets an empty `Disallow:` for `User-agent: *` —
+  no restrictions declared.
+- **API / RSS / Sitemap**: A Yoast `sitemap_index.xml` exists but is
+  not itself scraped; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **A genuine multi-record page, carefully narrowed to one tier
+    rather than skipped or forced whole**: Universiapolis' own
+    "Bourses" (scholarships) page describes four distinct
+    scholarship/grant tiers in sequence: (1) Bourse d'excellence (100%
+    funding), (2) Subvention de mérite académique (50%), (3) Subvention
+    de soutien familial (30%), and (4) this one, Subvention
+    d'encouragement international (20%) — the same multi-record
+    architecture already documented elsewhere in this file. Tiers
+    (1)–(3) each explicitly require "Nationalité marocaine" (Moroccan
+    nationality) in their own listed eligibility criteria — not usable
+    by a Sierra Leonean applicant — while tier (4) is the one
+    exception. A BeautifulSoup structural walk found the page built
+    from a flat sequence of Gutenberg (WordPress block editor)
+    elements with no per-tier wrapper element, all direct siblings
+    under the same `<article>`: `h3.wp-block-heading:nth-of-type(4)`
+    and `p.wp-block-paragraph:nth-of-type(9)` land exactly on tier
+    (4)'s own heading and description respectively — verified directly
+    against the live fixture to contain neither "marocaine" nor any of
+    the other three tiers' text.
+  - **Funding**: "Elle couvre 20% des frais de scolarité" ("It covers
+    20% of tuition fees") — a modest but real, honestly-classified
+    award; never described as fully funded despite covering "part of
+    tuition."
+  - **Deliberately extracts no deadline**: no date literal, nor any
+    French deadline phrasing ("date limite," "avant le," "jusqu'au"),
+    appears anywhere on the page — verified directly rather than
+    assumed; applications are described only as an ongoing file-review
+    and interview process.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/universiapolis_international_grant.html`).
+
+### Researched this pass (2026-09-07, Morocco follow-up), not integrated
+
+Checked four further Moroccan institutions live before settling on
+Universiapolis above, and found a mix of genuine access barriers and
+explicit domestic-only restrictions:
+
+- **Mohammed VI Polytechnic University (UM6P)** — widely reported as a
+  strong, generous scholarship source (OCP Foundation-backed, partial
+  to full tuition and living-cost coverage), but every path tested on
+  `www.um6p.ma` (including the scholarships page itself) is rendered
+  entirely client-side by a Nuxt.js single-page application (`<div
+  id="__nuxt">` with only a loading-spinner SVG present in the raw
+  HTML) — a genuine technical limitation (no server-rendered content to
+  scrape), not a bot-block, consistent with this project's documented
+  distinction between the two categories.
+- **Al Akhawayn University (AUI)** — read both its official
+  undergraduate and graduate scholarship pages directly. The
+  undergraduate page states plainly "Undergraduate scholarships are
+  offered to Moroccan students only" — `NOT_INTERNATIONAL`. The
+  graduate page states "Graduate scholarships are offered to Moroccan
+  applicants only," with only a vague, non-guaranteed exception ("A few
+  scholarships may be offered to international graduate candidates
+  admitted to any graduate program at the School of Humanities and
+  Social Sciences") — too unreliable and narrow a basis for a general
+  scholarship record, per this project's "verify explicit, broadly-
+  applicable eligibility, don't infer from a vague exception" rule.
+- **Université Internationale de Rabat (UIR)** — its own scholarships
+  page (per search-indexed content) states plainly "UIR does not offer
+  scholarships to international students." Independently, `www.uir.ac.ma`
+  also fails TLS negotiation with the same "unable to get local issuer
+  certificate" error already documented for Eswatini's UNESWA — a real
+  misconfiguration on UIR's own server, not bypassed. Both findings
+  point the same direction: not a viable source regardless.
+- **Université Euro-Méditerranéenne de Fès (UEMF)** — a real,
+  reachable, non-profit Union-for-the-Mediterranean-labeled university
+  whose general "Bourses et aides financières" page (fetched at both
+  its current and a since-redirected historical URL) describes
+  scholarships covering 25%/50%/75%/100% of tuition, but the crawlable
+  page text never itself states specific international-student
+  eligibility criteria (an aggregator's claim of a dedicated
+  international scholarship could not be corroborated on the official
+  page) — left unintegrated per this project's "official page must
+  itself state the terms, not an aggregator" rule.
+- **Université Mundiapolis (Casablanca)** — its well-documented
+  "Moroccan Scholarships for African Youth" programme (10 excellence
+  scholarships for African-country students, reported to cover
+  registration and tuition fees) would have been an excellent
+  candidate, but its own page (`mundiapolis.ma/moroccan-scolarships-
+  african-youth`) returns a genuine HTTP 404 with no Wayback Machine
+  snapshot found — the page appears to have been removed or the
+  programme discontinued. Not fabricated from secondary-source
+  descriptions of a page that no longer exists.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

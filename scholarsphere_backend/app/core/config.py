@@ -712,6 +712,21 @@ class Settings(BaseSettings):
     # this file.
     utokyo_peak_scholarship_base_url: str = "https://peak.c.u-tokyo.ac.jp"
 
+    # Universiapolis (Agadir) - "Subvention d'encouragement international"
+    # - researched 2026-09-07 in response to a "find Morocco undergraduate
+    # and postgraduate university scholarship" request. This platform's
+    # first Morocco *university* source (the only prior Morocco source,
+    # AMCI #29, is government-classified). Explicitly targets "étudiants
+    # subsahariens" (Sub-Saharan students) - Sierra Leone is Sub-Saharan
+    # African, genuinely covered, unlike this same page's other three
+    # scholarship tiers (100%/50%/30% funding), each explicitly requiring
+    # "Nationalité marocaine" and correctly NOT represented by this
+    # record. Deliberately conservative `partial_funding` classification:
+    # the grant covers only 20% of tuition fees, per the page's own text.
+    # `universiapolis.ma/robots.txt` (Yoast SEO default) sets an empty
+    # Disallow for `User-agent: *` - no restrictions declared.
+    universiapolis_international_grant_base_url: str = "https://universiapolis.ma"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -893,6 +908,7 @@ class Settings(BaseSettings):
         "vanderbilt_cornelius_scholarship_base_url",
         "skoltech_scholarship_base_url",
         "utokyo_peak_scholarship_base_url",
+        "universiapolis_international_grant_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

@@ -574,6 +574,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "universiapolis_international_grant": {
+        "source_name": "Universiapolis International Encouragement Grant",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -703,6 +709,9 @@ def _base_urls() -> dict[str, str]:
         ),
         "skoltech_scholarship": settings.skoltech_scholarship_base_url,
         "utokyo_peak_scholarship": settings.utokyo_peak_scholarship_base_url,
+        "universiapolis_international_grant": (
+            settings.universiapolis_international_grant_base_url
+        ),
     }
 
 
@@ -818,6 +827,7 @@ async def seed_opportunity_sources(
         "vanderbilt_cornelius_scholarship": now + timedelta(hours=24),
         "skoltech_scholarship": now + timedelta(hours=24),
         "utokyo_peak_scholarship": now + timedelta(hours=24),
+        "universiapolis_international_grant": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

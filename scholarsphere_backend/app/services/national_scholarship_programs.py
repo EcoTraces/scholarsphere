@@ -4052,3 +4052,71 @@ class UtokyoPeakScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().utokyo_peak_scholarship_base_url
+
+
+class UniversiapolisInternationalGrantSource(_SingleProgramSource):
+    """Universiapolis (Agadir, Morocco) - "Subvention d'encouragement
+    international" (International Encouragement Grant) - researched
+    2026-09-07 in response to a "find Morocco undergraduate and
+    postgraduate university scholarship" request. This platform's
+    first Morocco **university** source - the only prior Morocco
+    source, the AMCI Scholarships of the Kingdom of Morocco (#29), is
+    government-classified.
+
+    Confirmed 2026-09-07: `universiapolis.ma/robots.txt` (a Yoast SEO
+    default) sets an empty `Disallow:` for `User-agent: *` - no
+    restrictions declared.
+
+    Overview/content page is Universiapolis' own "Bourses" (scholarships)
+    page, which describes four distinct scholarship/grant tiers in
+    sequence: (1) Bourse d'excellence (100% funding), (2) Subvention de
+    mérite académique (50%), (3) Subvention de soutien familial (30%),
+    and (4) this one, Subvention d'encouragement international (20%) -
+    the same multi-record architecture already documented elsewhere in
+    this file. Crucially, tiers (1)-(3) each explicitly require
+    "Nationalité marocaine" (Moroccan nationality) in their own listed
+    eligibility criteria - not usable by a Sierra Leonean applicant -
+    while tier (4) is the one exception, explicitly open to
+    "étudiants subsahariens" (Sub-Saharan students). A BeautifulSoup
+    structural walk found each tier as a flat sequence of Gutenberg
+    (WordPress block editor) elements with no per-tier wrapper element,
+    all direct siblings under the same `<article>`: `h3.wp-block-
+    heading:nth-of-type(4)` and `p.wp-block-paragraph:nth-of-type(9)`
+    land exactly on tier (4)'s own heading and description
+    respectively, verified directly against the live fixture to
+    contain neither "marocaine" nor any of the other three tiers' text.
+
+    Country coverage / eligibility: "Cette subvention s'adresse aux
+    étudiants subsahariens ayant un excellent dossier académique"
+    ("This grant is for Sub-Saharan students with an excellent
+    academic record") - Sierra Leone is a Sub-Saharan African country,
+    genuinely covered, not merely un-excluded. Also requires "Mention
+    Très Bien" (an excellent secondary-school/prior-degree grade) and
+    passing a selection interview (from the page's own eligibility
+    list, `ul.wp-block-list:nth-of-type(4)`, not itself scraped for
+    this record since the description paragraph alone is sufficient
+    and more stable).
+
+    Funding: "Elle couvre 20% des frais de scolarité" ("It covers 20%
+    of tuition fees") - `funding_type = "partial_funding"`, a modest
+    but real, honestly-classified award; never described as fully
+    funded despite covering "part of tuition."
+
+    Deliberately extracts no deadline: no date literal, nor any
+    French deadline phrasing ("date limite," "avant le," "jusqu'au"),
+    appears anywhere on the page - verified directly rather than
+    assumed; applications are described only as an ongoing file-review
+    and interview process.
+    """
+
+    source_code = "universiapolis_international_grant"
+    overview_path = "/universite/bourses/"
+    title_selectors = ("h3.wp-block-heading:nth-of-type(4)",)
+    content_selectors = ("p.wp-block-paragraph:nth-of-type(9)",)
+    provider_name = "Universiapolis (Agadir, Morocco)"
+    country = "Morocco"
+    external_id = "universiapolis-international-encouragement-grant"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().universiapolis_international_grant_base_url

@@ -112,6 +112,7 @@ from app.services.national_scholarship_programs import (
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
     TurkiyeBurslariSource,
+    UniversiapolisInternationalGrantSource,
     UniversityOfTwenteScholarshipSource,
     UpfBsmMeritScholarshipSource,
     UqGraduateResearchScholarshipsSource,
@@ -552,6 +553,12 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_utokyo_peak_scholarship",
             "schedule": crontab(minute=45, hour=23),
         },
+        "sync-universiapolis-international-grant": {
+            "task": (
+                "app.tasks.opportunity_sync.sync_universiapolis_international_grant"
+            ),
+            "schedule": crontab(minute=0, hour=0),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -766,6 +773,9 @@ SOURCE_TASK_NAMES = {
     "skoltech_scholarship": "app.tasks.opportunity_sync.sync_skoltech_scholarship",
     "utokyo_peak_scholarship": (
         "app.tasks.opportunity_sync.sync_utokyo_peak_scholarship"
+    ),
+    "universiapolis_international_grant": (
+        "app.tasks.opportunity_sync.sync_universiapolis_international_grant"
     ),
 }
 
@@ -2147,6 +2157,21 @@ def sync_utokyo_peak_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_universiapolis_international_grant",
+    max_retries=3,
+)
+def sync_universiapolis_international_grant(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "universiapolis_international_grant", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2456,6 +2481,7 @@ def _collector(source_code: str) -> Any:
         "vanderbilt_cornelius_scholarship": VanderbiltCorneliusScholarshipSource,
         "skoltech_scholarship": SkoltechScholarshipSource,
         "utokyo_peak_scholarship": UtokyoPeakScholarshipSource,
+        "universiapolis_international_grant": UniversiapolisInternationalGrantSource,
     }[source_code]()
 
 

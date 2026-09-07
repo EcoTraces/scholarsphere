@@ -28,6 +28,66 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Morocco follow-up: Universiapolis International Encouragement Grant added
+
+### Added
+- **Universiapolis (Agadir) — Subvention d'encouragement international**
+  (`app/services/national_scholarship_programs.py::
+  UniversiapolisInternationalGrantSource`, source #92 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 93rd registered
+  `OpportunitySource`, in response to a "find Morocco undergraduate and
+  postgraduate university scholarship" request. This platform's first
+  Morocco **university** source (the only prior Morocco source, AMCI
+  #29, is government-classified).
+  - Explicitly targets "étudiants subsahariens" (Sub-Saharan
+    students) — Sierra Leone is Sub-Saharan African, genuinely
+    covered. Covers 20% of tuition fees — correctly `partial_funding`.
+  - **Deliberate design choice**: the overview page is a genuine
+    multi-record hub of four scholarship/grant tiers (100%/50%/30%/20%
+    funding), three of which explicitly require Moroccan nationality.
+    Isolated just the fourth (international) tier via
+    `h3.wp-block-heading:nth-of-type(4)` and `p.wp-block-paragraph:
+    nth-of-type(9)`, structural selectors verified directly to contain
+    neither "marocaine" nor any of the other three tiers' text.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture
+    (`tests/fixtures/universiapolis_international_grant.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected four further Morocco candidates this same
+  pass:
+  - **Mohammed VI Polytechnic University (UM6P)** — widely reported as
+    a strong scholarship source, but every path is rendered entirely
+    client-side by a Nuxt.js SPA — a genuine technical limitation, not
+    a bot-block.
+  - **Al Akhawayn University (AUI)** — its own pages state plainly that
+    undergraduate scholarships are "offered to Moroccan students only"
+    and graduate scholarships likewise "to Moroccan applicants only"
+    (with only a vague, non-guaranteed exception for one school) —
+    `NOT_INTERNATIONAL`.
+  - **Université Internationale de Rabat (UIR)** — states it "does not
+    offer scholarships to international students," and independently
+    fails TLS negotiation with the same broken-certificate-chain issue
+    already documented for Eswatini's UNESWA.
+  - **Université Euro-Méditerranéenne de Fès (UEMF)** — describes
+    general tuition scholarships, but its official pages never
+    themselves state international-student-specific eligibility terms
+    an aggregator had claimed.
+  - **Université Mundiapolis** — its well-documented "Moroccan
+    Scholarships for African Youth" programme returns a genuine HTTP
+    404 with no Wayback Machine snapshot — likely removed or
+    discontinued, not fabricated from secondary sources.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Japan follow-up: The University of Tokyo Scholarship (PEAK) added
 
 ### Added

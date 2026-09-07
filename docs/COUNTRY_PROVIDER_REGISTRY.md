@@ -165,6 +165,7 @@ unverified).
 | 89 | Vanderbilt University Cornelius Vanderbilt Scholarship | United States | UNIVERSITY | vanderbilt.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second USA university source and its first at the undergraduate level; genuinely `partial_funding` — guaranteed full tuition + summer stipend, not full cost of attendance, consistent with this project's "full tuition ≠ fully funded" standard; confirmed genuinely open to international applicants via Vanderbilt's own international-admissions page (89 students from 54 countries for fall 2026); a separate, differently-focused Ingram Scholars programme sharing the same page/deadline is explicitly not represented by this record; exact deadline extracted (1 December 2026) (see AUTHORITATIVE_SOURCES.md #89) |
 | 90 | Skoltech Admissions Scholarship | Russia | UNIVERSITY | skoltech.ru | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fifth and final country (Russia) of the five-country pass; this registry's **first Russia source of any kind**; site confirmed genuinely reachable from this environment, contrary to any assumption sanctions/geo-blocking would block access; covers both MSc and PhD together, no nationality restriction; deliberately conservative `partial_funding` classification — the page states a competitively-awarded monthly stipend (40,000 RUB/month for MSc) plus insurance but does not itself state tuition is waived for every admitted student, classified from the official page's own text rather than aggregator "fully funded" claims; no deadline extracted (2027-cycle dates not yet published, page explicitly says "check back in autumn") (see AUTHORITATIVE_SOURCES.md #90) |
 | 91 | The University of Tokyo Scholarship (PEAK) | Japan | UNIVERSITY | peak.c.u-tokyo.ac.jp | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find another Japanese university fully funded scholarship" follow-up; this registry's first Japan *university* source (Japanese Government MEXT Scholarship, #25, is government-classified); the overview page is a genuine multi-record hub of five distinct scholarships (this one, MEXT, two nationality-specific supplements, two Fast Retailing Foundation awards) — isolated via `div.cmsSec-A:nth-of-type(2)`, a structural selector that lands exactly on this one item's own text; no nationality restriction; genuinely `fully_funded` — admission fee + tuition + JPY126,000/month living expenses, four years, up to 10 students, no separate application; no deadline extracted (awarded automatically upon admission) (see AUTHORITATIVE_SOURCES.md #91) |
+| 92 | Universiapolis International Encouragement Grant | Morocco | UNIVERSITY | universiapolis.ma | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find Morocco undergraduate and postgraduate university scholarship" request; this registry's first Morocco *university* source (AMCI, #29, is government-classified); the overview page is a genuine multi-record hub of four scholarship tiers (100%/50%/30%/20% funding), three of which explicitly require Moroccan nationality — isolated via `h3.wp-block-heading:nth-of-type(4)` and `p.wp-block-paragraph:nth-of-type(9)`, structural selectors that land exactly on the fourth tier's own text; explicitly targets Sub-Saharan students (Sierra Leone included), the one exception among the four tiers; genuinely `partial_funding` — 20% of tuition fees only; no deadline extracted (see AUTHORITATIVE_SOURCES.md #92) |
 
 **(2026-09-07, Japan follow-up)** Checked Kyoto University's own
 scholarships page and found a nomination hub for ~90 separate private
@@ -180,6 +181,28 @@ component of its own, `PARTIAL_FUNDING` at best, not integrated in
 favor of the genuinely fully-funded PEAK scholarship. See
 AUTHORITATIVE_SOURCES.md #91's "Researched this pass (2026-09-07,
 Japan follow-up), not integrated" note for full detail.
+
+**(2026-09-07, Morocco follow-up)** Checked four further Moroccan
+institutions live. Mohammed VI Polytechnic University (UM6P), widely
+reported as a strong scholarship source, is rendered entirely
+client-side by a Nuxt.js SPA on every path tested — a genuine
+technical limitation, not a bot-block. Al Akhawayn University (AUI)
+states plainly on its own pages that undergraduate scholarships are
+"offered to Moroccan students only" and graduate scholarships likewise
+"to Moroccan applicants only" (with only a vague, non-guaranteed
+exception for one school) — `NOT_INTERNATIONAL`. Université
+Internationale de Rabat (UIR) states it "does not offer scholarships
+to international students," and independently fails TLS negotiation
+with the same broken-certificate-chain issue documented for Eswatini's
+UNESWA. Université Euro-Méditerranéenne de Fès (UEMF) describes
+general tuition scholarships but its official pages never themselves
+state international-student-specific eligibility terms an aggregator
+had claimed. Université Mundiapolis' well-documented "Moroccan
+Scholarships for African Youth" programme returns a genuine HTTP 404
+with no Wayback Machine snapshot — likely removed or discontinued, not
+fabricated from secondary sources. See AUTHORITATIVE_SOURCES.md #92's
+"Researched this pass (2026-09-07, Morocco follow-up), not integrated"
+note for full detail.
 
 **(2026-09-07, five-country autonomous engine — Austria)** Checked five
 further Austrian universities live (TU Wien, University of Vienna,

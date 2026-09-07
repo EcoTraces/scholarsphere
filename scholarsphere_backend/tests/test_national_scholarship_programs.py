@@ -67,6 +67,7 @@ from app.services.national_scholarship_programs import (
     TaiwanIcdfScholarshipSource,
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
+    UniversiapolisInternationalGrantSource,
     UniversityOfTwenteScholarshipSource,
     UpfBsmMeritScholarshipSource,
     UqGraduateResearchScholarshipsSource,
@@ -3372,3 +3373,52 @@ def test_utokyo_peak_scholarship_has_no_robots_txt_restrictions() -> None:
     """`peak.c.u-tokyo.ac.jp/robots.txt` returns HTTP 404 (no file
     published) - treated as no restrictions declared."""
     assert UtokyoPeakScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Universiapolis International Encouragement Grant: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_universiapolis_international_grant_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Morocco *university* source (AMCI, #29, is
+    government-classified). The overview page lists four scholarship
+    tiers, three of which explicitly require Moroccan nationality -
+    `h3.wp-block-heading:nth-of-type(4)` and `p.wp-block-paragraph:
+    nth-of-type(9)` isolate only the fourth tier, explicitly open to
+    Sub-Saharan students (Sierra Leone included). Genuinely
+    partial_funding (20% of tuition only), no deadline (none stated)."""
+    source = UniversiapolisInternationalGrantSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("universiapolis_international_grant.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "universiapolis-international-encouragement-grant"
+    )
+    assert opportunity.title == "Subvention d’encouragement international (Financement 20%)"
+    assert opportunity.country == "Morocco"
+    assert opportunity.provider_name == "Universiapolis (Agadir, Morocco)"
+    assert opportunity.description is not None
+    assert "subsahariens" in opportunity.description
+    assert "marocaine" not in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_universiapolis_international_grant_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt (`universiapolis.ma/robots.txt`, a Yoast SEO default)
+    sets an empty `Disallow:` for `User-agent: *` - no restrictions
+    declared."""
+    assert (
+        UniversiapolisInternationalGrantSource.min_request_interval_seconds == 2.0
+    )

@@ -5140,3 +5140,106 @@ for the full dated history.
       assertion, 91 -> 92 registered sources). The fixture
       (`tests/fixtures/utokyo_peak_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-07)** Morocco follow-up: "find Morocco undergraduate
+      and postgraduate university scholarship" - reviewed this
+      platform's existing Morocco coverage first (only the AMCI
+      Scholarships of the Kingdom of Morocco, #29, government-
+      classified - no university source existed yet) before searching.
+
+      Checked five Moroccan institutions live, in roughly descending
+      order of how promising secondary sources made them sound, before
+      settling on a real candidate:
+      - **Mohammed VI Polytechnic University (UM6P)** - reputed to be
+        the strongest scholarship source in Morocco (OCP Foundation-
+        backed), but fetching its scholarships page (and several other
+        paths, to rule out a one-off fluke) returned an empty body with
+        no `<h1>` each time; inspected the raw HTML and found a Nuxt.js
+        single-page app shell (`<div id="__nuxt">`) with only a
+        loading-spinner SVG present - genuinely client-side rendered,
+        not a bot-block, so not chased further with this pass's plain-
+        HTTP approach.
+      - **Al Akhawayn University (AUI)** - read both its official
+        undergraduate and graduate scholarship pages directly rather
+        than trusting a search snippet's summary, and found the
+        snippet was accurate: the undergraduate page states plainly
+        "Undergraduate scholarships are offered to Moroccan students
+        only," and the graduate page states "Graduate scholarships are
+        offered to Moroccan applicants only," with only a vague "a few
+        scholarships may be offered to international graduate
+        candidates" exception for one specific school - too narrow and
+        non-guaranteed a basis to build a general scholarship record
+        on.
+      - **Université Internationale de Rabat (UIR)** - a secondary
+        source's summary of UIR's own scholarships page states plainly
+        "UIR does not offer scholarships to international students."
+        Independently attempted to fetch the live page directly anyway
+        (to verify rather than take the summary on faith) and hit a
+        genuine TLS handshake failure - ran a verbose trace and found
+        the identical "unable to get local issuer certificate" error
+        already diagnosed for Eswatini's UNESWA earlier this session,
+        confirming this is a recognized category of real server-side
+        misconfiguration, not a one-off. Two independent reasons this
+        wasn't a source, not one.
+      - **Université Euro-Méditerranéenne de Fès (UEMF)** - fetched the
+        live "Bourses et aides financières" page directly and read it
+        in full: it describes a general 25%/50%/75%/100% tuition-
+        coverage scale, but never itself states the "international
+        students receive a special scholarship" detail an aggregator
+        had claimed - also checked UEMF's own International Admissions
+        page for the same claim and found no mention of scholarships
+        at all. Declined to fabricate specific eligibility terms an
+        official page doesn't itself state.
+      - **Université Mundiapolis (Casablanca)** - its "Moroccan
+        Scholarships for African Youth" programme (10 excellence
+        scholarships to African-country students) is the
+        best-documented, most specific lead found via search, but its
+        own page returns a genuine HTTP 404; checked the Wayback
+        Machine for an archived copy and found none - concluded the
+        programme's page has likely been removed or the programme
+        discontinued, and did not write up scholarship terms from
+        secondary-source descriptions of a page that no longer exists.
+
+      Found and **implemented** the **Universiapolis (Agadir)
+      "Subvention d'encouragement international"** as source #92 - this
+      platform's first Morocco university source:
+      - Its "Bourses" page lists four scholarship/grant tiers together
+        on one page (100%/50%/30%/20% funding) - read all four
+        carefully rather than stopping at the first, and found that
+        three of the four ("Bourse d'excellence," "Subvention de
+        mérite académique," "Subvention de soutien familial") each
+        explicitly require "Nationalité marocaine" in their own listed
+        criteria, while the fourth, "Subvention d'encouragement
+        international," explicitly targets "étudiants subsahariens"
+        (Sub-Saharan students) - confirmed Sierra Leone qualifies as a
+        Sub-Saharan African country rather than assuming it from the
+        word "international" alone.
+      - Recognized this as the same multi-record architecture pattern
+        seen elsewhere this session and did the selector engineering to
+        isolate just the fourth tier: inspected the raw HTML, found the
+        page built from a flat sequence of WordPress block-editor
+        elements (h3/p/p/ul repeated per tier, separated by `<hr>`,
+        with no per-tier wrapper div), and used
+        `h3.wp-block-heading:nth-of-type(4)` and `p.wp-block-paragraph:
+        nth-of-type(9)` to land on exactly the fourth tier's heading and
+        description - verified directly via a standalone `collect()`
+        simulation that neither "marocaine" nor any of the other three
+        tiers' text leaked into the extracted title/description.
+      - Classified `partial_funding`, not fully funded, since the
+        grant explicitly covers only 20% of tuition fees - documented
+        plainly rather than glossed over.
+      - Checked the full page text for any French deadline phrasing
+        ("date limite," "avant le," "jusqu'au") before concluding no
+        deadline could be extracted, rather than assuming.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, `deadline = None`, and that
+      the description contains "subsahariens" but not "marocaine" - all
+      exactly as documented. Full backend suite green afterward, 831
+      passed / 25 skipped (up from 829 passed/25 skipped - two new
+      tests, plus `test_opportunity_import.py`'s updated source-count
+      assertion, 92 -> 93 registered sources). The fixture
+      (`tests/fixtures/universiapolis_international_grant.html`) was
+      captured unmodified from the live site.
