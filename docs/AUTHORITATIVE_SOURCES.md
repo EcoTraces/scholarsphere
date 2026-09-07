@@ -5291,6 +5291,188 @@ nationally-mandated, EEA/long-term-residency-restricted StudFG law,
 this systemic barrier is documented once here rather than re-discovered
 university by university in future passes.
 
+## 86. University of Sydney — RTP Scholarships (International)
+
+Researched 2026-09-07, the third country (Australia) of the
+simultaneous five-country pass. This platform's first Australia
+**university** source of any kind — the only prior Australia source,
+Australia Awards (#24), is government/DFAT-classified.
+
+- **Organization**: University of Sydney
+- **Route code**: `usyd-rtp-international` (`usyd_rtp_international`
+  internally)
+- **Official domain / base URL**: `https://www.sydney.edu.au`
+  (`USYD_RTP_INTERNATIONAL_BASE_URL`)
+- **Opportunity types**: Scholarship — the Australian Government
+  Research Training Program (RTP), for students "commencing or
+  enrolled in a higher degree by research" — Australia's HDR category,
+  which includes both **Master's-by-Research and PhD, not PhD-only**,
+  verified directly rather than assumed from the page's own PhD
+  preference language. `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: No nationality restriction stated
+  on this page — open to "international students" broadly, Sierra
+  Leone included. "Preference ... given to applicants who [are]
+  intending to enrol or currently enrolled in a PhD" is a preference in
+  a competitive process, not an exclusion of Master's-by-Research
+  applicants.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered Adobe Experience Manager HTML, no JavaScript
+  execution needed)
+- **robots.txt / indexing note**: `sydney.edu.au/robots.txt` sets
+  `Allow: /` for `User-agent: *`, with only a small number of unrelated
+  legacy/search paths disallowed.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector `div.cmp-container__inner:not(:empty)`**: the
+    page's AEM markup places the real page body in a
+    `div.cmp-container__inner`, but a *second*, empty sibling of the
+    same class also exists earlier in the DOM — verified directly via
+    a BeautifulSoup structural walk that a plain selector would
+    incorrectly match that empty element first (`_first_match` takes
+    the first selector match), so `:not(:empty)` is used to skip it.
+  - **`title_selectors = ()`, `title_tag_separator = " - "`** (a
+    literal hyphen, not the page's own "–" en dash): the page has no
+    `<h1>`, and its `<title>` reads "RTP scholarships – International -
+    The University of Sydney" — splitting on the hyphen yields "RTP
+    scholarships – International," a specific title distinguishing
+    this page from Sydney's separate domestic RTP page.
+  - **Funding**: an AUD 44,293/year stipend (2027 rate, confirmed live
+    and distinct from the shown 2026 rate of AUD 42,754), a 100%
+    tuition fee offset ("RTP Fee Offset") for up to 14 research
+    periods, relocation and thesis allowances, and Overseas Student
+    Health Cover (OSHC).
+  - **`deadline_keywords` deliberately overridden to `("submission
+    deadline",)`**, skipping the base class's default `("deadline",
+    "closing date")` entirely: the full page's *first* "deadline"
+    occurrence is an earlier prose sentence ("Submit the scholarship
+    application form by the deadlines") with no date literal anywhere
+    nearby, which would resolve to `None` under the default. The
+    page's own deadline table ("Research period | Submission deadline
+    | Outcomes Issued from | Outcomes Finalised") is headed by the
+    literal phrase "Submission deadline," and once flattened to plain
+    text by `BeautifulSoup.get_text()`, that phrase sits immediately
+    before the first data row's cells in reading order — so the first
+    date literal after this keyword match is exactly that row's own
+    submission deadline (11 September 2026, for "Research Period 1 and
+    2, 2027," the nearest still-open upcoming cycle) — verified
+    directly against the live fixture before writing the test.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/usyd_rtp_international.html`).
+
+## 87. University of Queensland — Graduate Research School Scholarships (UQGRSS)
+
+Researched 2026-09-07, the same Australia pass as USYD's RTP
+scholarship above. This platform's second Australia university source.
+
+- **Organization**: University of Queensland
+- **Route code**: `uq-graduate-research-scholarships`
+  (`uq_graduate_research_scholarships` internally)
+- **Official domain / base URL**: `https://scholarships.uq.edu.au`
+  (`UQ_GRADUATE_RESEARCH_SCHOLARSHIPS_BASE_URL`)
+- **Opportunity types**: Scholarship, on the "Scholarships for PhD and
+  MPhil students" page. **Genuinely covers Master's-by-Research, not
+  PhD-only**: the page's own title and text explicitly name "Master of
+  Philosophy (MPhil)" alongside "Doctor of Philosophy (PhD)"
+  throughout — MPhil is a real, examined Master's-level research
+  degree in the Australian system, distinct from a taught/coursework
+  Master's. `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: the flagship Graduate Research
+  School Scholarship (UQGRSS) is explicitly stated to be "available for
+  domestic and international students" — no nationality restriction,
+  Sierra Leone included. Two narrower scholarships mentioned on the
+  same page are **not** represented by this record, documented rather
+  than silently conflated: the "Fellowship support scheme" ("available
+  for domestic students" only) and the "Aboriginal and Torres Strait
+  Islander Research Scholarships" (an ethnicity restriction, not a
+  nationality one, but still distinct from UQGRSS's own general
+  eligibility).
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered Drupal HTML)
+- **robots.txt / indexing note**: `scholarships.uq.edu.au/robots.txt`
+  (a Drupal default) does not disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML (a
+  `sitemap.xml` exists but is not itself scraped)
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector `article`**: verified directly via a
+    BeautifulSoup structural walk to hold the full page body (funding-
+    type explanations, the UQGRSS description, and the narrower
+    domestic-only/restricted scholarships mentioned alongside it) with
+    none of the site's navigation or footer chrome.
+  - **Funding**: UQGRSS "fund[s] tuition fees, living stipend of $39.2K
+    a year tax free (2026 rate), indexed yearly" and "include[s] Single
+    Overseas Student Health Cover (OSHC)."
+  - **Deliberately extracts no deadline**: the page states only that
+    "Graduate Research School Scholarships are offered in rounds during
+    the year" with a pointer to "round deadlines" on a separate,
+    unlinked-by-URL page — no date literal appears anywhere in this
+    page's own text, verified directly rather than assumed.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch (`tests/fixtures/uq_grsss_phd_mphil.html`).
+
+### Researched this pass (2026-09-07, Australia — five-country autonomous engine), not integrated
+
+Checked several further Australian universities live before settling on
+the two sources above:
+
+- **UNSW Sydney — "UNSW Scholarships for International Students
+  Commencing Term 1, 2027"** — a genuinely current, live page (opens
+  15/07/2026, closes 30/10/2026), but a multi-record hub listing at
+  least five separately-named, separately-valued awards on one page
+  (International Scientia Coursework Scholarship, UNSW Law & Justice
+  International Award, UNSW Business School International Pathways
+  Award, UNSW Business School International Scholarship, and more) —
+  the same multi-record architecture mismatch documented elsewhere in
+  this file, out of scope for the single-record `_SingleProgramSource`
+  pattern. Every listed award is also explicitly tuition-only ("paid
+  directly towards tuition fees"), with no living-stipend component —
+  `TUITION_ONLY`/`PARTIALLY_FUNDED` even before the architecture
+  question, consistent with this pass's own "$20,000 tuition
+  contribution ≠ fully funded" instruction.
+- **Monash University — Monash Graduate Scholarship (MGS)** —
+  genuinely fully-funded-sounding (AUD 37,145/year stipend + full
+  tuition coverage for Research Doctorate and Research Master's
+  students), but `monash.edu` returns an active Cloudflare managed
+  challenge ("Just a moment...", HTTP 403) on every path tested,
+  including `robots.txt` — genuine bot protection, not circumvented.
+- **University of Melbourne — Melbourne Research Scholarship** — a
+  re-confirmation of an access barrier already documented in this
+  file's earlier "Researched this pass (source diversity), not
+  integrated" note (#57): `scholarships.unimelb.edu.au` still returns
+  the same active Cloudflare managed challenge on every path tested as
+  of this research date — genuinely still blocked, not a stale finding
+  left uncorrected.
+- **Western Sydney University — "Western Sydney International
+  Scholarships – Postgraduate"** — a real, current, single-flagship
+  page (explicitly states "The scholarship is a partial tuition fee
+  waiver and does not cover costs associated with living expenses,
+  accommodation, transport, overseas student health cover" —
+  genuinely `PARTIALLY_FUNDED`, AUD 5,000-10,000/year for the 2027
+  cycle, matching exactly the example this pass's own research brief
+  cited). Not integrated this pass for an architectural reason rather
+  than a funding or access one: the page is built from many small
+  Adobe-Experience-Manager "component--band" fragments with no single
+  enclosing content region that excludes the site's own navigation and
+  footer chrome — isolating just the scholarship text would need more
+  than this codebase's single-CSS-selector `_first_match` pattern
+  supports. Deferred rather than forced into a selector that would
+  silently capture nav junk; a real, verified, currently-open candidate
+  worth returning to.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

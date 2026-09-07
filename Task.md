@@ -4795,3 +4795,105 @@ for the full dated history.
       fixture
       (`tests/fixtures/helmut_veith_stipend.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-07)** Five-country autonomous scholarship research
+      engine - Australia pass: this country was explicitly flagged in
+      the research brief as needing "VERY DEEP coverage," with a
+      specific warning against searching only coursework scholarships
+      and missing Master's-by-Research/HDR opportunities. Took that
+      warning seriously and specifically hunted for HDR-track pages
+      rather than only the general "international scholarships" search
+      results.
+
+      Found and **implemented** two genuinely fully-funded HDR sources:
+      - **University of Sydney RTP Scholarships (International)**
+        (source #86) - this platform's first Australia university
+        source of any kind. Live-fetched the official page directly
+        and confirmed "commencing or enrolled in a higher degree by
+        research" covers both Master's-by-Research and PhD, not
+        PhD-only, before treating it as suitable - the research brief
+        explicitly warned against accidentally mixing PhD-only results
+        into the Master's category, so this check mattered. Found a
+        real engineering trap while inspecting the raw HTML: two
+        `div.cmp-container__inner` elements exist on the page, one of
+        them genuinely empty, and a plain CSS selector would have
+        matched the empty one first (since `_first_match` always takes
+        the first match) - used `:not(:empty)` to correctly skip it,
+        verified directly rather than assumed. Also found and fixed a
+        deadline-extraction trap: the page's first "deadline"-keyword
+        occurrence is an earlier, dateless prose sentence, so the base
+        class's default keyword would have resolved to `None`; the
+        real deadline lives in an HTML table headed by "Submission
+        deadline," so overrode `deadline_keywords` to
+        `("submission deadline",)` and verified via a standalone
+        `collect()` simulation that this correctly lands on the
+        nearest upcoming cycle's real deadline (11 September 2026),
+        not a different column's date.
+      - **University of Queensland Graduate Research School
+        Scholarships (UQGRSS)** (source #87) - this platform's second
+        Australia university source, on the "Scholarships for PhD and
+        MPhil students" page. Verified directly that MPhil (Master of
+        Philosophy) is a genuine Master's-by-research degree in the
+        Australian system, not a synonym for PhD, before treating this
+        as Master's-inclusive rather than PhD-only. Read the page
+        carefully enough to notice it describes several funding types
+        and scholarships together, and explicitly separated the
+        internationally-open flagship (UQGRSS) from two narrower
+        scholarships mentioned on the same page (one domestic-only,
+        one Aboriginal/Torres Strait Islander-restricted) rather than
+        letting the record imply all three share UQGRSS's own
+        eligibility.
+
+      Four further Australian candidates were researched and
+      rejected/deferred this same pass:
+      - **UNSW Sydney** - its official "Scholarships for International
+        Students Commencing Term 1, 2027" page is genuinely current
+        (opens 15/07/2026, closes 30/10/2026), but lists at least five
+        separately-named, separately-valued awards on one page - the
+        same multi-record architecture mismatch documented repeatedly
+        elsewhere in this project - and every listed award is
+        explicitly tuition-only with no living-stipend component, so
+        it would not have qualified as fully funded even if the
+        architecture fit.
+      - **Monash University** and **University of Melbourne** - both
+        described genuinely strong, fully-funded-sounding HDR
+        scholarships (AUD 37,145/year and a full tuition offset at
+        Monash; a similar structure at Melbourne), but fetching each
+        university's own scholarship page returned an active
+        Cloudflare "Just a moment..." managed challenge on every path
+        tested, including `robots.txt` - genuine bot protection, not
+        circumvented. Melbourne's block specifically re-confirms an
+        access barrier already documented in this project from an
+        earlier pass, checked again live rather than assumed still
+        true.
+      - **Western Sydney University** - its "Postgraduate" international
+        scholarship page is real, current, and matches this pass's own
+        research brief almost verbatim (explicitly partial, AUD
+        5,000-10,000/year tuition-only for the 2027 cycle, with the
+        page's own text stating plainly it "does not cover costs
+        associated with living expenses, accommodation, transport,
+        overseas student health cover"). Not integrated this pass for
+        a purely architectural reason: inspected the raw HTML and found
+        the real content spread across many small Adobe-Experience-
+        Manager "component--band" fragments with no single ancestor
+        that includes the scholarship text while excluding the site's
+        own navigation and footer - tried several candidate selectors
+        (`div.responsivegrid`, `div.root`, others) and confirmed each
+        one just re-selects the entire page body. Rather than force a
+        selector that would silently capture navigation-menu junk into
+        the description, deferred this one honestly as a real,
+        verified, currently-open candidate for future engineering
+        effort, not a funding or access rejection.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. Standalone `collect()` simulations against both real
+      fixtures, run before any test was written, confirmed both
+      sources' title/provider/country/funding_type/deadline fields
+      resolve exactly as documented for each. Full backend suite green
+      afterward, 821 passed / 25 skipped (up from 817 passed/25
+      skipped - four new tests across two sources, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      86 -> 88 registered sources). The fixtures
+      (`tests/fixtures/usyd_rtp_international.html`,
+      `tests/fixtures/uq_grsss_phd_mphil.html`) were captured unmodified
+      from the live sites.

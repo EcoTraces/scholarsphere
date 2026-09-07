@@ -112,6 +112,8 @@ from app.services.national_scholarship_programs import (
     TurkiyeBurslariSource,
     UniversityOfTwenteScholarshipSource,
     UpfBsmMeritScholarshipSource,
+    UqGraduateResearchScholarshipsSource,
+    UsydRtpInternationalSource,
     UtrechtLegitsScholarshipSource,
     UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
@@ -522,6 +524,14 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_helmut_veith_stipend",
             "schedule": crontab(minute=15, hour=22),
         },
+        "sync-usyd-rtp-international": {
+            "task": "app.tasks.opportunity_sync.sync_usyd_rtp_international",
+            "schedule": crontab(minute=30, hour=22),
+        },
+        "sync-uq-graduate-research-scholarships": {
+            "task": "app.tasks.opportunity_sync.sync_uq_graduate_research_scholarships",
+            "schedule": crontab(minute=45, hour=22),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -720,6 +730,12 @@ SOURCE_TASK_NAMES = {
     ),
     "helmut_veith_stipend": (
         "app.tasks.opportunity_sync.sync_helmut_veith_stipend"
+    ),
+    "usyd_rtp_international": (
+        "app.tasks.opportunity_sync.sync_usyd_rtp_international"
+    ),
+    "uq_graduate_research_scholarships": (
+        "app.tasks.opportunity_sync.sync_uq_graduate_research_scholarships"
     ),
 }
 
@@ -2011,6 +2027,36 @@ def sync_helmut_veith_stipend(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_usyd_rtp_international",
+    max_retries=3,
+)
+def sync_usyd_rtp_international(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "usyd_rtp_international", correlation_id, triggered_by
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_uq_graduate_research_scholarships",
+    max_retries=3,
+)
+def sync_uq_graduate_research_scholarships(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self, "uq_graduate_research_scholarships", correlation_id, triggered_by
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2314,6 +2360,8 @@ def _collector(source_code: str) -> Any:
         "gates_cambridge_scholarship": GatesCambridgeScholarshipSource,
         "heinrich_boll_scholarship": HeinrichBollScholarshipSource,
         "helmut_veith_stipend": HelmutVeithStipendSource,
+        "usyd_rtp_international": UsydRtpInternationalSource,
+        "uq_graduate_research_scholarships": UqGraduateResearchScholarshipsSource,
     }[source_code]()
 
 

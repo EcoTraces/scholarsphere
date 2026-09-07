@@ -159,6 +159,8 @@ unverified).
 | 83 | Gates Cambridge Scholarship (University of Cambridge / Gates Cambridge Trust) | England | UNIVERSITY | gatescambridge.org | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for an England fully-funded Master's university scholarship engine request; this registry's first England source classified as genuinely fully funded (the nine pre-existing England sources, #60-#68, are all partial); worldwide eligibility ("a citizen of any country outside the United Kingdom," no narrower list, Sierra Leone included); covers tuition + a GBP 22,050/year maintenance allowance + return airfare + visa costs + the Immigration Health Surcharge; funds one-year postgraduate courses (Master's-level) and MLitt, not only PhD; no deadline extracted (the separate Timeline page's dates vary by applicant category/course with no single canonical value) (see AUTHORITATIVE_SOURCES.md #83). Oxford's Clarendon Fund was researched as an equally strong candidate but `ox.ac.uk` is behind an active Cloudflare managed challenge on every path tested (including robots.txt) — not bypassed, `BLOCKED`. |
 | 84 | Heinrich Böll Foundation ("Tailwind for Talents") Scholarship for Graduates and PhD students | Germany | FOUNDATION | boell.de | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-06, built for an open-scope "find another scholarship in germany" request (no degree-level or funding-type restriction); this registry's second Foundation-classified source (Humboldt Research Fellowship, #56, is the first) and third Germany source overall alongside DAAD (#10) and the university sources TUM (#59)/Freiburg (#69); priority given to DAC-country applicants (Sierra Leone, a DAC-listed LDC, is covered) not yet resident in Germany — genuinely open to prospective, not-yet-enrolled applicants, unlike the already-rejected Friedrich-Ebert-Stiftung finding under DAAD (#10); genuinely fully funded for the AA-funded Master's track (EUR 992/month + up to EUR 100/month health insurance + tuition reimbursement up to EUR 10,000/year + EUR 38/month fringe benefit + family allowances); international applicants must separately show German B2/DSH1 proficiency (a language, not a nationality, bar); `deadline_keywords` deliberately overridden to `("until",)` to avoid the base class's default "deadline" keyword landing on the window-opening date instead of the closing date; exact deadline extracted (1 March 2027) (see AUTHORITATIVE_SOURCES.md #84) |
 | 85 | Helmut Veith Stipend (TU Wien / VCLA) | Austria | UNIVERSITY | vcla.at | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the second country (Austria) of a simultaneous five-country research pass (Austria/Eswatini/Australia/USA/Russia); this registry's first Austria *university* source (OeAD Ernst Mach Grant, #28, is government-classified); no nationality restriction (open worldwide, Sierra Leone included) but restricted by gender (female applicants only) and academic background; genuinely `partial_funding` — EUR 7,000/year (~EUR 583/month) plus a full TU Wien tuition waiver, which live research confirms covers under half of Vienna's own documented ~EUR 950-1,300/month student cost of living; explicitly accepts a not-yet-final degree via a preliminary certificate; uses the dedicated `vcla.at` announcement page rather than the TU Wien Informatics hub page, which states a stale EUR 6,000 figure for the same award; exact deadline extracted (30 November 2026) (see AUTHORITATIVE_SOURCES.md #85) |
+| 86 | University of Sydney RTP Scholarships (International) | Australia | UNIVERSITY | sydney.edu.au | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the third country (Australia) of the five-country pass; this registry's first Australia *university* source of any kind (Australia Awards, #24, is government/DFAT-classified); funds "higher degree by research" — genuinely Master's-by-Research and PhD, not PhD-only; no nationality restriction; genuinely `fully_funded` — AUD 44,293/year stipend (2027 rate) + 100% tuition fee offset + relocation/thesis allowances + OSHC; `deadline_keywords` overridden to `("submission deadline",)` to correctly land on the deadline table's own header rather than an earlier dateless "deadline" mention; exact deadline extracted (11 September 2026) (see AUTHORITATIVE_SOURCES.md #86) |
+| 87 | University of Queensland Graduate Research School Scholarships (UQGRSS) | Australia | UNIVERSITY | scholarships.uq.edu.au | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second Australia university source; genuinely covers Master's-by-Research (MPhil), not PhD-only, verified directly from the page's own text; no nationality restriction for the flagship UQGRSS award (two narrower scholarships mentioned on the same page — domestic-only and Aboriginal/Torres-Strait-Islander-restricted — are explicitly not represented by this record); genuinely `fully_funded` — tuition + AUD 39.2K/year tax-free stipend + OSHC; no deadline extracted (page states only that awards are "offered in rounds," no date literal present) (see AUTHORITATIVE_SOURCES.md #87) |
 
 **(2026-09-07, five-country autonomous engine — Austria)** Checked five
 further Austrian universities live (TU Wien, University of Vienna,
@@ -176,6 +178,28 @@ scholarships page. JKU's Merit Scholarship for Exchange Students funds
 temporary exchange students only, not degree-seeking applicants. See
 AUTHORITATIVE_SOURCES.md's "Researched this pass (2026-09-07, Austria —
 five-country autonomous engine), not integrated" note for full detail.
+
+**(2026-09-07, five-country autonomous engine — Australia)** Checked
+several further Australian universities live. UNSW's "Scholarships for
+International Students Commencing Term 1, 2027" is a genuinely current
+multi-record hub (International Scientia Coursework Scholarship, Law &
+Justice International Award, Business School awards) — the same
+multi-record architecture mismatch documented elsewhere, and every
+listed award is tuition-only besides. Monash University's Graduate
+Scholarship and the University of Melbourne's Research Scholarship are
+both genuinely strong, fully-funded-sounding HDR programmes, but
+`monash.edu` and `scholarships.unimelb.edu.au` both return an active
+Cloudflare managed challenge on every path tested (Melbourne's block
+re-confirms an earlier finding already on record) — `BLOCKED`, not
+circumvented. Western Sydney University's "Postgraduate" international
+scholarship is a real, current, explicitly partial (AUD 5,000-10,000/
+year tuition-only) single-flagship page matching this pass's own
+research-brief example exactly, but its Adobe-Experience-Manager markup
+has no single enclosing content region excluding site navigation —
+deferred as an architectural limitation, not a funding or access
+rejection, and worth returning to. See AUTHORITATIVE_SOURCES.md's
+"Researched this pass (2026-09-07, Australia — five-country autonomous
+engine), not integrated" note for full detail.
 
 **(2026-09-06, Netherlands continuation pass)** The Netherlands
 fully-funded-only mega-prompt was resubmitted after three genuinely

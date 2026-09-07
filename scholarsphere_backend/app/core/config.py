@@ -591,6 +591,41 @@ class Settings(BaseSettings):
     # semesters. `vcla.at/robots.txt` only disallows `/wp-admin/`.
     helmut_veith_stipend_base_url: str = "https://www.vcla.at"
 
+    # University of Sydney - Australian Government Research Training
+    # Program (RTP) scholarships, international track - researched
+    # 2026-09-07, the third country (Australia) of the simultaneous
+    # five-country pass. This platform's first Australia *university*
+    # source of any kind (Australia Awards, #24, is government/DFAT-
+    # classified). Genuinely fully funded for "commencing or enrolled
+    # in a higher degree by research" (both Master's-by-Research and
+    # PhD, not PhD-only): a 2027-rate AUD 44,293/year stipend, a 100%
+    # tuition fee offset for up to 14 research periods, relocation and
+    # thesis allowances, and Overseas Student Health Cover (OSHC) - no
+    # nationality restriction found on this page. `sydney.edu.au/
+    # robots.txt` allows this content path (only a small number of
+    # unrelated legacy/search paths are disallowed).
+    usyd_rtp_international_base_url: str = "https://www.sydney.edu.au"
+
+    # University of Queensland - Graduate Research School Scholarships
+    # (UQGRSS), on the "Scholarships for PhD and MPhil students" page -
+    # researched 2026-09-07, the same Australia pass as USYD's RTP
+    # scholarship. This platform's second Australia university source.
+    # MPhil (Master of Philosophy) is a genuine Master's-by-research
+    # degree, explicitly named alongside PhD on this page - not a
+    # PhD-only source. UQGRSS itself is "available for domestic and
+    # international students," funds tuition fees plus a AUD 39.2K/year
+    # (2026 rate) tax-free living stipend, and includes Single Overseas
+    # Student Health Cover - genuinely fully funded, no nationality
+    # restriction. Two narrower scholarships mentioned on the same page
+    # (the Fellowship support scheme, and Aboriginal and Torres Strait
+    # Islander Research Scholarships) are explicitly domestic-only or
+    # ethnicity-restricted and not represented by this record.
+    # `scholarships.uq.edu.au/robots.txt` (a Drupal default) does not
+    # disallow this content path.
+    uq_graduate_research_scholarships_base_url: str = (
+        "https://scholarships.uq.edu.au"
+    )
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -766,6 +801,8 @@ class Settings(BaseSettings):
         "gates_cambridge_scholarship_base_url",
         "heinrich_boll_scholarship_base_url",
         "helmut_veith_stipend_base_url",
+        "usyd_rtp_international_base_url",
+        "uq_graduate_research_scholarships_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

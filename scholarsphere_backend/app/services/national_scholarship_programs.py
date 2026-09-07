@@ -3639,3 +3639,149 @@ class HelmutVeithStipendSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().helmut_veith_stipend_base_url
+
+
+class UsydRtpInternationalSource(_SingleProgramSource):
+    """University of Sydney - Australian Government Research Training
+    Program (RTP) scholarships, international track - researched
+    2026-09-07, the third country (Australia) of the simultaneous
+    five-country pass (Austria, Eswatini, Australia, USA, Russia).
+    This platform's first Australia **university** source of any kind
+    (Australia Awards, #24, is government/DFAT-classified).
+
+    Confirmed 2026-09-07: `sydney.edu.au/robots.txt` sets `Allow: /`
+    for `User-agent: *`, with only a small number of unrelated legacy/
+    search paths disallowed - none of which cover this content path.
+
+    Content selector `div.cmp-container__inner:not(:empty)`: the
+    page's Adobe-Experience-Manager markup places the real page body
+    in a `div.cmp-container__inner`, but a *second*, empty sibling of
+    the same class also exists earlier in the DOM (a placeholder for a
+    component that renders nothing on this particular page) - verified
+    directly via a BeautifulSoup structural walk that a plain `div.
+    cmp-container__inner` selector would incorrectly match that empty
+    element first (`_first_match` takes the first selector match), so
+    `:not(:empty)` is used to skip it and land on the real ~4.4KB
+    content block instead.
+
+    `title_selectors = ()`, `title_tag_separator = " - "` (a literal
+    hyphen, not the page's own "–" en dash): the page has no `<h1>`,
+    and its `<title>` reads "RTP scholarships – International - The
+    University of Sydney" - splitting on the hyphen (not the earlier
+    en dash) yields "RTP scholarships – International", a specific,
+    accurate title distinguishing this page from Sydney's separate
+    domestic RTP page.
+
+    Country coverage / eligibility: no nationality restriction stated
+    on this page - open to "international students," with "Preference
+    ... given to applicants who [are] intending to enrol or currently
+    enrolled in a PhD" (a preference, not an exclusion - Master's-by-
+    Research applicants remain eligible). Funds students "commencing
+    or enrolled in a higher degree by research" - Australia's HDR
+    category, which includes both Master's-by-Research and PhD, not
+    PhD-only - verified directly rather than assumed from the page's
+    PhD-preference language.
+
+    Funding: an AUD 44,293/year stipend (2027 rate, confirmed live and
+    distinct from the 2026 rate of AUD 42,754 also shown), a 100%
+    tuition fee offset ("RTP Fee Offset") for up to 14 research
+    periods, a relocation allowance, a thesis allowance, and Overseas
+    Student Health Cover (OSHC) - `funding_type = "fully_funded"`,
+    comfortably exceeding this project's tuition-plus-substantial-
+    living-support bar.
+
+    Deliberately overrides `deadline_keywords` to `("submission
+    deadline",)`, skipping the base class's default `("deadline",
+    "closing date")` entirely: the full page text's *first* "deadline"
+    occurrence is an earlier prose sentence ("Submit the scholarship
+    application form by the deadlines") with no date literal anywhere
+    nearby, which would make the base default resolve to `None` -
+    verified directly against the live fixture. The page's own deadline
+    *table* ("Research period | Submission deadline | Outcomes Issued
+    from | Outcomes Finalised") is headed by the literal phrase
+    "Submission deadline", and once flattened to plain text by
+    `BeautifulSoup.get_text()`, that phrase sits immediately before the
+    first data row's cells in reading order - so the first date literal
+    after this keyword match is exactly that row's own submission
+    deadline (11 September 2026, for "Research Period 1 and 2, 2027"),
+    the nearest still-open upcoming cycle - verified directly against
+    the live fixture before writing the test, not assumed from the
+    table's visual layout alone.
+    """
+
+    source_code = "usyd_rtp_international"
+    overview_path = (
+        "/scholarships/australian-government-research-training-program/"
+        "rtp-international.html"
+    )
+    title_selectors = ()
+    title_tag_separator = " - "
+    content_selectors = ("div.cmp-container__inner:not(:empty)",)
+    deadline_keywords = ("submission deadline",)
+    provider_name = "University of Sydney"
+    country = "Australia"
+    external_id = "usyd-rtp-international"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().usyd_rtp_international_base_url
+
+
+class UqGraduateResearchScholarshipsSource(_SingleProgramSource):
+    """University of Queensland - Graduate Research School Scholarships
+    (UQGRSS), on the "Scholarships for PhD and MPhil students" page -
+    researched 2026-09-07, the same Australia pass as USYD's RTP
+    scholarship (#86). This platform's second Australia university
+    source.
+
+    Confirmed 2026-09-07: `scholarships.uq.edu.au/robots.txt` (a Drupal
+    default) does not disallow this content path.
+
+    **Genuinely covers Master's-by-Research, not PhD-only**: the page's
+    own title and text explicitly name "Master of Philosophy (MPhil)"
+    alongside "Doctor of Philosophy (PhD)" throughout - MPhil is a
+    real, examined Master's-level research degree in the Australian
+    system, distinct from a taught/coursework Master's. Verified
+    directly rather than assumed from the word "PhD" appearing first.
+
+    Content selector `article`: verified directly via a BeautifulSoup
+    structural walk to hold the full page body (funding-type
+    explanations, the UQGRSS description, and the narrower
+    domestic-only/restricted scholarships mentioned alongside it) with
+    none of the site's navigation or footer chrome.
+
+    Country coverage / eligibility: the flagship Graduate Research
+    School Scholarship (UQGRSS) is explicitly stated to be "available
+    for domestic and international students" - no nationality
+    restriction, Sierra Leone included. Two narrower scholarships
+    mentioned on the same page are NOT represented by this record and
+    documented here rather than silently conflated: the "Fellowship
+    support scheme" ("available for domestic students" only) and the
+    "Aboriginal and Torres Strait Islander Research Scholarships"
+    ("available for Aboriginal and/or Torres Strait Islander students"
+    - an ethnicity restriction, not a nationality one, but still
+    distinct from UQGRSS's own general eligibility).
+
+    Funding: UQGRSS "fund[s] tuition fees, living stipend of $39.2K a
+    year tax free (2026 rate), indexed yearly" and "include[s] Single
+    Overseas Student Health Cover (OSHC)" - `funding_type =
+    "fully_funded"`.
+
+    Deliberately extracts no deadline: the page states only that
+    "Graduate Research School Scholarships are offered in rounds during
+    the year" with a pointer to "round deadlines" on a separate,
+    unlinked-by-URL page - no date literal appears anywhere in this
+    page's own text, verified directly rather than assumed. Consistent
+    with this project's "extract nothing rather than guess" rule.
+    """
+
+    source_code = "uq_graduate_research_scholarships"
+    overview_path = "/phd-mphil-students"
+    content_selectors = ("article",)
+    provider_name = "University of Queensland"
+    country = "Australia"
+    external_id = "uq-graduate-research-scholarships"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().uq_graduate_research_scholarships_base_url

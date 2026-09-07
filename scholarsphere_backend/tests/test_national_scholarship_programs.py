@@ -67,6 +67,8 @@ from app.services.national_scholarship_programs import (
     TumInternationalStudentScholarshipSource,
     UniversityOfTwenteScholarshipSource,
     UpfBsmMeritScholarshipSource,
+    UqGraduateResearchScholarshipsSource,
+    UsydRtpInternationalSource,
     UtrechtLegitsScholarshipSource,
     UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
@@ -3094,3 +3096,91 @@ def test_helmut_veith_stipend_has_no_robots_txt_restrictions() -> None:
     """robots.txt (`vcla.at/robots.txt`) only disallows `/wp-admin/`,
     unrelated to this content path."""
     assert HelmutVeithStipendSource.min_request_interval_seconds == 2.0
+
+
+# --- USYD RTP Scholarships (International): real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_usyd_rtp_international_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Australia *university* source of any kind
+    (Australia Awards, #24, is government/DFAT-classified). Genuinely
+    fully_funded for higher-degree-by-research applicants (Master's-by-
+    Research and PhD, not PhD-only): AUD 44,293/year stipend (2027
+    rate) + 100% tuition fee offset + relocation/thesis allowances +
+    OSHC. `deadline_keywords` deliberately overridden to ("submission
+    deadline",) since the base class's default "deadline" keyword
+    matches an earlier, dateless prose sentence first."""
+    source = UsydRtpInternationalSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("usyd_rtp_international.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "usyd-rtp-international"
+    assert opportunity.title == "RTP scholarships – International"
+    assert opportunity.country == "Australia"
+    assert opportunity.provider_name == "University of Sydney"
+    assert opportunity.description is not None
+    assert "higher degree by research" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline == date(2026, 9, 11)
+
+
+def test_usyd_rtp_international_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`sydney.edu.au/robots.txt`) sets `Allow: /` for
+    `User-agent: *`, with only unrelated legacy/search paths
+    disallowed."""
+    assert UsydRtpInternationalSource.min_request_interval_seconds == 2.0
+
+
+# --- UQ Graduate Research School Scholarships: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_uq_graduate_research_scholarships_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's second Australia university source. MPhil
+    (Master of Philosophy) is a genuine Master's-by-research degree,
+    explicitly named alongside PhD on this page - not PhD-only. UQGRSS
+    itself is open to international students, funds tuition + a AUD
+    39.2K/year stipend + OSHC - genuinely fully_funded. No deadline
+    extracted: the page states only that scholarships are "offered in
+    rounds during the year" with no date literal present."""
+    source = UqGraduateResearchScholarshipsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("uq_grsss_phd_mphil.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "uq-graduate-research-scholarships"
+    assert opportunity.title == "Scholarships for PhD and MPhil students"
+    assert opportunity.country == "Australia"
+    assert opportunity.provider_name == "University of Queensland"
+    assert opportunity.description is not None
+    assert "Master of Philosophy (MPhil)" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_uq_graduate_research_scholarships_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """robots.txt (`scholarships.uq.edu.au/robots.txt`, a Drupal
+    default) does not disallow this content path."""
+    assert (
+        UqGraduateResearchScholarshipsSource.min_request_interval_seconds == 2.0
+    )

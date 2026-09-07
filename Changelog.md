@@ -28,6 +28,73 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Five-country autonomous engine: Australia pass — two university sources added
+
+### Added
+- **University of Sydney — RTP Scholarships (International)**
+  (`app/services/national_scholarship_programs.py::
+  UsydRtpInternationalSource`, source #86) — this platform's 87th
+  registered `OpportunitySource`, and its first Australia
+  **university** source of any kind (Australia Awards, #24, is
+  government/DFAT-classified). Funds students "commencing or enrolled
+  in a higher degree by research" — genuinely Master's-by-Research and
+  PhD, not PhD-only. No nationality restriction. Genuinely
+  `fully_funded`: an AUD 44,293/year stipend (2027 rate), a 100%
+  tuition fee offset for up to 14 research periods, relocation and
+  thesis allowances, and Overseas Student Health Cover (OSHC).
+  - **Deliberate design choices**: content selector
+    `div.cmp-container__inner:not(:empty)` to skip an empty sibling
+    div of the same class earlier in the DOM; `deadline_keywords`
+    overridden to `("submission deadline",)` since the base class's
+    default "deadline" keyword matches an earlier, dateless prose
+    sentence first, while the real deadline table's own header phrase
+    correctly anchors on the nearest upcoming submission deadline (11
+    September 2026).
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.**
+- **University of Queensland — Graduate Research School Scholarships
+  (UQGRSS)** (`app/services/national_scholarship_programs.py::
+  UqGraduateResearchScholarshipsSource`, source #87) — this platform's
+  88th registered source, its second Australia university source, on
+  the "Scholarships for PhD and MPhil students" page. MPhil (Master of
+  Philosophy) is a genuine Master's-by-research degree, explicitly
+  named alongside PhD — not PhD-only. UQGRSS is "available for
+  domestic and international students," funds tuition fees plus an
+  AUD 39.2K/year tax-free stipend and OSHC — genuinely `fully_funded`.
+  Two narrower scholarships mentioned on the same page (domestic-only,
+  and Aboriginal/Torres-Strait-Islander-restricted) are explicitly not
+  represented by this record. No deadline extracted (the page states
+  only that awards are "offered in rounds," with no date literal
+  present).
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.**
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected/deferred four further Australian
+  candidates this same pass:
+  - **UNSW Sydney** — a genuinely current multi-record hub of at least
+    five separately-named, tuition-only awards — the same multi-record
+    architecture mismatch documented elsewhere in this project.
+  - **Monash University** and **University of Melbourne** — both
+    genuinely strong, fully-funded-sounding HDR programmes, but both
+    domains return an active Cloudflare managed challenge on every
+    path tested (Melbourne's re-confirms an earlier finding already on
+    record) — `BLOCKED`, not circumvented.
+  - **Western Sydney University** — a real, current, explicitly
+    partial (AUD 5,000-10,000/year, tuition-only) postgraduate
+    scholarship page matching this pass's own research-brief example
+    exactly, but deferred: its Adobe-Experience-Manager markup has no
+    single enclosing content region excluding site navigation, beyond
+    what this codebase's single-CSS-selector content-extraction
+    pattern supports without further engineering.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Five-country autonomous engine: Austria pass — Helmut Veith Stipend added
 
 ### Added

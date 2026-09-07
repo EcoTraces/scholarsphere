@@ -538,6 +538,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "usyd_rtp_international": {
+        "source_name": "University of Sydney RTP Scholarships (International)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "uq_graduate_research_scholarships": {
+        "source_name": "University of Queensland Graduate Research School Scholarships",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -657,6 +669,10 @@ def _base_urls() -> dict[str, str]:
         "gates_cambridge_scholarship": settings.gates_cambridge_scholarship_base_url,
         "heinrich_boll_scholarship": settings.heinrich_boll_scholarship_base_url,
         "helmut_veith_stipend": settings.helmut_veith_stipend_base_url,
+        "usyd_rtp_international": settings.usyd_rtp_international_base_url,
+        "uq_graduate_research_scholarships": (
+            settings.uq_graduate_research_scholarships_base_url
+        ),
     }
 
 
@@ -766,6 +782,8 @@ async def seed_opportunity_sources(
         "gates_cambridge_scholarship": now + timedelta(hours=24),
         "heinrich_boll_scholarship": now + timedelta(hours=24),
         "helmut_veith_stipend": now + timedelta(hours=24),
+        "usyd_rtp_international": now + timedelta(hours=24),
+        "uq_graduate_research_scholarships": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
