@@ -55,6 +55,7 @@ from app.services.national_scholarship_programs import (
     AustraliaDfatAwardsSource,
     AustriaOeadErnstMachSource,
     BelgiumAresScholarshipSource,
+    BrazilPecpgScholarshipSource,
     ChileAgcidScholarshipSource,
     CmuqNeedBasedGrantSource,
     ColombiaIcetexBecaExtranjerosSource,
@@ -616,6 +617,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_santanna_phd_funding",
             "schedule": crontab(minute=15, hour=2),
         },
+        "sync-brazil-pecpg-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_brazil_pecpg_scholarship",
+            "schedule": crontab(minute=30, hour=2),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -863,6 +868,9 @@ SOURCE_TASK_NAMES = {
     ),
     "santanna_phd_funding": (
         "app.tasks.opportunity_sync.sync_santanna_phd_funding"
+    ),
+    "brazil_pecpg_scholarship": (
+        "app.tasks.opportunity_sync.sync_brazil_pecpg_scholarship"
     ),
 }
 
@@ -2430,6 +2438,24 @@ def sync_santanna_phd_funding(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_brazil_pecpg_scholarship",
+    max_retries=3,
+)
+def sync_brazil_pecpg_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "brazil_pecpg_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2755,6 +2781,7 @@ def _collector(source_code: str) -> Any:
         "cmuq_need_based_grant": CmuqNeedBasedGrantSource,
         "jcu_global_explorer_scholarship": JcuGlobalExplorerScholarshipSource,
         "santanna_phd_funding": SantannaPhdFundingSource,
+        "brazil_pecpg_scholarship": BrazilPecpgScholarshipSource,
     }[source_code]()
 
 

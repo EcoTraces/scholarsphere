@@ -6836,6 +6836,80 @@ cycle not yet published as of this research date):
   limitation, distinct from a real-world bot-block or robots.txt
   restriction, rather than assumed equivalent to either.
 
+## 102. PEC-PG (Programa de Estudantes-Convênio de Pós-Graduação) — Brazil
+
+Researched 2026-09-07, a fresh "find a Brazil masters/PhD scholarship"
+request. This platform's first Brazil source and first government-run
+program from a Portuguese-speaking country's own official portal.
+
+- **Organization**: Coordenação de Aperfeiçoamento de Pessoal de Nível
+  Superior (CAPES), jointly with the Ministry of Foreign Affairs (MRE)
+  and CNPq (Conselho Nacional de Desenvolvimento Científico e
+  Tecnológico) — a federal Brazilian government program, not a
+  university-run one.
+- **Route code**: `brazil-pecpg-scholarship` (`brazil_pecpg_scholarship`
+  internally)
+- **Official domain / base URL**: `https://www.gov.br`
+  (`BRAZIL_PECPG_SCHOLARSHIP_BASE_URL`) — sourced from CAPES's own
+  program page (`gov.br/capes/...`), not the Ministry of Foreign
+  Affairs' mirror of the same program (`gov.br/mre/...`), which returned
+  an interactive CAPTCHA challenge to a plain HTTPS GET (confirmed
+  directly, not assumed).
+- **Opportunity types**: Scholarship (Master's and PhD) — three
+  modalities: Doutorado Pleno (full PhD, up to 48 months), Doutorado
+  Sanduíche (sandwich/split PhD, 6-10 months), and Mestrado Pleno (full
+  Master's, up to 24 months). Directly satisfies "masters and PhD."
+  Benefits: a monthly stipend ("Mensalidade"), a monthly health-insurance
+  allowance ("Auxílio seguro saúde"), and MRE-funded round-trip
+  international airfare — `funding_type = "fully_funded"`, the same
+  stipend+health+travel shape already used to classify Turkiye Burslari,
+  India's ICCR, and Sweden's SI scholarship as fully funded.
+- **Country coverage / eligibility**: open to citizens of the 70-plus
+  PEC-PG partner countries (per secondary reporting on the same edital)
+  who hold neither Brazilian nationality nor Brazilian permanent
+  residency. The overview page states the eligibility rule generically
+  rather than naming every partner country by name.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `gov.br/robots.txt` has no rule at
+  all matching `/capes/` for any user-agent (the file's only
+  path-specific restrictions target `/economia/pt-br/internet/*`,
+  `/ebserh/*`, and — for Yandex specifically — `/mre`). Confirmed
+  directly: `RobotFileParser.can_fetch()` with a `ScholarSphere/1.0`
+  user-agent returns `True` for this exact URL.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately extracts no deadline**: the page is CAPES's standing
+    description of the program (objective, modalities, benefits,
+    duration), not a single dated call — but its "Calendário" section,
+    embedded in the same content container immediately after
+    "Inscrição," currently still displays the most recently published
+    cycle, Edital nº 12/2025 (registration windows in Aug-Oct 2025,
+    final results published as late as May 2026 per the page's own
+    "Editais" document table). That cycle's window has fully closed as
+    of this research date and no successor edital has been published
+    yet — the same "no stale-cycle guessing" situation hit at John
+    Cabot University and Sant'Anna above, resolved the same way
+    (`deadline_keywords = ()`) rather than by guessing at a next-cycle
+    date that doesn't exist yet.
+  - **Content selector**: `#page-document` — the one container wrapping
+    the entire visible article, from the `<h1>` through the final
+    "Editais" document table. Verified directly against the fetched
+    page that no other element shares this id and that it excludes the
+    page's social-share icon row, which sits just outside it.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured from the
+  live fetch (`tests/fixtures/brazil_pecpg_scholarship.html`; trimmed to
+  the `#page-document` container plus its surrounding page shell to
+  keep the fixture a reasonable size — the extracted text itself is
+  untouched from the live page).
+
 ---
 
 ## Sources evaluated and deliberately not integrated

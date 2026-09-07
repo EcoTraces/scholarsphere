@@ -634,6 +634,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "brazil_pecpg_scholarship": {
+        "source_name": "PEC-PG (Programa de Estudantes-Convênio de Pós-Graduação), Brazil",
+        "source_type": "government",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -785,6 +791,7 @@ def _base_urls() -> dict[str, str]:
             settings.jcu_global_explorer_scholarship_base_url
         ),
         "santanna_phd_funding": settings.santanna_phd_funding_base_url,
+        "brazil_pecpg_scholarship": settings.brazil_pecpg_scholarship_base_url,
     }
 
 
@@ -910,6 +917,7 @@ async def seed_opportunity_sources(
         "cmuq_need_based_grant": now + timedelta(hours=24),
         "jcu_global_explorer_scholarship": now + timedelta(hours=24),
         "santanna_phd_funding": now + timedelta(hours=24),
+        "brazil_pecpg_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

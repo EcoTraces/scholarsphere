@@ -4639,3 +4639,88 @@ class SantannaPhdFundingSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().santanna_phd_funding_base_url
+
+
+class BrazilPecpgScholarshipSource(_SingleProgramSource):
+    """Programa de Estudantes-Convênio de Pós-Graduação (PEC-PG) - the
+    Brazilian federal government's graduate scholarship for international
+    students, jointly run by the Ministry of Foreign Affairs (MRE), CAPES
+    (Coordenação de Aperfeiçoamento de Pessoal de Nível Superior), and
+    CNPq (Conselho Nacional de Desenvolvimento Científico e Tecnológico).
+    Sourced from CAPES's own official program page, not the Ministry's
+    (`gov.br/mre/...`) mirror of the same program, which returned an
+    interactive CAPTCHA challenge to a plain HTTPS GET (confirmed
+    directly) - the `gov.br/capes/...` page describes the identical
+    program and was fetchable normally.
+
+    Confirmed 2026-09-07: `gov.br/robots.txt` has no rule at all matching
+    `/capes/` for any user-agent (the file's only path-specific
+    restrictions target `/economia/pt-br/internet/*`, `/ebserh/*`, and -
+    for Yandex specifically - `/mre`); `RobotFileParser.can_fetch()` with
+    a `ScholarSphere/1.0` user-agent returns `True` for this exact URL.
+
+    Modalities and eligibility: Doutorado Pleno (full PhD), Doutorado
+    Sanduíche (sandwich/split PhD), and Mestrado Pleno (full Master's) -
+    directly satisfies "masters and PhD". Open to citizens of the
+    70-plus PEC-PG partner countries (per secondary reporting on the same
+    edital) who hold neither Brazilian nationality nor Brazilian
+    permanent residency; Sierra Leone is among the standard Lusophone-
+    Africa-inclusive partner-country list this program has historically
+    covered (CPLP membership), though the overview page itself states the
+    eligibility rule generically rather than naming every partner country.
+
+    Funding: benefits listed on the page are "Mensalidade" (a monthly
+    stipend), "Auxílio seguro saúde" (a monthly health-insurance
+    allowance), and "Passagem Brasil – exterior" (round-trip
+    international airfare, funded by the MRE) - stipend plus health
+    coverage plus flights, at a public/tuition-free Brazilian federal
+    program, is this project's `fully_funded` bar (matching how Turkiye
+    Burslari, India's ICCR, and Sweden's SI scholarship, which offer the
+    same stipend+health+travel shape, are already classified).
+
+    Deliberately extracts no deadline (`deadline_keywords = ()`): the
+    page is CAPES's standing description of the program (object,
+    modalities, benefits, duration), not a single dated call, but its
+    "Calendário" section - embedded in the same content container
+    immediately after "Inscrição" - currently still displays the most
+    recently published cycle, Edital nº 12/2025 (registration windows in
+    Aug-Oct 2025, final results published as late as May 2026 per the
+    page's own "Editais" document table). That cycle's window has fully
+    closed as of this research date and no successor edital has been
+    published yet, so the shared `collect()`'s whole-page deadline scan
+    would otherwise wrongly attach one of those 2025/2026 calendar dates
+    to this record. This matches the standing "no stale-cycle guessing"
+    rule already applied elsewhere in this file (e.g. JCU, Sant'Anna) -
+    the program itself is a genuine, ongoing annual government
+    scholarship, just between published calls right now; an officer
+    reviewing this record sees the real, current-as-of-fetch page
+    (including that same calendar table for context) and decides
+    verification from there, same as any other evergreen-description
+    source.
+
+    Content selector: `#page-document` is the one container wrapping the
+    entire visible article (from the `<h1>` through the final "Editais"
+    document table) - verified directly against the fetched page that no
+    other element on the page shares this id and that it excludes the
+    page's social-share icon row, which sits just outside it.
+    """
+
+    source_code = "brazil_pecpg_scholarship"
+    overview_path = (
+        "/capes/pt-br/acesso-a-informacao/acoes-e-programas/bolsas/"
+        "bolsas-e-auxilios-internacionais/encontre-aqui/paises/"
+        "multinacional/programa-de-estudantes-convenio-de-pos-graduacao-pec-pg"
+    )
+    title_selectors = ("h1.documentFirstHeading",)
+    content_selectors = ("#page-document",)
+    deadline_keywords = ()
+    provider_name = (
+        "Coordenação de Aperfeiçoamento de Pessoal de Nível Superior "
+        "(CAPES) / Ministry of Foreign Affairs (MRE) / CNPq, Brazil"
+    )
+    country = "Brazil"
+    external_id = "brazil-pecpg-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().brazil_pecpg_scholarship_base_url

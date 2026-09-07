@@ -814,6 +814,15 @@ class Settings(BaseSettings):
     # `santannapisa.it/robots.txt` does not disallow this content path.
     santanna_phd_funding_base_url: str = "https://www.santannapisa.it"
 
+    # PEC-PG (Programa de Estudantes-Convênio de Pós-Graduação) - the
+    # Brazilian federal government's Master's/PhD scholarship for
+    # international students (CAPES/MRE/CNPq). Sourced from CAPES's own
+    # program page (gov.br/mre's mirror of the same program returned a
+    # CAPTCHA challenge, confirmed directly). Confirmed 2026-09-07:
+    # `gov.br/robots.txt` has no rule matching `/capes/` for any
+    # user-agent.
+    brazil_pecpg_scholarship_base_url: str = "https://www.gov.br"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -1005,6 +1014,7 @@ class Settings(BaseSettings):
         "cmuq_need_based_grant_base_url",
         "jcu_global_explorer_scholarship_base_url",
         "santanna_phd_funding_base_url",
+        "brazil_pecpg_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

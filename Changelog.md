@@ -28,6 +28,49 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Brazil follow-up: PEC-PG (Master's/PhD) government scholarship added
+
+### Added
+- **PEC-PG (Programa de Estudantes-Convênio de Pós-Graduação), Brazil**
+  (`app/services/national_scholarship_programs.py::
+  BrazilPecpgScholarshipSource`, source #102 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 103rd registered
+  `OpportunitySource` (up from 102), in response to a "find Brazil
+  masters and PhD, fully funded" request. This platform's first Brazil
+  source of any kind.
+  - A federal government program (CAPES/MRE/CNPq) covering Master's
+    (Mestrado Pleno) and both full and sandwich PhD (Doutorado
+    Pleno/Sanduíche), with a monthly stipend, health-insurance
+    allowance, and MRE-funded round-trip airfare —
+    `funding_type = "fully_funded"`.
+  - Sourced from CAPES's own program page (`gov.br/capes/...`), not the
+    Ministry of Foreign Affairs' mirror of the same program
+    (`gov.br/mre/...`), which returned an interactive CAPTCHA to a plain
+    HTTPS GET — the same class of `/mre`-path bot-protection this
+    registry already recorded for Brazil's undergraduate PEC-G program
+    on 2026-08-29 (see `docs/COUNTRY_PROVIDER_REGISTRY.md`'s Brazil
+    entry, now updated). Rather than marking Brazil `BLOCKED` again,
+    checked whether the same program's page under CAPES's own section
+    of the same domain carried the same restriction — it didn't.
+  - `deadline_keywords = ()`: the page is CAPES's standing program
+    description, not a dated call, but its embedded "Calendário"
+    section still shows the most recently published cycle (Edital nº
+    12/2025, registration closed Oct 2025, final results as late as May
+    2026) with no successor edital published yet as of this research
+    date — the same "no stale-cycle guessing" situation already handled
+    this way for John Cabot University and Sant'Anna below.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path — 200, real server-rendered HTML.
+    Implemented and unit-tested against a real fixture
+    (`tests/fixtures/brazil_pecpg_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  updated with the new source and Brazil's corrected (split
+  undergraduate/postgraduate) status.
+
+---
+
 ## [2026-09-07] — Italy follow-up: two new university sources added
 
 ### Added

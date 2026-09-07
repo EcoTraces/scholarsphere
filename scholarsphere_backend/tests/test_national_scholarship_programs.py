@@ -46,6 +46,7 @@ from app.services.national_scholarship_programs import (
     CmuqNeedBasedGrantSource,
     JcuGlobalExplorerScholarshipSource,
     SantannaPhdFundingSource,
+    BrazilPecpgScholarshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3843,3 +3844,46 @@ def test_santanna_phd_funding_has_no_robots_txt_restrictions() -> None:
     """`santannapisa.it/robots.txt` does not disallow this content
     path."""
     assert SantannaPhdFundingSource.min_request_interval_seconds == 2.0
+
+
+# --- Brazil PEC-PG Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_brazil_pecpg_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`#page-document` is the one container wrapping the whole article;
+    the social-share icon row sits just outside it and must not leak
+    into the extracted description."""
+    source = BrazilPecpgScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("brazil_pecpg_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "brazil-pecpg-scholarship"
+    assert (
+        opportunity.title
+        == "Programa de Estudantes-Convênio de Pós-Graduação (PEC-PG)"
+    )
+    assert opportunity.country == "Brazil"
+    assert "CAPES" in opportunity.provider_name
+    assert opportunity.description is not None
+    assert "Doutorado Pleno" in opportunity.description
+    assert "Mestrado Pleno" in opportunity.description
+    assert "Mensalidade" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_brazil_pecpg_scholarship_has_no_robots_txt_restrictions() -> None:
+    """`gov.br/robots.txt` has no rule matching `/capes/` for any
+    user-agent."""
+    assert BrazilPecpgScholarshipSource.min_request_interval_seconds == 2.0
+    assert BrazilPecpgScholarshipSource.deadline_keywords == ()

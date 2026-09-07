@@ -736,14 +736,16 @@ path before any implementation decision.
 
 ### Peru — implemented, see source #33 above (live-verified 2026-08-29)
 
-### Brazil — `BLOCKED` (confirmed by live testing 2026-08-29)
-- The official program is real and well-documented: PEC-G (Programa de
+### Brazil — undergraduate `BLOCKED`, postgraduate `SUPPORTED` (see source #102)
+
+- **Undergraduate (PEC-G) — still `BLOCKED`, unchanged since 2026-08-29**:
+  the official program is real and well-documented — PEC-G (Programa de
   Estudantes-Convênio de Graduação), jointly run by the Ministry of
   Foreign Affairs (MRE) and Ministry of Education (MEC), offering free
   undergraduate tuition, SUS healthcare, and (in some cases) a MEC/MRE
   stipend, at `gov.br/mre/.../pec-g/sobre`. A `curl` fetch with a
   spoofed browser user agent returns the real page (200, ~297KB).
-- However, this backend's actual httpx client (no spoofed user agent,
+  However, this backend's actual httpx client (no spoofed user agent,
   matching production) is served a JavaScript bot-challenge page
   (an F5/Distil-style `TSPD` cookie challenge) instead of real content,
   confirmed 3/3 attempts, not a one-off — the same class of finding as
@@ -752,9 +754,40 @@ path before any implementation decision.
   A MEC-hosted alternate (`portal.mec.gov.br`) was also attempted but was
   unreachable through this environment's own network path (`502 Bad
   Gateway`, 3/3 attempts) — inconclusive on that host specifically, not
-  independently confirmed either way.
-- **Classification**: `BLOCKED` — a real, well-documented program exists,
-  but the production fetch path cannot reach it.
+  independently confirmed either way. Not re-tested against the exact
+  PEC-G URL itself this pass — the 2026-08-29 finding stands as recorded
+  rather than re-verified — but 2026-09-07's PEC-PG research (below)
+  hit the same class of bot-protection on a *different* page under the
+  same `/mre` path, consistent with this being a section-wide
+  restriction rather than a one-page fluke.
+- **Postgraduate (PEC-PG) — `SUPPORTED`, new 2026-09-07**: a "find a
+  Brazil masters/PhD scholarship" request found PEC-PG (Programa de
+  Estudantes-Convênio de Pós-Graduação), a sibling program to PEC-G run
+  by the same three agencies (MRE/CAPES/CNPq) but for Master's/PhD
+  rather than undergraduate study. Its Ministry of Foreign Affairs
+  mirror (`gov.br/mre/pt-br/.../pec-pg-pos-graduacao-1/processo-seletivo`)
+  hit the exact same `/mre`-path bot-challenge as PEC-G above (this time
+  as an interactive CAPTCHA rather than a `TSPD` cookie, but the same
+  root cause — the `/mre` subsection of gov.br is specially protected,
+  matching a Yandex-specific `Disallow: /mre` rule in `gov.br/robots.txt`
+  that hints this section gets stricter treatment generally). Rather
+  than treating this as another `BLOCKED` country, this pass checked
+  whether CAPES's *own* page for the identical program (a different
+  subsection of the same `gov.br` domain, not a different domain)
+  carried the same restriction — it does not: `gov.br/capes/...` served
+  the real page (200, real server-rendered HTML) to a plain HTTPS GET
+  with no spoofed user agent, and `gov.br/robots.txt` has no rule
+  matching `/capes/` for any user-agent at all. Implemented as source
+  #102 from that page instead. This is the same kind of workaround
+  already applied elsewhere in this registry: a blocked path on one
+  subdomain/section of an official domain doesn't necessarily mean every
+  other official page for the same program is equally blocked — check
+  before writing off the whole country.
+- **Classification**: `BLOCKED` for undergraduate (PEC-G) via the MRE
+  path; `SUPPORTED` for Master's/PhD (PEC-PG) via the CAPES path. A
+  working PEC-G source may still exist via a CAPES-hosted (rather than
+  MRE-hosted) page for that program too — not checked this pass, since
+  the request was specifically for graduate-level scholarships.
 
 ### Argentina — `NOT_SUITABLE` (confirmed by live testing 2026-08-29)
 - Argentina's Ministry of Education does fund international scholarships
@@ -1271,7 +1304,7 @@ same category as China's own CSC portal above).
 | Colombia | SUPPORTED | Live-verified 2026-08-29 |
 | Chile | SUPPORTED | Live-verified 2026-08-29 |
 | Peru | SUPPORTED | Live-verified 2026-08-29 |
-| Brazil | BLOCKED | Confirmed 2026-08-29 — JS bot-challenge (F5/Distil-style) on the production fetch path, 3/3 attempts |
+| Brazil | SUPPORTED (postgraduate) / BLOCKED (undergraduate) | Postgraduate (PEC-PG, source #102) live-verified 2026-09-07 via CAPES's own page; undergraduate (PEC-G) remains BLOCKED as confirmed 2026-08-29 — JS bot-challenge (F5/Distil-style) on the Ministry of Foreign Affairs' page for that program, 3/3 attempts |
 | Argentina | NOT_SUITABLE | Confirmed 2026-08-29 — real mechanism is a searchable multi-entry database, not a single program page |
 | Uruguay | NOT_SUITABLE | Confirmed 2026-08-29 — residency-restricted/outbound only |
 | Ecuador | NO_RELIABLE_SOURCE_FOUND | Researched 2026-08-29 — outbound program only; historical inbound program's current status unconfirmed |
@@ -1331,7 +1364,11 @@ an API/data-sharing arrangement — not a technical bypass).
 live-verified sources** (Colombia, Chile, Peru) entirely outside the
 original 24-target list — see the dedicated section above. Of the other
 6 countries checked: 1 is genuinely `BLOCKED` (Brazil, real program but
-an anti-bot-protected fetch path), 3 are `NOT_SUITABLE` (Argentina - a
+an anti-bot-protected fetch path — **update, 2026-09-07**: the
+undergraduate PEC-G program checked here is still blocked via that path,
+but a sibling postgraduate program, PEC-PG, was found reachable via a
+different official page and is now source #102), 3 are `NOT_SUITABLE`
+(Argentina - a
 database, not a single page; Uruguay and Paraguay - both
 residency-restricted, not open to global inbound applicants), and 2 have
 `NO_RELIABLE_SOURCE_FOUND` (Ecuador, Bolivia).

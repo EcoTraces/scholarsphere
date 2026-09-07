@@ -6004,3 +6004,76 @@ for the full dated history.
       (`tests/fixtures/jcu_global_explorer_scholarship.html`,
       `tests/fixtures/santanna_phd_funding.html`) were captured
       unmodified from their live fetches.
+
+  - **[2026-09-07] "find and add Brazil scholarship for masters and phd
+    for fully funded scholarship"** - mid-session, right after a
+    security-hardening pass on the same repo. Researched live rather
+    than trusting the many SEO scholarship-aggregator sites that came up
+    first (scholarshipforphd.com, oyaop.com, takadam.com, and similar -
+    none of these are ever used as sources in this project; only
+    official government/institution domains qualify).
+
+    Found and **implemented** **PEC-PG (Programa de
+    Estudantes-Convênio de Pós-Graduação)** as source #102 - a federal
+    Brazilian government scholarship (CAPES/MRE/CNPq) covering both
+    Master's (Mestrado Pleno) and PhD (Doutorado Pleno/Sanduíche),
+    fully funded (monthly stipend + health-insurance allowance +
+    MRE-funded round-trip airfare), directly matching the request:
+    - Checked the Ministry of Foreign Affairs' own page for this
+      program first (`gov.br/mre/.../pec-pg-pos-graduacao-1/
+      processo-seletivo`) - it returned an interactive CAPTCHA
+      challenge to a plain HTTPS fetch, not real content. This is the
+      same `/mre`-path bot-protection this project's own
+      `docs/COUNTRY_PROVIDER_REGISTRY.md` already recorded for Brazil's
+      undergraduate PEC-G program back on 2026-08-29 (that pass marked
+      all of Brazil `BLOCKED` on that basis).
+    - Rather than repeating that verdict for the whole country, checked
+      whether CAPES's own page for the identical program - a different
+      section of the same `gov.br` domain, not a different domain -
+      carried the same restriction. It didn't: a plain `curl`/httpx GET
+      with the project's real user agent returned 200 and the full real
+      page, and `gov.br/robots.txt` has no rule at all matching
+      `/capes/` for any user-agent (confirmed both by reading the file
+      directly and via `RobotFileParser.can_fetch()`). Implemented from
+      that page instead.
+    - The page is CAPES's standing description of the program
+      (objective, modalities, benefits, duration) - genuinely
+      evergreen - but its embedded "Calendário" section (in the same
+      content container, right after "Inscrição") still shows the most
+      recently published cycle, Edital nº 12/2025, whose registration
+      window closed in October 2025 and whose final results were still
+      being published as late as May 2026 per the page's own "Editais"
+      table. No successor edital has been published yet as of this
+      research date - the same "no stale-cycle guessing" situation
+      already hit and resolved this same pass's predecessor sources
+      (JCU, Sant'Anna): set `deadline_keywords = ()` rather than let the
+      shared `collect()` logic's whole-page deadline scan wrongly
+      attach one of those 2025/2026 calendar dates to this record.
+    - Isolated the description via `#page-document`, the one container
+      wrapping the entire visible article from the `<h1>` through the
+      final document table - verified directly against the fetched
+      page that this id is unique and excludes the page's social-share
+      icon row, which sits just outside it.
+    - Classified `fully_funded`: stipend + health-insurance allowance +
+      funded international airfare, at a tuition-free federal program -
+      the same benefit shape already used to classify Turkiye
+      Burslari, India's ICCR, and Sweden's SI scholarship as fully
+      funded, applied consistently here.
+    - Updated `docs/COUNTRY_PROVIDER_REGISTRY.md`'s existing Brazil
+      entry (previously flat `BLOCKED`) to reflect the real, more
+      precise picture: undergraduate (PEC-G, via the MRE path) remains
+      `BLOCKED` as recorded on 2026-08-29 (not re-tested this pass -
+      the request was specifically for graduate level); postgraduate
+      (PEC-PG, via the CAPES path) is now `SUPPORTED`.
+
+    **Verified for real**: `pyflakes` clean on every changed file. A
+    `collect()` simulation against a real fixture, captured unmodified
+    from the live fetch and trimmed only to keep the committed fixture
+    a reasonable size (the extracted text content itself is untouched),
+    confirmed the exact title, provider containing "CAPES", country
+    "Brazil", `funding_type = "fully_funded"`, and `deadline = None`
+    before any test was written. Full backend suite green afterward
+    (two new tests added this pass, plus `test_opportunity_import.py`'s
+    updated source-count assertion, 102 -> 103 registered sources; see
+    Changelog.md for the exact pass/skip counts from the run right
+    after this addition).
