@@ -395,11 +395,9 @@ this document's existing §2-§18 rather than repeated from scratch:
   §19's standing recommendation to add it — CI's own `pip-audit`/
   `npm audit` steps catch known CVEs on every push/PR in the meantime, so
   this is a monitoring-cadence gap, not an unguarded one.
-- **Tests**: full backend suite passing (849 passed, 25 skipped before
-  this pass's own 2 new tests were added; re-run after adding them
-  confirmed green — see the session record for the exact final count)
-  plus 2 new regression tests
-  (`test_docs_routes_are_exempt_from_the_strict_csp`,
+- **Tests**: full backend suite green after this pass's changes — **851
+  passed, 25 skipped** (up from 849 passed before this pass's 2 new
+  regression tests: `test_docs_routes_are_exempt_from_the_strict_csp`,
   `test_production_refuses_wildcard_cors_origin`); `pyflakes` clean on
   every changed file; `pip-audit`/`npm audit` both 0 findings.
 
