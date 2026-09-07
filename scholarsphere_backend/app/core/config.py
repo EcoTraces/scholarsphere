@@ -747,6 +747,15 @@ class Settings(BaseSettings):
         "https://www.royalholloway.ac.uk"
     )
 
+    # University College Utrecht (UCU) - Rosemary Orr Scholarship (Campus
+    # Fee Waiver). Confirmed 2026-09-07: `uu.nl/robots.txt` does not
+    # disallow this content path. Open to Dutch and international
+    # applicants alike, based on demonstrated financial need. Distinct
+    # `base_url` setting from `utrecht_legits_scholarship_base_url` even
+    # though both point at the same `uu.nl` domain - each source keeps its
+    # own independently configurable base URL by established convention.
+    ucu_rosemary_orr_scholarship_base_url: str = "https://www.uu.nl"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -930,6 +939,7 @@ class Settings(BaseSettings):
         "utokyo_peak_scholarship_base_url",
         "universiapolis_international_grant_base_url",
         "royal_holloway_international_ug_scholarship_base_url",
+        "ucu_rosemary_orr_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

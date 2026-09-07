@@ -4177,3 +4177,58 @@ class RoyalHollowayInternationalUgScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().royal_holloway_international_ug_scholarship_base_url
+
+
+class UcuRosemaryOrrScholarshipSource(_SingleProgramSource):
+    """University College Utrecht (UCU) - a selective, small-scale
+    liberal arts and sciences honours college within Utrecht University
+    - Rosemary Orr Scholarship, a needs-based Campus Fee Waiver awarded
+    to newly admitted UCU Bachelor's students.
+
+    Confirmed 2026-09-07: `uu.nl/robots.txt` is a standard Drupal file
+    that does not disallow this content path (verified directly with
+    Python's `urllib.robotparser`).
+
+    Content selector `#block-primary-content`: verified directly via a
+    BeautifulSoup structural walk to hold the full scholarship
+    description, eligibility, and application text with none of the
+    site's navigation/footer chrome (this specific UCU page is on the
+    same `uu.nl` domain as the unrelated LEGITS scholarship elsewhere
+    in this file, but is a distinct sub-site with its own page
+    structure and a different, dedicated `base_url` setting).
+
+    Country coverage / eligibility: "Both Dutch and international
+    applicants are eligible to apply" - Sierra Leone applicants are
+    eligible. Restricted only by demonstrated financial need, not by
+    nationality or academic merit.
+
+    Funding: "consists of a full campus fee-waiver only... all other
+    costs (tuition fees, costs of living, personal expenses) are to be
+    covered via other means" - `funding_type = "partial_funding"` (a
+    housing-fee waiver only, not a stipend, tuition waiver, or living
+    allowance).
+
+    Deliberately extracts no deadline: the overview page states only
+    "Submit... your scholarship application by 1 December" with no
+    year attached anywhere near it. A separate "Application Dates and
+    Deadlines" page does carry a year-qualified deadline for the
+    scholarship's required early admission round ("Fall 2027 - Early
+    Round*, 1 Dec. 2026" - confirmed current/future, not a stale prior
+    cycle, since "The application portal is now closed. The
+    application period for Fall 2027 opens on October 1st 2026"), but
+    uses an abbreviated month ("Dec.") that `extract_confident_date`'s
+    date pattern (which only matches full month names) cannot parse -
+    verified directly rather than guessing a parseable date out of it,
+    so `deadline_path` is deliberately left unset here.
+    """
+
+    source_code = "ucu_rosemary_orr_scholarship"
+    overview_path = "/en/organisation/university-college-utrecht/scholarship-procedure"
+    content_selectors = ("#block-primary-content",)
+    provider_name = "University College Utrecht (Utrecht University)"
+    country = "Netherlands"
+    external_id = "ucu-rosemary-orr-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().ucu_rosemary_orr_scholarship_base_url

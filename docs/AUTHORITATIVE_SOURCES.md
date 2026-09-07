@@ -6036,6 +6036,113 @@ Holloway's undergraduate scholarship above:
   an AWS CloudFront-served HTTP 403 ("Request blocked") — genuine
   site-wide bot protection, not circumvented.
 
+## 94. University College Utrecht (Utrecht University) — Rosemary Orr Scholarship (Campus Fee Waiver)
+
+Researched 2026-09-07, in response to a "find Netherlands undergraduate
+and postgraduate university scholarship" request. This platform's 11th
+Netherlands source overall.
+
+- **Organization**: University College Utrecht (UCU) — a selective,
+  small-scale liberal arts and sciences honours college within Utrecht
+  University
+- **Route code**: `ucu-rosemary-orr-scholarship`
+  (`ucu_rosemary_orr_scholarship` internally)
+- **Official domain / base URL**: `https://www.uu.nl`
+  (`UCU_ROSEMARY_ORR_SCHOLARSHIP_BASE_URL`) — the same domain as the
+  existing `utrecht_legits_scholarship` source but a distinct sub-site
+  with its own independently configurable `base_url` setting, by this
+  project's established convention.
+- **Opportunity types**: Scholarship — a needs-based Campus Fee Waiver:
+  "for 3 years of study at UCU, you will not be charged for living on
+  campus." Does not cover tuition fees, deposit, visa costs, or personal
+  living expenses. `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: "Both Dutch and international
+  applicants are eligible to apply" — Sierra Leone applicants are
+  eligible. Awarded on demonstrated financial need only, not academic
+  merit.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `uu.nl/robots.txt` is a standard
+  Drupal file that does not disallow this content path — verified
+  directly with Python's `urllib.robotparser`
+  (`can_fetch` returned `True`).
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector `#block-primary-content`**: verified directly
+    via a BeautifulSoup structural walk to hold the full scholarship
+    description, eligibility, and application text with none of the
+    site's navigation/footer chrome.
+  - **Deliberately extracts no deadline**: the overview page states
+    only "Submit... your scholarship application by 1 December" with
+    no year attached anywhere near it. A separate "Application Dates
+    and Deadlines" page does carry a year-qualified deadline for the
+    scholarship's required early admission round ("Fall 2027 - Early
+    Round*, 1 Dec. 2026" — confirmed current/future, not stale, since
+    "The application portal is now closed. The application period for
+    Fall 2027 opens on October 1st 2026"), but uses an abbreviated
+    month ("Dec.") that this backend's confident-date regex (full
+    month names only) cannot parse — verified directly rather than
+    guessing a parseable date out of it, so `deadline_path` was
+    deliberately left unset.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/ucu_rosemary_orr_scholarship.html`).
+
+### Researched this pass (2026-09-07, Netherlands undergraduate/postgraduate follow-up), not integrated
+
+Checked several further Dutch institutions live before settling on
+UCU's Rosemary Orr Scholarship above (today, 2026-09-07, is the same
+date as this project's prior exhaustive Netherlands research passes, so
+previously-documented stale-cycle rejections — VU Amsterdam VUFP, TU
+Eindhoven Scholarship for Excellence, Erasmus Trustfonds, Radboud
+Scholarship Programme — were not re-verified, since no time had passed
+to change them):
+
+- **Amsterdam University College (AUC) — ASF Scholarships** — a real,
+  unblocked page (`amsterdamuniversitycollege.nl`, empty robots.txt),
+  but its own page states plainly "Applications are currently closed
+  for new ASF scholarships, as all funding has been awarded for
+  2025-2026. Applications are scheduled to re-open in January 2027,"
+  with no new eligibility criteria published yet — not integrated as
+  if currently open. AUC's separate Talent Fellowships (TFA) require
+  Dutch DUO grant eligibility ("talented Dutch students") — domestic
+  only, not integrated.
+- **Leiden University College (LUC)** — hosted on the same
+  `universiteitleiden.nl` domain already documented elsewhere in this
+  file as CAPTCHA-blocked ("Access Blocked," an F5/Shape-style
+  obfuscated JS challenge). Confirmed directly that LUC inherits the
+  same block: its content pages return a connection failure while
+  `robots.txt` alone remains reachable, matching the existing pattern
+  for the parent domain — not a viable alternate path.
+- **Nyenrode Business University** — two pages checked. Its main
+  "Scholarships & Financial Aid" page is a multi-record hub organized
+  by degree programme with several named sub-scholarships (Revolving
+  Scholarship, Program Scholarship, MSc Scholarship, GMAT Excellence,
+  four named Impact MBA scholarships), none with a clean, sufficiently
+  detailed single-item description. A second page, "Scholarship
+  application | Nyenrode Fund," confirmed a genuinely current
+  2026-2027 cycle but revealed an even larger structure of
+  alumni-donor-named scholarships (1958 Legacy Scholarship, American
+  Friends of Nyenrode University Scholarship, Class of 1964
+  Scholarship, Class of 1976 Scholarship, and more), each narrowly
+  scoped to specific campuses/programmes and requiring membership in
+  specific Dutch student associations (NCV/VCV) — a genuine
+  multi-record hub without one clean flagship, consistent with this
+  project's earlier WHU/ESMT (Germany) and UNSW (Australia) rejections
+  of the same shape. Not integrated.
+- **University College Utrecht — degree-programme finance page**
+  (`/en/ucu/apply/tuition-fees-and-financial-support`) — returns HTTP
+  404; the correct, working path for UCU's scholarship content turned
+  out to be `/en/organisation/university-college-utrecht/
+  scholarship-procedure`, used for source #94 above.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

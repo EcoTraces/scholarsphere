@@ -586,6 +586,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "ucu_rosemary_orr_scholarship": {
+        "source_name": "UCU Rosemary Orr Scholarship (Campus Fee Waiver)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -721,6 +727,7 @@ def _base_urls() -> dict[str, str]:
         "royal_holloway_international_ug_scholarship": (
             settings.royal_holloway_international_ug_scholarship_base_url
         ),
+        "ucu_rosemary_orr_scholarship": settings.ucu_rosemary_orr_scholarship_base_url,
     }
 
 
@@ -838,6 +845,7 @@ async def seed_opportunity_sources(
         "utokyo_peak_scholarship": now + timedelta(hours=24),
         "universiapolis_international_grant": now + timedelta(hours=24),
         "royal_holloway_international_ug_scholarship": now + timedelta(hours=24),
+        "ucu_rosemary_orr_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

@@ -113,6 +113,7 @@ from app.services.national_scholarship_programs import (
     TuDelftVanEffenScholarshipSource,
     TumInternationalStudentScholarshipSource,
     TurkiyeBurslariSource,
+    UcuRosemaryOrrScholarshipSource,
     UniversiapolisInternationalGrantSource,
     UniversityOfTwenteScholarshipSource,
     UpfBsmMeritScholarshipSource,
@@ -567,6 +568,10 @@ celery_app.conf.update(
             ),
             "schedule": crontab(minute=15, hour=0),
         },
+        "sync-ucu-rosemary-orr-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_ucu_rosemary_orr_scholarship",
+            "schedule": crontab(minute=30, hour=0),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -788,6 +793,9 @@ SOURCE_TASK_NAMES = {
     "royal_holloway_international_ug_scholarship": (
         "app.tasks.opportunity_sync."
         "sync_royal_holloway_international_ug_scholarship"
+    ),
+    "ucu_rosemary_orr_scholarship": (
+        "app.tasks.opportunity_sync.sync_ucu_rosemary_orr_scholarship"
     ),
 }
 
@@ -2205,6 +2213,24 @@ def sync_royal_holloway_international_ug_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_ucu_rosemary_orr_scholarship",
+    max_retries=3,
+)
+def sync_ucu_rosemary_orr_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "ucu_rosemary_orr_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2518,6 +2544,7 @@ def _collector(source_code: str) -> Any:
         "royal_holloway_international_ug_scholarship": (
             RoyalHollowayInternationalUgScholarshipSource
         ),
+        "ucu_rosemary_orr_scholarship": UcuRosemaryOrrScholarshipSource,
     }[source_code]()
 
 

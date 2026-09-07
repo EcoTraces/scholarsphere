@@ -38,6 +38,7 @@ from app.services.national_scholarship_programs import (
     KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
     RoyalHollowayInternationalUgScholarshipSource,
+    UcuRosemaryOrrScholarshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3477,3 +3478,48 @@ def test_royal_holloway_international_ug_scholarship_has_no_robots_txt_restricti
         RoyalHollowayInternationalUgScholarshipSource.min_request_interval_seconds
         == 2.0
     )
+
+
+# --- UCU Rosemary Orr Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_ucu_rosemary_orr_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """University College Utrecht's needs-based Campus Fee Waiver -
+    open to both Dutch and international applicants, unlike several
+    other Netherlands sources restricted to specific nationality
+    groups. Deliberately extracts no deadline: the overview page's
+    "1 December" deadline carries no year, and the separate dates page
+    only gives a year-qualified deadline in an abbreviated month format
+    ("1 Dec. 2026") that the shared date parser cannot match."""
+    source = UcuRosemaryOrrScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("ucu_rosemary_orr_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "ucu-rosemary-orr-scholarship"
+    assert opportunity.title == "UCU Rosemary Orr Scholarship - Campus Fee Waiver"
+    assert opportunity.country == "Netherlands"
+    assert opportunity.provider_name == (
+        "University College Utrecht (Utrecht University)"
+    )
+    assert opportunity.description is not None
+    assert "Campus Fee Waiver" in opportunity.description
+    assert "Dutch and international" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_ucu_rosemary_orr_scholarship_has_no_robots_txt_restrictions() -> None:
+    """`uu.nl/robots.txt` is a standard Drupal file that does not
+    disallow this content path (verified directly with Python's
+    `urllib.robotparser`)."""
+    assert UcuRosemaryOrrScholarshipSource.min_request_interval_seconds == 2.0

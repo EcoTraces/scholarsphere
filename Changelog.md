@@ -28,6 +28,59 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Netherlands follow-up: UCU Rosemary Orr Scholarship added
+
+### Added
+- **University College Utrecht (Utrecht University) — Rosemary Orr
+  Scholarship (Campus Fee Waiver)**
+  (`app/services/national_scholarship_programs.py::
+  UcuRosemaryOrrScholarshipSource`, source #94 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 95th registered
+  `OpportunitySource`, in response to a "find Netherlands undergraduate
+  and postgraduate university scholarship" request. This platform's
+  11th Netherlands source overall.
+  - A needs-based Campus Fee Waiver (on-campus housing costs only, not
+    tuition) awarded to 6 newly admitted UCU students each year. Open
+    to both Dutch and international applicants alike — Sierra Leone
+    included — assessed purely on demonstrated financial need, not
+    academic merit or nationality. Correctly `partial_funding` (a
+    housing-fee waiver only).
+  - Deliberately extracts no deadline: the overview page's stated "1
+    December" deadline carries no year, and a separate dates page's
+    year-qualified deadline ("1 Dec. 2026", confirmed current/future)
+    uses an abbreviated month format the shared date parser cannot
+    match — verified directly rather than guessing a parseable date.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/ucu_rosemary_orr_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected three further Netherlands candidates this
+  same pass:
+  - **Amsterdam University College — ASF Scholarships** — genuinely
+    closed for the current cycle ("all funding has been awarded for
+    2025-2026... re-open in January 2027"); its separate Talent
+    Fellowships require Dutch DUO grant eligibility (domestic only).
+  - **Leiden University College** — hosted on the same
+    `universiteitleiden.nl` domain already documented as
+    CAPTCHA/bot-protection-blocked; confirmed it inherits the same
+    block rather than offering an alternate unblocked path.
+  - **Nyenrode Business University** — a genuine multi-record hub of
+    alumni-donor-named and programme-specific scholarships (1958
+    Legacy Scholarship, Class of 1964 Scholarship, and more), each
+    narrowly scoped to specific campuses/associations, with no single
+    clean flagship — consistent with this project's earlier
+    WHU/ESMT and UNSW rejections of the same shape.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — England follow-up: Royal Holloway International Undergraduate Scholarship added
 
 ### Added

@@ -5319,3 +5319,104 @@ for the full dated history.
       fixture
       (`tests/fixtures/royal_holloway_international_ug_scholarship.html`)
       was captured unmodified from the live site.
+
+- [x] **(2026-09-07)** Netherlands follow-up: "find Netherlands
+      undergraduate and postgraduate university scholarship" - this
+      platform already had 10 Netherlands sources before this pass
+      (UvA x2, VU Amsterdam, TU Eindhoven, Groningen, Leiden's LEGITS
+      counterpart at Utrecht, Erasmus Rotterdam, Maastricht, Radboud,
+      Twente x2, Wageningen, Nuffic), so today's research (still
+      2026-09-07, the same date as the prior exhaustive Netherlands
+      passes, confirmed via `date -u`) focused on genuinely unexplored
+      institutions rather than re-checking already-documented
+      stale-cycle rejections (VU Amsterdam VUFP, TU Eindhoven
+      Scholarship for Excellence, Erasmus Trustfonds, Radboud
+      Scholarship Programme) since no time had passed to change them.
+
+      Checked connectivity to Amsterdam University College, Leiden
+      University College, University College Utrecht, and Nyenrode
+      Business University - none previously checked in this project's
+      Netherlands research history.
+
+      Found and **implemented** the **UCU Rosemary Orr Scholarship
+      (Campus Fee Waiver)** at University College Utrecht as source
+      #94:
+      - Found via UCU's own site navigation (not a search-engine
+        secondary source): a dedicated
+        `/en/organisation/university-college-utrecht/
+        scholarship-procedure` page, distinct from the parent
+        `uu.nl` domain's already-integrated LEGITS scholarship page.
+      - Confirmed `uu.nl/robots.txt` does not disallow this path using
+        Python's `urllib.robotparser` directly (`can_fetch` returned
+        `True`), not just a visual skim of the file.
+      - Read the eligibility text carefully and confirmed "Both Dutch
+        and international applicants are eligible to apply" - checked
+        explicitly for a hidden nationality restriction (none found;
+        assessed purely on demonstrated financial need) rather than
+        assuming "international" meant no restriction, per this
+        session's standing Sierra Leone eligibility check discipline.
+      - Cross-checked the deadline against a separate "Application
+        Dates and Deadlines" page and found a genuinely current/future
+        cycle ("Fall 2027 - Early Round, 1 Dec. 2026," with the portal
+        explicitly stated as reopening "October 1st 2026") - not a
+        stale prior-year deadline. However, the date used an
+        abbreviated month ("Dec.") that this backend's confident-date
+        regex (full month names only) cannot parse, and the overview
+        page's own "1 December" mention carries no year at all -
+        verified both directly rather than guessing a parseable date,
+        and left `deadline_path` unset so the source correctly extracts
+        no deadline instead of a wrong one.
+      - Classified `partial_funding` correctly: "consists of a full
+        campus fee-waiver only... all other costs (tuition fees, costs
+        of living, personal expenses) are to be covered via other
+        means" - never described as more than a housing-cost waiver.
+
+      Three further Netherlands candidates were researched and
+      rejected this same pass:
+      - **Amsterdam University College - ASF Scholarships** - a real,
+        unblocked page, but its own text states plainly "Applications
+        are currently closed for new ASF scholarships, as all funding
+        has been awarded for 2025-2026... scheduled to re-open in
+        January 2027" - correctly left unintegrated as closed rather
+        than presented as open, with no new eligibility criteria yet
+        published to build a future record on. AUC's separate Talent
+        Fellowships (TFA) explicitly require Dutch DUO grant
+        eligibility ("talented Dutch students") - domestic only.
+      - **Leiden University College** - hosted on the same
+        `universiteitleiden.nl` domain already documented elsewhere in
+        this project as CAPTCHA-blocked (an F5/Shape-style "Access
+        Blocked" JS challenge). Tested directly rather than assumed:
+        the content page returned a connection failure (`000`) while
+        `robots.txt` alone remained reachable (`200`) - the identical
+        pattern already documented for the parent domain, confirming
+        LUC is not a separate, unblocked path.
+      - **Nyenrode Business University** - checked two pages. The main
+        "Scholarships & Financial Aid" page is a multi-record hub
+        organized by degree programme (Revolving Scholarship, Program
+        Scholarship, MSc Scholarship, GMAT Excellence, four named
+        Impact MBA scholarships) with no single item detailed enough
+        to build a confident record on. A second page, "Scholarship
+        application | Nyenrode Fund," confirmed a genuinely current
+        2026-2027 cycle but revealed an even larger structure of
+        alumni-donor-named scholarships (1958 Legacy Scholarship,
+        American Friends of Nyenrode University Scholarship, Class of
+        1964 Scholarship, Class of 1976 Scholarship, and more), each
+        narrowly scoped to specific campuses/programmes and requiring
+        membership in specific Dutch student associations (NCV/VCV) -
+        a genuine multi-record hub without one clean flagship,
+        consistent with this project's earlier WHU/ESMT (Germany) and
+        UNSW (Australia) rejections of the same shape - not integrated.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, and `deadline = None` all
+      resolve exactly as documented, and that the fixture's full 3,750
+      characters of scholarship text (not truncated or missing any
+      section) came through the `#block-primary-content` selector.
+      Full backend suite green afterward, 835 passed / 25 skipped (up
+      from 833 passed/25 skipped - two new tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      94 -> 95 registered sources). The fixture
+      (`tests/fixtures/ucu_rosemary_orr_scholarship.html`) was captured
+      unmodified from the live site.
