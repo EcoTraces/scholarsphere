@@ -46,6 +46,7 @@ from app.services.national_scholarship_programs import (
     FreiburgDeutschlandstipendiumSource,
     GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
+    HarringtonGraduateFellowsSource,
     HeinrichBollScholarshipSource,
     HelmutVeithStipendSource,
     HongKongPhdFellowshipSchemeSource,
@@ -73,6 +74,7 @@ from app.services.national_scholarship_programs import (
     UtwenteItcScholarshipSource,
     UvaAmsterdamMeritScholarshipBachelorSource,
     UvaAmsterdamMeritScholarshipMasterSource,
+    VanderbiltCorneliusScholarshipSource,
     WageningenAnneVanDenBanFundSource,
     WellsMountainInitiativeSource,
     WorldBankJJWBGSPScholarshipSource,
@@ -3183,4 +3185,95 @@ def test_uq_graduate_research_scholarships_has_no_robots_txt_restrictions() -> (
     default) does not disallow this content path."""
     assert (
         UqGraduateResearchScholarshipsSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- Harrington Graduate Fellows (UT Austin): real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_harrington_graduate_fellows_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first USA university source. Genuinely
+    fully_funded (USD 40,000/year stipend + full tuition/fees + health
+    insurance stipend + USD 2,000/year expenses), explicitly
+    international, and genuinely includes a Master's track
+    ("Harrington Master's Fellows," for professional/terminal Master's
+    degrees), not PhD-only. A nomination-only award, documented
+    honestly rather than presented as directly appliable. No deadline
+    extracted: no date literal appears anywhere in the page's text."""
+    source = HarringtonGraduateFellowsSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("harrington_graduate_fellows.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "harrington-graduate-fellows"
+    assert opportunity.title == "Graduate Fellows Program"
+    assert opportunity.country == "United States"
+    assert (
+        opportunity.provider_name
+        == "University of Texas at Austin (Harrington Fellowship)"
+    )
+    assert opportunity.description is not None
+    assert "Harrington Master's Fellows" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_harrington_graduate_fellows_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`harrington.utexas.edu/robots.txt`, a Drupal
+    default) does not disallow this content path."""
+    assert HarringtonGraduateFellowsSource.min_request_interval_seconds == 2.0
+
+
+# --- Vanderbilt Cornelius Vanderbilt Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_vanderbilt_cornelius_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's second USA university source, and its first at
+    the undergraduate level. Correctly partial_funding, not fully
+    funded: guaranteed full tuition plus a summer stipend, not full
+    cost of attendance. Genuinely open to international applicants,
+    confirmed on Vanderbilt's own international-admissions page (not
+    itself scraped). The page also names a separate, differently-
+    focused Ingram Scholars programme sharing the same deadline, not
+    represented by this record."""
+    source = VanderbiltCorneliusScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("vanderbilt_cornelius_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "cornelius-vanderbilt-scholarship"
+    assert opportunity.title == "Cornelius Vanderbilt Scholarship"
+    assert opportunity.country == "United States"
+    assert opportunity.provider_name == "Vanderbilt University"
+    assert opportunity.description is not None
+    assert "guaranteed full-tuition awards" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline == date(2026, 12, 1)
+
+
+def test_vanderbilt_cornelius_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """`vanderbilt.edu` has no `robots.txt` file at all (a genuine
+    HTTP 404 via CloudFront) - no restrictions declared."""
+    assert (
+        VanderbiltCorneliusScholarshipSource.min_request_interval_seconds == 2.0
     )

@@ -3785,3 +3785,130 @@ class UqGraduateResearchScholarshipsSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().uq_graduate_research_scholarships_base_url
+
+
+class HarringtonGraduateFellowsSource(_SingleProgramSource):
+    """University of Texas at Austin - Harrington Graduate Fellows
+    Program - researched 2026-09-07, the fourth country (USA) of the
+    simultaneous five-country pass (Austria, Eswatini, Australia, USA,
+    Russia). This platform's first USA **university** source (Knight-
+    Hennessy Scholars, #51, is hosted at Stanford but was researched
+    as a "host-country-vs-eligibility" case, not a USA-specific
+    search).
+
+    Confirmed 2026-09-07: `harrington.utexas.edu/robots.txt` (a Drupal
+    default) does not disallow this content path.
+
+    Content selector `article`: verified directly via a BeautifulSoup
+    structural walk to hold the full page body (programme overview,
+    all three fellowship tracks, contact) with none of the site's
+    navigation or footer chrome.
+
+    Country coverage / eligibility: the programme's own stated goal is
+    "bringing outstanding graduate students to UT Austin from around
+    the world" - no nationality restriction found anywhere on the
+    page, Sierra Leone included. Documented plainly rather than
+    glossed over: this is a **nomination-only** award - "potential
+    graduate students cannot apply to the Harrington Graduate Fellows
+    Program directly," candidates are nominated by their own graduate
+    programme - the same honestly-disclosed shape already used
+    elsewhere in this file for nomination-based sources (e.g.
+    Wageningen's Anne van den Ban Fund).
+
+    **Genuinely includes a Master's track, not PhD-only**: alongside
+    "Harrington Doctoral Fellows," the page names "Harrington Master's
+    Fellows - for incoming graduate students," specifically for
+    "professional or terminal master's degrees, for example, the MFA,
+    MSSW, or MSLIS" - verified directly rather than assumed from the
+    word "Doctoral" appearing first on the page.
+
+    Funding: "a 12-month stipend of $40,000, plus full tuition and
+    required fees, an additional stipend to obtain medical insurance,
+    and an allowance of $2,000 for travel, equipment, books, or other
+    professional expenses," for up to five years - `funding_type =
+    "fully_funded"`.
+
+    Deliberately extracts no deadline: this is a nomination-only
+    programme with no fixed, directly-facing application deadline of
+    its own (each nominating graduate programme has its own admission
+    timeline) - no date literal appears anywhere in this page's text,
+    verified directly rather than assumed.
+    """
+
+    source_code = "harrington_graduate_fellows"
+    overview_path = "/graduate-fellows-program"
+    content_selectors = ("article",)
+    provider_name = "University of Texas at Austin (Harrington Fellowship)"
+    country = "United States"
+    external_id = "harrington-graduate-fellows"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().harrington_graduate_fellows_base_url
+
+
+class VanderbiltCorneliusScholarshipSource(_SingleProgramSource):
+    """Vanderbilt University - Cornelius Vanderbilt Scholarship -
+    researched 2026-09-07, the same USA pass as Harrington's Graduate
+    Fellows Program (#88). This platform's second USA university
+    source, and its first at the **undergraduate** level.
+
+    Confirmed 2026-09-07: `vanderbilt.edu` has no `robots.txt` file at
+    all - the request returns a genuine HTTP 404 (served via
+    CloudFront/S3, not a proxy artifact) - no restrictions declared.
+
+    Overview page is Vanderbilt's own "Merit Scholarship Opportunities"
+    page, which names two signature programmes together under one
+    shared 1 December 2026 deadline: the Cornelius Vanderbilt
+    Scholarship (general academic-achievement-and-leadership merit) and
+    the Ingram Scholars Program (a differently-focused track for
+    students combining a professional/business career with civic-minded
+    service and entrepreneurship). This record represents the
+    Cornelius Vanderbilt Scholarship specifically - Ingram Scholars is
+    a separate, differently-focused sibling programme sharing the same
+    page and deadline, **not** represented by this record, the same
+    "narrower sibling" documentation pattern already used for UQ's
+    Graduate Research School Scholarships (#87).
+
+    Content selector `main`: verified directly via a BeautifulSoup
+    structural walk to hold the full page body (both programmes'
+    descriptions and the shared deadline line) with none of the site's
+    navigation or footer chrome.
+
+    `title_selectors = ()`, no `title_tag_separator`: the page's own
+    `<h1>` ("Merit Scholarship Opportunities") describes the whole page
+    rather than this specific scholarship - falls through to the
+    external_id-derived fallback ("Cornelius Vanderbilt Scholarship"),
+    the same documented pattern already used for WMI/Gates Cambridge/
+    Helmut Veith elsewhere in this file.
+
+    Country coverage / eligibility: no nationality restriction stated
+    on this page. Verified directly on Vanderbilt's own separate
+    international-admissions page (confirmed live but not itself
+    scraped for this record, since the overview page's own content is
+    sufficient) that this is genuinely open to international
+    applicants, not US-citizens-only: "For international students
+    admitted for fall 2026, Vanderbilt offered need-based aid and/or
+    merit scholarships to 89 students representing 54 countries."
+
+    Funding: "Over 225 recipients of these scholarships are guaranteed
+    full-tuition awards plus summer stipends for study abroad, research
+    or service projects," renewable for four years of undergraduate
+    study. Correctly `funding_type = "partial_funding"`, not
+    `fully_funded`: full tuition plus an occasional summer stipend is
+    not stated to cover room, board, or general living costs - the
+    same "full tuition alone is not fully funded" standard applied
+    consistently throughout this project.
+    """
+
+    source_code = "vanderbilt_cornelius_scholarship"
+    overview_path = "/scholarships/"
+    title_selectors = ()
+    content_selectors = ("main",)
+    provider_name = "Vanderbilt University"
+    country = "United States"
+    external_id = "cornelius-vanderbilt-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().vanderbilt_cornelius_scholarship_base_url

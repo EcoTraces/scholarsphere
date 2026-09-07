@@ -4897,3 +4897,79 @@ for the full dated history.
       (`tests/fixtures/usyd_rtp_international.html`,
       `tests/fixtures/uq_grsss_phd_mphil.html`) were captured unmodified
       from the live sites.
+
+- [x] **(2026-09-07)** Five-country autonomous scholarship research
+      engine - USA pass: the research brief specifically warned that
+      the US ecosystem is "extremely fragmented" and told me to search
+      well beyond central scholarship pages, into department-level and
+      programme-level funding pages, and to distinguish
+      Scholarship/Fellowship/Assistantship rather than calling
+      everything a "scholarship." Given the genuine scale of this
+      ecosystem, made a deliberate choice to verify two strong
+      candidates deeply rather than skim many superficially - decided
+      this was the more honest use of the remaining time than
+      producing a long but shallow list.
+
+      Found and **implemented**:
+      - **UT Austin Harrington Graduate Fellows Program** (source #88)
+        - this platform's first USA university source. Read the full
+        page carefully rather than stopping at the word "Doctoral"
+        appearing first, and confirmed the page separately names
+        "Harrington Master's Fellows" for professional/terminal
+        Master's degrees (MFA, MSSW, MSLIS) - genuinely Master's-
+        inclusive. Also read closely enough to catch an important
+        caveat the research brief specifically asked to distinguish:
+        this is a **nomination-only** fellowship - "potential graduate
+        students cannot apply ... directly" - and documented that
+        honestly rather than presenting it as a normal open
+        application, the same disclosure pattern already used
+        elsewhere in this project for Wageningen's nomination-based
+        Anne van den Ban Fund.
+      - **Vanderbilt Cornelius Vanderbilt Scholarship** (source #89) -
+        this platform's second USA university source and its first at
+        the undergraduate level. Applied the research brief's own
+        explicit warning ("Tuition coverage alone ≠ automatically
+        fully funded") directly to this source: the page states
+        "guaranteed full-tuition awards plus summer stipends," which
+        is a real, substantial award but does not state coverage of
+        room, board, or general living costs, so classified it
+        `partial_funding` rather than assuming "full tuition" implies
+        "fully funded." Also did not assume this US undergraduate
+        merit scholarship excludes international students by default
+        (a common pattern at many US universities) - checked
+        Vanderbilt's own separate international-admissions page
+        directly and found concrete evidence of real awards to "89
+        students representing 54 countries" for fall 2026, confirming
+        genuine international eligibility before treating the source
+        as suitable. Noticed the overview page names a second,
+        differently-focused sibling programme (Ingram Scholars)
+        sharing the same deadline, and explicitly excluded it from
+        this record's scope rather than letting the description imply
+        Ingram shares Cornelius Vanderbilt's own terms.
+
+      One further candidate was researched and found blocked:
+      University of Michigan's Helen Zell Writers' Program (MFA) is
+      genuinely fully-funded by reputation for every admitted student,
+      but fetching its funding page returned an active Cloudflare
+      managed challenge - ran a verbose header trace rather than just
+      accepting the HTTP 403 at face value, and confirmed a
+      `cf-mitigated: challenge` header proving genuine bot protection,
+      not a misconfigured URL - not circumvented. Also checked the
+      Onsi Sawiris Scholarship (hosted at several top US universities)
+      and found it restricted to Egyptian nationals resident in Egypt
+      via its own official eligibility page - not relevant to a Sierra
+      Leonean applicant, so not pursued further.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. Standalone `collect()` simulations against both real
+      fixtures, run before any test was written, confirmed both
+      sources' title/provider/country/funding_type/deadline fields
+      resolve exactly as documented for each. Full backend suite green
+      afterward, 825 passed / 25 skipped (up from 821 passed/25
+      skipped - four new tests across two sources, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      87 -> 89 registered sources; confirmed Harrington alone first,
+      823 passed, before adding Vanderbilt).
+      The fixtures (`tests/fixtures/harrington_graduate_fellows.html`,
+      `tests/fixtures/vanderbilt_cornelius_scholarship.html`) were
+      captured unmodified from the live sites.

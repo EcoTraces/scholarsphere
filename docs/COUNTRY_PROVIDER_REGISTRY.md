@@ -161,6 +161,8 @@ unverified).
 | 85 | Helmut Veith Stipend (TU Wien / VCLA) | Austria | UNIVERSITY | vcla.at | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the second country (Austria) of a simultaneous five-country research pass (Austria/Eswatini/Australia/USA/Russia); this registry's first Austria *university* source (OeAD Ernst Mach Grant, #28, is government-classified); no nationality restriction (open worldwide, Sierra Leone included) but restricted by gender (female applicants only) and academic background; genuinely `partial_funding` — EUR 7,000/year (~EUR 583/month) plus a full TU Wien tuition waiver, which live research confirms covers under half of Vienna's own documented ~EUR 950-1,300/month student cost of living; explicitly accepts a not-yet-final degree via a preliminary certificate; uses the dedicated `vcla.at` announcement page rather than the TU Wien Informatics hub page, which states a stale EUR 6,000 figure for the same award; exact deadline extracted (30 November 2026) (see AUTHORITATIVE_SOURCES.md #85) |
 | 86 | University of Sydney RTP Scholarships (International) | Australia | UNIVERSITY | sydney.edu.au | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the third country (Australia) of the five-country pass; this registry's first Australia *university* source of any kind (Australia Awards, #24, is government/DFAT-classified); funds "higher degree by research" — genuinely Master's-by-Research and PhD, not PhD-only; no nationality restriction; genuinely `fully_funded` — AUD 44,293/year stipend (2027 rate) + 100% tuition fee offset + relocation/thesis allowances + OSHC; `deadline_keywords` overridden to `("submission deadline",)` to correctly land on the deadline table's own header rather than an earlier dateless "deadline" mention; exact deadline extracted (11 September 2026) (see AUTHORITATIVE_SOURCES.md #86) |
 | 87 | University of Queensland Graduate Research School Scholarships (UQGRSS) | Australia | UNIVERSITY | scholarships.uq.edu.au | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second Australia university source; genuinely covers Master's-by-Research (MPhil), not PhD-only, verified directly from the page's own text; no nationality restriction for the flagship UQGRSS award (two narrower scholarships mentioned on the same page — domestic-only and Aboriginal/Torres-Strait-Islander-restricted — are explicitly not represented by this record); genuinely `fully_funded` — tuition + AUD 39.2K/year tax-free stipend + OSHC; no deadline extracted (page states only that awards are "offered in rounds," no date literal present) (see AUTHORITATIVE_SOURCES.md #87) |
+| 88 | UT Austin Harrington Graduate Fellows Program | United States | UNIVERSITY | harrington.utexas.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fourth country (USA) of the five-country pass; this registry's first USA *university* source (Knight-Hennessy Scholars, #51, is hosted at Stanford but not a USA-specific-search result); genuinely fully funded — USD 40,000/year stipend + full tuition/fees + health insurance stipend + USD 2,000/year expenses, for up to 5 years; no nationality restriction ("from around the world"); genuinely includes a Master's track ("Harrington Master's Fellows," for professional/terminal Master's degrees), not PhD-only; a nomination-only award, documented honestly; no deadline extracted (see AUTHORITATIVE_SOURCES.md #88) |
+| 89 | Vanderbilt University Cornelius Vanderbilt Scholarship | United States | UNIVERSITY | vanderbilt.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second USA university source and its first at the undergraduate level; genuinely `partial_funding` — guaranteed full tuition + summer stipend, not full cost of attendance, consistent with this project's "full tuition ≠ fully funded" standard; confirmed genuinely open to international applicants via Vanderbilt's own international-admissions page (89 students from 54 countries for fall 2026); a separate, differently-focused Ingram Scholars programme sharing the same page/deadline is explicitly not represented by this record; exact deadline extracted (1 December 2026) (see AUTHORITATIVE_SOURCES.md #89) |
 
 **(2026-09-07, five-country autonomous engine — Austria)** Checked five
 further Austrian universities live (TU Wien, University of Vienna,
@@ -200,6 +202,21 @@ deferred as an architectural limitation, not a funding or access
 rejection, and worth returning to. See AUTHORITATIVE_SOURCES.md's
 "Researched this pass (2026-09-07, Australia — five-country autonomous
 engine), not integrated" note for full detail.
+
+**(2026-09-07, five-country autonomous engine — USA)** Given the scale
+of the US ecosystem, prioritized verifying two strong candidates deeply
+(Harrington and Vanderbilt, above) over a shallow sweep. One further
+candidate was researched and found blocked: University of Michigan's
+Helen Zell Writers' Program (MFA) is genuinely fully-funded by
+reputation (full tuition + a living stipend for every admitted
+student), but `lsa.umich.edu` returns an active Cloudflare managed
+challenge on its funding page, confirmed via a verbose header trace
+(`cf-mitigated: challenge`) — not circumvented. The Onsi Sawiris
+Scholarship (hosted at Stanford/Chicago/Harvard/Penn) was checked and
+found restricted to Egyptian nationals resident in Egypt — not
+relevant to a Sierra Leonean applicant, not researched further. See
+AUTHORITATIVE_SOURCES.md's "Researched this pass (2026-09-07, USA —
+five-country autonomous engine), not integrated" note for full detail.
 
 **(2026-09-06, Netherlands continuation pass)** The Netherlands
 fully-funded-only mega-prompt was resubmitted after three genuinely

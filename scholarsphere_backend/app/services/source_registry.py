@@ -550,6 +550,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "harrington_graduate_fellows": {
+        "source_name": "UT Austin Harrington Graduate Fellows Program",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "vanderbilt_cornelius_scholarship": {
+        "source_name": "Vanderbilt University Cornelius Vanderbilt Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -673,6 +685,10 @@ def _base_urls() -> dict[str, str]:
         "uq_graduate_research_scholarships": (
             settings.uq_graduate_research_scholarships_base_url
         ),
+        "harrington_graduate_fellows": settings.harrington_graduate_fellows_base_url,
+        "vanderbilt_cornelius_scholarship": (
+            settings.vanderbilt_cornelius_scholarship_base_url
+        ),
     }
 
 
@@ -784,6 +800,8 @@ async def seed_opportunity_sources(
         "helmut_veith_stipend": now + timedelta(hours=24),
         "usyd_rtp_international": now + timedelta(hours=24),
         "uq_graduate_research_scholarships": now + timedelta(hours=24),
+        "harrington_graduate_fellows": now + timedelta(hours=24),
+        "vanderbilt_cornelius_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

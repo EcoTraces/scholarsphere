@@ -626,6 +626,48 @@ class Settings(BaseSettings):
         "https://scholarships.uq.edu.au"
     )
 
+    # University of Texas at Austin - Harrington Graduate Fellows
+    # Program - researched 2026-09-07, the fourth country (USA) of the
+    # simultaneous five-country pass. This platform's first USA
+    # *university* source (Knight-Hennessy Scholars, #51, is hosted at
+    # Stanford but was researched as a "host-country-vs-eligibility"
+    # case rather than a USA-specific search). Genuinely fully funded:
+    # a 12-month USD 40,000 stipend, full tuition and required fees, a
+    # health-insurance stipend, and a USD 2,000/year expense allowance,
+    # for up to five years. Explicitly international: "bringing
+    # outstanding graduate students to UT Austin from around the
+    # world," no nationality restriction found. Includes the
+    # "Harrington Master's Fellows" track for "professional or
+    # terminal master's degrees, for example, the MFA, MSSW, or MSLIS"
+    # - genuinely Master's-inclusive, not PhD-only. Documented plainly:
+    # this is a nomination-only award ("potential graduate students
+    # cannot apply to the Harrington Graduate Fellows Program
+    # directly" - nominated by one's own graduate programme), the same
+    # honestly-disclosed shape as this platform's existing
+    # nomination-based sources (e.g. Wageningen's Anne van den Ban
+    # Fund). `harrington.utexas.edu/robots.txt` (a Drupal default)
+    # does not disallow this content path.
+    harrington_graduate_fellows_base_url: str = "https://harrington.utexas.edu"
+
+    # Vanderbilt University - Cornelius Vanderbilt Scholarship -
+    # researched 2026-09-07, the same USA pass as Harrington. A
+    # genuinely partial (not fully funded) undergraduate merit award:
+    # guaranteed full tuition plus a summer stipend for study abroad/
+    # research/service, but not full cost of attendance (room, board,
+    # and other living costs are not stated as covered) -
+    # `funding_type = "partial_funding"`, consistent with this
+    # project's "full tuition alone is not fully funded" standard.
+    # Vanderbilt's own international-admissions page confirms real
+    # international awards ("89 students representing 54 countries"
+    # for fall 2026) - genuinely open to international applicants, not
+    # US-citizens-only. `vanderbilt.edu` has no `robots.txt` file at
+    # all (a genuine HTTP 404 via CloudFront, not a proxy artifact) -
+    # no restrictions declared. The page also names a second,
+    # differently-focused sibling programme (Ingram Scholars,
+    # business/civic-leadership-oriented) sharing the same deadline -
+    # not represented by this record, documented in the source class.
+    vanderbilt_cornelius_scholarship_base_url: str = "https://www.vanderbilt.edu"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -803,6 +845,8 @@ class Settings(BaseSettings):
         "helmut_veith_stipend_base_url",
         "usyd_rtp_international_base_url",
         "uq_graduate_research_scholarships_base_url",
+        "harrington_graduate_fellows_base_url",
+        "vanderbilt_cornelius_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

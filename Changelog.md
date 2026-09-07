@@ -28,6 +28,61 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Five-country autonomous engine: USA pass — two university sources added
+
+### Added
+- **UT Austin — Harrington Graduate Fellows Program**
+  (`app/services/national_scholarship_programs.py::
+  HarringtonGraduateFellowsSource`, source #88) — this platform's 90th
+  registered `OpportunitySource`, and its first USA **university**
+  source. Genuinely fully funded: a 12-month USD 40,000 stipend, full
+  tuition and required fees, a health-insurance stipend, and a
+  USD 2,000/year expense allowance, for up to five years. No
+  nationality restriction ("bringing outstanding graduate students to
+  UT Austin from around the world"). Genuinely includes a Master's
+  track ("Harrington Master's Fellows," for professional/terminal
+  Master's degrees like the MFA, MSSW, or MSLIS), not PhD-only.
+  Documented plainly: this is a **nomination-only** award — candidates
+  cannot apply directly, they are nominated by their own graduate
+  programme.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.**
+- **Vanderbilt University — Cornelius Vanderbilt Scholarship**
+  (`app/services/national_scholarship_programs.py::
+  VanderbiltCorneliusScholarshipSource`, source #89) — this platform's
+  91st registered source, its second USA university source and its
+  first at the **undergraduate** level. Guaranteed full tuition plus a
+  summer stipend for study abroad/research/service, renewable for
+  four years. Correctly `partial_funding`, not fully funded: full
+  tuition plus an occasional summer stipend does not cover room,
+  board, or general living costs. Confirmed genuinely open to
+  international applicants via Vanderbilt's own international-
+  admissions page ("89 students representing 54 countries" for fall
+  2026). A separate, differently-focused Ingram Scholars programme
+  sharing the same page and deadline is explicitly not represented by
+  this record.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.**
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — given the scale of the US ecosystem, prioritized verifying these
+  two candidates deeply over a shallow sweep. Two further candidates
+  were researched and found unsuitable:
+  - **University of Michigan — Helen Zell Writers' Program (MFA)** —
+    genuinely fully-funded by reputation, but `lsa.umich.edu` returns
+    an active Cloudflare managed challenge on its funding page
+    (confirmed via a verbose header trace, `cf-mitigated: challenge`)
+    — `BLOCKED`, not circumvented.
+  - **Onsi Sawiris Scholarship** — restricted to Egyptian nationals
+    resident in Egypt, not relevant to a Sierra Leonean applicant.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Five-country autonomous engine: Australia pass — two university sources added
 
 ### Added

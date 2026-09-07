@@ -5473,6 +5473,153 @@ the two sources above:
   silently capture nav junk; a real, verified, currently-open candidate
   worth returning to.
 
+## 88. University of Texas at Austin — Harrington Graduate Fellows Program
+
+Researched 2026-09-07, the fourth country (USA) of the simultaneous
+five-country pass. This platform's first USA **university** source
+(Knight-Hennessy Scholars, #51, is hosted at Stanford but was
+researched as a "host-country-vs-eligibility" case, not a USA-specific
+search).
+
+- **Organization**: University of Texas at Austin, via the Harrington
+  Fellowship
+- **Route code**: `harrington-graduate-fellows`
+  (`harrington_graduate_fellows` internally)
+- **Official domain / base URL**: `https://harrington.utexas.edu`
+  (`HARRINGTON_GRADUATE_FELLOWS_BASE_URL`)
+- **Opportunity types**: Fellowship — a 12-month USD 40,000 stipend,
+  full tuition and required fees, a health-insurance stipend, and a
+  USD 2,000/year expense allowance, for up to five years.
+  `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: the programme's own stated goal
+  is "bringing outstanding graduate students to UT Austin from around
+  the world" — no nationality restriction found, Sierra Leone
+  included. Documented plainly: this is a **nomination-only** award —
+  "potential graduate students cannot apply to the Harrington Graduate
+  Fellows Program directly," candidates are nominated by their own
+  graduate programme — the same honestly-disclosed shape as this
+  platform's existing nomination-based sources (e.g. Wageningen's Anne
+  van den Ban Fund). **Genuinely includes a Master's track, not
+  PhD-only**: alongside "Harrington Doctoral Fellows," the page names
+  "Harrington Master's Fellows — for incoming graduate students,"
+  specifically for "professional or terminal master's degrees, for
+  example, the MFA, MSSW, or MSLIS."
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered Drupal HTML)
+- **robots.txt / indexing note**: `harrington.utexas.edu/robots.txt`
+  (a Drupal default) does not disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector `article`**: verified directly via a
+    BeautifulSoup structural walk to hold the full page body
+    (programme overview, all three fellowship tracks, contact) with
+    none of the site's navigation or footer chrome.
+  - **Deliberately extracts no deadline**: this is a nomination-only
+    programme with no fixed, directly-facing application deadline of
+    its own (each nominating graduate programme has its own admission
+    timeline) — no date literal appears anywhere in this page's text.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/harrington_graduate_fellows.html`).
+
+## 89. Vanderbilt University — Cornelius Vanderbilt Scholarship
+
+Researched 2026-09-07, the same USA pass as Harrington's Graduate
+Fellows Program above. This platform's second USA university source,
+and its first at the **undergraduate** level.
+
+- **Organization**: Vanderbilt University
+- **Route code**: `cornelius-vanderbilt-scholarship`
+  (`vanderbilt_cornelius_scholarship` internally)
+- **Official domain / base URL**: `https://www.vanderbilt.edu`
+  (`VANDERBILT_CORNELIUS_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "guaranteed full-tuition awards
+  plus summer stipends for study abroad, research or service
+  projects," renewable for four years of undergraduate study.
+  Correctly `funding_type = "partial_funding"`, **not**
+  `fully_funded`: full tuition plus an occasional summer stipend is
+  not stated to cover room, board, or general living costs — the same
+  "full tuition alone is not fully funded" standard applied
+  consistently throughout this project.
+- **Country coverage / eligibility**: no nationality restriction stated
+  on the overview page. Verified directly on Vanderbilt's own separate
+  international-admissions page (confirmed live but not itself
+  scraped for this record): "For international students admitted for
+  fall 2026, Vanderbilt offered need-based aid and/or merit
+  scholarships to 89 students representing 54 countries" — genuinely
+  open to international applicants, not US-citizens-only.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML)
+- **robots.txt / indexing note**: `vanderbilt.edu` has no `robots.txt`
+  file at all — the request returns a genuine HTTP 404 (served via
+  CloudFront/S3, confirmed not a proxy artifact) — no restrictions
+  declared.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Overview page names two signature programmes together under one
+    shared 1 December 2026 deadline**: the Cornelius Vanderbilt
+    Scholarship (general academic-achievement-and-leadership merit)
+    and the Ingram Scholars Program (a differently-focused track for
+    students combining a professional/business career with civic-
+    minded service and entrepreneurship). This record represents the
+    Cornelius Vanderbilt Scholarship specifically — Ingram Scholars is
+    a separate, differently-focused sibling programme sharing the same
+    page and deadline, **not** represented by this record, the same
+    "narrower sibling" documentation pattern already used for UQ's
+    Graduate Research School Scholarships (#87).
+  - **Content selector `main`**: verified directly via a BeautifulSoup
+    structural walk to hold the full page body (both programmes'
+    descriptions and the shared deadline line) with none of the site's
+    navigation or footer chrome.
+  - **`title_selectors = ()`, no `title_tag_separator`**: the page's
+    own `<h1>` ("Merit Scholarship Opportunities") describes the whole
+    page rather than this specific scholarship — falls through to the
+    external_id-derived fallback ("Cornelius Vanderbilt Scholarship"),
+    the same documented pattern already used for WMI/Gates Cambridge/
+    Helmut Veith elsewhere in this file.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/vanderbilt_cornelius_scholarship.html`).
+
+### Researched this pass (2026-09-07, USA — five-country autonomous engine), not integrated
+
+Given the sheer scale of the US higher-education ecosystem explicitly
+flagged in the research brief, this pass prioritized verifying two
+genuinely strong, well-documented candidates deeply (above) over a
+shallow sweep of many universities. One further strong candidate was
+researched and found blocked:
+
+- **University of Michigan — Helen Zell Writers' Program (MFA)** — a
+  genuinely fully-funded programme by reputation ("full tuition
+  remission and a monthly stipend generous enough to cover a
+  reasonable local rent and modest living expenses" for every admitted
+  student, no partial-funding tiers), but `lsa.umich.edu` returns an
+  active Cloudflare managed challenge (`cf-mitigated: challenge`,
+  confirmed via a verbose response-header trace, not merely an HTTP
+  403 guess) on the specific funding page — genuine bot protection,
+  not circumvented.
+- **Onsi Sawiris Scholarship** (Stanford, University of Chicago,
+  Harvard, University of Pennsylvania) — found via secondary sources
+  as a "fully funded master's scholarship for international students,"
+  but this programme is specifically restricted to Egyptian nationals
+  (named for an Egyptian businessman, administered through AUC/Sawiris
+  Foundation channels) — not researched further as a candidate for a
+  Sierra Leonean applicant.
+
 ---
 
 ## Sources evaluated and deliberately not integrated
