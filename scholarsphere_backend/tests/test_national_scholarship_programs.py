@@ -41,6 +41,8 @@ from app.services.national_scholarship_programs import (
     UcuRosemaryOrrScholarshipSource,
     MiamiOhInternationalMeritScholarshipSource,
     RochesterGraduateScholarshipSource,
+    QuInternationalStudentsScholarshipSource,
+    HbkuGraduateScholarshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3616,3 +3618,92 @@ def test_rochester_graduate_scholarship_has_no_robots_txt_restrictions() -> None
     disallows only a named list of unrelated administrative/report
     paths, not this content path."""
     assert RochesterGraduateScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Qatar University International Students Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_qu_international_students_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The overview page is a genuine ten-item multi-record panel hub;
+    isolated via `div.panel-group div.panel:nth-of-type(2)`, a
+    structural selector verified to land exactly on the International
+    Students Scholarship panel - the domestic-only "Student Recruitment
+    and Excellence Scholarship" (panel 1) text must not leak in."""
+    source = QuInternationalStudentsScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("qu_international_students_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "qatar-university-international-students-scholarship"
+    )
+    assert opportunity.title == "International Students Scholarship"
+    assert opportunity.country == "Qatar"
+    assert opportunity.provider_name == "Qatar University"
+    assert opportunity.description is not None
+    assert "Exemption from tuition fees" in opportunity.description
+    assert "500 QR monthly salary" in opportunity.description
+    assert "Residents of Qatar" not in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_qu_international_students_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """`qu.edu.qa/robots.txt` does not disallow this content path
+    (verified directly with Python's `urllib.robotparser`)."""
+    assert (
+        QuInternationalStudentsScholarshipSource.min_request_interval_seconds
+        == 2.0
+    )
+
+
+# --- HBKU Graduate Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_hbku_graduate_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page states 0% tuition waivers for some programmes (LL.M.,
+    MS Economics) alongside 100% for others (PhD STEM/SHAPE), and that
+    awards are "not guaranteed" - deliberately conservative
+    `partial_funding` for this combined Master's+PhD record."""
+    source = HbkuGraduateScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("hbku_graduate_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "hbku-graduate-scholarship"
+    assert opportunity.title == "Scholarship Guidelines for HBKU Graduate Programs"
+    assert opportunity.country == "Qatar"
+    assert opportunity.provider_name == "Hamad Bin Khalifa University"
+    assert opportunity.description is not None
+    assert "International PhD" in opportunity.description
+    assert "International Master" in opportunity.description
+    assert "not guaranteed" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_hbku_graduate_scholarship_has_no_robots_txt_restrictions() -> None:
+    """`hbku.edu.qa/robots.txt` does not disallow this content path."""
+    assert HbkuGraduateScholarshipSource.min_request_interval_seconds == 2.0

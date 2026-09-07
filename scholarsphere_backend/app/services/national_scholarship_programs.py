@@ -4347,3 +4347,105 @@ class RochesterGraduateScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().rochester_graduate_scholarship_base_url
+
+
+class QuInternationalStudentsScholarshipSource(_SingleProgramSource):
+    """Qatar University - International Students Scholarship, a
+    genuinely fully-funded undergraduate scholarship awarded on a
+    competitive basis to international applicants.
+
+    Confirmed 2026-09-07: `qu.edu.qa/robots.txt` does not disallow this
+    content path (verified directly with Python's `urllib.robotparser`,
+    `can_fetch` returned `True`).
+
+    The overview page is a genuine multi-record accordion/panel hub of
+    ten distinct scholarships (Student Recruitment and Excellence
+    Scholarship - restricted to "Residents of Qatar"; this one;
+    H.H. the Emir of Qatar's Scholarship for Academic Excellence;
+    Outstanding Performance Scholarship; GCC States Scholarships; and
+    others) grouped into Bootstrap `div.panel` containers under a
+    shared `div.panel-group`. Isolated via
+    `div.panel-group div.panel:nth-of-type(2)`, verified directly via a
+    BeautifulSoup structural walk that this positional selector lands
+    exactly on the International Students Scholarship panel (3,762
+    characters) - the first five panels (including this one) share one
+    common `div.panel-group` parent, so CSS `:nth-of-type()`'s
+    per-parent sibling counting resolves unambiguously to this specific
+    panel rather than any of the nine other scholarships on the page.
+
+    Country coverage / eligibility: "Qatar University offers this
+    scholarship to international students who apply to undergraduate
+    programs" - no nationality restriction beyond the broad
+    "international students" framing, Sierra Leone included.
+
+    Funding: "Exemption from tuition fees, Exemption from textbook
+    fees, 500 QR monthly salary, Student housing..., Annual round trip
+    air fare ticket, Residence permit under QU sponsorship" - a
+    genuinely comprehensive package for competitively-selected
+    recipients, `funding_type = "fully_funded"`.
+
+    Deliberately extracts no deadline: the page refers only to an
+    "announced application period" and "announced timeline" with no
+    date literal of any kind on this panel.
+    """
+
+    source_code = "qu_international_students_scholarship"
+    overview_path = "/en-us/students/admission/scholarships/Pages/types.aspx"
+    title_selectors = ("div.panel-group div.panel:nth-of-type(2) h3.panel-title",)
+    content_selectors = ("div.panel-group div.panel:nth-of-type(2)",)
+    provider_name = "Qatar University"
+    country = "Qatar"
+    external_id = "qatar-university-international-students-scholarship"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().qu_international_students_scholarship_base_url
+
+
+class HbkuGraduateScholarshipSource(_SingleProgramSource):
+    """Hamad Bin Khalifa University (HBKU) - Scholarship Guidelines for
+    HBKU Graduate Programs, covering both Master's and PhD tuition
+    waivers and stipends with explicit rates broken out by student
+    category (Qatari / International / Local).
+
+    Confirmed 2026-09-07: `hbku.edu.qa/robots.txt` does not disallow
+    this content path.
+
+    Country coverage / eligibility: the page's own stipend table lists
+    an explicit "International PhD" and "International Master's" row
+    (distinct from "Qatari" and "Local" rows) - Sierra Leone applicants
+    fall under this "International" category, confirmed directly from
+    the page's own text rather than assumed from a generic
+    "international students welcome" framing elsewhere on the site.
+
+    Funding: tuition waivers vary sharply by programme - "PhD STEM
+    (CSE and CHLS): 100%" and "PhD SHAPE and S.J.D. ...: 100%" down to
+    "LL.M. Programs (CL): 0%" and "MS Economics (SEM): 0%" - plus a
+    separate stipend table ("International PhD: 9,000 QAR/month,
+    108,000 QAR/year, 45 months"; "International Master's: 7,000
+    QAR/month, 84,000 QAR/year, 21 months"). The page itself states
+    plainly "Tuition waivers and stipend awards are not guaranteed and
+    are only awarded on a merit or need basis." Since this single
+    combined record spans programmes with 0% waivers alongside others
+    with 100% waivers, and no award is guaranteed at all, deliberately
+    conservative `funding_type = "partial_funding"` - the same
+    "don't overstate a mixed-tier page" standard already applied to
+    Skoltech's MSc/PhD page (#90) and the University of Rochester's
+    combined PhD/Master's record.
+
+    Deliberately extracts no deadline: "You are considered for
+    scholarships during the admissions process; no separate application
+    is needed" - funding is decided at admission, no separate
+    scholarship deadline exists anywhere on this page.
+    """
+
+    source_code = "hbku_graduate_scholarship"
+    overview_path = "/en/scholarship"
+    content_selectors = ("main",)
+    provider_name = "Hamad Bin Khalifa University"
+    country = "Qatar"
+    external_id = "hbku-graduate-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().hbku_graduate_scholarship_base_url

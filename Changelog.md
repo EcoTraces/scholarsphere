@@ -28,6 +28,65 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Qatar follow-up: two new university sources added
+
+### Added
+- **Qatar University — International Students Scholarship**
+  (`app/services/national_scholarship_programs.py::
+  QuInternationalStudentsScholarshipSource`, source #97 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 100th registered
+  `OpportunitySource`, in response to a "find Qatar undergraduate and
+  postgraduate university scholarship" request. This platform's first
+  Qatar university source (the existing Qatar Scholarships source, #36,
+  is government/QFFD-classified).
+  - Genuinely `fully_funded`: tuition exemption, textbook fee
+    exemption, 500 QR monthly salary, housing, annual round-trip
+    airfare, and a residence permit for competitively-selected
+    international undergraduates.
+  - Isolated from a genuine ten-item multi-record panel hub via
+    `div.panel-group div.panel:nth-of-type(2)`, verified directly that
+    the domestic-only "Student Recruitment and Excellence Scholarship"
+    panel's text does not leak in.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture
+    (`tests/fixtures/qu_international_students_scholarship.html`).
+- **Hamad Bin Khalifa University (HBKU) — Graduate Scholarship (Tuition
+  Waivers & Stipends)** (`app/services/national_scholarship_programs.py::
+  HbkuGraduateScholarshipSource`, source #98 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 101st registered
+  `OpportunitySource`. This platform's second Qatar university source,
+  and its first at the graduate level.
+  - A combined Master's+PhD tuition-waiver/stipend record with explicit
+    "International PhD" and "International Master's" stipend rates.
+    Deliberately conservative `partial_funding` since waivers range
+    from 0% to 100% by programme and no award is guaranteed - the same
+    standard already applied to Skoltech (#90) and Rochester (#96).
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/hbku_graduate_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected two further Qatar candidates this same
+  pass:
+  - **Qatar University — Graduate Assistantship (GA)** — genuinely open
+    to international applicants per secondary confirmation, but its
+    official page states no stipend amount or funding tier of its own
+    — too thin for a confident record.
+  - **Qatar University — "Masters and PhD Scholars" page** — turned out
+    on direct inspection to be a directory of QU's own Qatari faculty
+    sent to study abroad, an outbound staff programme, not an inbound
+    scholarship.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — USA follow-up: two new university sources added
 
 ### Added

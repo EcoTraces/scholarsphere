@@ -772,6 +772,20 @@ class Settings(BaseSettings):
     # `rochester.edu/robots.txt` does not disallow this content path.
     rochester_graduate_scholarship_base_url: str = "https://www.rochester.edu"
 
+    # Qatar University - International Students Scholarship, a genuinely
+    # fully-funded undergraduate award (tuition, textbooks, monthly
+    # stipend, housing, airfare, residence permit) for admitted
+    # international undergraduates. Confirmed 2026-09-07:
+    # `qu.edu.qa/robots.txt` does not disallow this content path.
+    qu_international_students_scholarship_base_url: str = "https://www.qu.edu.qa"
+
+    # Hamad Bin Khalifa University (HBKU) - Scholarship Guidelines for
+    # HBKU Graduate Programs, covering both Master's and PhD tuition
+    # waivers/stipends with explicit international-student rates.
+    # Confirmed 2026-09-07: `hbku.edu.qa/robots.txt` does not disallow
+    # this content path.
+    hbku_graduate_scholarship_base_url: str = "https://www.hbku.edu.qa"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -958,6 +972,8 @@ class Settings(BaseSettings):
         "ucu_rosemary_orr_scholarship_base_url",
         "miamioh_international_merit_scholarship_base_url",
         "rochester_graduate_scholarship_base_url",
+        "qu_international_students_scholarship_base_url",
+        "hbku_graduate_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

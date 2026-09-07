@@ -222,6 +222,21 @@ Miami University's scholarship above. See AUTHORITATIVE_SOURCES.md
 #96's "Researched this pass (2026-09-07, USA undergraduate/postgraduate
 follow-up), not integrated" note for full detail.
 
+| 97 | Qatar University International Students Scholarship | Qatar | UNIVERSITY | qu.edu.qa | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find Qatar undergraduate and postgraduate university scholarship" request; this registry's first Qatar university source (Qatar Scholarships, #36, is government/QFFD-classified); the overview page is a genuine ten-item multi-record panel hub, isolated via `div.panel-group div.panel:nth-of-type(2)`, a structural selector verified to land exactly on this panel with the domestic-only "Student Recruitment and Excellence Scholarship" panel's text excluded; no nationality restriction, Sierra Leone included; genuinely `fully_funded` — tuition, textbooks, 500 QR monthly salary, housing, annual airfare, residence permit; no deadline extracted (see AUTHORITATIVE_SOURCES.md #97) |
+| 98 | HBKU Graduate Scholarship (Tuition Waivers & Stipends) | Qatar | UNIVERSITY | hbku.edu.qa | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second Qatar university source and its first at the graduate level; the page's own stipend table breaks out explicit "International PhD"/"International Master's" rows distinct from "Qatari"/"Local" rows, confirming Sierra Leone eligibility directly rather than assumed; deliberately conservative `partial_funding` for this combined Master's+PhD record — tuition waivers range from 0% (LL.M., MS Economics) to 100% (PhD STEM/SHAPE) and the page states awards are "not guaranteed," the same "don't overstate a mixed-tier page" standard already applied to Skoltech (#90) and Rochester (#96); no deadline extracted (funding decided at admission) (see AUTHORITATIVE_SOURCES.md #98) |
+
+**(2026-09-07, Qatar undergraduate/postgraduate follow-up)** Qatar
+University's own Graduate Assistantship page is genuinely open to
+international applicants per secondary confirmation, but the official
+page found states no stipend amount or funding tier of its own — too
+thin for a confident record, unlike HBKU's detailed rate tables above.
+A "QU Masters and PhD Scholars" page turned out on direct inspection to
+be a directory of QU's own Qatari faculty sent to study abroad — an
+outbound staff programme, not an inbound scholarship. See
+AUTHORITATIVE_SOURCES.md #98's "Researched this pass (2026-09-07, Qatar
+undergraduate/postgraduate follow-up), not integrated" note for full
+detail.
+
 **(2026-09-07, England undergraduate/masters follow-up)** Royal
 Holloway's own parallel International Masters Scholarship (Sept 2027/
 Jan 2028) is restricted to an explicit list of ~45 countries by

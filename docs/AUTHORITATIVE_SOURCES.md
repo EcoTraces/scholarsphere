@@ -6405,6 +6405,142 @@ sources above:
   through ~160 individual US embassy pages with no single stable page
   to scrape reliably; not re-researched this pass.
 
+## 97. Qatar University — International Students Scholarship
+
+Researched 2026-09-07, in response to a "find Qatar undergraduate and
+postgraduate university scholarship" request. This platform's first
+Qatar **university** source (the existing Qatar Scholarships source,
+#36, is government/QFFD-classified, administered jointly with partner
+institutions rather than by a single university).
+
+- **Organization**: Qatar University
+- **Route code**: `qatar-university-international-students-scholarship`
+  (`qu_international_students_scholarship` internally)
+- **Official domain / base URL**: `https://www.qu.edu.qa`
+  (`QU_INTERNATIONAL_STUDENTS_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship (undergraduate) — "Exemption from
+  tuition fees, Exemption from textbook fees, 500 QR monthly salary,
+  Student housing (two students per room) including transportation
+  to/from campus, Annual round trip air fare ticket, Residence permit
+  under QU sponsorship." `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: "Qatar University offers this
+  scholarship to international students who apply to undergraduate
+  programs" — no nationality restriction beyond the broad
+  "international students" framing, Sierra Leone included. Selection is
+  competitive (minimum high school average of 95%), but the benefits
+  package for selected recipients is unconditional.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `qu.edu.qa/robots.txt` does not
+  disallow this content path — verified directly with Python's
+  `urllib.robotparser` (`can_fetch` returned `True`).
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Multi-record panel hub, isolated positionally**: the overview
+    page lists ten distinct scholarships (Student Recruitment and
+    Excellence Scholarship — restricted to "Residents of Qatar"; this
+    one; H.H. the Emir of Qatar's Scholarship for Academic Excellence;
+    Outstanding Performance Scholarship; GCC States Scholarships; and
+    others) in Bootstrap `div.panel` containers under a shared
+    `div.panel-group`. Isolated via
+    `div.panel-group div.panel:nth-of-type(2)`, verified directly via a
+    BeautifulSoup structural walk that this lands exactly on the
+    International Students Scholarship panel (3,762 characters) with
+    none of the domestic-only "Student Recruitment and Excellence
+    Scholarship" panel's text ("Residents of Qatar") leaking in.
+  - **Deliberately extracts no deadline**: the page refers only to an
+    "announced application period" and "announced timeline" with no
+    date literal of any kind on this specific panel.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/qu_international_students_scholarship.html`).
+
+## 98. Hamad Bin Khalifa University (HBKU) — Graduate Scholarship (Tuition Waivers & Stipends)
+
+Researched 2026-09-07, the same Qatar pass as Qatar University's
+International Students Scholarship above. This platform's second Qatar
+university source, and its first at the **graduate** level.
+
+- **Organization**: Hamad Bin Khalifa University (HBKU), part of Qatar
+  Foundation
+- **Route code**: `hbku-graduate-scholarship`
+  (`hbku_graduate_scholarship` internally)
+- **Official domain / base URL**: `https://www.hbku.edu.qa`
+  (`HBKU_GRADUATE_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship/fellowship — a combined Master's +
+  PhD tuition-waiver and stipend programme, with explicit rates broken
+  out by programme and by student category (Qatari / International /
+  Local). `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: the page's own stipend table
+  lists an explicit "International PhD" row (9,000 QAR/month, 108,000
+  QAR/year, 45 months) and "International Master's" row (7,000
+  QAR/month, 84,000 QAR/year, 21 months), distinct from "Qatari" and
+  "Local" rows — Sierra Leone applicants fall under "International,"
+  confirmed directly from the page's own category breakdown rather than
+  assumed from a generic "international students welcome" framing
+  elsewhere on the site.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `hbku.edu.qa/robots.txt` does not
+  disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - `funding_type = "partial_funding"` — the tuition-waiver table
+    varies sharply by programme, from "PhD STEM (CSE and CHLS): 100%"
+    and "PhD SHAPE and S.J.D. ...: 100%" down to "LL.M. Programs (CL):
+    0%" and "MS Economics (SEM): 0%," and the page states plainly
+    "Tuition waivers and stipend awards are not guaranteed and are
+    only awarded on a merit or need basis." Since this single combined
+    record spans programmes from 0% to 100% waivers with no award
+    guaranteed at all, deliberately conservative rather than
+    `fully_funded` — the same "don't overstate a mixed-tier page"
+    standard already applied to Skoltech's MSc/PhD page (#90) and the
+    University of Rochester's combined PhD/Master's record (#96).
+  - **Content selector `main`**: verified directly via a BeautifulSoup
+    structural walk to hold the full tuition-waiver table, stipend
+    table, conditions, and FAQ section with none of the site's large
+    navigation menu (Colleges, Research Institutes, Innovation, etc.).
+  - **Deliberately extracts no deadline**: "You are considered for
+    scholarships during the admissions process; no separate application
+    is needed" — funding is decided at admission, no separate
+    scholarship deadline exists anywhere on this page.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/hbku_graduate_scholarship.html`).
+
+### Researched this pass (2026-09-07, Qatar undergraduate/postgraduate follow-up), not integrated
+
+- **Qatar University — Graduate Assistantship (GA)** — genuinely real
+  and open to admitted graduate students "applying from inside Qatar as
+  well as from other countries" per secondary confirmation, but the
+  official page found (`qu.edu.qa/sites/en_US/research/graduate-
+  studies/prospective-students/graduate-assistants`) states no stipend
+  amount, funding tier, or explicit nationality/eligibility breakdown
+  of its own — too thin to build a confident record on, unlike HBKU's
+  detailed rate tables above. Not integrated.
+- **Qatar University — Masters and PhD Scholars page**
+  (`qu.edu.qa/en-us/offices/vpaa/scholarships/masters-and-phds/
+  quscholars`) — found via search as a apparent candidate, but turned
+  out on direct inspection to be a directory of QU's own (Qatari)
+  faculty and teaching assistants sent to study abroad at overseas
+  universities, restricted to Qatari nationals — an outbound programme
+  for QU's own staff, not an inbound scholarship for international
+  applicants to study at QU. Not integrated.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

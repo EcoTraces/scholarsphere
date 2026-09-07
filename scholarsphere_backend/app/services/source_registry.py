@@ -604,6 +604,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "qu_international_students_scholarship": {
+        "source_name": "Qatar University International Students Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "hbku_graduate_scholarship": {
+        "source_name": "HBKU Graduate Scholarship (Tuition Waivers & Stipends)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -746,6 +758,10 @@ def _base_urls() -> dict[str, str]:
         "rochester_graduate_scholarship": (
             settings.rochester_graduate_scholarship_base_url
         ),
+        "qu_international_students_scholarship": (
+            settings.qu_international_students_scholarship_base_url
+        ),
+        "hbku_graduate_scholarship": settings.hbku_graduate_scholarship_base_url,
     }
 
 
@@ -866,6 +882,8 @@ async def seed_opportunity_sources(
         "ucu_rosemary_orr_scholarship": now + timedelta(hours=24),
         "miamioh_international_merit_scholarship": now + timedelta(hours=24),
         "rochester_graduate_scholarship": now + timedelta(hours=24),
+        "qu_international_students_scholarship": now + timedelta(hours=24),
+        "hbku_graduate_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

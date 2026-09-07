@@ -5653,3 +5653,116 @@ for the full dated history.
       (`tests/fixtures/miamioh_international_merit_scholarship.html`,
       `tests/fixtures/rochester_graduate_scholarship.html`) were
       captured unmodified from their live fetches.
+
+- [x] **(2026-09-07)** Qatar follow-up: "find Qatar undergraduate and
+      postgraduate university scholarship" - this platform's only prior
+      Qatar source (Qatar Scholarships, #36) is government/QFFD-
+      classified, jointly administered with partner institutions rather
+      than a single university's own programme, so this pass looked
+      specifically for university-administered scholarships at
+      individual Qatari institutions.
+
+      Found and **implemented** the **Qatar University International
+      Students Scholarship** as source #97 (undergraduate):
+      - Found via a live search for QU's own scholarship types page,
+        then read the official page directly. The page turned out to
+        be a genuine ten-item multi-record panel hub (Student
+        Recruitment and Excellence Scholarship - restricted to
+        "Residents of Qatar"; this one; H.H. the Emir of Qatar's
+        Scholarship; Outstanding Performance Scholarship; GCC States
+        Scholarships; and five more).
+      - Rather than assume the first panel-shaped item was the target,
+        read each panel's own heading text to locate the specific
+        "International Students Scholarship" section (the second
+        panel), then verified via a BeautifulSoup structural walk that
+        all ten panels share Bootstrap `div.panel`/`div.panel-group`
+        markup with a consistent, countable sibling order, allowing a
+        precise `div.panel:nth-of-type(2)` selector rather than a
+        vaguer text-matching heuristic.
+      - Confirmed no nationality restriction from the page's own text:
+        "Qatar University offers this scholarship to international
+        students who apply to undergraduate programs" - no country
+        list, Sierra Leone eligible - and confirmed directly that the
+        neighboring "Student Recruitment and Excellence Scholarship"
+        panel (index 1) is explicitly restricted to "Residents of
+        Qatar" and does NOT leak into this record's extracted
+        description.
+      - Classified `fully_funded` correctly: the benefits list (tuition
+        exemption, textbook exemption, 500 QR monthly salary, housing,
+        annual round-trip airfare, residence permit) is genuinely
+        comprehensive for competitively-selected recipients, not merely
+        a tuition discount.
+      - Confirmed `qu.edu.qa/robots.txt` does not disallow this path
+        using Python's `urllib.robotparser` directly.
+
+      Found and **implemented** the **HBKU Graduate Scholarship
+      (Tuition Waivers & Stipends)** as source #98 (postgraduate,
+      Master's + PhD combined):
+      - Found via a search specifically for graduate-level Qatari
+        university scholarships (having already covered undergraduate
+        with QU above), landing on Hamad Bin Khalifa University's own
+        "Scholarship Guidelines for HBKU Graduate Programs" page.
+      - Read the tuition-waiver table carefully rather than assumed a
+        single rate: waivers range from "PhD STEM (CSE and CHLS): 100%"
+        down to "LL.M. Programs (CL): 0%" and "MS Economics (SEM): 0%"
+        depending on programme - a genuinely mixed-tier page.
+      - Found a second table, explicit stipend rates broken out by
+        student category: "International PhD: 9,000 QAR/month, 108,000
+        QAR/year, 45 months" and "International Master's: 7,000
+        QAR/month, 84,000 QAR/year, 21 months" - distinct rows from
+        "Qatari" and "Local" - confirmed Sierra Leone eligibility
+        directly from this explicit "International" category rather
+        than inferred from a vaguer "international students welcome"
+        statement elsewhere on the site.
+      - Read the page's own eligibility disclaimer and applied this
+        project's established "don't overstate a mixed-tier page"
+        standard (already used for Skoltech's MSc/PhD page, #90, and
+        this same pass's University of Rochester record, #96):
+        "Tuition waivers and stipend awards are not guaranteed and are
+        only awarded on a merit or need basis" - classified
+        `partial_funding` for the combined record rather than
+        `fully_funded`, since some programmes get 0% and no award is
+        guaranteed regardless of programme.
+      - Compared `main` against other selectors and confirmed `main`
+        alone (5,740 characters) captured exactly the scholarship
+        content - both tables, conditions, and FAQ - starting right
+        after the page's own breadcrumb, with none of HBKU's large
+        Colleges/Research/Innovation navigation menu leaking in.
+      - Confirmed `hbku.edu.qa/robots.txt` does not disallow this path.
+
+      Two further Qatar candidates were researched and rejected this
+      same pass:
+      - **Qatar University - Graduate Assistantship (GA)** - a search
+        summary described it as open to applicants "from inside Qatar
+        as well as from other countries," so fetched the official page
+        directly to verify rather than trust the summary alone; found
+        it states no stipend amount, funding tier, or explicit
+        eligibility breakdown of its own - too thin to build a
+        confident record on, unlike HBKU's detailed rate tables just
+        implemented. Not integrated.
+      - **Qatar University - "Masters and PhD Scholars" page** - a
+        promising-sounding title from search results, but reading the
+        actual page content revealed it to be a directory of QU's own
+        (Qatari) faculty and teaching assistants who studied abroad at
+        overseas universities on QU's own outbound sponsorship - a
+        staff programme, not an inbound scholarship for international
+        applicants to study at QU. Recognized this distinction by
+        reading the page's actual content (names, overseas
+        universities, "TA Starting Date" fields) rather than assuming
+        relevance from the title alone.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against both real fixtures, run
+      before any test was written, confirmed title, provider, country,
+      funding_type, and `deadline = None` all resolve exactly as
+      documented for both sources, and specifically confirmed the QU
+      panel isolation excludes "Residents of Qatar" text from the
+      extracted description while the HBKU record correctly includes
+      both "International PhD" and "International Master" stipend text
+      plus the "not guaranteed" eligibility caveat. Full backend suite
+      green afterward, 843 passed / 25 skipped (up from 839 passed/25
+      skipped - four new tests, plus `test_opportunity_import.py`'s
+      updated source-count assertion, 97 -> 99 registered sources). Both
+      fixtures (`tests/fixtures/qu_international_students_scholarship.html`,
+      `tests/fixtures/hbku_graduate_scholarship.html`) were captured
+      unmodified from their live fetches.

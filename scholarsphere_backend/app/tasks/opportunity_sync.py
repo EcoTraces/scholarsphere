@@ -87,6 +87,7 @@ from app.services.national_scholarship_programs import (
     GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
     HarringtonGraduateFellowsSource,
+    HbkuGraduateScholarshipSource,
     HeinrichBollScholarshipSource,
     HelmutVeithStipendSource,
     HongKongPhdFellowshipSchemeSource,
@@ -101,6 +102,7 @@ from app.services.national_scholarship_programs import (
     NewcastleVcInternationalScholarshipSource,
     NottinghamPgScholarshipSource,
     PkuInternationalScholarshipSource,
+    QuInternationalStudentsScholarshipSource,
     RochesterGraduateScholarshipSource,
     RotaryPeaceFellowshipSource,
     RoyalHollowayInternationalUgScholarshipSource,
@@ -585,6 +587,17 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_rochester_graduate_scholarship",
             "schedule": crontab(minute=0, hour=1),
         },
+        "sync-qu-international-students-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_qu_international_students_scholarship"
+            ),
+            "schedule": crontab(minute=15, hour=1),
+        },
+        "sync-hbku-graduate-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_hbku_graduate_scholarship",
+            "schedule": crontab(minute=30, hour=1),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -816,6 +829,13 @@ SOURCE_TASK_NAMES = {
     ),
     "rochester_graduate_scholarship": (
         "app.tasks.opportunity_sync.sync_rochester_graduate_scholarship"
+    ),
+    "qu_international_students_scholarship": (
+        "app.tasks.opportunity_sync."
+        "sync_qu_international_students_scholarship"
+    ),
+    "hbku_graduate_scholarship": (
+        "app.tasks.opportunity_sync.sync_hbku_graduate_scholarship"
     ),
 }
 
@@ -2290,6 +2310,45 @@ def sync_rochester_graduate_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name=(
+        "app.tasks.opportunity_sync."
+        "sync_qu_international_students_scholarship"
+    ),
+    max_retries=3,
+)
+def sync_qu_international_students_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "qu_international_students_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_hbku_graduate_scholarship",
+    max_retries=3,
+)
+def sync_hbku_graduate_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "hbku_graduate_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2608,6 +2667,10 @@ def _collector(source_code: str) -> Any:
             MiamiOhInternationalMeritScholarshipSource
         ),
         "rochester_graduate_scholarship": RochesterGraduateScholarshipSource,
+        "qu_international_students_scholarship": (
+            QuInternationalStudentsScholarshipSource
+        ),
+        "hbku_graduate_scholarship": HbkuGraduateScholarshipSource,
     }[source_code]()
 
 
