@@ -28,6 +28,55 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — England follow-up: Royal Holloway International Undergraduate Scholarship added
+
+### Added
+- **Royal Holloway, University of London — International Undergraduate
+  Scholarship 2027** (`app/services/national_scholarship_programs.py::
+  RoyalHollowayInternationalUgScholarshipSource`, source #93 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 94th registered
+  `OpportunitySource`, in response to a "find another England
+  undergraduate, masters university scholarship" request. This
+  platform's second England undergraduate source (Southampton's merit
+  scholarship, #66, is the first) and its 11th England university
+  source overall.
+  - GBP 3,000/year tuition reduction for BBB-at-A-level (or
+    equivalent) international-fee-status applicants starting September
+    2027, awarded automatically — no country restriction. Correctly
+    `partial_funding` (a tuition discount only).
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture
+    (`tests/fixtures/royal_holloway_international_ug_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected three further England candidates this same
+  pass:
+  - **Royal Holloway's own International Masters Scholarship** (Sept
+    2027/Jan 2028) — the natural Master's-level counterpart, but
+    restricted to an explicit list of ~45 countries by residence that
+    does not include Sierra Leone.
+  - **UCL — Global Undergraduate Scholarship** — a genuinely strong,
+    fully-funded-sounding programme, but behind an active Cloudflare
+    managed challenge on every path tested (and its own 2026/27
+    deadline had already passed regardless).
+  - **King's College London — CMA CGM Excellence Fund for Education
+    2026-27** — a genuinely fully-funded Master's award (full tuition +
+    £22,161 stipend), but its own page states "Application status:
+    Closed" with a passed 28 April 2026 deadline.
+  - **Queen Mary University of London** — every path tested, including
+    its own homepage and robots.txt, returns an AWS CloudFront 403
+    ("Request blocked") — genuine site-wide bot protection.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Morocco follow-up: Universiapolis International Encouragement Grant added
 
 ### Added

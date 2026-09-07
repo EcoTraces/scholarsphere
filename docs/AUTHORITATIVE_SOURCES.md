@@ -5943,6 +5943,99 @@ explicit domestic-only restrictions:
   programme discontinued. Not fabricated from secondary-source
   descriptions of a page that no longer exists.
 
+## 93. Royal Holloway, University of London — International Undergraduate Scholarship 2027
+
+Researched 2026-09-07, in response to a "find another England
+undergraduate, masters university scholarship" request. This
+platform's second England undergraduate source (Southampton's merit
+scholarship, #66, is the first) and its 11th England university
+source overall.
+
+- **Organization**: Royal Holloway, University of London
+- **Route code**: `royal-holloway-international-undergraduate-scholarship`
+  (`royal_holloway_international_ug_scholarship` internally)
+- **Official domain / base URL**: `https://www.royalholloway.ac.uk`
+  (`ROYAL_HOLLOWAY_INTERNATIONAL_UG_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — "Tuition fee reduction of
+  £3,000 a year for international undergraduate students achieving
+  BBB (or equivalent) at A-level." `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: "International fee status" — no
+  nationality or country-of-residence restriction, Sierra Leone
+  included. Requires "BBB at A-level, International Baccalaureate at
+  30 overall or 5,5,5 in HLs or other equivalent grades" and an offer
+  to start an undergraduate degree in September 2027 — genuinely
+  current cycle, verified directly rather than assumed from a stale
+  secondary-source citation (UCL's and King's College London's
+  parallel-sounding scholarships, researched the same pass, both
+  turned out to have already-passed April 2026 deadlines or be behind
+  Cloudflare bot protection — see "not integrated" note below).
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `royalholloway.ac.uk/robots.txt`
+  returns HTTP 404 — no file published at all — treated as no
+  restrictions declared, the same precedent already used for UvA's
+  genuinely empty robots.txt and UTokyo PEAK's missing robots.txt file
+  elsewhere in this file.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Content selector `article`**: verified directly via a
+    BeautifulSoup structural walk to hold the full scholarship
+    description, eligibility, and application text with none of the
+    site's navigation/footer chrome.
+  - **Deliberately extracts no deadline**: the page states only "Offer
+    to study an undergraduate degree starting in September 2027" (a
+    month/year, no day) and references a separate, superseded "2026"
+    cycle page for comparison — no day-level date literal appears
+    anywhere in this specific page's text, verified directly rather
+    than assumed.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/royal_holloway_international_ug_scholarship.html`).
+
+### Researched this pass (2026-09-07, England undergraduate/masters follow-up), not integrated
+
+Checked three further candidates live before settling on Royal
+Holloway's undergraduate scholarship above:
+
+- **Royal Holloway's own International Masters Scholarship (Sept 2027
+  and Jan 2028)** — the natural Master's-level counterpart of the
+  scholarship just added, but its own page states plainly that
+  eligibility "is determined by your place of residence, not your
+  nationality" against an enumerated list of roughly 45 countries
+  (Algeria, Bahrain, Bangladesh, Brazil, ... Zimbabwe, plus a smaller
+  £2,000-tier list) — Sierra Leone does not appear on either tier's
+  list, verified directly against the live page rather than assumed
+  from the word "international." Not integrated for that reason,
+  consistent with this project's Newcastle/Sheffield/Manchester
+  England findings, all similarly restricted to explicit country
+  lists excluding Sierra Leone.
+- **UCL — Global Undergraduate Scholarship** — a genuinely strong,
+  fully-funded-sounding programme (10 full-tuition-plus-maintenance
+  awards, 23 tuition-only awards), but its own page returns an active
+  Cloudflare-managed challenge (`cf-mitigated: challenge`, HTTP 403)
+  on every fetch attempt with a real browser User-Agent — genuine bot
+  protection, not circumvented. Separately, its own cited 2026/27-cycle
+  deadline (27 April 2026) had already passed as of this research date
+  regardless.
+- **King's College London — CMA CGM Excellence Fund for Education
+  2026-27** — a genuinely fully-funded Master's award (full tuition
+  waiver plus a £22,161 stipend) found via search, but its own page's
+  "Key Information" panel states "Application status: Closed" with a
+  28 April 2026 deadline already passed — not integrated as if
+  currently open. Worth revisiting once King's publishes a 2027-28
+  cycle.
+- **Queen Mary University of London** — every path tested on
+  `www.qmul.ac.uk`, including its own homepage and robots.txt, returns
+  an AWS CloudFront-served HTTP 403 ("Request blocked") — genuine
+  site-wide bot protection, not circumvented.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

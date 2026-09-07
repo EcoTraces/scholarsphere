@@ -37,6 +37,7 @@ from app.services.national_scholarship_programs import (
     SwitzerlandEskasScholarshipSource,
     KnightHennessyScholarsSource,
     RotaryPeaceFellowshipSource,
+    RoyalHollowayInternationalUgScholarshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3421,4 +3422,58 @@ def test_universiapolis_international_grant_has_no_robots_txt_restrictions() -> 
     declared."""
     assert (
         UniversiapolisInternationalGrantSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- Royal Holloway International UG Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_royal_holloway_international_ug_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's second England undergraduate source
+    (Southampton's merit scholarship, #66, is the first). No country
+    restriction, genuinely current September 2027 cycle. Royal
+    Holloway's parallel Masters scholarship was also researched but
+    restricted to an explicit list of ~45 countries excluding Sierra
+    Leone - not integrated, so this record covers only the
+    undergraduate award."""
+    source = RoyalHollowayInternationalUgScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture(
+                "royal_holloway_international_ug_scholarship.html"
+            )
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "royal-holloway-international-undergraduate-scholarship"
+    )
+    assert opportunity.title == (
+        "Royal Holloway International Undergraduate Scholarship 2027"
+    )
+    assert opportunity.country == "England"
+    assert opportunity.provider_name == "Royal Holloway, University of London"
+    assert opportunity.description is not None
+    assert "£3,000 a year" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_royal_holloway_international_ug_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """`royalholloway.ac.uk/robots.txt` returns HTTP 404 (no file
+    published) - treated as no restrictions declared."""
+    assert (
+        RoyalHollowayInternationalUgScholarshipSource.min_request_interval_seconds
+        == 2.0
     )

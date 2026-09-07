@@ -4120,3 +4120,60 @@ class UniversiapolisInternationalGrantSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().universiapolis_international_grant_base_url
+
+
+class RoyalHollowayInternationalUgScholarshipSource(_SingleProgramSource):
+    """Royal Holloway, University of London - International
+    Undergraduate Scholarship 2027 - researched 2026-09-07 in response
+    to a "find another England undergraduate, masters university
+    scholarship" request. This platform's second England undergraduate
+    source (Southampton's merit scholarship, #66, is the first) and its
+    11th England university source overall.
+
+    Confirmed 2026-09-07: `royalholloway.ac.uk/robots.txt` returns HTTP
+    404 (no file published at all) - treated as no restrictions
+    declared, the same precedent already used for UvA's genuinely
+    empty robots.txt and UTokyo PEAK's missing robots.txt file
+    elsewhere in this file.
+
+    Content selector `article`: verified directly via a BeautifulSoup
+    structural walk to hold the full scholarship description,
+    eligibility, and application text with none of the site's
+    navigation/footer chrome.
+
+    Country coverage / eligibility: "International fee status" and
+    "Achieve BBB at A-level, International Baccalaureate at 30 overall
+    or 5,5,5 in HLs or other equivalent grades" - no nationality or
+    country-of-residence restriction, unlike Royal Holloway's own
+    parallel International Masters Scholarship (Sept 2027/Jan 2028),
+    researched the same pass but explicitly restricted to residents of
+    an enumerated list of ~45 countries that does not include Sierra
+    Leone - that Master's scholarship was not integrated for that
+    reason, while this undergraduate one is genuinely open to Sierra
+    Leone applicants.
+
+    Funding: "Tuition fee reduction of £3,000 a year for international
+    undergraduate students," awarded automatically with no separate
+    application - `funding_type = "partial_funding"` (a tuition
+    discount only, not a stipend or living-cost component).
+
+    Deliberately extracts no deadline: the page states only "Offer to
+    study an undergraduate degree starting in September 2027" (a month/
+    year, no day) and references a separate, superseded "2026" cycle
+    page for comparison - no day-level date literal appears anywhere in
+    this specific page's text, verified directly rather than assumed.
+    """
+
+    source_code = "royal_holloway_international_ug_scholarship"
+    overview_path = (
+        "/studying-here/fees-and-funding/scholarships/"
+        "royal-holloway-international-undergraduate-scholarship/"
+    )
+    content_selectors = ("article",)
+    provider_name = "Royal Holloway, University of London"
+    country = "England"
+    external_id = "royal-holloway-international-undergraduate-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().royal_holloway_international_ug_scholarship_base_url

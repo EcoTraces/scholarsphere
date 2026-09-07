@@ -101,6 +101,7 @@ from app.services.national_scholarship_programs import (
     NottinghamPgScholarshipSource,
     PkuInternationalScholarshipSource,
     RotaryPeaceFellowshipSource,
+    RoyalHollowayInternationalUgScholarshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     SheffieldPgScholarshipSource,
@@ -559,6 +560,13 @@ celery_app.conf.update(
             ),
             "schedule": crontab(minute=0, hour=0),
         },
+        "sync-royal-holloway-international-ug-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_royal_holloway_international_ug_scholarship"
+            ),
+            "schedule": crontab(minute=15, hour=0),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -776,6 +784,10 @@ SOURCE_TASK_NAMES = {
     ),
     "universiapolis_international_grant": (
         "app.tasks.opportunity_sync.sync_universiapolis_international_grant"
+    ),
+    "royal_holloway_international_ug_scholarship": (
+        "app.tasks.opportunity_sync."
+        "sync_royal_holloway_international_ug_scholarship"
     ),
 }
 
@@ -2172,6 +2184,27 @@ def sync_universiapolis_international_grant(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name=(
+        "app.tasks.opportunity_sync."
+        "sync_royal_holloway_international_ug_scholarship"
+    ),
+    max_retries=3,
+)
+def sync_royal_holloway_international_ug_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "royal_holloway_international_ug_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2482,6 +2515,9 @@ def _collector(source_code: str) -> Any:
         "skoltech_scholarship": SkoltechScholarshipSource,
         "utokyo_peak_scholarship": UtokyoPeakScholarshipSource,
         "universiapolis_international_grant": UniversiapolisInternationalGrantSource,
+        "royal_holloway_international_ug_scholarship": (
+            RoyalHollowayInternationalUgScholarshipSource
+        ),
     }[source_code]()
 
 

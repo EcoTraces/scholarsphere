@@ -727,6 +727,26 @@ class Settings(BaseSettings):
     # Disallow for `User-agent: *` - no restrictions declared.
     universiapolis_international_grant_base_url: str = "https://universiapolis.ma"
 
+    # Royal Holloway, University of London - International Undergraduate
+    # Scholarship 2027 - researched 2026-09-07 in response to a "find
+    # another England undergraduate, masters university scholarship"
+    # request. This platform's second England undergraduate source
+    # (Southampton's merit scholarship, #66, is the first) and its 11th
+    # England university source overall. GBP 3,000/year off tuition for
+    # BBB-at-A-level (or equivalent) international-fee-status applicants
+    # starting September 2027 - genuinely current cycle, awarded
+    # automatically, no country restriction. Correctly `partial_funding`
+    # (tuition discount only). The page has no robots.txt at all (HTTP
+    # 404) - treated as no restrictions declared, the same precedent as
+    # UvA's empty robots.txt and UTokyo PEAK's missing file elsewhere in
+    # this file. Royal Holloway's parallel International Masters
+    # Scholarship (Sept 2027/Jan 2028) was also researched but is
+    # restricted to an explicit list of ~45 countries by residence that
+    # does not include Sierra Leone - not integrated for that reason.
+    royal_holloway_international_ug_scholarship_base_url: str = (
+        "https://www.royalholloway.ac.uk"
+    )
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -909,6 +929,7 @@ class Settings(BaseSettings):
         "skoltech_scholarship_base_url",
         "utokyo_peak_scholarship_base_url",
         "universiapolis_international_grant_base_url",
+        "royal_holloway_international_ug_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

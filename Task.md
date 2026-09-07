@@ -5243,3 +5243,79 @@ for the full dated history.
       assertion, 92 -> 93 registered sources). The fixture
       (`tests/fixtures/universiapolis_international_grant.html`) was
       captured unmodified from the live site.
+
+- [x] **(2026-09-07)** England follow-up: "find another England
+      undergraduate, masters university scholarship programs" - this
+      platform already had 10 England university sources (Imperial,
+      Newcastle, Sheffield, Manchester, Nottingham, Southampton x2,
+      Durham x2, Gates Cambridge) before this pass, so the research
+      focus was specifically on universities not yet touched:
+      undergraduate-and-postgraduate-capable programmes at UCL, King's
+      College London, Queen Mary, and Royal Holloway.
+
+      Found and **implemented** the **Royal Holloway International
+      Undergraduate Scholarship 2027** as source #93 - this registry's
+      second England undergraduate source (Southampton's merit
+      scholarship, #66, is the first):
+      - Live-fetched the official page directly and confirmed it was
+        genuinely current (explicitly "starting in September 2027,"
+        with the page itself distinguishing this from the superseded
+        2026-entry version) before treating it as a live opportunity -
+        this mattered, since both other strong-looking candidates
+        found the same day (UCL, King's) turned out to have already-
+        passed 2026 deadlines.
+      - Confirmed no nationality or country-of-residence restriction
+        from the page's own eligibility text (BBB-at-A-level,
+        "International fee status," no country list) - worth checking
+        explicitly since Royal Holloway's own parallel Master's
+        scholarship, researched the same pass, turned out to be
+        restricted.
+      - Classified `partial_funding` correctly: GBP 3,000/year off
+        tuition only, no living-cost or stipend component - never
+        described as more than a tuition discount.
+
+      Three further England candidates were researched and rejected
+      this same pass:
+      - **Royal Holloway's own International Masters Scholarship**
+        (Sept 2027/Jan 2028) - read the eligibility text carefully and
+        found "eligibility for this scholarship is determined by your
+        place of residence, not your nationality" against an
+        enumerated list of roughly 45 countries; checked the full list
+        specifically for Sierra Leone and confirmed it was absent from
+        both the GBP 2,000 and GBP 4,000 tiers - not integrated, so
+        this pass's Royal Holloway coverage is undergraduate-only.
+      - **UCL - Global Undergraduate Scholarship** - a search result
+        described a genuinely strong programme (10 full-tuition-plus-
+        maintenance awards, 23 tuition-only awards), so fetched the
+        live page directly with a realistic browser User-Agent to
+        verify rather than trust the summary; got back an HTTP 403
+        with a `cf-mitigated: challenge` response header - a real,
+        active Cloudflare bot challenge, not circumvented. Separately
+        noted the cited 2026/27-cycle deadline (27 April 2026) had
+        already passed regardless, so this wasn't purely an access
+        question.
+      - **King's College London - CMA CGM Excellence Fund for
+        Education 2026-27** - a genuinely fully-funded Master's award
+        (full tuition waiver + GBP 22,161 stipend) found via search;
+        fetched the live page directly and found its own "Key
+        Information" panel states "Application status: Closed" with a
+        28 April 2026 deadline - correctly left unintegrated as closed
+        rather than presented as open.
+      - **Queen Mary University of London** - tested multiple paths
+        (the specific scholarships-database page, the undergraduate
+        find-a-scholarship page, and the bare homepage) and got an AWS
+        CloudFront "Request blocked" 403 on every one, including
+        robots.txt itself - genuine site-wide bot protection, not
+        chased further.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, and `deadline = None` all
+      resolve exactly as documented. Full backend suite green
+      afterward, 833 passed / 25 skipped (up from 831 passed/25
+      skipped - two new tests, plus `test_opportunity_import.py`'s
+      updated source-count assertion, 93 -> 94 registered sources). The
+      fixture
+      (`tests/fixtures/royal_holloway_international_ug_scholarship.html`)
+      was captured unmodified from the live site.

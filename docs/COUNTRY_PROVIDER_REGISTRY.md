@@ -166,6 +166,23 @@ unverified).
 | 90 | Skoltech Admissions Scholarship | Russia | UNIVERSITY | skoltech.ru | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, the fifth and final country (Russia) of the five-country pass; this registry's **first Russia source of any kind**; site confirmed genuinely reachable from this environment, contrary to any assumption sanctions/geo-blocking would block access; covers both MSc and PhD together, no nationality restriction; deliberately conservative `partial_funding` classification — the page states a competitively-awarded monthly stipend (40,000 RUB/month for MSc) plus insurance but does not itself state tuition is waived for every admitted student, classified from the official page's own text rather than aggregator "fully funded" claims; no deadline extracted (2027-cycle dates not yet published, page explicitly says "check back in autumn") (see AUTHORITATIVE_SOURCES.md #90) |
 | 91 | The University of Tokyo Scholarship (PEAK) | Japan | UNIVERSITY | peak.c.u-tokyo.ac.jp | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find another Japanese university fully funded scholarship" follow-up; this registry's first Japan *university* source (Japanese Government MEXT Scholarship, #25, is government-classified); the overview page is a genuine multi-record hub of five distinct scholarships (this one, MEXT, two nationality-specific supplements, two Fast Retailing Foundation awards) — isolated via `div.cmsSec-A:nth-of-type(2)`, a structural selector that lands exactly on this one item's own text; no nationality restriction; genuinely `fully_funded` — admission fee + tuition + JPY126,000/month living expenses, four years, up to 10 students, no separate application; no deadline extracted (awarded automatically upon admission) (see AUTHORITATIVE_SOURCES.md #91) |
 | 92 | Universiapolis International Encouragement Grant | Morocco | UNIVERSITY | universiapolis.ma | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find Morocco undergraduate and postgraduate university scholarship" request; this registry's first Morocco *university* source (AMCI, #29, is government-classified); the overview page is a genuine multi-record hub of four scholarship tiers (100%/50%/30%/20% funding), three of which explicitly require Moroccan nationality — isolated via `h3.wp-block-heading:nth-of-type(4)` and `p.wp-block-paragraph:nth-of-type(9)`, structural selectors that land exactly on the fourth tier's own text; explicitly targets Sub-Saharan students (Sierra Leone included), the one exception among the four tiers; genuinely `partial_funding` — 20% of tuition fees only; no deadline extracted (see AUTHORITATIVE_SOURCES.md #92) |
+| 93 | Royal Holloway International Undergraduate Scholarship 2027 | England | UNIVERSITY | royalholloway.ac.uk | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find another England undergraduate, masters university scholarship" request; this registry's second England undergraduate source (Southampton's merit scholarship, #66, is the first) and 11th England university source overall; no nationality/country restriction (BBB-at-A-level based, open to all international-fee-status applicants); genuinely current September 2027 cycle; genuinely `partial_funding` — GBP 3,000/year off tuition, awarded automatically; no deadline extracted (month/year only, no day-level date) (see AUTHORITATIVE_SOURCES.md #93) |
+
+**(2026-09-07, England undergraduate/masters follow-up)** Royal
+Holloway's own parallel International Masters Scholarship (Sept 2027/
+Jan 2028) is restricted to an explicit list of ~45 countries by
+residence that does not include Sierra Leone — not integrated, so
+only the undergraduate scholarship above is represented. UCL's Global
+Undergraduate Scholarship (a strong fully-funded-sounding programme)
+is behind an active Cloudflare managed challenge on every path tested
+(and its own 2026/27 deadline had already passed regardless). King's
+College London's CMA CGM Excellence Fund for Education (full tuition +
+£22,161 stipend) states "Application status: Closed" with a passed
+28 April 2026 deadline — worth revisiting once a 2027-28 cycle is
+published. Queen Mary University of London returns an AWS CloudFront
+403 site-wide. See AUTHORITATIVE_SOURCES.md #93's "Researched this
+pass (2026-09-07, England undergraduate/masters follow-up), not
+integrated" note for full detail.
 
 **(2026-09-07, Japan follow-up)** Checked Kyoto University's own
 scholarships page and found a nomination hub for ~90 separate private
