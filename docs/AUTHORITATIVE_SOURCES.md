@@ -6243,6 +6243,168 @@ to change them):
   out to be `/en/organisation/university-college-utrecht/
   scholarship-procedure`, used for source #94 above.
 
+## 95. Miami University (Ohio) — International Merit Scholarship
+
+Researched 2026-09-07, in response to a "find USA undergraduate and
+postgraduate university scholarship" request. This platform's third
+USA university source, and its second at the **undergraduate** level
+(Vanderbilt's Cornelius Vanderbilt Scholarship, #89, is the first).
+
+- **Organization**: Miami University (Oxford, Ohio)
+- **Route code**: `miamioh-international-merit-scholarship`
+  (`miamioh_international_merit_scholarship` internally)
+- **Official domain / base URL**: `https://miamioh.edu`
+  (`MIAMIOH_INTERNATIONAL_MERIT_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship — a GPA-tiered tuition discount,
+  "Up to 50% of tuition" at the top qualifying tier (equivalent U.S.
+  GPA 3.25+) down to "Up to 20% of tuition" at the bottom qualifying
+  tier (GPA 2.50–2.74). `funding_type = "partial_funding"`.
+- **Country coverage / eligibility**: "All new first-year international
+  undergraduate students with a U.S. equivalent GPA of 2.50 or higher
+  who meet admission requirements are automatically considered" — no
+  nationality restriction, Sierra Leone included. "No separate
+  scholarship application is required."
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `miamioh.edu/robots.txt` does not
+  disallow this content path — verified directly with Python's
+  `urllib.robotparser` (`can_fetch` returned `True`).
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Multi-record accordion hub, isolated by document order**: the
+    overview page lists four distinct scholarships (this one, the
+    Presidential Fellows Program, the #YouAreWelcomeHere Scholarship,
+    and the Prodesse Scholarship), each in its own
+    `div.accordion-primary__accordion` container. Since this is the
+    *first* such container in document order, the shared `collect()`
+    logic's `select_one`-based first-match behavior lands on exactly
+    the International Merit Scholarship section (1,524 characters)
+    without any selector index arithmetic — verified directly via a
+    BeautifulSoup structural walk that none of the other three
+    scholarships' text leaks in. Title selector
+    `h3.accordion-primary__heading` resolves the same way, to
+    "International Merit Scholarship" rather than the page-wide `<h1>`
+    ("International Scholarships").
+  - **Deliberately extracts no deadline**: the page states only
+    "priority consideration is given to students who submit their
+    application by December 1" with no year attached anywhere near it,
+    even though the surrounding table confirms a genuinely current
+    cycle ("Merit Scholarships for Incoming International Students
+    (Fall 2027)").
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/miamioh_international_merit_scholarship.html`).
+
+## 96. University of Rochester — Graduate International Funding
+
+Researched 2026-09-07, the same USA pass as Miami University's
+International Merit Scholarship above. This platform's fourth USA
+university source, and its second at the **graduate** level (UT
+Austin's Harrington Graduate Fellows Program, #88, is the first, and is
+nomination-only).
+
+- **Organization**: University of Rochester, Graduate Education and
+  Postdoctoral Affairs
+- **Route code**: `rochester-graduate-international-scholarship`
+  (`rochester_graduate_scholarship` internally)
+- **Official domain / base URL**: `https://www.rochester.edu`
+  (`ROCHESTER_GRADUATE_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship/fellowship, described by degree
+  level on the office's own "Tuition, Financial Aid, and Other
+  Expenses" page for international admits: "PhD candidates who are
+  admitted will receive a full tuition scholarship, stipend, and health
+  insurance" (paid via teaching/research assistantships, guaranteed for
+  every admitted PhD student), while "Masters' applicants who are
+  accepted **typically** receive a merit-based tuition scholarship"
+  (tuition only, not guaranteed). Since this single combined record
+  covers both degree levels and only the PhD tier is genuinely
+  guaranteed full funding, deliberately conservative
+  `funding_type = "partial_funding"` — the same "don't overstate a
+  mixed-tier page" standard already applied to Skoltech's combined
+  MSc/PhD page (#90) — with the scraped description itself preserving
+  the PhD/Master's distinction in the page's own words.
+- **Country coverage / eligibility**: "International students are
+  considered for the same financial support as domestic students" — no
+  nationality restriction, Sierra Leone included.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `rochester.edu/robots.txt`'s generic
+  `User-Agent: *` rule disallows only a named list of unrelated
+  administrative/report paths (`/adv/advancement/`, `/report/`,
+  `/calendar/`, etc.) — none of which cover this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **`title_selectors = ()`**: the page's own `<h1>` ("Admissions")
+    and section `<h3>` ("Tuition, Financial Aid, and Other Expenses")
+    both describe the page generically rather than naming a specific
+    scholarship — falls through to the external_id-derived fallback
+    title, the same documented pattern already used for
+    Skoltech/WMI/Gates Cambridge elsewhere in this file.
+  - **Content selector `article`**: verified directly via a
+    BeautifulSoup structural walk to hold the funding description and
+    other-expenses list with none of the page's own section-navigation
+    menu (a `main`-level selector would have included that menu's full
+    list of unrelated admissions-office links).
+  - **Deliberately extracts no deadline**: funding is determined at the
+    time of the admission decision itself, not via a separate
+    scholarship deadline — no date literal of any kind appears on this
+    page.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/rochester_graduate_scholarship.html`).
+
+### Researched this pass (2026-09-07, USA undergraduate/postgraduate follow-up), not integrated
+
+Checked several further US institutions live before settling on the two
+sources above:
+
+- **American University** — its own "Scholarships for International
+  Students" page (`american.edu`) returns an active Cloudflare managed
+  challenge ("Just a moment...", HTTP 403, `server: cloudflare` and a
+  `__cf_bm` bot-management cookie confirmed via response headers) —
+  genuine bot protection, not circumvented, even though its own
+  `robots.txt` declares no restriction.
+- **AAUW (American Association of University Women) International
+  Fellowships** — a genuinely credible, nationality-unrestricted
+  fellowship ("citizenship or permanent residency outside of the United
+  States," any accredited US institution, AY 2027-2028 deadline of 17
+  September 2026), but `aauw.org`'s own fellowship page likewise returns
+  an active Cloudflare-managed HTTP 403 (confirmed via the same
+  `server: cloudflare`/`__cf_bm` response-header signature) despite an
+  unrestrictive `robots.txt` — genuine bot protection, not circumvented.
+- **East-West Center Graduate Degree Fellowships** (University of
+  Hawaiʻi at Mānoa) — returned HTTP 403 on the one page checked; not
+  pursued further given the programme's own stated regional scope
+  ("students from Asia, the Pacific, and the U.S.") would likely have
+  excluded a Sierra Leonean applicant regardless.
+- **Iowa State University — International Merit Scholarships** — a
+  real, unblocked, genuinely current page (two-tier Award of
+  Achievement/Award of Distinction, no nationality restriction), a
+  credible alternative undergraduate candidate, but not integrated in
+  favor of Miami University's scholarship above once one clean
+  undergraduate candidate had already been verified — noted here as a
+  strong candidate for a future USA pass rather than fabricated as
+  redundant coverage.
+- **Fulbright Foreign Student Program** — already researched and
+  rejected in this project's history (see the "Sources evaluated and
+  deliberately not integrated" table below): administered per-country
+  through ~160 individual US embassy pages with no single stable page
+  to scrape reliably; not re-researched this pass.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

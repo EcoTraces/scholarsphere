@@ -4232,3 +4232,118 @@ class UcuRosemaryOrrScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().ucu_rosemary_orr_scholarship_base_url
+
+
+class MiamiOhInternationalMeritScholarshipSource(_SingleProgramSource):
+    """Miami University (Ohio) - International Merit Scholarship, a
+    GPA-tiered tuition discount awarded automatically to admitted
+    international first-year undergraduates, no separate scholarship
+    application required.
+
+    Confirmed 2026-09-07: `miamioh.edu/robots.txt` does not disallow
+    this content path (verified directly with Python's
+    `urllib.robotparser`, `can_fetch` returned `True`).
+
+    The overview page is a genuine multi-record accordion hub (four
+    distinct scholarships: this one, the Presidential Fellows Program,
+    the #YouAreWelcomeHere Scholarship, and the Prodesse Scholarship) -
+    isolated via `div.accordion-primary__accordion`, the *first*
+    matching accordion item in document order, verified directly via a
+    BeautifulSoup structural walk to correspond to exactly the
+    International Merit Scholarship section (1,524 characters) with
+    none of the other three scholarships' text leaking in. Title
+    selector `h3.accordion-primary__heading` similarly resolves, via
+    its own first-match-in-document-order behavior, to "International
+    Merit Scholarship" specifically, not the page-wide `<h1>`
+    ("International Scholarships").
+
+    Country coverage / eligibility: "All new first-year international
+    undergraduate students with a U.S. equivalent GPA of 2.50 or higher
+    who meet admission requirements are automatically considered" - no
+    nationality restriction, Sierra Leone included.
+
+    Funding: a GPA-tiered tuition discount, "Up to 50% of tuition" at
+    the top tier (GPA 3.25+) down to "Up to 20% of tuition" at the
+    bottom qualifying tier (GPA 2.50-2.74) - correctly
+    `funding_type = "partial_funding"`, never described as more than a
+    tuition discount.
+
+    Deliberately extracts no deadline: the page states only "priority
+    consideration is given to students who submit their application by
+    December 1" with no year attached anywhere near it, even though the
+    surrounding text confirms a genuinely current cycle ("Merit
+    Scholarships for Incoming International Students (Fall 2027)").
+    """
+
+    source_code = "miamioh_international_merit_scholarship"
+    overview_path = (
+        "/onestop/financial-aid/funding-opportunities/scholarships/"
+        "international-scholarships.html"
+    )
+    title_selectors = ("h3.accordion-primary__heading",)
+    content_selectors = ("div.accordion-primary__accordion",)
+    provider_name = "Miami University (Ohio)"
+    country = "United States"
+    external_id = "miamioh-international-merit-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().miamioh_international_merit_scholarship_base_url
+
+
+class RochesterGraduateScholarshipSource(_SingleProgramSource):
+    """University of Rochester - graduate funding for international
+    students, described on the Graduate Education and Postdoctoral
+    Affairs office's own "Tuition, Financial Aid, and Other Expenses"
+    page for international admits.
+
+    Confirmed 2026-09-07: `rochester.edu/robots.txt` does not disallow
+    this content path (the generic `User-Agent: *` block disallows only
+    a named list of unrelated administrative/report paths).
+
+    Country coverage / eligibility: "International students are
+    considered for the same financial support as domestic students" -
+    no nationality restriction, Sierra Leone included.
+
+    Funding: the page states two different funding levels by degree
+    level - "PhD candidates who are admitted will receive a full
+    tuition scholarship, stipend, and health insurance" (paid through
+    teaching/research assistantships, guaranteed for every admitted PhD
+    student), but "Masters' applicants who are accepted **typically**
+    receive a merit-based tuition scholarship" (tuition only, not
+    guaranteed). Since this single record covers both degree levels and
+    only the PhD tier is genuinely guaranteed full funding,
+    deliberately conservative `funding_type = "partial_funding"` for
+    the combined record - the same "don't overstate a mixed page"
+    standard already applied to Skoltech's MSc/PhD page (#90) - with
+    the scraped description itself preserving the PhD/Master's
+    distinction in the page's own words.
+
+    Discovery method / selectors: `title_selectors = ()` - the page's
+    own `<h1>` ("Admissions") and section `<h3>` ("Tuition, Financial
+    Aid, and Other Expenses") both describe the page generically rather
+    than naming a specific scholarship - falls through to the
+    external_id-derived fallback title, the same documented pattern
+    already used for Skoltech/WMI/Gates Cambridge elsewhere in this
+    file. Content selector `article`: verified directly via a
+    BeautifulSoup structural walk to hold the funding description and
+    other-expenses list with none of the page's own section-navigation
+    menu (a `main`-level selector would have included that menu).
+
+    Deliberately extracts no deadline: funding is determined at the
+    time of the admission decision itself, not via a separate
+    scholarship deadline - no date literal of any kind appears on this
+    page.
+    """
+
+    source_code = "rochester_graduate_scholarship"
+    overview_path = "/college/gradstudies/admissions/international-students/costs.html"
+    title_selectors = ()
+    content_selectors = ("article",)
+    provider_name = "University of Rochester"
+    country = "United States"
+    external_id = "rochester-graduate-international-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().rochester_graduate_scholarship_base_url

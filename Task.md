@@ -5528,3 +5528,128 @@ for the full dated history.
       changed; the existing 835-passed/25-skipped baseline (confirmed
       immediately prior, in the Netherlands follow-up pass above)
       stands.
+
+- [x] **(2026-09-07)** USA follow-up: "find USA undergraduate and
+      postgraduate university scholarship" - this platform already had
+      two USA university sources (Harrington Graduate Fellows Program,
+      #88, grad/nomination-only; Vanderbilt's Cornelius Vanderbilt
+      Scholarship, #89, undergrad) before this pass. Since the request
+      named both degree levels explicitly, prioritized finding one
+      genuine undergraduate candidate and one genuine postgraduate
+      candidate with a *direct* application (unlike Harrington's
+      nomination-only shape) rather than duplicating either existing
+      level.
+
+      Found and **implemented** the **Miami University (Ohio)
+      International Merit Scholarship** as source #95 (undergraduate):
+      - Found via a live web search for US universities offering
+        automatic-consideration merit scholarships to international
+        students, then verified the official page directly rather than
+        trusted the search summary.
+      - The overview page turned out to be a genuine four-item
+        multi-record accordion hub (International Merit Scholarship,
+        Presidential Fellows Program, #YouAreWelcomeHere Scholarship,
+        Prodesse Scholarship). Rather than reaching for an index-based
+        `:nth-of-type()` selector as in earlier passes, noticed via a
+        BeautifulSoup structural walk that the four
+        `div.accordion-primary__accordion` containers are document-
+        ordered with the target scholarship first - so the shared
+        `collect()` logic's existing first-match (`select_one`)
+        behavior already isolates it correctly with no extra selector
+        complexity. Verified directly that none of the other three
+        scholarships' text (Presidential Fellows, #YouAreWelcomeHere)
+        leaks into the extracted description.
+      - Confirmed no nationality restriction from the page's own text
+        ("All new first-year international undergraduate students...
+        are automatically considered," "No separate scholarship
+        application is required") - Sierra Leone applicants eligible.
+      - Classified `partial_funding` correctly: a GPA-tiered discount,
+        "Up to 50% of tuition" at the top qualifying tier - never
+        described as more than a tuition discount.
+      - Confirmed `miamioh.edu/robots.txt` does not disallow this path
+        using Python's `urllib.robotparser` directly.
+
+      Found and **implemented** the **University of Rochester Graduate
+      International Funding** record as source #96 (postgraduate):
+      - Found via a targeted search for US graduate schools offering
+        international-student funding with a direct (non-nomination)
+        application path, then read the official Graduate Education and
+        Postdoctoral Affairs office's own page directly.
+      - Read the funding text carefully rather than assumed a single
+        funding level: "PhD candidates who are admitted will receive a
+        full tuition scholarship, stipend, and health insurance" (via
+        assistantship, guaranteed) versus "Masters' applicants who are
+        accepted **typically** receive a merit-based tuition
+        scholarship" (not guaranteed) - two different funding tiers on
+        one page. Applied this project's established "don't overstate a
+        mixed-tier page" standard (the same one used for Skoltech's
+        combined MSc/PhD page, #90) and classified the combined record
+        `partial_funding` rather than `fully_funded`, since not every
+        admitted student on this record gets the PhD-level guarantee.
+      - Confirmed no nationality restriction: "International students
+        are considered for the same financial support as domestic
+        students."
+      - Used `title_selectors = ()` deliberately: checked both the
+        page's `<h1>` ("Admissions") and its section `<h3>` ("Tuition,
+        Financial Aid, and Other Expenses") and found both too generic
+        to serve as a scholarship title, so relied on the
+        external_id-derived fallback rather than a misleading generic
+        title.
+      - Compared `main` vs `article` selectors directly and chose
+        `article` specifically because `main` pulled in the page's
+        entire section-navigation menu (Overview, How to Apply,
+        Application Timeline, Test Requirements, ... a dozen unrelated
+        admissions-office links) while `article` held only the funding
+        description and other-expenses list.
+      - Confirmed `rochester.edu/robots.txt`'s generic `User-Agent: *`
+        rule disallows only a named list of unrelated administrative/
+        report paths, none covering this content path.
+
+      Four further USA candidates were researched and rejected this
+      same pass:
+      - **American University** - a search result described automatic
+        merit-scholarship consideration with no separate application,
+        so fetched the live page directly to verify; got back an active
+        Cloudflare managed challenge ("Just a moment...," HTTP 403) with
+        `server: cloudflare` and a `__cf_bm` bot-management cookie
+        confirmed in the response headers - genuine bot protection, not
+        circumvented, even though the site's own `robots.txt` declares
+        no restriction (checked both, rather than assuming the
+        robots.txt result alone settled it).
+      - **AAUW (American Association of University Women) International
+        Fellowships** - a genuinely strong, nationality-unrestricted
+        candidate found via search (any accredited US institution, AY
+        2027-2028 deadline of 17 September 2026, only 10 days out from
+        this research date but still genuinely future), but its own
+        fellowship page returns the identical Cloudflare-managed 403
+        signature as American University above - not circumvented.
+      - **East-West Center Graduate Degree Fellowships** (University of
+        Hawaii at Manoa) - returned HTTP 403 on the one page checked;
+        did not pursue further given the programme's own stated
+        regional scope ("students from Asia, the Pacific, and the
+        U.S.") would likely have excluded a Sierra Leonean applicant
+        regardless, so the access barrier wasn't the only reason to
+        stop.
+      - **Iowa State University - International Merit Scholarships** -
+        a real, unblocked, genuinely current two-tier undergraduate
+        scholarship (Award of Achievement/Award of Distinction, no
+        nationality restriction) - a credible alternative, but not
+        added once one clean undergraduate candidate (Miami University)
+        had already been verified, to avoid padding this pass with
+        redundant coverage of the same degree level - noted honestly as
+        a strong candidate for a future USA pass instead.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against both real fixtures, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, and `deadline = None` all
+      resolve exactly as documented for both sources, and specifically
+      confirmed the Miami University accordion isolation excludes
+      "Presidential Fellows" and "#YouAreWelcomeHere" text from the
+      extracted description. Full backend suite green afterward, 839
+      passed / 25 skipped (up from 835 passed/25 skipped - four new
+      tests, plus `test_opportunity_import.py`'s updated source-count
+      assertion, 95 -> 97 registered sources). Both fixtures
+      (`tests/fixtures/miamioh_international_merit_scholarship.html`,
+      `tests/fixtures/rochester_graduate_scholarship.html`) were
+      captured unmodified from their live fetches.

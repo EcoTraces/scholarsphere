@@ -97,9 +97,11 @@ from app.services.national_scholarship_programs import (
     McgillMastercardScholarsSource,
     ManchesterGlobalFuturesScholarshipSource,
     MaxPlanckSchoolsSource,
+    MiamiOhInternationalMeritScholarshipSource,
     NewcastleVcInternationalScholarshipSource,
     NottinghamPgScholarshipSource,
     PkuInternationalScholarshipSource,
+    RochesterGraduateScholarshipSource,
     RotaryPeaceFellowshipSource,
     RoyalHollowayInternationalUgScholarshipSource,
     SchwarzmanScholarsSource,
@@ -572,6 +574,17 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_ucu_rosemary_orr_scholarship",
             "schedule": crontab(minute=30, hour=0),
         },
+        "sync-miamioh-international-merit-scholarship": {
+            "task": (
+                "app.tasks.opportunity_sync."
+                "sync_miamioh_international_merit_scholarship"
+            ),
+            "schedule": crontab(minute=45, hour=0),
+        },
+        "sync-rochester-graduate-scholarship": {
+            "task": "app.tasks.opportunity_sync.sync_rochester_graduate_scholarship",
+            "schedule": crontab(minute=0, hour=1),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -796,6 +809,13 @@ SOURCE_TASK_NAMES = {
     ),
     "ucu_rosemary_orr_scholarship": (
         "app.tasks.opportunity_sync.sync_ucu_rosemary_orr_scholarship"
+    ),
+    "miamioh_international_merit_scholarship": (
+        "app.tasks.opportunity_sync."
+        "sync_miamioh_international_merit_scholarship"
+    ),
+    "rochester_graduate_scholarship": (
+        "app.tasks.opportunity_sync.sync_rochester_graduate_scholarship"
     ),
 }
 
@@ -2231,6 +2251,45 @@ def sync_ucu_rosemary_orr_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name=(
+        "app.tasks.opportunity_sync."
+        "sync_miamioh_international_merit_scholarship"
+    ),
+    max_retries=3,
+)
+def sync_miamioh_international_merit_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "miamioh_international_merit_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_rochester_graduate_scholarship",
+    max_retries=3,
+)
+def sync_rochester_graduate_scholarship(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "rochester_graduate_scholarship",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2545,6 +2604,10 @@ def _collector(source_code: str) -> Any:
             RoyalHollowayInternationalUgScholarshipSource
         ),
         "ucu_rosemary_orr_scholarship": UcuRosemaryOrrScholarshipSource,
+        "miamioh_international_merit_scholarship": (
+            MiamiOhInternationalMeritScholarshipSource
+        ),
+        "rochester_graduate_scholarship": RochesterGraduateScholarshipSource,
     }[source_code]()
 
 

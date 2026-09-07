@@ -206,6 +206,22 @@ same shape. See AUTHORITATIVE_SOURCES.md #94's "Researched this pass
 (2026-09-07, Netherlands undergraduate/postgraduate follow-up), not
 integrated" note for full detail.
 
+| 95 | Miami University (Ohio) International Merit Scholarship | United States | UNIVERSITY | miamioh.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find USA undergraduate and postgraduate university scholarship" request; this registry's third USA university source and its second at the undergraduate level (Vanderbilt's Cornelius Vanderbilt Scholarship, #89, is the first); the overview page is a genuine multi-record accordion hub of four scholarships, isolated via `div.accordion-primary__accordion`'s first-match-in-document-order behavior rather than an index hack; no nationality restriction, automatic consideration, no separate application; genuinely `partial_funding` — a GPA-tiered tuition discount up to 50% at the top qualifying tier; no deadline extracted (the "December 1" priority deadline carries no year) (see AUTHORITATIVE_SOURCES.md #95) |
+| 96 | University of Rochester Graduate International Funding | United States | UNIVERSITY | rochester.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's fourth USA university source and its second at the graduate level (UT Austin's Harrington Graduate Fellows Program, #88, is the first, nomination-only); no nationality restriction ("the same financial support as domestic students"); deliberately conservative `partial_funding` classification for this single combined PhD+Master's record — the page's own text guarantees full tuition/stipend/health insurance only for admitted PhD students, while Master's applicants only "typically" receive a merit-based tuition scholarship, the same "don't overstate a mixed-tier page" standard already applied to Skoltech's MSc/PhD page (#90); `title_selectors = ()` falls through to an external_id-derived title since the page names no specific scholarship; no deadline extracted (funding is decided at admission, no separate deadline exists) (see AUTHORITATIVE_SOURCES.md #96) |
+
+**(2026-09-07, USA undergraduate/postgraduate follow-up)** American
+University's and AAUW's own international-scholarship/fellowship pages
+both return an active Cloudflare-managed HTTP 403 (confirmed via the
+`server: cloudflare`/`__cf_bm` response-header signature) despite
+unrestrictive `robots.txt` files. East-West Center Graduate Degree
+Fellowships returned HTTP 403 and is regionally scoped to Asia/Pacific
+regardless. Iowa State University's International Merit Scholarships is
+a real, credible, unblocked alternative undergraduate candidate, noted
+for a future pass rather than added as redundant coverage alongside
+Miami University's scholarship above. See AUTHORITATIVE_SOURCES.md
+#96's "Researched this pass (2026-09-07, USA undergraduate/postgraduate
+follow-up), not integrated" note for full detail.
+
 **(2026-09-07, England undergraduate/masters follow-up)** Royal
 Holloway's own parallel International Masters Scholarship (Sept 2027/
 Jan 2028) is restricted to an explicit list of ~45 countries by

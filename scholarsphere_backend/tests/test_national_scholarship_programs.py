@@ -39,6 +39,8 @@ from app.services.national_scholarship_programs import (
     RotaryPeaceFellowshipSource,
     RoyalHollowayInternationalUgScholarshipSource,
     UcuRosemaryOrrScholarshipSource,
+    MiamiOhInternationalMeritScholarshipSource,
+    RochesterGraduateScholarshipSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3523,3 +3525,94 @@ def test_ucu_rosemary_orr_scholarship_has_no_robots_txt_restrictions() -> None:
     disallow this content path (verified directly with Python's
     `urllib.robotparser`)."""
     assert UcuRosemaryOrrScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Miami University (Ohio) International Merit Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_miamioh_international_merit_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The overview page is a genuine multi-record accordion hub (four
+    distinct scholarships); isolated via `div.accordion-primary__
+    accordion`, the first matching item in document order, which
+    resolves to exactly the International Merit Scholarship section -
+    verified the other three scholarships' text does not leak in."""
+    source = MiamiOhInternationalMeritScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(
+            return_value=_fixture("miamioh_international_merit_scholarship.html")
+        ),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "miamioh-international-merit-scholarship"
+    assert opportunity.title == "International Merit Scholarship"
+    assert opportunity.country == "United States"
+    assert opportunity.provider_name == "Miami University (Ohio)"
+    assert opportunity.description is not None
+    assert "Up to 50% of tuition" in opportunity.description
+    assert "Presidential Fellows" not in opportunity.description
+    assert "#YouAreWelcomeHere" not in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_miamioh_international_merit_scholarship_has_no_robots_txt_restrictions() -> (
+    None
+):
+    """`miamioh.edu/robots.txt` does not disallow this content path
+    (verified directly with Python's `urllib.robotparser`)."""
+    assert (
+        MiamiOhInternationalMeritScholarshipSource.min_request_interval_seconds
+        == 2.0
+    )
+
+
+# --- University of Rochester graduate international funding: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_rochester_graduate_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The page states two different funding levels by degree - full
+    funding guaranteed for admitted PhD students, a merit-based tuition
+    scholarship only "typically" for Master's - deliberately
+    conservative `partial_funding` since not every admitted student on
+    this combined record gets the PhD-level guarantee."""
+    source = RochesterGraduateScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("rochester_graduate_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == (
+        "rochester-graduate-international-scholarship"
+    )
+    assert opportunity.title == "Rochester Graduate International Scholarship"
+    assert opportunity.country == "United States"
+    assert opportunity.provider_name == "University of Rochester"
+    assert opportunity.description is not None
+    assert "PhD candidates" in opportunity.description
+    assert "merit-based tuition scholarship" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_rochester_graduate_scholarship_has_no_robots_txt_restrictions() -> None:
+    """`rochester.edu/robots.txt`'s generic `User-Agent: *` block
+    disallows only a named list of unrelated administrative/report
+    paths, not this content path."""
+    assert RochesterGraduateScholarshipSource.min_request_interval_seconds == 2.0

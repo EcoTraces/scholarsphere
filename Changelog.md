@@ -28,6 +28,69 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — USA follow-up: two new university sources added
+
+### Added
+- **Miami University (Ohio) — International Merit Scholarship**
+  (`app/services/national_scholarship_programs.py::
+  MiamiOhInternationalMeritScholarshipSource`, source #95 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 98th registered
+  `OpportunitySource`, in response to a "find USA undergraduate and
+  postgraduate university scholarship" request. This platform's second
+  USA undergraduate university source (Vanderbilt's Cornelius
+  Vanderbilt Scholarship, #89, is the first).
+  - A GPA-tiered tuition discount (up to 50% of tuition at the top
+    qualifying tier) awarded automatically to admitted international
+    first-year undergraduates, no separate scholarship application.
+    Correctly `partial_funding` (a tuition discount only).
+  - Isolated from a genuine four-item multi-record accordion hub via
+    `div.accordion-primary__accordion`'s first-match-in-document-order
+    behavior, verified directly that the other three sibling
+    scholarships' text does not leak into this record.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture
+    (`tests/fixtures/miamioh_international_merit_scholarship.html`).
+- **University of Rochester — Graduate International Funding**
+  (`app/services/national_scholarship_programs.py::
+  RochesterGraduateScholarshipSource`, source #96 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 99th registered
+  `OpportunitySource`. This platform's second USA graduate-level
+  university source (UT Austin's Harrington Graduate Fellows Program,
+  #88, is the first, nomination-only).
+  - A combined PhD+Master's funding record: PhD candidates receive a
+    guaranteed full tuition scholarship, stipend, and health insurance
+    via assistantship, while Master's applicants only "typically"
+    receive a merit-based tuition scholarship. Deliberately
+    conservative `partial_funding` classification for the combined
+    record since not every admitted student gets the PhD-level
+    guarantee — the same standard already applied to Skoltech's
+    combined MSc/PhD page (#90).
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/rochester_graduate_scholarship.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected four further USA candidates this same pass:
+  - **American University** and **AAUW (American Association of
+    University Women) International Fellowships** — both return an
+    active Cloudflare-managed HTTP 403 (confirmed via response headers)
+    despite unrestrictive `robots.txt` files.
+  - **East-West Center Graduate Degree Fellowships** — HTTP 403, and
+    regionally scoped to Asia/Pacific regardless.
+  - **Iowa State University — International Merit Scholarships** — a
+    real, credible, unblocked alternative undergraduate candidate,
+    noted for a future pass rather than added as redundant coverage.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Russia follow-up: no new source qualified
 
 ### Added

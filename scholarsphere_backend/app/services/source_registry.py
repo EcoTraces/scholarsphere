@@ -592,6 +592,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "miamioh_international_merit_scholarship": {
+        "source_name": "Miami University (Ohio) International Merit Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "rochester_graduate_scholarship": {
+        "source_name": "University of Rochester Graduate International Funding",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -728,6 +740,12 @@ def _base_urls() -> dict[str, str]:
             settings.royal_holloway_international_ug_scholarship_base_url
         ),
         "ucu_rosemary_orr_scholarship": settings.ucu_rosemary_orr_scholarship_base_url,
+        "miamioh_international_merit_scholarship": (
+            settings.miamioh_international_merit_scholarship_base_url
+        ),
+        "rochester_graduate_scholarship": (
+            settings.rochester_graduate_scholarship_base_url
+        ),
     }
 
 
@@ -846,6 +864,8 @@ async def seed_opportunity_sources(
         "universiapolis_international_grant": now + timedelta(hours=24),
         "royal_holloway_international_ug_scholarship": now + timedelta(hours=24),
         "ucu_rosemary_orr_scholarship": now + timedelta(hours=24),
+        "miamioh_international_merit_scholarship": now + timedelta(hours=24),
+        "rochester_graduate_scholarship": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

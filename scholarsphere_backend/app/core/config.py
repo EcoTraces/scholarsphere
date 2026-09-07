@@ -756,6 +756,22 @@ class Settings(BaseSettings):
     # own independently configurable base URL by established convention.
     ucu_rosemary_orr_scholarship_base_url: str = "https://www.uu.nl"
 
+    # Miami University (Ohio) - International Merit Scholarship, awarded
+    # automatically to admitted international undergraduates, no separate
+    # application. Confirmed 2026-09-07: `miamioh.edu/robots.txt` does not
+    # disallow this content path (verified with Python's
+    # `urllib.robotparser`).
+    miamioh_international_merit_scholarship_base_url: str = "https://miamioh.edu"
+
+    # University of Rochester - graduate funding for international
+    # students (PhD: full tuition scholarship, stipend, and health
+    # insurance via assistantship; Master's: typically a merit-based
+    # tuition scholarship only - deliberately conservative
+    # `partial_funding` classification since not every admitted student
+    # gets the PhD-level full funding). Confirmed 2026-09-07:
+    # `rochester.edu/robots.txt` does not disallow this content path.
+    rochester_graduate_scholarship_base_url: str = "https://www.rochester.edu"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -940,6 +956,8 @@ class Settings(BaseSettings):
         "universiapolis_international_grant_base_url",
         "royal_holloway_international_ug_scholarship_base_url",
         "ucu_rosemary_orr_scholarship_base_url",
+        "miamioh_international_merit_scholarship_base_url",
+        "rochester_graduate_scholarship_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:
