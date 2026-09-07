@@ -4512,3 +4512,130 @@ class CmuqNeedBasedGrantSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().cmuq_need_based_grant_base_url
+
+
+class JcuGlobalExplorerScholarshipSource(_SingleProgramSource):
+    """John Cabot University (Rome) - Global Explorer Scholarship, a
+    full-tuition undergraduate merit award described on JCU's own
+    "Undergraduate Financial Aid" page.
+
+    Confirmed 2026-09-07: `johncabot.edu/robots.txt` explicitly allows
+    `ClaudeBot`/`Claude-User` (among other AI-agent user-agents) and
+    sets no restriction on this content path at all (`Allow: /`),
+    updated as recently as 2026-07-15 per the file's own comment.
+
+    Deliberately evergreen, not tied to a dated annual cycle - unlike
+    every major Italian public/private university's own flagship merit
+    scholarship checked this pass (Bocconi's ISU and Graduate Merit
+    Awards, Politecnico di Milano's Merit-based scholarships, LUISS's
+    Master's Scholarships, University of Bologna's Unibo Actions/
+    International Talents), each of which had an already-passed a.y.
+    2026-27 application window (deadlines in the Jan-June 2026 range)
+    with the a.y. 2027-28 cycle not yet published as of this research
+    date - the well-documented "no stale-cycle guessing" rule applied
+    consistently here by rejecting each in turn. This record is instead
+    described as an ongoing policy ("Awarded to up to three students in
+    each incoming Fall class"), not a specific dated call.
+
+    Country coverage / eligibility: no nationality restriction stated
+    anywhere on the page - Sierra Leone applicants are eligible.
+    Confirmed directly that JCU treats "International Students
+    (non-US/Italian)" as a normal, explicitly-named applicant category
+    for financial documentation purposes, not an edge case.
+
+    Multi-record page, isolated via a scoped selector: the overview
+    page separately describes several other scholarships (Presidential
+    Scholarship, Expansion Scholarship for Mexico/Central America/South
+    America/Africa, The Bulgari Scholarship restricted to one named
+    Greek high school, Dean's List Scholarship) alongside this one.
+    Isolated via `div.cell:not(.pageInfo) > div.introTextArea` -
+    verified directly via a BeautifulSoup structural walk that, among
+    twelve same-class `div.introTextArea` blocks on the page, this
+    selector (excluding the page-level "pageInfo" variant) lands
+    specifically on the short featured intro block naming the Global
+    Explorer Scholarship, not on any of the other scholarships' text.
+
+    Funding: "covers full tuition" - explicitly does not cover "housing,
+    travel, books, or other miscellaneous costs" per the page's general
+    Merit-Based Scholarships introduction, so `funding_type =
+    "partial_funding"` (a tuition-only award), consistent with this
+    project's "full tuition alone is not fully funded" standard.
+
+    Deliberately extracts no deadline (`deadline_keywords = ()`): the
+    shared `collect()` logic searches the deadline keyword across the
+    *entire* fetched page, not just the scoped `content_selectors`
+    block - and this wider page's one "deadline" match ("APPLICATION
+    DEADLINE - June 30, 2026") belongs to the unrelated, Greek-high-
+    school-restricted Bulgari Scholarship elsewhere on the same page.
+    Confirmed this directly by first leaving the default
+    `deadline_keywords` in place, observing the wrong date attach in a
+    `collect()` simulation, then disabling deadline extraction entirely
+    - never shipped the wrong date.
+    """
+
+    source_code = "jcu_global_explorer_scholarship"
+    overview_path = "/admissions/financial-aid/scholarships/undergraduate.aspx"
+    title_selectors = ("div.cell:not(.pageInfo) > div.introTextArea h2",)
+    content_selectors = ("div.cell:not(.pageInfo) > div.introTextArea",)
+    deadline_keywords = ()
+    provider_name = "John Cabot University"
+    country = "Italy"
+    external_id = "jcu-global-explorer-scholarship"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().jcu_global_explorer_scholarship_base_url
+
+
+class SantannaPhdFundingSource(_SingleProgramSource):
+    """Sant'Anna School of Advanced Studies (Scuola Superiore Sant'Anna,
+    Pisa) - the general PhD funding policy stated on the school's own
+    PhD programmes hub page.
+
+    Confirmed 2026-09-07: `santannapisa.it/robots.txt` does not disallow
+    this content path.
+
+    Genuinely evergreen: "Sant'Anna's PhD programmes... are designed for
+    bright young graduates, from Italy and abroad, who are admitted
+    after a selective examination... All positions are fully-funded:
+    the PhD student scholarship is renewed annually following a
+    successful assessment. There are no tuition fees for the enrolment
+    to the PhD." This is a standing policy statement, not a specific
+    dated call - Sant'Anna's own separate "Admission requirements" FAQ
+    page confirms the annual call is "usually published each year in
+    February and remains open for at least two to three months," so
+    unlike the specific 2026/2027 call itself (whose window has already
+    closed by this research date), this general funding-structure
+    description is not stale.
+
+    Country coverage / eligibility: explicitly "from Italy and abroad" -
+    no nationality restriction, Sierra Leone included.
+
+    Funding: "All positions are fully-funded... There are no tuition
+    fees" - genuinely `funding_type = "fully_funded"`, not merely a
+    tuition waiver.
+
+    Multi-record page, isolated via document order: the wider page is a
+    large hub of individual cards for all ten-plus PhD programmes
+    (BioRobotics, Agrobiodiversity, Economics, Law, etc.) plus donor/
+    Palestine-specific/PNRR-specific scholarship call-outs. Isolated via
+    `article p` - the *first* paragraph in the article, appearing
+    immediately after the page's `<h1>` and before any of the
+    programme-specific cards - verified directly via a BeautifulSoup
+    structural walk that none of the individual programmes' or special
+    calls' text leaks in.
+
+    Deliberately extracts no deadline: no date literal appears in this
+    general policy paragraph.
+    """
+
+    source_code = "santanna_phd_funding"
+    overview_path = "/en/training/phd-programmes"
+    content_selectors = ("article p",)
+    provider_name = "Sant'Anna School of Advanced Studies"
+    country = "Italy"
+    external_id = "santanna-phd-funding"
+    funding_type = "fully_funded"
+
+    def _base_url(self) -> str:
+        return get_settings().santanna_phd_funding_base_url

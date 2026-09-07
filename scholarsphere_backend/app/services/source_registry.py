@@ -622,6 +622,18 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "jcu_global_explorer_scholarship": {
+        "source_name": "John Cabot University Global Explorer Scholarship",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
+    "santanna_phd_funding": {
+        "source_name": "Sant'Anna School of Advanced Studies PhD Funding",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -769,6 +781,10 @@ def _base_urls() -> dict[str, str]:
         ),
         "hbku_graduate_scholarship": settings.hbku_graduate_scholarship_base_url,
         "cmuq_need_based_grant": settings.cmuq_need_based_grant_base_url,
+        "jcu_global_explorer_scholarship": (
+            settings.jcu_global_explorer_scholarship_base_url
+        ),
+        "santanna_phd_funding": settings.santanna_phd_funding_base_url,
     }
 
 
@@ -892,6 +908,8 @@ async def seed_opportunity_sources(
         "qu_international_students_scholarship": now + timedelta(hours=24),
         "hbku_graduate_scholarship": now + timedelta(hours=24),
         "cmuq_need_based_grant": now + timedelta(hours=24),
+        "jcu_global_explorer_scholarship": now + timedelta(hours=24),
+        "santanna_phd_funding": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

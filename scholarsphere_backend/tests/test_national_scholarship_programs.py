@@ -44,6 +44,8 @@ from app.services.national_scholarship_programs import (
     QuInternationalStudentsScholarshipSource,
     HbkuGraduateScholarshipSource,
     CmuqNeedBasedGrantSource,
+    JcuGlobalExplorerScholarshipSource,
+    SantannaPhdFundingSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3754,3 +3756,90 @@ def test_cmuq_need_based_grant_has_no_robots_txt_restrictions() -> None:
     """`qatar.cmu.edu/robots.txt` (`Disallow: /wp-admin/`, `Disallow:
     /cal-event/` only) does not disallow this content path."""
     assert CmuqNeedBasedGrantSource.min_request_interval_seconds == 2.0
+
+
+# --- JCU Global Explorer Scholarship: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_jcu_global_explorer_scholarship_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The overview page separately describes several other
+    scholarships (Presidential, Expansion, The Bulgari Scholarship
+    restricted to one named Greek high school, Dean's List); isolated
+    via `div.cell:not(.pageInfo) > div.introTextArea`, verified none of
+    those leak in. `deadline_keywords = ()` deliberately: the page's
+    one "deadline" match belongs to the unrelated Bulgari Scholarship,
+    confirmed directly by observing the wrong date attach before fixing
+    it."""
+    source = JcuGlobalExplorerScholarshipSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("jcu_global_explorer_scholarship.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "jcu-global-explorer-scholarship"
+    assert opportunity.title == "Global Explorer Scholarship"
+    assert opportunity.country == "Italy"
+    assert opportunity.provider_name == "John Cabot University"
+    assert opportunity.description is not None
+    assert "covers full tuition" in opportunity.description
+    assert "Bulgari" not in opportunity.description
+    assert "Presidential" not in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_jcu_global_explorer_scholarship_has_no_robots_txt_restrictions() -> None:
+    """`johncabot.edu/robots.txt` explicitly allows `ClaudeBot`/
+    `Claude-User` and sets no restriction on this content path."""
+    assert (
+        JcuGlobalExplorerScholarshipSource.min_request_interval_seconds == 2.0
+    )
+
+
+# --- Sant'Anna PhD Funding: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_santanna_phd_funding_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The wider page is a hub of individual cards for all ten-plus PhD
+    programmes plus donor/Palestine-specific/PNRR-specific call-outs;
+    isolated via `article p`, the first paragraph in the article,
+    verified none of those leak in."""
+    source = SantannaPhdFundingSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("santanna_phd_funding.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "santanna-phd-funding"
+    assert opportunity.title == "PhD programmes"
+    assert opportunity.country == "Italy"
+    assert opportunity.provider_name == "Sant'Anna School of Advanced Studies"
+    assert opportunity.description is not None
+    assert "All positions are fully-funded" in opportunity.description
+    assert "from Italy and abroad" in opportunity.description
+    assert "BioRobotics" not in opportunity.description
+    assert "Palestine" not in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
+
+
+def test_santanna_phd_funding_has_no_robots_txt_restrictions() -> None:
+    """`santannapisa.it/robots.txt` does not disallow this content
+    path."""
+    assert SantannaPhdFundingSource.min_request_interval_seconds == 2.0

@@ -250,6 +250,24 @@ AUTHORITATIVE_SOURCES.md #99's "Researched this pass (2026-09-07, Qatar
 undergraduate/postgraduate second follow-up), not integrated" note for
 full detail.
 
+| 100 | John Cabot University Global Explorer Scholarship | Italy | UNIVERSITY | johncabot.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, built for a "find Italian undergraduate and postgraduate university scholarship" request; this registry's first Italy university source (Italian Government Scholarships/MAECI, #19, is government-classified); deliberately evergreen — not tied to a dated annual cycle, unlike every major Italian university checked this pass (Bocconi, Politecnico di Milano, LUISS, Bologna all had already-closed a.y. 2026-27 windows with 2027-28 not yet published); no nationality restriction; isolated from a multi-record page via `div.cell:not(.pageInfo) > div.introTextArea`; `deadline_keywords = ()` set after a `collect()` simulation surfaced a wrong date belonging to an unrelated Greek-high-school-restricted scholarship elsewhere on the same page — caught and fixed before shipping; genuinely `partial_funding` — full tuition only, not living costs (see AUTHORITATIVE_SOURCES.md #100) |
+| 101 | Sant'Anna School of Advanced Studies PhD Funding | Italy | UNIVERSITY | santannapisa.it | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, same pass, this registry's second Italy university source and its first at the postgraduate (PhD) level; deliberately evergreen general funding-policy statement rather than a specific dated call (Sant'Anna's own FAQ confirms its annual PhD call publishes each February and would already be closed by this research date); no nationality restriction ("from Italy and abroad"); isolated via `article p`, the first paragraph before any of the ten-plus programme-specific cards on the wider hub page; genuinely `fully_funded` — "All positions are fully-funded... There are no tuition fees"; no deadline extracted (see AUTHORITATIVE_SOURCES.md #101) |
+
+**(2026-09-07, Italy undergraduate/postgraduate follow-up)** Every
+major Italian university checked (Bocconi, Politecnico di Milano,
+LUISS, University of Bologna, Politecnico di Torino) hit the same
+structural wall: an already-closed a.y. 2026-27 scholarship/application
+window with the a.y. 2027-28 cycle not yet published, or (Bologna) a
+PDF-based annual "bando" format unsuitable for reliable scraping, or
+(Politecnico di Torino) a discontinued flagship programme
+("TOPoliTO," explicitly labeled "past academic years") alongside dozens
+of narrowly country-specific programmes. Politecnico di Torino's
+`international.polito.it` subdomain was also genuinely unreachable from
+this environment (an egress proxy policy denial, not a real-world
+block) and recorded honestly as such. See AUTHORITATIVE_SOURCES.md
+#101's "Researched this pass (2026-09-07, Italy undergraduate/
+postgraduate follow-up), not integrated" note for full detail.
+
 **(2026-09-07, England undergraduate/masters follow-up)** Royal
 Holloway's own parallel International Masters Scholarship (Sept 2027/
 Jan 2028) is restricted to an explicit list of ~45 countries by

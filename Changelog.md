@@ -28,6 +28,87 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Italy follow-up: two new university sources added
+
+### Added
+- **John Cabot University (Rome) — Global Explorer Scholarship**
+  (`app/services/national_scholarship_programs.py::
+  JcuGlobalExplorerScholarshipSource`, source #100 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 103rd registered
+  `OpportunitySource`, in response to a "find Italian undergraduate and
+  postgraduate university scholarship" request. This platform's first
+  Italy university source (the existing Italian Government
+  Scholarships/MAECI source, #19, is government-classified).
+  - A full-tuition undergraduate merit award, deliberately evergreen
+    rather than tied to a dated annual cycle — every major Italian
+    university checked this pass (Bocconi, Politecnico di Milano,
+    LUISS, Bologna) had an already-closed a.y. 2026-27 window with
+    2027-28 not yet published. Correctly `partial_funding` (tuition
+    only, not living costs).
+  - Isolated from a multi-record page via
+    `div.cell:not(.pageInfo) > div.introTextArea`. Caught and fixed a
+    real bug before shipping: a first `collect()` simulation surfaced a
+    wrong deadline belonging to an unrelated, Greek-high-school-
+    restricted scholarship elsewhere on the same page (the shared
+    `collect()` logic searches deadline keywords across the *entire*
+    page, not just the scoped content selector) — fixed with
+    `deadline_keywords = ()`.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture
+    (`tests/fixtures/jcu_global_explorer_scholarship.html`).
+- **Sant'Anna School of Advanced Studies (Pisa) — PhD Funding**
+  (`app/services/national_scholarship_programs.py::
+  SantannaPhdFundingSource`, source #101 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 104th registered
+  `OpportunitySource`. This platform's second Italy university source,
+  and its first at the postgraduate (PhD) level.
+  - A genuinely fully-funded PhD programme ("All positions are
+    fully-funded... There are no tuition fees"), open to "Italy and
+    abroad." Deliberately represents Sant'Anna's general, evergreen
+    funding-policy statement rather than a specific dated call, since
+    the school's own FAQ confirms its annual PhD call publishes each
+    February and would already be closed by this research date.
+  - Isolated from a large multi-programme hub page via `article p`,
+    the first paragraph before any of the ten-plus programme-specific
+    cards.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/santanna_phd_funding.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected several further Italy candidates this same
+  pass, all hitting the same structural wall (an already-closed a.y.
+  2026-27 window, not yet republished for 2027-28):
+  - **Bocconi University** — ISU Bocconi Scholarship and Graduate
+    Merit Awards a.y. 2026-27, both tied to already-concluded
+    admission rounds.
+  - **Politecnico di Milano** — Merit-based scholarships, restricted to
+    an already-closed Early Bird application window; its separate
+    "Invest your Talent in Italy" programme excludes Sierra Leone by
+    country list.
+  - **LUISS University** — Master's Scholarships 2026/2027, both
+    application windows already closed.
+  - **University of Bologna** — Unibo Actions/International Talents,
+    a PDF-based annual "bando" system unsuitable for reliable scraping
+    regardless of cycle timing.
+  - **Politecnico di Torino** — its flagship "TOPoliTO" scholarship is
+    explicitly labeled discontinued; its one currently-active
+    nationality-unrestricted-adjacent programme is Afghan-nationals-only;
+    its `international.polito.it` subdomain was also genuinely
+    unreachable from this environment (an egress proxy policy denial,
+    recorded honestly as an environment limitation, not a real-world
+    block).
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Qatar second follow-up: CMU-Q need-based grant added
 
 ### Added

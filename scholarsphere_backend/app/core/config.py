@@ -795,6 +795,25 @@ class Settings(BaseSettings):
     # this project's earlier UrFU precedent).
     cmuq_need_based_grant_base_url: str = "https://www.qatar.cmu.edu"
 
+    # John Cabot University (Rome) - Global Explorer Scholarship, an
+    # evergreen (not tied to a dated annual "call"/"bando" cycle,
+    # unlike every major Italian public/private university's own merit
+    # scholarship page checked this pass - Bocconi, Politecnico di
+    # Milano, LUISS, and Bologna all had already-passed a.y. 2026-27
+    # application windows with the 2027-28 cycle not yet published)
+    # full-tuition undergraduate merit award. Confirmed 2026-09-07:
+    # `johncabot.edu/robots.txt` explicitly allows `ClaudeBot`/
+    # `Claude-User` and sets no restriction on this content path.
+    jcu_global_explorer_scholarship_base_url: str = "https://www.johncabot.edu"
+
+    # Sant'Anna School of Advanced Studies (Scuola Superiore Sant'Anna,
+    # Pisa) - the general, evergreen PhD funding policy statement on the
+    # school's own PhD programmes hub page ("All positions are
+    # fully-funded... There are no tuition fees"), not tied to any
+    # specific dated call. Confirmed 2026-09-07:
+    # `santannapisa.it/robots.txt` does not disallow this content path.
+    santanna_phd_funding_base_url: str = "https://www.santannapisa.it"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -984,6 +1003,8 @@ class Settings(BaseSettings):
         "qu_international_students_scholarship_base_url",
         "hbku_graduate_scholarship_base_url",
         "cmuq_need_based_grant_base_url",
+        "jcu_global_explorer_scholarship_base_url",
+        "santanna_phd_funding_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

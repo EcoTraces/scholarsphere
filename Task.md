@@ -5851,3 +5851,156 @@ for the full dated history.
       assertion, 99 -> 100 registered sources). The fixture
       (`tests/fixtures/cmuq_need_based_grant.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-07)** Italy follow-up: "find Italian undergraduate and
+      postgraduate university scholarship" - this platform's only prior
+      Italy source (Italian Government Scholarships/MAECI, #19) is
+      government-classified, so this pass looked for genuine
+      university-administered scholarships covering both degree levels.
+
+      Checked five major Italian universities live before finding
+      anything usable: Bocconi, Politecnico di Milano, LUISS, University
+      of Bologna, and Politecnico di Torino. Every single one hit the
+      same structural wall - read each candidate's actual application/
+      deadline dates rather than trusting a page's generic-sounding
+      title or a "2026-27" label alone:
+      - **Bocconi's ISU Bocconi Scholarship** page itself states
+        "A.Y. 2023-24" - three years stale. Its "Introduction to ISU
+        Bocconi Scholarship a.y. 2026-27 - Timeline" page looked
+        current by title, but reading the actual application windows
+        (four rounds, January-June 2026) showed all had closed, and the
+        page's own "ATTENTION" banner confirmed 2027-28 info would not
+        be published "until the end of October 2026." Its "Bocconi
+        Graduate merit Awards a.y. 2026-27" page (a genuinely strong
+        100%-tuition Master's award) was tied to the same closed rounds
+        - confirmed via search that Bocconi's 2027-28 admission rounds
+        are already open, but the matching scholarship pages are not.
+      - **Politecnico di Milano's Merit-based scholarships** page named
+        the current "Academic Year 2026/2027" call, but restricted
+        eligibility to Early Bird applicants who paid between October 1
+        and December 1, 2025 - already closed. Its "Invest your Talent
+        in Italy" alternative lists an explicit set of eligible
+        countries that does not include Sierra Leone - checked
+        explicitly rather than assumed included.
+      - **LUISS's Master's Scholarships 2026/2027** had two application
+        windows, both already closed (Feb 23-Mar 20, 2026 and
+        Mar 15-Apr 20, 2026).
+      - **University of Bologna's Unibo Actions/International Talents**
+        scheme is administered through yearly PDF "bando" documents
+        rather than an evergreen HTML page - the most recent one found
+        had a 30 May 2025 deadline, already closed, and the PDF format
+        itself is a poor fit for this platform's HTML-scraping
+        architecture regardless of cycle timing.
+      - **Politecnico di Torino's** own financial-aid page explicitly
+        labels its flagship, nationality-unrestricted "TOPoliTO"
+        scholarship under "Projects offered in the past academic years"
+        - read carefully enough to notice this explicit discontinuation
+        label rather than treating a still-live page as proof the
+        programme is still running. Its one currently-active broadly-
+        described scholarship is restricted to Afghan nationals; the
+        rest of the page is a catalogue of dozens of narrow country/
+        campus-specific programmes. Separately, its
+        `international.polito.it` subdomain (hosting the "TOPoliTO"
+        detail pages) returned a `connect_rejected` error from this
+        environment's own egress proxy - recognized this as an
+        environment-specific access limitation (an "organization
+        policy" denial reported by the proxy itself), not a real-world
+        bot-block or robots.txt restriction, and documented it as such
+        rather than conflating the two categories.
+
+      Given this consistent pattern (Italian universities' own
+      flagship scholarship pages sit in a publication gap every
+      September, between the just-closed current cycle and the
+      not-yet-published next one), pivoted to searching specifically
+      for **evergreen** scholarship descriptions - pages describing an
+      ongoing policy rather than a specific dated call - and found two:
+
+      Found and **implemented** the **John Cabot University Global
+      Explorer Scholarship** as source #100 (undergraduate):
+      - JCU is an American-style English-taught university in Rome;
+        its own "Undergraduate Financial Aid" page describes the Global
+        Explorer Scholarship as "Awarded to up to three students in
+        each incoming Fall class" - an ongoing policy statement, not a
+        specific year's call, verified directly against the pattern of
+        every rejected Italian-university page above before trusting
+        it as genuinely different.
+      - Noticed `johncabot.edu/robots.txt` explicitly lists `Allow: /`
+        for `ClaudeBot`, `Claude-User`, and other named AI-agent
+        user-agents specifically (updated 2026-07-15 per the file's own
+        comment) - a genuinely maintained, AI-crawler-aware site.
+      - The overview page turned out to be a multi-record page (also
+        describing Presidential, Expansion, Bulgari, and Dean's List
+        scholarships). Found, among twelve same-class
+        `div.introTextArea` blocks on the page, a scoped selector
+        (`div.cell:not(.pageInfo) > div.introTextArea`) that isolates
+        exactly the short featured Global Explorer blurb - verified via
+        a BeautifulSoup structural walk that none of the other
+        scholarships' text leaks in.
+      - **Caught a real bug before shipping**: ran a `collect()`
+        simulation against the real fixture before writing any test (as
+        this project's standing discipline requires) and got back
+        `deadline: 2026-06-30` - wrong, since I had deliberately verified
+        no date literal appears in the scoped content block. Traced the
+        cause: the shared `collect()` logic's deadline search runs
+        against the *entire* fetched page text, not the scoped
+        `content_selectors` block, so it picked up the wider page's one
+        "deadline" match - which belongs to the unrelated, one-Greek-
+        high-school-restricted Bulgari Scholarship elsewhere on the
+        page. Fixed by setting `deadline_keywords = ()` to disable
+        deadline extraction entirely for this source, then re-ran the
+        simulation and confirmed `deadline: None` before proceeding.
+      - Classified `partial_funding` correctly: "covers full tuition"
+        only, explicitly excluding "housing, travel, books, or other
+        miscellaneous costs" per the page's own general Merit-Based
+        Scholarships introduction.
+      - Confirmed no nationality restriction: JCU's own financial-
+        documentation instructions name "International Students
+        (non-US/Italian)" as a normal, explicitly-listed applicant
+        category, not an edge case - Sierra Leone eligible.
+
+      Found and **implemented** the **Sant'Anna School of Advanced
+      Studies PhD Funding** record as source #101 (postgraduate):
+      - Sant'Anna's own "Admission requirements" FAQ page confirmed,
+        in its own words, that the annual PhD call "is usually
+        published each year in February and remains open for at least
+        two to three months" - meaning the specific dated 2026/2027
+        call would already be closed by this research date, same as
+        every rejected Italian candidate above. Rather than reject
+        Sant'Anna entirely on that basis, looked specifically for a
+        general, non-dated funding-policy statement instead, and found
+        one on the school's own PhD programmes hub page: "All positions
+        are fully-funded... There are no tuition fees for the enrolment
+        to the PhD" - describing the standing policy, not a specific
+        call's terms.
+      - Confirmed no nationality restriction directly from the page's
+        own wording: "designed for bright young graduates, from Italy
+        and abroad."
+      - The wider hub page is a large multi-record catalogue of
+        ten-plus individual PhD programme cards (BioRobotics,
+        Agrobiodiversity, Economics, Law, etc.) plus donor-facing,
+        Palestine-specific, and PNRR-specific call-outs. Found that the
+        general policy statement is literally the first `<p>` tag in
+        the page's `<article>`, appearing before any of those cards -
+        isolated via `article p` with no need for index arithmetic,
+        verified directly that none of the individual programmes' or
+        special calls' text leaks in.
+      - Classified `fully_funded` correctly: both the stipend and the
+        tuition-fee waiver are stated as universal ("All positions,"
+        "There are no tuition fees"), not merit-tiered or conditional
+        like several other records classified `partial_funding` this
+        session.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. `collect()` simulations against both real fixtures, run
+      before any test was written, confirmed title, provider, country,
+      funding_type, and (after the JCU deadline fix) `deadline = None`
+      for both sources, and specifically confirmed the JCU record
+      excludes "Bulgari" and "Presidential" text while the Sant'Anna
+      record excludes "BioRobotics" and "Palestine" text. Full backend
+      suite green afterward, 849 passed / 25 skipped (up from 845
+      passed/25 skipped - four new tests, plus
+      `test_opportunity_import.py`'s updated source-count assertion,
+      100 -> 102 registered sources). Both fixtures
+      (`tests/fixtures/jcu_global_explorer_scholarship.html`,
+      `tests/fixtures/santanna_phd_funding.html`) were captured
+      unmodified from their live fetches.

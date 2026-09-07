@@ -6637,6 +6637,205 @@ the first).
   awarded "each summer" — a continuing-student renewal programme, not
   an incoming-applicant scholarship. Not integrated for both reasons.
 
+## 100. John Cabot University (Rome) — Global Explorer Scholarship
+
+Researched 2026-09-07, in response to a "find Italian undergraduate and
+postgraduate university scholarship" request. This platform's first
+Italy **university** source (the existing Italian Government
+Scholarships source, #19, is MAECI/government-classified).
+
+- **Organization**: John Cabot University, an American-style,
+  English-taught university in Rome
+- **Route code**: `jcu-global-explorer-scholarship`
+  (`jcu_global_explorer_scholarship` internally)
+- **Official domain / base URL**: `https://www.johncabot.edu`
+  (`JCU_GLOBAL_EXPLORER_SCHOLARSHIP_BASE_URL`)
+- **Opportunity types**: Scholarship (undergraduate) — "Awarded to up
+  to three students in each incoming Fall class, this competitive
+  scholarship covers full tuition." `funding_type = "partial_funding"`
+  — explicitly does not cover "housing, travel, books, or other
+  miscellaneous costs" per the page's general Merit-Based Scholarships
+  introduction, consistent with this project's "full tuition alone is
+  not fully funded" standard.
+- **Country coverage / eligibility**: no nationality restriction stated
+  anywhere on the page — Sierra Leone applicants are eligible.
+  Confirmed directly that JCU treats "International Students
+  (non-US/Italian)" as a normal, explicitly-named applicant category
+  for financial documentation purposes, not an edge case.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `johncabot.edu/robots.txt`
+  explicitly lists `Allow: /` for `ClaudeBot`, `Claude-User`,
+  `Claude-SearchBot`, and several other named AI-agent user-agents
+  (alongside a blanket `Allow: /` for `User-agent: *`), last updated
+  2026-07-15 per the file's own comment — no restriction of any kind.
+- **API / RSS / Sitemap**: A sitemap exists
+  (`johncabot.edu/sitemap.xml`) but is not itself scraped
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately evergreen source, not a dated annual cycle**: every
+    major Italian public/private university's own flagship merit
+    scholarship checked this pass turned out to describe an
+    already-closed a.y. 2026-27 application window with the a.y.
+    2027-28 cycle not yet published — Bocconi's ISU Bocconi Scholarship
+    (application rounds "January 30 to February 13, 2026" through
+    "June 5 to June 15, 2026," all closed) and its Graduate Merit
+    Awards a.y. 2026-27 (tied to the same closed admission rounds);
+    Politecnico di Milano's Merit-based scholarships (Early Bird
+    application window "October 1st 2025 and December 1st 2025,"
+    closed); LUISS's Master's Scholarships 2026/2027 (deadlines
+    "February 23 to March 20, 2026" and "March 15 to April 20, 2026,"
+    both closed); University of Bologna's Unibo Actions/International
+    Talents (a PDF-based annual "bando" system, most recently closed
+    30 May 2025). JCU's Global Explorer Scholarship is instead
+    described as a standing policy ("Awarded to up to three students in
+    each incoming Fall class"), not a specific dated call — genuinely
+    not stale, verified directly rather than assumed from the page's
+    generic-sounding title.
+  - **Multi-record page, isolated via a scoped selector**: the overview
+    page separately describes several other scholarships (Presidential
+    Scholarship, Expansion Scholarship for Mexico/Central
+    America/South America/Africa, The Bulgari Scholarship restricted to
+    one named Greek high school, Dean's List Scholarship) alongside
+    this one. Isolated via `div.cell:not(.pageInfo) > div.introTextArea`
+    — verified directly via a BeautifulSoup structural walk that, among
+    twelve same-class `div.introTextArea` blocks on the page, this
+    selector (excluding the page-level "pageInfo" variant) lands
+    specifically on the short featured intro block naming the Global
+    Explorer Scholarship, not on any of the other scholarships' text.
+  - **`deadline_keywords = ()`, caught and fixed before shipping**: the
+    shared `collect()` logic searches the deadline keyword across the
+    *entire* fetched page, not just the scoped `content_selectors`
+    block. A first `collect()` simulation against the real fixture,
+    run deliberately before writing any test, surfaced a wrong date
+    (2026-06-30) — traced to this wider page's one "deadline" match
+    ("APPLICATION DEADLINE - June 30, 2026"), which belongs to the
+    unrelated, Greek-high-school-restricted Bulgari Scholarship
+    elsewhere on the same page, not to Global Explorer. Fixed by
+    disabling deadline extraction entirely for this source rather than
+    shipping the wrong date.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/jcu_global_explorer_scholarship.html`).
+
+## 101. Sant'Anna School of Advanced Studies (Pisa) — PhD Funding
+
+Researched 2026-09-07, the same Italy pass as John Cabot University's
+Global Explorer Scholarship above. This platform's second Italy
+university source, and its first at the **postgraduate (PhD)** level.
+
+- **Organization**: Sant'Anna School of Advanced Studies (Scuola
+  Superiore Sant'Anna, Pisa)
+- **Route code**: `santanna-phd-funding` (`santanna_phd_funding`
+  internally)
+- **Official domain / base URL**: `https://www.santannapisa.it`
+  (`SANTANNA_PHD_FUNDING_BASE_URL`)
+- **Opportunity types**: Fellowship (PhD) — "All positions are
+  fully-funded: the PhD student scholarship is renewed annually
+  following a successful assessment. There are no tuition fees for the
+  enrolment to the PhD." `funding_type = "fully_funded"`.
+- **Country coverage / eligibility**: "designed for bright young
+  graduates, from Italy and abroad" — no nationality restriction,
+  Sierra Leone included.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `santannapisa.it/robots.txt` does
+  not disallow this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Deliberately evergreen, not a dated call**: Sant'Anna's own
+    separate "Admission requirements" FAQ page confirms the annual PhD
+    call is "usually published each year in February and remains open
+    for at least two to three months" — meaning the specific a.y.
+    2026/2027 call itself would already be closed by this research
+    date, the same stale-cycle problem hit at every major Italian
+    university checked this pass. This record deliberately represents
+    only the general, standing funding-structure policy statement
+    instead ("All positions are fully-funded... There are no tuition
+    fees"), which is not tied to any specific call's dates.
+  - **Multi-record page, isolated by document order**: the wider page
+    is a large hub of individual cards for all ten-plus PhD programmes
+    (BioRobotics, Agrobiodiversity, Economics, Law, etc.) plus donor-
+    facing, Palestine-specific, and PNRR-specific scholarship call-outs.
+    Isolated via `article p` — the *first* paragraph in the article,
+    appearing immediately after the page's `<h1>` and before any of the
+    programme-specific cards — verified directly via a BeautifulSoup
+    structural walk that none of the individual programmes' or special
+    calls' text leaks in.
+  - **Deliberately extracts no deadline**: no date literal appears in
+    this general policy paragraph.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/santanna_phd_funding.html`).
+
+### Researched this pass (2026-09-07, Italy undergraduate/postgraduate follow-up), not integrated
+
+Checked several major Italian universities live before settling on the
+two sources above — all hit the same structural wall (an already-closed
+a.y. 2026-27 application/scholarship window, with the a.y. 2027-28
+cycle not yet published as of this research date):
+
+- **Bocconi University** — the "ISU Bocconi Scholarship" overview page
+  itself describes "A.Y. 2023-24" (three years stale). The "Introduction
+  to ISU Bocconi Scholarship a.y. 2026-27 - Timeline" page is more
+  current in title, but every application window it lists (four rounds
+  spanning January-June 2026) has already closed, and its own
+  "ATTENTION" banner states "Updated information for the 2027–2028
+  academic year will be published by the end of October 2026." The
+  "Bocconi Graduate merit Awards a.y. 2026-27" page (a genuinely strong
+  100%-tuition-waiver Master's merit award, no nationality restriction)
+  is tied to the same already-concluded admission rounds; confirmed via
+  search that Bocconi's a.y. 2027-28 Master's admission rounds are
+  already open, but the corresponding funding/scholarship pages for
+  that cycle are not yet published.
+- **Politecnico di Milano (POLIMI)** — its "Merit-based scholarships"
+  page names the current "Call for application for merit-based
+  international scholarships (Academic Year 2026/2027)," but restricts
+  eligibility to applicants who paid the Early Bird application fee
+  "between October 1st 2025 and December 1st 2025" — already closed.
+  Its separate "Invest your Talent in Italy" programme is restricted to
+  an explicit list of countries that does not include Sierra Leone.
+- **LUISS University** — "Luiss Master's Scholarships 2026/2027" (30
+  scholarships: 20 full + 10 partial tuition waivers) has two
+  application windows, both already closed ("February 23 to March 20,
+  2026" and "March 15 to April 20, 2026").
+- **University of Bologna** — the "Unibo Action 1&2"/"International
+  Talents @Unibo" scheme (full tuition waiver plus a study grant of
+  roughly €6,500-11,000/year, open to "applicants having any
+  nationality") is administered through yearly PDF-based "bando" calls
+  rather than an evergreen HTML page; the most recent call found had a
+  30 May 2025 deadline, already closed, and this format is unsuitable
+  for reliable structured scraping regardless of cycle timing.
+- **Politecnico di Torino** — its own financial-aid page explicitly
+  labels the university-wide "TOPoliTO" scholarship (its flagship,
+  nationality-unrestricted programme) under "Projects offered in the
+  past academic years" — discontinued, not currently offered. Its one
+  currently-active, nationality-unrestricted-adjacent programme
+  ("Scholarships for Afghan Students – a.y. 2025/2026," €8,000/year) is
+  explicitly restricted to Afghan nationals; the remainder of the page
+  is a large catalogue of dozens of narrowly country/campus-specific
+  programmes (Vietnam, Pakistan, China, Brazil, etc.) — the same
+  multi-record architecture mismatch documented throughout this file.
+- **Politecnico di Torino's `international.polito.it` subdomain** —
+  genuinely unreachable from this specific environment (the egress
+  proxy denied the connection, `connect_rejected`/"organization
+  policy") — recorded honestly as an environment-specific access
+  limitation, distinct from a real-world bot-block or robots.txt
+  restriction, rather than assumed equivalent to either.
+
 ---
 
 ## Sources evaluated and deliberately not integrated
