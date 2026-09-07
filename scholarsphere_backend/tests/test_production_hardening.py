@@ -111,6 +111,16 @@ def test_production_refuses_default_local_redis_url() -> None:
         )
 
 
+def test_production_refuses_wildcard_cors_origin() -> None:
+    with pytest.raises(ValidationError, match="ALLOWED_ORIGINS"):
+        Settings(
+            app_env="production",
+            database_url="postgresql+asyncpg://scholarsphere:a-real-password@real-db-host:5432/scholarsphere",
+            redis_url="redis://real-redis-host:6379/0",
+            allowed_origins="*",
+        )
+
+
 def test_production_accepts_real_infrastructure_credentials() -> None:
     settings = Settings(
         app_env="production",

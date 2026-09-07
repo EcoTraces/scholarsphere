@@ -176,10 +176,17 @@ official source's value always winning on conflict (see
 ## 8. API security
 
 - **Security headers**: `X-Content-Type-Options`, `X-Frame-Options: DENY`,
-  `Strict-Transport-Security`, `Referrer-Policy`, `Cache-Control: no-store`
-  on every response (`app/core/security_headers.py`).
+  `Strict-Transport-Security`, `Referrer-Policy`, `Cache-Control: no-store`,
+  `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`,
+  `Cross-Origin-Opener-Policy: same-origin`,
+  `Cross-Origin-Resource-Policy: same-origin` on every response
+  (`app/core/security_headers.py`) — the CSP is skipped only on `/docs`/
+  `/redoc`/`/openapi.json` (Swagger UI's CDN assets need it relaxed, and
+  those paths don't exist at all in production anyway).
 - **CORS**: explicit origin allowlist + credentials, never a wildcard
-  (`ALLOWED_ORIGINS`).
+  (`ALLOWED_ORIGINS`) — `app_env=production` startup validation now
+  actively refuses to boot if `ALLOWED_ORIGINS` contains `*`, rather than
+  relying only on operators never setting it that way.
 - **Error handling**: a single catch-all handler returns a generic message
   and a correlation ID; the real exception (type only, never the message
   body) is logged server-side, never returned to the client
@@ -248,7 +255,46 @@ read audit events, login anomalies, or rate-limit violations. This is
 tracked in `docs/PRODUCTION_SECURITY_AUDIT.md` §18 and
 `docs/OPPORTUNITY_VERIFICATION_SYSTEM.md` §7, not hidden.
 
-## 12. Incident response
+## 12. File upload / Firebase Storage security
+
+Superseding §13's older "no upload feature exists" note: real file upload
+now exists for four purposes, all enforced the same way — the Flutter
+client uploads directly to Firebase Storage (the backend never receives or
+proxies file bytes), and `storage.rules` is the actual enforcement
+boundary, not client-side validation:
+
+| Path | Who can read | Who can write | Limits |
+|---|---|---|---|
+| `provider-documents/{uid}/{file}` | Owner; `verificationOfficer`/`administrator`/`superAdministrator` | Owner only | 10 MB, `application/pdf\|image/jpeg\|image/png` |
+| `applicant-documents/{uid}/{file}` | Owner only (no staff bypass — deliberately stricter than provider documents; a granted provider instead reads via a backend-minted signed URL, see below) | Owner only | 10 MB, same MIME allowlist |
+| `testimonial-evidence/{uid}/{file}` | Owner; `moderator`/`administrator`/`superAdministrator` | Owner only, append-only (no delete) | 10 MB, same MIME allowlist |
+| `testimonial-photos/{uid}/{file}` | Public (`if true`) — deliberate: only reachable when the applicant opted into a public, `show_photo`-enabled story | Owner only | 5 MB, `image/jpeg\|image/png` |
+
+Everything not listed above is denied by an explicit fallback rule
+(`match /{allPaths=**} { allow read, write: if false; }`) — there is no
+implicit-allow path anywhere in `storage.rules`.
+
+Sharing an applicant document with a specific provider (`ApplicantDocument
+.grantProviderAccess`) is recorded in Postgres, not by widening the Storage
+rule above — a granted provider reads the file through a signed URL the
+backend mints on demand (`GET /applicant-documents/{id}/download-url`,
+`app/services/document_storage.py`), gated on that same Postgres grant.
+This keeps the backend as the one auditable choke point for third-party
+access instead of loosening the owner-only Storage rule itself.
+
+**Known, accepted limitation** (inherent to Firebase Storage, not a gap in
+this app's rules): `request.resource.contentType`/`.size` in a Storage rule
+reflect what the uploading client declares, not a magic-byte inspection of
+the actual bytes. A malicious client could label arbitrary bytes with an
+allowed `Content-Type`. Closing this fully would require a Cloud Function
+Storage trigger that inspects uploaded objects after the fact and deletes
+non-conforming ones — not implemented. The practical exposure is limited
+by the MIME allowlist already excluding executable/script-bearing types
+(no SVG, no HTML, no `application/octet-stream`) and by every read path
+being owner-or-staff-gated (not public serving of arbitrary uploaded
+content) except the deliberately-public, image-only testimonial-photo path.
+
+## 13. Incident response
 
 No formal incident-response runbook exists in this repository yet
 (`docs/operations.md` is a short operations note, not an IR plan —
@@ -270,10 +316,11 @@ What already exists that an IR process could build on:
   and re-run of scheduled syncs should not double-import records — not
   independently load-tested in this environment.
 
-## 13. What this document does not cover
+## 14. What this document does not cover
 
-Consistent with `docs/PRODUCTION_SECURITY_AUDIT.md` §0: file upload,
-payments, and the 35 demo-data Flutter feature areas have no real backend
-and therefore no real attack surface to model yet. Building any of them
-means extending this document with a real section for that surface — not
+Consistent with `docs/PRODUCTION_SECURITY_AUDIT.md` §0: payments and the
+remaining demo-data Flutter feature areas have no real backend and
+therefore no real attack surface to model yet. File upload/Storage is no
+longer in this bucket — see §12. Building any of the remaining areas means
+extending this document with a real section for that surface — not
 writing speculative controls for code that doesn't exist.

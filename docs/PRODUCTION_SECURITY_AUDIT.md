@@ -318,6 +318,91 @@ A separate, apparently independent change landed during the follow-up round (§1
 - The `ImportAuditLog`/`VerificationHistory` tables already provide a full audit trail of who verified/published/rejected what and when — useful for investigating a bad-data incident on the opportunity side.
 - No formal incident-response runbook exists in the repo (`docs/operations.md` is a short operations note, not an IR plan) — recommend writing one covering: compromised Firebase Admin credentials, a bad opportunity published to production, and a Redis/Postgres outage, none of which are covered today.
 
+## 21b. Follow-up hardening pass (2026-09-07)
+
+Triggered by a request to run a full security-hardening pass while the
+backend was being deployed for the first time to real infrastructure
+(Render/Neon/Upstash). The request's own brief assumed a React/Express/
+Firestore-as-database/Vercel stack — none of which this repository is —
+so this pass re-derived the equivalent checklist against the real
+architecture (FastAPI/Postgres/Firebase-Auth-only/Render) instead of
+executing the mismatched brief verbatim. Findings, cross-checked against
+this document's existing §2-§18 rather than repeated from scratch:
+
+- **Confirmed still solid, spot-checked with fresh runtime evidence**:
+  rate limiting (`tests/test_rate_limit.py`, 6/6 passing), Firebase token
+  verification (`app/core/auth.py` — `aud` check, `check_revoked`, no
+  client-trusted role), server-side RBAC (`app/core/rbac.py`), no raw/
+  interpolated SQL anywhere in `app/` (grepped), no secrets in the working
+  tree or anywhere in git history (`git log --all -p` scanned for
+  `BEGIN PRIVATE KEY`/service-account filenames — only placeholder
+  strings inside `node_modules` library docs matched), `firestore.rules`/
+  `storage.rules` (read in full — default-deny fallback, owner-scoped
+  paths, role-gated staff reads, size/MIME limits, no `allow ... if true`
+  except the one deliberately-public, non-sensitive testimonial-photo
+  path), `.dockerignore` excludes `.env`, Dockerfile runs as non-root.
+- **V-12 (functions/node_modules committed) had regressed.** This
+  document's §3 records it as fixed on 2026-08-17, but `git log` shows a
+  later commit (`32515ff`, 2026-08-18, the same day as §16c) modified
+  files inside `functions/node_modules` — meaning the untrack either
+  didn't get committed at the time or was undone by a subsequent `git
+  add`. `git ls-files` on this date showed 6,557 tracked files under that
+  path despite `node_modules/` already being in `.gitignore`. Re-fixed:
+  `git rm -r --cached functions/node_modules`.
+- **V-17 (firebase-admin's transitive `uuid` CVE, left open in §4/§18) is
+  now closed.** `functions/package.json` carries an `"overrides":
+  {"uuid": "^14.0.1"}` pin (added sometime after this document's last
+  update) forcing the patched version across the whole dependency tree.
+  `npm audit` today: 0 findings for this CVE.
+- **New finding, fixed**: `functions/package-lock.json`'s `qs` (a
+  transitive dependency) carried GHSA-x5fp-wj9c-mxmx/GHSA-4mjr-xmp4-gh2g
+  (moderate, array-limit bypass / ReDoS-adjacent DoS). Fixed via `npm
+  audit fix`; `npm audit` now reports 0 findings for both ecosystems
+  (`pip-audit -r requirements.txt` was already clean).
+- **New finding, fixed**: the API's security-headers middleware
+  (`app/core/security_headers.py`) had X-Content-Type-Options,
+  X-Frame-Options, HSTS, Referrer-Policy, and Cache-Control, but no
+  Content-Security-Policy, Cross-Origin-Opener-Policy, or
+  Cross-Origin-Resource-Policy. Added `default-src 'none'; frame-ancestors
+  'none'` (this API serves only JSON, so a maximally strict CSP costs
+  nothing) plus `same-origin` COOP/CORP, exempting only `/docs`/`/redoc`/
+  `/openapi.json` (Swagger UI's CDN assets, and only reachable outside
+  production anyway) from the CSP. Regression-tested
+  (`tests/test_security_headers.py`).
+- **New finding, fixed**: the production startup validator
+  (`reject_placeholder_infrastructure_credentials_in_production`) checked
+  for placeholder `DATABASE_URL`/`REDIS_URL` but not a wildcard
+  `ALLOWED_ORIGINS`. `CORSMiddleware` is configured with
+  `allow_credentials=True` (real browsers already refuse to honor a
+  wildcard alongside credentials, so this was never independently
+  exploitable), but a wildcard value reaching production would still
+  signal a broken/placeholder config that should never boot silently.
+  Added to the same fail-fast validator, regression-tested
+  (`test_production_refuses_wildcard_cors_origin`).
+- **Re-confirmed not applicable, not newly built**: CSRF middleware (the
+  API is Bearer-token-only, no ambient cookie credential exists for a
+  cross-site request to ride on — matches this document's §2.4/§7
+  conclusions) and SSRF hardening beyond what §2.6 already documents (no
+  user- or admin-controlled outbound-fetch endpoint exists anywhere in
+  `app/api/` — grepped; every scraper/API-source URL is a fixed,
+  developer-configured `Settings` field).
+- **Documented, not built this pass** (scope/time tradeoff, not silently
+  skipped): a Firebase Emulator Suite test harness for `firestore.rules`/
+  `storage.rules` (`@firebase/rules-unit-testing`) does not exist yet —
+  both rule sets were verified by careful reading against the same idiom
+  this document already validated in §2.2, not by an automated allow/deny
+  test matrix. `.github/dependabot.yml` also does not exist yet despite
+  §19's standing recommendation to add it — CI's own `pip-audit`/
+  `npm audit` steps catch known CVEs on every push/PR in the meantime, so
+  this is a monitoring-cadence gap, not an unguarded one.
+- **Tests**: full backend suite passing (849 passed, 25 skipped before
+  this pass's own 2 new tests were added; re-run after adding them
+  confirmed green — see the session record for the exact final count)
+  plus 2 new regression tests
+  (`test_docs_routes_are_exempt_from_the_strict_csp`,
+  `test_production_refuses_wildcard_cors_origin`); `pyflakes` clean on
+  every changed file; `pip-audit`/`npm audit` both 0 findings.
+
 ---
 
 ## 22. Final Production Readiness Status

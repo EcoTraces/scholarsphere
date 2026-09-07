@@ -1063,6 +1063,17 @@ class Settings(BaseSettings):
             )
         if self.redis_url == "redis://localhost:6379/0":
             problems.append("REDIS_URL is still the local-development default")
+        if "*" in self.allowed_origins:
+            # CORSMiddleware is configured with allow_credentials=True (see
+            # app.main) - combining that with a wildcard origin is a
+            # textbook CORS misconfiguration (real browsers refuse it, but
+            # it signals a broken/placeholder ALLOWED_ORIGINS value that
+            # should never reach production regardless).
+            problems.append(
+                "ALLOWED_ORIGINS contains a wildcard '*', which is never "
+                "correct alongside allow_credentials=True. List the exact "
+                "frontend origin(s) instead."
+            )
         if self.firebase_credentials_path is not None and not self.firebase_credentials_path.is_file():
             problems.append(
                 "FIREBASE_CREDENTIALS_PATH is set to "
