@@ -47,6 +47,7 @@ from app.services.national_scholarship_programs import (
     GatesCambridgeScholarshipSource,
     GroningenEricBleuminkFellowshipSource,
     HeinrichBollScholarshipSource,
+    HelmutVeithStipendSource,
     HongKongPhdFellowshipSchemeSource,
     HumboldtResearchFellowshipSource,
     ImperialInspiresScholarshipSource,
@@ -3049,3 +3050,47 @@ def test_heinrich_boll_scholarship_has_no_robots_txt_restrictions() -> None:
     """robots.txt (`boell.de/robots.txt`, a Drupal default) sets no
     relevant `Disallow` for `/en/scholarships`."""
     assert HeinrichBollScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- Helmut Veith Stipend (TU Wien / VCLA): real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_helmut_veith_stipend_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """This platform's first Austria *university* source (OeAD Ernst
+    Mach Grant, #28, is government-classified). Genuinely
+    partial_funding, not fully_funded: EUR 7,000/year plus a tuition
+    waiver falls well short of Vienna's own documented ~EUR 950-1,300/
+    month student cost of living. Deliberately uses the dedicated
+    vcla.at announcement page rather than the TU Wien Informatics hub
+    page, which states a stale EUR 6,000 figure for the same award."""
+    source = HelmutVeithStipendSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("helmut_veith_stipend.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "helmut-veith-stipend"
+    assert opportunity.title == "Helmut Veith Stipend"
+    assert opportunity.country == "Austria"
+    assert (
+        opportunity.provider_name
+        == "TU Wien (Vienna Center for Logic and Algorithms / VCLA)"
+    )
+    assert opportunity.description is not None
+    assert "EUR 7000 annually" in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline == date(2026, 11, 30)
+
+
+def test_helmut_veith_stipend_has_no_robots_txt_restrictions() -> None:
+    """robots.txt (`vcla.at/robots.txt`) only disallows `/wp-admin/`,
+    unrelated to this content path."""
+    assert HelmutVeithStipendSource.min_request_interval_seconds == 2.0

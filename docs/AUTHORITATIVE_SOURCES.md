@@ -5150,6 +5150,147 @@ institution merely redirecting to an already-covered government
 programme, and one institution genuinely bot-protected — is reported
 as-is rather than padded.
 
+## 85. Helmut Veith Stipend (TU Wien, via the Vienna Center for Logic and Algorithms / VCLA)
+
+Researched 2026-09-07, the second country of a simultaneous
+five-country research pass (Austria, Eswatini, Australia, USA,
+Russia). This platform's first Austria **university** source — the
+only prior Austria source, OeAD Ernst Mach Grant (#28), is
+government-classified.
+
+- **Organization**: TU Wien, administered through its Vienna Center
+  for Logic and Algorithms (VCLA) research center
+- **Route code**: `helmut-veith-stipend` (`helmut_veith_stipend`
+  internally)
+- **Official domain / base URL**: `https://www.vcla.at`
+  (`HELMUT_VEITH_STIPEND_BASE_URL`)
+- **Opportunity types**: Scholarship — EUR 7,000/year for up to two
+  years, plus a full waiver of TU Wien tuition fees, for female
+  Master's students in Computer Science. `funding_type =
+  "partial_funding"`.
+- **Country coverage / eligibility**: No nationality restriction stated
+  anywhere on the page — open worldwide, Sierra Leone included.
+  Restricted by gender ("female master's students (male students are
+  not eligible)") and by academic background (Bachelor's in Computer
+  Science, Mathematics, or equivalent; admitted or eligible for
+  admission to one of TU Wien's English-taught Computer Science
+  Master's programmes; interest in one of Helmut Veith's research
+  areas). Documented plainly: this is a genuine gender restriction, not
+  a nationality one. Explicitly accepts a not-yet-final degree: "If the
+  final academic certificate is not yet available at the time of the
+  application deadline, a preliminary certificate (indicating the type
+  of degree and the expected graduation date) ... must be provided" —
+  a real "expected graduation accepted" case, read directly from the
+  page rather than inferred.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered WordPress HTML)
+- **robots.txt / indexing note**: `vcla.at/robots.txt` only disallows
+  `/wp-admin/`, unrelated to this content path.
+- **API / RSS / Sitemap**: None found; plain scraped HTML
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Overview page is the dedicated `vcla.at/helmut-veith-stipend/`
+    announcement, deliberately not TU Wien Informatics' general
+    scholarships hub page** (`informatics.tuwien.ac.at/study-services/
+    scholarships/`), which links to it: the hub page's own text states
+    a stale "EUR 6,000 p.a." award figure, while this dedicated page
+    (fetched live the same day) states the current "EUR 7000 annually"
+    and a live 30 November 2026 deadline covering the next three
+    admission semesters (winter 2026/2027, summer 2027, winter
+    2027/2028) — the more current, authoritative page was chosen
+    deliberately, per this project's "no stale-cycle guessing" rule.
+    The hub page is also a multi-record listing of several unrelated
+    TU Wien scholarships (a StudFG-governed Merit Scholarship Grant, a
+    Funding Grant, a Scholarship for Completion, a Siemens Award)
+    sharing one page — the same multi-record architecture mismatch
+    documented elsewhere in this file, out of scope regardless of the
+    stale-figure issue.
+  - **Content selector `div.postarea`**: verified directly via a
+    BeautifulSoup structural walk to start exactly at the page's own
+    heading and hold the full announcement (award, eligibility,
+    application process, FAQ) with none of the site's navigation menu
+    text.
+  - **`title_selectors = ()`, no `title_tag_separator`**: this page's
+    own `<h1>` is the *site's* name ("Vienna Center for Logic and
+    Algorithms"), not the scholarship's name — falls through to the
+    external_id-derived fallback ("Helmut Veith Stipend"), the same
+    documented pattern already used for Max Planck Schools/Gates
+    Cambridge/SJTU elsewhere in this file.
+  - **Genuinely `partial_funding`, not `fully_funded`**: live research
+    confirms Vienna's own documented student cost of living runs
+    approximately EUR 950–1,300/month, and non-EU tuition at Austrian
+    public universities is itself only around EUR 1,453/year — so EUR
+    7,000/year (~EUR 583/month) plus the tuition waiver still covers
+    under half of typical living costs. A real, substantial award, but
+    not "fully funded" by this project's own standard.
+  - **Relies on the base class's default `deadline_keywords`**
+    (`("deadline", "closing date")`) rather than overriding them: the
+    page's first "deadline" occurrence — "The deadline for the current
+    call is November 30, 2026." — is itself the correct, current
+    answer; a second, later "Application Deadline ... November 30th"
+    mention carries no year and is never reached, since the first
+    keyword match already succeeds.
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/helmut_veith_stipend.html`).
+
+### Researched this pass (2026-09-07, Austria — five-country autonomous engine), not integrated
+
+Checked five further Austrian universities live before settling on the
+Helmut Veith Stipend above, and found a consistent, systemic access
+barrier common to most of them:
+
+- **TU Wien, University of Vienna, University of Graz, Johannes Kepler
+  University Linz, University of Innsbruck — general "Merit
+  Scholarship" / "Leistungsstipendium"** — every one of these
+  universities administers the same nationally-mandated scholarship
+  scheme under Austria's Studienförderungsgesetz (StudFG, "Student
+  Support Act"), fetched and read directly at TU Wien's own page
+  (`informatics.tuwien.ac.at/study-services/scholarships/`): eligible
+  applicants must hold "Austrian citizenship or equal status," be "EEA
+  citizens," or be "[t]hird-country nationals with a long-term
+  residence permit who have lived in Austria for at least 5 years" —
+  categorically excluding a prospective Sierra Leonean applicant
+  applying from abroad. This is a systemic, legally-defined restriction
+  across Austrian public universities, not a university-by-university
+  finding — `NOT_INTERNATIONAL`.
+- **WU Vienna (Vienna University of Economics and Business) — Mondi
+  International Scholarships** — a real, genuinely promising-sounding
+  programme found via secondary sources (covers costs for "socially or
+  financially disadvantaged, high-potential international students"
+  pursuing a Master's, no nationality restriction stated), but WU's own
+  2021 announcement page explicitly scopes it to "the academic years
+  2021/22 and 2022/23" only, and it does not appear anywhere on WU's
+  current, live "Grants and Scholarships" master's-guide page — a
+  genuinely discontinued two-cohort pilot, not a currently-open
+  scholarship. Per this project's "no stale-cycle guessing" rule, not
+  integrated as if still open.
+- **BOKU (University of Natural Resources and Life Sciences, Vienna)**
+  — search and its own tuition-fee page confirm only the same StudFG
+  merit scholarship (identical restriction as above) and outbound
+  exchange grants for BOKU's own students studying abroad — no inbound
+  international scholarship found.
+- **Johannes Kepler University Linz (JKU) — Merit Scholarship for
+  Exchange Students** — real, and explicitly not restricted by
+  nationality, but restricted by a different axis: it funds temporary
+  *exchange* students from JKU's partner universities for a limited
+  term, not degree-seeking Master's applicants applying for full
+  admission — a different opportunity shape than this pass's
+  university-scholarship target, not integrated as a substitute.
+
+No further Austria source was added this pass beyond the Helmut Veith
+Stipend above. Given that Austria's entire public-university merit/
+need-based scholarship apparatus is governed by the same
+nationally-mandated, EEA/long-term-residency-restricted StudFG law,
+this systemic barrier is documented once here rather than re-discovered
+university by university in future passes.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

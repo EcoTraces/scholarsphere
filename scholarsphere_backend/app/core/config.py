@@ -571,6 +571,26 @@ class Settings(BaseSettings):
     # is not excluded.
     heinrich_boll_scholarship_base_url: str = "https://www.boell.de"
 
+    # Helmut Veith Stipend (TU Wien, via the Vienna Center for Logic and
+    # Algorithms / VCLA) - researched 2026-09-07 as part of a
+    # simultaneous five-country pass (Austria/Eswatini/Australia/USA/
+    # Russia). This platform's first Austria *university* source (the
+    # only prior Austria source, OeAD Ernst Mach Grant #28, is
+    # government-classified). EUR 7,000/year for up to two years plus a
+    # full TU Wien tuition-fee waiver, for female Master's students in
+    # Computer Science - correctly `partial_funding`, not
+    # `fully_funded`: EUR 7,000/year (~EUR 583/month) falls well short
+    # of Vienna's own documented ~EUR 950-1,300/month student cost of
+    # living, even combined with the tuition waiver (non-EU tuition at
+    # Austrian public universities is itself only ~EUR 1,453/year).
+    # Deliberately uses the dedicated `vcla.at` announcement page, not
+    # the TU Wien Informatics hub page that links to it: the hub page's
+    # own text states a stale "EUR 6,000 p.a." figure, while vcla.at's
+    # own page (fetched live) states the current "EUR 7000 annually" and
+    # the live 30 November 2026 deadline for the next three admission
+    # semesters. `vcla.at/robots.txt` only disallows `/wp-admin/`.
+    helmut_veith_stipend_base_url: str = "https://www.vcla.at"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -745,6 +765,7 @@ class Settings(BaseSettings):
         "mcgill_mastercard_scholars_base_url",
         "gates_cambridge_scholarship_base_url",
         "heinrich_boll_scholarship_base_url",
+        "helmut_veith_stipend_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

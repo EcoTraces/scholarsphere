@@ -28,6 +28,66 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Five-country autonomous engine: Austria pass — Helmut Veith Stipend added
+
+### Added
+- **Helmut Veith Stipend** (TU Wien, via the Vienna Center for Logic
+  and Algorithms / VCLA) (`app/services/national_scholarship_
+  programs.py::HelmutVeithStipendSource`, source #85 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 86th registered
+  `OpportunitySource`, and its first Austria **university** source
+  (the only prior Austria source, OeAD Ernst Mach Grant #28, is
+  government-classified).
+  - EUR 7,000/year for up to two years plus a full TU Wien tuition-fee
+    waiver, for female Master's students in Computer Science. No
+    nationality restriction — worldwide eligibility, Sierra Leone
+    included. Correctly `partial_funding`: live research on Vienna's
+    own documented student cost of living (~EUR 950-1,300/month)
+    confirms the stipend covers under half of typical living costs
+    even combined with the tuition waiver.
+  - Explicitly accepts a not-yet-final degree via a preliminary
+    certificate stating the expected graduation date.
+  - **Deliberate design choice**: uses the dedicated `vcla.at/
+    helmut-veith-stipend/` announcement page rather than TU Wien
+    Informatics' general scholarships hub page, which links to it —
+    the hub page states a stale "EUR 6,000 p.a." figure for the same
+    award, while the dedicated page (fetched live) states the current
+    "EUR 7000 annually" and a live 30 November 2026 deadline.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/helmut_veith_stipend.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected five further Austrian universities this
+  same pass:
+  - **TU Wien, University of Vienna, University of Graz, JKU Linz,
+    University of Innsbruck — general "Merit Scholarship" /
+    "Leistungsstipendium"** — all governed by the same
+    nationally-mandated Studienförderungsgesetz (StudFG), restricted to
+    Austrian/EEA citizens or third-country nationals with 5+ years of
+    Austrian residency — `NOT_INTERNATIONAL`, a systemic barrier across
+    Austrian public universities rather than a per-university finding.
+  - **WU Vienna — Mondi International Scholarships** — a
+    nationality-unrestricted programme found via secondary sources, but
+    WU's own 2021 announcement explicitly scopes it to "the academic
+    years 2021/22 and 2022/23" only, and it is absent from WU's current
+    live scholarships page — a discontinued pilot, not integrated as
+    if still open.
+  - **BOKU** — only the same StudFG merit scholarship and outbound
+    exchange grants found; no inbound international scholarship.
+  - **JKU Linz — Merit Scholarship for Exchange Students** — funds
+    temporary exchange students only, not degree-seeking Master's
+    applicants — a different opportunity shape, not a substitute.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Five-country autonomous engine (Austria/Eswatini/Australia/USA/Russia): Eswatini pass — no new source qualified
 
 ### Added

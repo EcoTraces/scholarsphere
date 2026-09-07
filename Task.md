@@ -4688,3 +4688,110 @@ for the full dated history.
       test run was required since no source code, test, or fixture
       file changed; the existing 815-passed/25-skipped baseline
       remains the accurate current count.
+
+- [x] **(2026-09-07)** Five-country autonomous scholarship research
+      engine - Austria pass: researched six Austrian universities live
+      (TU Wien, University of Vienna, University of Graz, JKU Linz,
+      University of Innsbruck, BOKU, WU Vienna) looking for a
+      genuinely university-administered scholarship distinct from the
+      platform's only existing Austria source (OeAD Ernst Mach Grant,
+      #28, government-classified).
+
+      Found and **implemented** the **Helmut Veith Stipend** (TU Wien,
+      via the Vienna Center for Logic and Algorithms / VCLA) as source
+      #85 - this registry's first Austria university source:
+      - Started from TU Wien Informatics' general scholarships hub
+        page, which lists several distinct awards on one page (a
+        StudFG Merit Scholarship Grant, a Funding Grant, a Scholarship
+        for Completion, the Helmut Veith Stipend, a Siemens Award) -
+        recognized this as the same multi-record architecture mismatch
+        documented elsewhere in this project and looked for the
+        Helmut Veith Stipend's own dedicated announcement page instead
+        of trying to force a selector onto the hub.
+      - Found that dedicated page at `vcla.at/helmut-veith-stipend/`
+        and, critically, compared its numbers against the hub page's
+        own description of the same award before choosing which to
+        use: the hub page states "EUR 6,000 p.a.," while the dedicated
+        page (fetched live the same day) states "EUR 7000 annually" -
+        a real, live-caught stale-figure discrepancy, resolved by using
+        the more current, authoritative dedicated page rather than
+        either guessing which was right or splitting the difference.
+      - Confirmed no nationality restriction from the page's own text
+        (worldwide eligibility, Sierra Leone included), but documented
+        the real gender restriction (female applicants only) and the
+        "expected graduation" acceptance (a preliminary certificate
+        with expected graduation date is explicitly accepted) plainly
+        rather than omitting either.
+      - Did the funding-completeness math explicitly rather than
+        assuming "tuition waiver + stipend = fully funded": searched
+        for Vienna's own documented student cost of living
+        (~EUR 950-1,300/month) and Austria's standard non-EU tuition
+        rate (~EUR 1,453/year) and compared both against the award's
+        EUR 7,000/year (~EUR 583/month) - concluded `partial_funding`
+        is the honest classification, since the stipend alone covers
+        under half of typical living costs even combined with the
+        waiver.
+      - Selected `div.postarea` as the content selector after a
+        BeautifulSoup structural walk confirmed it starts exactly at
+        the page's own heading, with none of the site's navigation
+        text mixed in.
+      - Verified the base class's default `deadline_keywords`
+        (`("deadline", "closing date")`) already resolve correctly
+        without any override: the page's first "deadline" occurrence
+        is itself the current, correct date (30 November 2026) - ran a
+        standalone `collect()` simulation against the real fixture
+        before writing the test to confirm this rather than assuming
+        it.
+      - Wired into all 4 standard backend files (`app/core/config.py`'s
+        `helmut_veith_stipend_base_url` setting plus its HTTPS-
+        validator tuple entry; `app/services/national_scholarship_
+        programs.py`'s `HelmutVeithStipendSource` class;
+        `app/services/source_registry.py`'s `SOURCE_DEFINITIONS`,
+        `_base_urls()`, and `next_runs` dicts; and `app/tasks/
+        opportunity_sync.py`'s five locations).
+
+      Five further Austrian candidates were researched and rejected
+      this same pass:
+      - **TU Wien, University of Vienna, University of Graz, JKU Linz,
+        University of Innsbruck's general "Merit Scholarship" /
+        "Leistungsstipendium"** - read TU Wien's own page directly and
+        found the eligibility text requires "Austrian citizenship or
+        equal status," "EEA citizens," or "[t]hird-country nationals
+        with a long-term residence permit who have lived in Austria
+        for at least 5 years" - recognized this as Austria's
+        nationally-mandated Studienförderungsgesetz (StudFG), the same
+        legal basis cited on every one of these universities' own
+        merit-scholarship pages, so documented it once as a systemic
+        finding rather than re-discovering the identical restriction
+        five separate times.
+      - **WU Vienna - Mondi International Scholarships** - a
+        nationality-unrestricted, genuinely promising-sounding
+        programme surfaced by search results, but reading WU's own
+        2021 announcement page directly showed it was explicitly
+        scoped to "the academic years 2021/22 and 2022/23" only:
+        cross-checked against WU's current, live master's-guide
+        scholarships page and confirmed Mondi does not appear there at
+        all - a discontinued two-cohort pilot, correctly left
+        unintegrated rather than presented as currently open.
+      - **BOKU** - its own tuition-fee page and scholarship search
+        surfaced only the same StudFG merit scholarship and outbound
+        exchange grants for BOKU's own students studying abroad; no
+        inbound international scholarship found.
+      - **JKU Linz - Merit Scholarship for Exchange Students** - real
+        and not nationality-restricted, but it funds temporary
+        *exchange* students from partner universities for a limited
+        term, not degree-seeking Master's applicants applying for full
+        admission - a different opportunity shape, not treated as
+        equivalent.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, and `deadline = date(2026,
+      11, 30)` all resolve exactly as documented. Full backend suite
+      green afterward, 817 passed / 25 skipped (up from 815 passed/25
+      skipped - two new tests, plus `test_opportunity_import.py`'s
+      updated source-count assertion, 85 -> 86 registered sources). The
+      fixture
+      (`tests/fixtures/helmut_veith_stipend.html`) was captured
+      unmodified from the live site.

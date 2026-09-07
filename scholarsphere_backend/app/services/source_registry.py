@@ -532,6 +532,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "helmut_veith_stipend": {
+        "source_name": "Helmut Veith Stipend (TU Wien / VCLA)",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -650,6 +656,7 @@ def _base_urls() -> dict[str, str]:
         "mcgill_mastercard_scholars": settings.mcgill_mastercard_scholars_base_url,
         "gates_cambridge_scholarship": settings.gates_cambridge_scholarship_base_url,
         "heinrich_boll_scholarship": settings.heinrich_boll_scholarship_base_url,
+        "helmut_veith_stipend": settings.helmut_veith_stipend_base_url,
     }
 
 
@@ -758,6 +765,7 @@ async def seed_opportunity_sources(
         "mcgill_mastercard_scholars": now + timedelta(hours=24),
         "gates_cambridge_scholarship": now + timedelta(hours=24),
         "heinrich_boll_scholarship": now + timedelta(hours=24),
+        "helmut_veith_stipend": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))

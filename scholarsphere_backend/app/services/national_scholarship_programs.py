@@ -3552,3 +3552,90 @@ class HeinrichBollScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().heinrich_boll_scholarship_base_url
+
+
+class HelmutVeithStipendSource(_SingleProgramSource):
+    """Helmut Veith Stipend (TU Wien, via the Vienna Center for Logic
+    and Algorithms / VCLA) - researched 2026-09-07, part of a
+    simultaneous five-country research pass (Austria, Eswatini,
+    Australia, USA, Russia). This platform's first Austria
+    **university** source (the only prior Austria source, OeAD Ernst
+    Mach Grant, #28, is government-classified).
+
+    Confirmed 2026-09-07: `vcla.at/robots.txt` only disallows
+    `/wp-admin/`, unrelated to this content path.
+
+    Overview/content page is the dedicated `vcla.at/helmut-veith-
+    stipend/` announcement, deliberately not TU Wien Informatics'
+    general scholarships hub page (`informatics.tuwien.ac.at/study-
+    services/scholarships/`), which links to this one: the hub page's
+    own text states a stale "EUR 6,000 p.a." award figure, while this
+    dedicated page (fetched live the same day) states the current "EUR
+    7000 annually" and a live 30 November 2026 deadline covering the
+    next three admission semesters (winter 2026/2027, summer 2027,
+    winter 2027/2028) - the more current, authoritative page was
+    chosen deliberately, per this project's "no stale-cycle guessing"
+    rule. The hub page is also a multi-record listing of several
+    unrelated TU Wien scholarships (a StudFG-governed Merit Scholarship
+    Grant, a Funding Grant, a Scholarship for Completion, a Siemens
+    Award) sharing one page - out of scope for this single-record
+    adapter regardless.
+
+    Content selector `div.postarea`: verified directly via a
+    BeautifulSoup structural walk to start exactly at the page's own
+    heading and hold the full announcement (award, eligibility,
+    application process, FAQ) with none of the site's navigation menu
+    text.
+
+    `title_selectors = ()`, no `title_tag_separator`: this page's own
+    `<h1>` is the *site's* name ("Vienna Center for Logic and
+    Algorithms"), not the scholarship's name - falls through to the
+    external_id-derived fallback ("Helmut Veith Stipend"), the same
+    documented pattern already used for Max Planck Schools/Gates
+    Cambridge/SJTU elsewhere in this file.
+
+    Country coverage / eligibility: no nationality restriction stated
+    anywhere on the page - open to "female master's students (male
+    students are not eligible)" admitted (or eligible for admission) to
+    one of TU Wien's English-taught Computer Science Master's
+    programmes, with a Bachelor's in Computer Science, Mathematics, or
+    an equivalent field. Documented plainly, not glossed over: this is
+    a genuine gender restriction, not a nationality one - Sierra Leone
+    is not excluded. Explicitly accepts a not-yet-final degree: "If the
+    final academic certificate is not yet available at the time of the
+    application deadline, a preliminary certificate (indicating the
+    type of degree and the expected graduation date) ... must be
+    provided" - a real "expected graduation accepted" case, confirmed
+    directly from the page's own text rather than inferred.
+
+    Funding: "EUR 7000 annually for a duration of up to two years"
+    (~EUR 583/month) plus a "[w]aiver of all tuition fees at TU Wien" -
+    correctly `funding_type = "partial_funding"`, not `fully_funded`:
+    live research confirms Vienna's own documented student cost of
+    living runs approximately EUR 950-1,300/month, and non-EU tuition
+    at Austrian public universities is itself only around EUR 1,453/
+    year - so even combined with the tuition waiver, the stipend alone
+    covers under half of typical living costs. A real, substantial
+    award, but not "fully funded" by this project's own standard.
+
+    Deliberately relies on the base class's default `deadline_keywords`
+    (`("deadline", "closing date")`) rather than overriding them: the
+    page's first "deadline" occurrence - "The deadline for the current
+    call is November 30, 2026." - is itself the correct, current
+    answer (verified directly against the live fixture); a second,
+    later "Application Deadline ... November 30th" mention carries no
+    year and is never reached, since the first keyword match already
+    succeeds.
+    """
+
+    source_code = "helmut_veith_stipend"
+    overview_path = "/helmut-veith-stipend/"
+    title_selectors = ()
+    content_selectors = ("div.postarea",)
+    provider_name = "TU Wien (Vienna Center for Logic and Algorithms / VCLA)"
+    country = "Austria"
+    external_id = "helmut-veith-stipend"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().helmut_veith_stipend_base_url
