@@ -786,6 +786,15 @@ class Settings(BaseSettings):
     # this content path.
     hbku_graduate_scholarship_base_url: str = "https://www.hbku.edu.qa"
 
+    # Carnegie Mellon University in Qatar (CMU-Q, Education City) -
+    # Qatar Foundation Need-Based Grant Program for Students of All
+    # Nationalities. Confirmed 2026-09-07: `qatar.cmu.edu/robots.txt`
+    # does not disallow this content path (verified with an explicit
+    # scraper User-Agent - Python's default `urlopen()` User-Agent is
+    # blocked by this host, a false negative resolved the same way as
+    # this project's earlier UrFU precedent).
+    cmuq_need_based_grant_base_url: str = "https://www.qatar.cmu.edu"
+
     # Premium Application-Preparation Platform - payment provider
     # abstraction (app/services/payment_provider.py). Left unset by
     # default: an empty `payment_provider` selects `NullPaymentProvider`,
@@ -974,6 +983,7 @@ class Settings(BaseSettings):
         "rochester_graduate_scholarship_base_url",
         "qu_international_students_scholarship_base_url",
         "hbku_graduate_scholarship_base_url",
+        "cmuq_need_based_grant_base_url",
     )
     @classmethod
     def require_https(cls, value: str) -> str:

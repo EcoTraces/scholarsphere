@@ -237,6 +237,19 @@ AUTHORITATIVE_SOURCES.md #98's "Researched this pass (2026-09-07, Qatar
 undergraduate/postgraduate follow-up), not integrated" note for full
 detail.
 
+| 99 | CMU-Q Qatar Foundation Need-Based Grant Program | Qatar | UNIVERSITY | qatar.cmu.edu | WEB_SCRAPER | **SUPPORTED** — live-verified 2026-09-07, a second same-day Qatar pass after QU (#97) and HBKU (#98); this registry's third Qatar university source and its second at the undergraduate level; the overview page is a genuine five-item multi-record accordion hub, isolated via `details.stk-block-accordion`'s first-match-in-document-order behavior with none of the other four sections (FAFSA, a continuing-students-only Merit Scholarship Program, CMU-Q's own merit awards, Qatari-citizens-only) leaking in; open to all nationalities via Regular Decision (Early Decision explicitly excludes international applicants outside Qatar, honestly noted); deliberately conservative `partial_funding` — a need-based cap "up to the full cost of attendance," not a guaranteed amount; no deadline extracted (the "November 20"/"February 1" dates carry no year) (see AUTHORITATIVE_SOURCES.md #99) |
+
+**(2026-09-07, Qatar undergraduate/postgraduate second follow-up)**
+Texas A&M University at Qatar's own financial aid page is genuinely
+stale (`<h1>` reads "2023-24 Tuition Rates," three years behind this
+research date) and structures its aid to non-sponsored students as a
+**loan** requiring post-graduation repayment, not a grant or
+scholarship; its one true scholarship reference is explicitly for
+"returning students" each summer, not incoming applicants. See
+AUTHORITATIVE_SOURCES.md #99's "Researched this pass (2026-09-07, Qatar
+undergraduate/postgraduate second follow-up), not integrated" note for
+full detail.
+
 **(2026-09-07, England undergraduate/masters follow-up)** Royal
 Holloway's own parallel International Masters Scholarship (Sept 2027/
 Jan 2028) is restricted to an explicit list of ~45 countries by

@@ -43,6 +43,7 @@ from app.services.national_scholarship_programs import (
     RochesterGraduateScholarshipSource,
     QuInternationalStudentsScholarshipSource,
     HbkuGraduateScholarshipSource,
+    CmuqNeedBasedGrantSource,
     SchwarzmanScholarsSource,
     SciencesPoMastercardScholarsSource,
     TurkiyeBurslariSource,
@@ -3707,3 +3708,49 @@ async def test_hbku_graduate_scholarship_collect_normalizes_real_fixture(
 def test_hbku_graduate_scholarship_has_no_robots_txt_restrictions() -> None:
     """`hbku.edu.qa/robots.txt` does not disallow this content path."""
     assert HbkuGraduateScholarshipSource.min_request_interval_seconds == 2.0
+
+
+# --- CMU-Q Need-Based Grant Program: real fixture, fetched 2026-09-07
+
+
+@pytest.mark.asyncio
+async def test_cmuq_need_based_grant_collect_normalizes_real_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The overview page is a genuine five-item multi-record accordion
+    hub (this programme, FAFSA for U.S. citizens, a continuing-students-
+    only Merit Scholarship Program, CMU-Q's own Academic Merit
+    Scholarships, and a Qatari-citizens-only section); isolated via
+    `details.stk-block-accordion`'s first-match-in-document-order
+    behavior - verified none of the other four sections' text leaks
+    in."""
+    source = CmuqNeedBasedGrantSource()
+    monkeypatch.setattr(
+        web_scraper_base,
+        "get_html",
+        AsyncMock(return_value=_fixture("cmuq_need_based_grant.html")),
+    )
+
+    result = await source.collect()
+
+    assert len(result) == 1
+    opportunity = result[0]
+    assert opportunity.external_id == "cmuq-need-based-grant-program"
+    assert opportunity.title == (
+        "Qatar Foundation Need-Based Grant Program for Students of All "
+        "Nationalities"
+    )
+    assert opportunity.country == "Qatar"
+    assert opportunity.provider_name == "Carnegie Mellon University in Qatar"
+    assert opportunity.description is not None
+    assert "grant aid to students of all nationalities" in opportunity.description
+    assert "Merit Scholarship Program" not in opportunity.description
+    assert "FAFSA" not in opportunity.description
+    assert opportunity.funding_type == "partial_funding"
+    assert opportunity.deadline is None
+
+
+def test_cmuq_need_based_grant_has_no_robots_txt_restrictions() -> None:
+    """`qatar.cmu.edu/robots.txt` (`Disallow: /wp-admin/`, `Disallow:
+    /cal-event/` only) does not disallow this content path."""
+    assert CmuqNeedBasedGrantSource.min_request_interval_seconds == 2.0

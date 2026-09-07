@@ -56,6 +56,7 @@ from app.services.national_scholarship_programs import (
     AustriaOeadErnstMachSource,
     BelgiumAresScholarshipSource,
     ChileAgcidScholarshipSource,
+    CmuqNeedBasedGrantSource,
     ColombiaIcetexBecaExtranjerosSource,
     CzechRepublicMsmtScholarshipSource,
     FranceEiffelScholarshipSource,
@@ -598,6 +599,10 @@ celery_app.conf.update(
             "task": "app.tasks.opportunity_sync.sync_hbku_graduate_scholarship",
             "schedule": crontab(minute=30, hour=1),
         },
+        "sync-cmuq-need-based-grant": {
+            "task": "app.tasks.opportunity_sync.sync_cmuq_need_based_grant",
+            "schedule": crontab(minute=45, hour=1),
+        },
         "retry-failed-external-records": {
             "task": "app.tasks.opportunity_sync.retry_failed_records",
             "schedule": crontab(minute=10, hour="*/2"),
@@ -836,6 +841,9 @@ SOURCE_TASK_NAMES = {
     ),
     "hbku_graduate_scholarship": (
         "app.tasks.opportunity_sync.sync_hbku_graduate_scholarship"
+    ),
+    "cmuq_need_based_grant": (
+        "app.tasks.opportunity_sync.sync_cmuq_need_based_grant"
     ),
 }
 
@@ -2349,6 +2357,24 @@ def sync_hbku_graduate_scholarship(
     )
 
 
+@celery_app.task(
+    bind=True,
+    name="app.tasks.opportunity_sync.sync_cmuq_need_based_grant",
+    max_retries=3,
+)
+def sync_cmuq_need_based_grant(
+    self: Any,
+    correlation_id: str | None = None,
+    triggered_by: str | None = None,
+) -> dict[str, Any]:
+    return _execute_source_task(
+        self,
+        "cmuq_need_based_grant",
+        correlation_id,
+        triggered_by,
+    )
+
+
 async def _run_source_sync(
     source_code: str,
     *,
@@ -2671,6 +2697,7 @@ def _collector(source_code: str) -> Any:
             QuInternationalStudentsScholarshipSource
         ),
         "hbku_graduate_scholarship": HbkuGraduateScholarshipSource,
+        "cmuq_need_based_grant": CmuqNeedBasedGrantSource,
     }[source_code]()
 
 

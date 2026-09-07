@@ -28,6 +28,51 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Qatar second follow-up: CMU-Q need-based grant added
+
+### Added
+- **Carnegie Mellon University in Qatar (CMU-Q) — Qatar Foundation
+  Need-Based Grant Program**
+  (`app/services/national_scholarship_programs.py::
+  CmuqNeedBasedGrantSource`, source #99 in
+  `docs/AUTHORITATIVE_SOURCES.md`) — this platform's 102nd registered
+  `OpportunitySource`, a second same-day "find Qatar undergraduate and
+  postgraduate university scholarship" pass after QU (#97) and HBKU
+  (#98). This platform's third Qatar university source, and its second
+  at the undergraduate level.
+  - "Grants (aid with no repayment) of up to the full cost of
+    attendance" for students of all nationalities via Regular Decision
+    (Early Decision explicitly excludes international applicants
+    outside Qatar - honestly documented rather than glossed over).
+    Correctly `partial_funding` (a need-based cap, not a guaranteed
+    uniform amount).
+  - Isolated from a genuine five-item multi-record accordion hub
+    (this programme, FAFSA for U.S. citizens, a continuing-students-
+    only Merit Scholarship Program, CMU-Q's own merit awards, and a
+    Qatari-citizens-only section) via first-match-in-document-order
+    behavior, verified none of the other four sections leak in.
+  - **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+    backend's actual HTTP path. Implemented and unit-tested against a
+    real fixture (`tests/fixtures/cmuq_need_based_grant.html`).
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — researched and rejected Texas A&M University at Qatar this same
+  pass: its financial aid page is genuinely stale (`<h1>` reads
+  "2023-24 Tuition Rates," three academic years behind) and structures
+  aid to non-sponsored students as a **loan** requiring post-graduation
+  repayment, not a grant or scholarship; its one true scholarship
+  reference is explicitly for returning students each summer, not
+  incoming applicants.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Qatar follow-up: two new university sources added
 
 ### Added

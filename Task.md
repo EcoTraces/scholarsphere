@@ -5766,3 +5766,88 @@ for the full dated history.
       fixtures (`tests/fixtures/qu_international_students_scholarship.html`,
       `tests/fixtures/hbku_graduate_scholarship.html`) were captured
       unmodified from their live fetches.
+
+- [x] **(2026-09-07)** Qatar second follow-up: the user repeated the
+      exact same "find Qatar undergraduate and postgraduate university
+      scholarship" request immediately after the pass above. Rather
+      than duplicate QU (#97) and HBKU (#98), checked the Education
+      City branch campuses of major US universities in Qatar (Texas
+      A&M, Carnegie Mellon, Georgetown, Northwestern, VCU), each
+      administered under Qatar Foundation (QF) rather than QU or HBKU -
+      a genuinely different institutional funding structure worth
+      checking.
+
+      Found and **implemented** the **CMU-Q Qatar Foundation
+      Need-Based Grant Program** as source #99 (undergraduate):
+      - Found via a search for CMU-Q's own tuition/financial-aid page,
+        then read the official page directly. Confirmed a genuinely
+        current cycle from the page's own tuition table header,
+        "Tuition and Fees, 2026-2027 Academic Year," before trusting
+        any of its financial-aid claims.
+      - The page turned out to be a five-item multi-record accordion
+        hub. Verified via a BeautifulSoup structural walk that the
+        target "Qatar Foundation Need-Based Grant Program for Students
+        of All Nationalities" section is the *first* `<details
+        class="stk-block-accordion">` element in document order, so
+        the shared `collect()` logic's existing first-match behavior
+        already isolates it with no positional selector needed -
+        confirmed directly that FAFSA text and the continuing-
+        students-only "Merit Scholarship Program" text do not leak in.
+      - Read the eligibility text carefully rather than accepted the
+        page's general "students of all nationalities" framing at face
+        value: found a specific carve-out - "International applicants
+        outside of Qatar are not eligible for financial aid during the
+        Early Decision round" - and confirmed this exclusion is scoped
+        to Early Decision only, with no equivalent restriction stated
+        for Regular Decision, so documented the record honestly as
+        open to international applicants via Regular Decision rather
+        than either overstating universal eligibility or wrongly
+        rejecting the whole programme over one round's restriction.
+      - Classified `partial_funding` correctly: "Grants... of up to the
+        full cost of attendance are made to families based on their
+        unique financial circumstances" - a need-based cap dependent on
+        individual circumstances, not a guaranteed uniform amount.
+      - Hit a genuine false-negative while checking `robots.txt`:
+        Python's `urllib.robotparser` default `read()` call (no custom
+        User-Agent) returned an empty ruleset for this host even though
+        `curl` with the project's real scraper User-Agent succeeded and
+        returned real, unrestrictive rules - recognized this as the
+        same category of UA-specific blocking already seen for UrFU
+        earlier in this project, rather than concluding the path was
+        restricted. Fixed by re-fetching the raw `robots.txt` text with
+        an explicit User-Agent and parsing it directly with
+        `RobotFileParser.parse()`, which correctly confirmed no
+        restriction.
+
+      One further Qatar candidate was researched and rejected this same
+      pass:
+      - **Texas A&M University at Qatar (TAMU-Q)** - fetched the live
+        page directly and noticed its own `<h1>` reads "2023-24 Tuition
+        Rates" - three academic years stale compared to CMU-Q's
+        confirmed current 2026-2027 table, a discrepancy worth checking
+        for rather than assuming currency from a 200 status code alone.
+        Read the financial-aid text carefully and found it explicitly
+        describes the aid available to non-sponsored (including
+        international) students as a **loan** requiring post-graduation
+        repayment or paid service, not a grant or scholarship - a
+        substantively different funding mechanism than CMU-Q's genuine
+        grant. The page's one true scholarship reference ("Qatar
+        Foundation Student Financial Services scholarship") is
+        explicitly for "top *returning* students who have no
+        sponsorship," awarded "each summer" - a continuing-student
+        renewal programme, not an incoming-applicant scholarship. Not
+        integrated for both the staleness and the loan-vs-grant
+        distinction.
+
+      **Verified for real**: `pyflakes app tests` clean, no new
+      warnings. A `collect()` simulation against the real fixture, run
+      before any test was written, confirmed title, provider, country,
+      `funding_type = "partial_funding"`, and `deadline = None` all
+      resolve exactly as documented, and specifically confirmed neither
+      "Merit Scholarship Program" nor "FAFSA" text leaks into the
+      extracted description. Full backend suite green afterward, 845
+      passed / 25 skipped (up from 843 passed/25 skipped - two new
+      tests, plus `test_opportunity_import.py`'s updated source-count
+      assertion, 99 -> 100 registered sources). The fixture
+      (`tests/fixtures/cmuq_need_based_grant.html`) was captured
+      unmodified from the live site.

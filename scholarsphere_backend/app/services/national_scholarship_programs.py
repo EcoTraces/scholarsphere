@@ -4449,3 +4449,66 @@ class HbkuGraduateScholarshipSource(_SingleProgramSource):
 
     def _base_url(self) -> str:
         return get_settings().hbku_graduate_scholarship_base_url
+
+
+class CmuqNeedBasedGrantSource(_SingleProgramSource):
+    """Carnegie Mellon University in Qatar (CMU-Q, Education City) -
+    the Qatar Foundation Need-Based Grant Program for Students of All
+    Nationalities, described on CMU-Q's own "Tuition and Financial Aid"
+    page for the 2026-2027 academic year.
+
+    Confirmed 2026-09-07: `qatar.cmu.edu/robots.txt` (`Disallow:
+    /wp-admin/`, `Disallow: /cal-event/` only) does not disallow this
+    content path. Verified with an explicit `ScholarSphere/1.0` scraper
+    User-Agent - Python's `urllib.robotparser` default `urlopen()` call
+    (no custom User-Agent) is itself blocked by this host and silently
+    returns an empty ruleset, a false negative resolved the same way as
+    this project's earlier `urfu.ru` precedent (re-fetched the raw
+    robots.txt text with an explicit User-Agent, then parsed it
+    directly with `RobotFileParser.parse()`).
+
+    The overview page is a multi-record hub of five distinct financial-
+    aid programmes, each in its own `<details class="stk-block-
+    accordion">` accordion: this one; FAFSA-based aid for U.S.
+    citizens; a Merit Scholarship Program restricted to students
+    already "spent at least two semesters" at an Education City
+    university (continuing students, not new applicants); CMU-Q's own
+    "Academic Merit Scholarships"; and a Qatari-citizens-only section.
+    Isolated via `details.stk-block-accordion` - the *first* such
+    element in document order - verified directly via a BeautifulSoup
+    structural walk that this lands exactly on the Need-Based Grant
+    Program section (1,221 characters).
+
+    Country coverage / eligibility: "The QF need-based grant program
+    for CMU Qatar provides grant aid to students of all nationalities"
+    - Sierra Leone applicants are eligible for the Regular Decision
+    round. Honestly documented nuance: "International applicants
+    outside of Qatar are not eligible for financial aid during the
+    Early Decision round" - this exclusion is stated as specific to
+    Early Decision only, with no equivalent restriction stated for
+    Regular Decision (priority deadline February 1), so this record
+    represents the programme as genuinely open to international
+    applicants via Regular Decision.
+
+    Funding: "Grants (aid with no repayment) of up to the full cost of
+    attendance are made to families based on their unique financial
+    circumstances" - a need-based cap, not a guaranteed amount for
+    every recipient, so `funding_type = "partial_funding"` rather than
+    `fully_funded`.
+
+    Deliberately extracts no deadline: the two dates named ("November
+    20" for Early Decision, "February 1" for Regular Decision) carry no
+    year anywhere near them.
+    """
+
+    source_code = "cmuq_need_based_grant"
+    overview_path = "/admission/tuition-and-financial-aid"
+    title_selectors = ("details.stk-block-accordion h3",)
+    content_selectors = ("details.stk-block-accordion",)
+    provider_name = "Carnegie Mellon University in Qatar"
+    country = "Qatar"
+    external_id = "cmuq-need-based-grant-program"
+    funding_type = "partial_funding"
+
+    def _base_url(self) -> str:
+        return get_settings().cmuq_need_based_grant_base_url

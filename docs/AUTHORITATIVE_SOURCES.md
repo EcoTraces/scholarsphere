@@ -6541,6 +6541,102 @@ university source, and its first at the **graduate** level.
   for QU's own staff, not an inbound scholarship for international
   applicants to study at QU. Not integrated.
 
+## 99. Carnegie Mellon University in Qatar (CMU-Q) — Qatar Foundation Need-Based Grant Program
+
+Researched 2026-09-07, a second same-day "find Qatar undergraduate and
+postgraduate university scholarship" pass, after QU (#97) and HBKU
+(#98) above. Checked the Education City branch campuses of major US
+universities in Qatar (Texas A&M, Carnegie Mellon, Georgetown,
+Northwestern, VCU), each independently reachable and administered
+under Qatar Foundation (QF) rather than QU or HBKU. This platform's
+third Qatar university source, and its second at the **undergraduate**
+level (Qatar University's International Students Scholarship, #97, is
+the first).
+
+- **Organization**: Carnegie Mellon University in Qatar (CMU-Q),
+  Education City, funded jointly by Carnegie Mellon and Qatar
+  Foundation
+- **Route code**: `cmuq-need-based-grant-program`
+  (`cmuq_need_based_grant` internally)
+- **Official domain / base URL**: `https://www.qatar.cmu.edu`
+  (`CMUQ_NEED_BASED_GRANT_BASE_URL`)
+- **Opportunity types**: Grant — "Grants (aid with no repayment) of up
+  to the full cost of attendance are made to families based on their
+  unique financial circumstances." `funding_type = "partial_funding"`
+  (a need-based cap, not a guaranteed uniform amount).
+- **Country coverage / eligibility**: "The QF need-based grant program
+  for CMU Qatar provides grant aid to students of all nationalities" —
+  Sierra Leone applicants are eligible via the Regular Decision round.
+  Honestly documented nuance, read directly from the page rather than
+  assumed from the general "all nationalities" framing: "International
+  applicants outside of Qatar are not eligible for financial aid during
+  the Early Decision round" — this specific exclusion applies only to
+  Early Decision; no equivalent restriction is stated for Regular
+  Decision (priority deadline February 1), so this record represents
+  the programme as genuinely open to international applicants via
+  Regular Decision.
+- **Discovery method**: Web scraper (plain HTTPS GET, real
+  server-rendered HTML, no JavaScript execution needed)
+- **robots.txt / indexing note**: `qatar.cmu.edu/robots.txt`
+  (`Disallow: /wp-admin/`, `Disallow: /cal-event/` only) does not
+  disallow this content path. Verified with an explicit
+  `ScholarSphere/1.0` scraper User-Agent — Python's
+  `urllib.robotparser` default `read()` call (no custom User-Agent) is
+  itself blocked by this host and silently returns an empty ruleset (a
+  false negative), resolved the same way as this project's earlier
+  `urfu.ru` precedent: re-fetched the raw `robots.txt` text with an
+  explicit User-Agent, then parsed it directly with
+  `RobotFileParser.parse()`, confirming no restriction.
+- **API / RSS / Sitemap**: A sitemap exists
+  (`qatar.cmu.edu/sitemap.xml`) but is not itself scraped
+- **Authentication**: None
+- **Reliability classification**: Web-scraped
+- **Verification method**: Human officer review, same checklist as
+  sources 1–7
+- **Sync cadence**: Every 24 hours
+- **Deliberate design choices**:
+  - **Multi-record accordion hub, isolated by document order**: the
+    overview page lists five distinct financial-aid programmes, each
+    in its own `<details class="stk-block-accordion">` element: this
+    one; FAFSA-based aid for U.S. citizens; a Merit Scholarship Program
+    restricted to students who have already "spent at least two
+    semesters" at an Education City university (continuing students,
+    not new applicants); CMU-Q's own "Academic Merit Scholarships"; and
+    a Qatari-citizens-only section. Since this is the *first* such
+    element in document order, the shared `collect()` logic's
+    first-match (`select_one`) behavior already isolates it correctly
+    — verified directly via a BeautifulSoup structural walk that none
+    of the other four sections' text (including "Merit Scholarship
+    Program" and "FAFSA") leaks in.
+  - **Deliberately extracts no deadline**: the two dates named
+    ("November 20" for Early Decision, "February 1" for Regular
+    Decision) carry no year anywhere near them, even though the page's
+    own tuition table confirms a genuinely current cycle ("Tuition and
+    Fees, 2026-2027 Academic Year").
+- **LIVE SOURCE TEST: PASSED 2026-09-07.** Verified through this
+  backend's actual HTTP path — 200, real server-rendered HTML.
+  Implemented and unit-tested against a real fixture, captured
+  unmodified from the live fetch
+  (`tests/fixtures/cmuq_need_based_grant.html`).
+
+### Researched this pass (2026-09-07, Qatar undergraduate/postgraduate second follow-up), not integrated
+
+- **Texas A&M University at Qatar (TAMU-Q)** — its own "Tuition,
+  Financial Aid and Scholarships" page returns real content, but its
+  `<h1>` reads "2023-24 Tuition Rates" — genuinely stale, three
+  academic years behind this research date, unlike CMU-Q's confirmed
+  current 2026-2027 table. Substantively, financial aid to
+  non-sponsored (including international) students at TAMU-Q is
+  explicitly structured as a **loan**, not a grant or scholarship:
+  "Financial aid given to resident and international students through
+  this program is in the form of loans... you will be expected upon
+  graduation to repay the full amount of the loan... or to participate
+  in a paid service program." The page's one genuine scholarship
+  reference ("Qatar Foundation Student Financial Services scholarship")
+  is explicitly for "top *returning* students who have no sponsorship,"
+  awarded "each summer" — a continuing-student renewal programme, not
+  an incoming-applicant scholarship. Not integrated for both reasons.
+
 ---
 
 ## Sources evaluated and deliberately not integrated

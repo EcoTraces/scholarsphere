@@ -616,6 +616,12 @@ SOURCE_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "authentication_type": "none",
         "trust_level": "web_scraped",
     },
+    "cmuq_need_based_grant": {
+        "source_name": "CMU-Q Qatar Foundation Need-Based Grant Program",
+        "source_type": "university",
+        "authentication_type": "none",
+        "trust_level": "web_scraped",
+    },
 }
 
 
@@ -762,6 +768,7 @@ def _base_urls() -> dict[str, str]:
             settings.qu_international_students_scholarship_base_url
         ),
         "hbku_graduate_scholarship": settings.hbku_graduate_scholarship_base_url,
+        "cmuq_need_based_grant": settings.cmuq_need_based_grant_base_url,
     }
 
 
@@ -884,6 +891,7 @@ async def seed_opportunity_sources(
         "rochester_graduate_scholarship": now + timedelta(hours=24),
         "qu_international_students_scholarship": now + timedelta(hours=24),
         "hbku_graduate_scholarship": now + timedelta(hours=24),
+        "cmuq_need_based_grant": now + timedelta(hours=24),
     }
     for source_code, definition in SOURCE_DEFINITIONS.items():
         next_run = next_runs.get(source_code, now + timedelta(hours=6))
