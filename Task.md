@@ -5420,3 +5420,111 @@ for the full dated history.
       94 -> 95 registered sources). The fixture
       (`tests/fixtures/ucu_rosemary_orr_scholarship.html`) was captured
       unmodified from the live site.
+
+- [x] **(2026-09-07)** Russia follow-up: "find Russia undergraduate and
+      postgraduate university scholarship" - this platform already had
+      one Russia source (Skoltech, #90) before this pass. Checked nine
+      further Russian universities live: ITMO, Novosibirsk State
+      University, Kazan Federal University, Ural Federal University,
+      MEPhI, Peter the Great St. Petersburg Polytechnic University,
+      RUDN University, RANEPA, and Tomsk State University/Innopolis
+      University.
+
+      Every one either funnels its non-CIS international scholarship
+      information through one of two already-documented national
+      multi-record programmes - the government Rossotrudnichestvo/
+      "Education in Russia" quota (rejected in the prior five-country
+      pass as a client-side-rendered SPA shell) and the "Open Doors"
+      Russian Scholarship Project catalogue (rejected as a large
+      multi-university, multi-programme hub, the same architecture
+      mismatch as Erasmus Mundus's own catalogue) - rather than
+      offering its own distinct single-record flagship page, or hit a
+      genuine access/eligibility barrier:
+      - **ITMO University** - its "Enrollment opportunities" page lists
+        the Government Scholarship, an "ITMO.STARS" contest whose own
+        "Learn more" link resolves only to a Russian-language page with
+        no English equivalent, and Open Doors - checked the actual
+        link target directly rather than assumed an English version
+        existed.
+      - **Novosibirsk State University** - its Grants/Scholarships page
+        is a four-item list including third-country schemes (Germany's
+        DAAD, the US's Fulbright Program - not Russian scholarships at
+        all) and an Open Doors section that itself cites stale 2022
+        dates ("Starting from September 5, 2022... Until December 10,
+        2022") - read carefully enough to notice the page hadn't been
+        updated for a current cycle, not just skimmed for the word
+        "scholarship."
+      - **Kazan Federal University** - beyond the same Government
+        Scholarship/Open Doors pairing, found a third, genuinely
+        KFU-administered item: "International Olympiads of KFU." Read
+        its dedicated page directly and worked out the actual cycle
+        timeline rather than assuming currency from the phrase "2026/27
+        academic year": qualification stage ended January 13, 2026,
+        final stage ended February 10, 2026, leading to enrollment
+        "starting from the next academic year" - which, calculated
+        against today's date (2026-09-07), is the 2026/27 academic year
+        that has already begun. A fully concluded, stale cycle with no
+        next round announced yet - not integrated as open.
+      - **Ural Federal University** - same Government Scholarship/Open
+        Doors pairing on its "Information for Prospective International
+        Students" page, no distinct UrFU-administered scholarship
+        found. Separately noted `urfu.ru/robots.txt` disallows a
+        `/blind/` path specifically - avoided that path rather than
+        used it, even though the search results surfaced a URL under
+        it.
+      - **MEPhI** - beyond restating the Government Scholarship and
+        Open Doors, found a third, genuinely MEPhI/Rosatom-specific
+        programme: the "Partner-Countries of the State Corporation
+        Rosatom" scholarship. Checked its eligibility text directly
+        rather than assumed from "African countries" framing: explicitly
+        restricted to CIS countries plus two named African countries,
+        Tanzania and Namibia - confirmed Sierra Leone does not appear
+        on that list, per this project's standing explicit-check
+        discipline, rather than inferring inclusion from the vague
+        "African countries" phrasing.
+      - **Peter the Great St. Petersburg Polytechnic University** -
+        checked both of its English-content domains'
+        `robots.txt` files directly (`english.spbstu.ru` and
+        `www.spbstu.ru`) and found both set `Disallow: /en/` under the
+        generic `User-Agent: *` rule that this platform's own
+        identified `ScholarSphere/1.0` scraper falls under - the site's
+        own declared policy excludes its entire English content tree,
+        not circumvented.
+      - **RUDN University** - same pattern, confirmed directly:
+        `www.rudn.ru/robots.txt` sets `Disallow: /en/` under
+        `User-Agent: *`.
+      - **RANEPA** - found via search a page describing an
+        RANEPA-specific "partial scholarships for the best students"
+        (the Master of Global Public Policy programme), but a verbose
+        TLS handshake trace (`curl -v`) showed the server presents a
+        certificate for `*.tilda.ws` (a third-party website builder)
+        rather than for its own hostname - a genuine server-side
+        misconfiguration, verified directly rather than assumed from a
+        generic connection failure, and per this project's absolute
+        rule against disabling certificate verification, not bypassed
+        with `-k`. Left `VERIFICATION_REQUIRED`.
+      - **Tomsk State University and Innopolis University** - both
+        reachable, but every scholarship-related page found for either
+        restates Open Doors again or (Innopolis' application portal)
+        returns a genuinely empty client-side-rendered shell (title
+        "Empty page") - the same already-documented categories, not
+        new ground.
+
+      No new source was added for Russia this pass. Per this project's
+      "never invent opportunities to make the country look complete"
+      standard, the honest count of *additional* Russia sources this
+      pass is zero, reported as such rather than padded - three
+      genuinely university-specific programmes were found (MEPhI/
+      Rosatom, KFU's Olympiad, RANEPA's MGPP) but each failed an
+      already-established integration bar (nationality restriction
+      excluding Sierra Leone, a fully concluded stale cycle, and a
+      broken TLS certificate, respectively) rather than being forced
+      in. Skoltech (#90) remains this platform's only Russia source.
+
+      **No code was changed this pass** - only
+      `docs/AUTHORITATIVE_SOURCES.md`, `docs/COUNTRY_PROVIDER_
+      REGISTRY.md`, `Changelog.md`, and this file were updated. No new
+      test run was required since no source code, test, or fixture file
+      changed; the existing 835-passed/25-skipped baseline (confirmed
+      immediately prior, in the Netherlands follow-up pass above)
+      stands.

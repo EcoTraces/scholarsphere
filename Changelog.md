@@ -28,6 +28,55 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-07] — Russia follow-up: no new source qualified
+
+### Added
+—
+
+### Changed
+- `docs/AUTHORITATIVE_SOURCES.md` and `docs/COUNTRY_PROVIDER_REGISTRY.md`
+  — following a "find Russia undergraduate and postgraduate university
+  scholarship" request, researched nine further Russian universities
+  live (ITMO, Novosibirsk State University, Kazan Federal University,
+  Ural Federal University, MEPhI, Peter the Great St. Petersburg
+  Polytechnic, RUDN, RANEPA, Tomsk State University/Innopolis) and found
+  no new qualifying candidate. No source code, tests, or fixtures
+  changed.
+  - Every university's non-CIS international scholarship information
+    funnels through one of two already-documented national multi-record
+    programmes (the government Rossotrudnichestvo/"Education in Russia"
+    quota, and the "Open Doors" Russian Scholarship Project catalogue)
+    rather than a distinct, single-record institutional flagship page.
+  - **Peter the Great St. Petersburg Polytechnic University** and
+    **RUDN University** — both genuinely `robots.txt`-blocked: each
+    disallows its entire `/en/` content tree under the generic
+    `User-Agent: *` rule this platform's own `ScholarSphere/1.0`
+    scraper falls under.
+  - **RANEPA's Master of Global Public Policy programme page** — the
+    one page found describing an RANEPA-specific "partial scholarships
+    for the best students," but fails TLS certificate verification
+    (the server presents a `*.tilda.ws` certificate rather than one for
+    its own hostname) — a genuine server misconfiguration, not bypassed
+    with `-k`/`verify=False`, left `VERIFICATION_REQUIRED`.
+  - **MEPhI's "Partner-Countries of the State Corporation Rosatom"
+    scholarship** — explicitly restricted to CIS countries plus
+    Tanzania and Namibia; Sierra Leone does not appear on that list,
+    checked explicitly.
+  - **Kazan Federal University's "International Olympiads of KFU"** —
+    a genuine KFU-administered competition, but its most recent cycle
+    (qualification stage ended January 2026, final stage February 2026,
+    leading to enrollment in the already-underway 2026/27 academic
+    year) is fully concluded with no next cycle published yet — a
+    stale cycle, not treated as currently open.
+
+### Fixed
+—
+
+### Removed
+—
+
+---
+
 ## [2026-09-07] — Netherlands follow-up: UCU Rosemary Orr Scholarship added
 
 ### Added
