@@ -31,6 +31,11 @@ if not os.environ.get("DATABASE_URL"):
     print("DATABASE_URL is not set.", file=sys.stderr)
     sys.exit(1)
 
+# Running this file directly (`python scripts/sync_all_sources.py`) puts
+# scripts/ on sys.path, not the scholarsphere_backend/ directory the `app`
+# package lives in - add it explicitly rather than relying on cwd.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 os.environ.setdefault("APP_ENV", "development")  # avoid the production-only strict validator
 
 from app.tasks.opportunity_sync import SOURCE_TASK_NAMES, _run_source_sync  # noqa: E402
