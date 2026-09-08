@@ -1,6 +1,11 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../../app/design/app_footer.dart';
 import '../../../app/design/form_validation_styles.dart';
+import '../../governance/domain/legal_compliance.dart';
+import '../../governance/domain/legal_compliance_repository.dart';
+import '../../governance/presentation/legal_policy_screen.dart';
 import '../domain/auth_repository.dart';
 import '../domain/user_account.dart';
 
@@ -8,10 +13,12 @@ class AuthScreen extends StatefulWidget {
   const AuthScreen({
     super.key,
     required this.repository,
+    required this.legalRepository,
     required this.onAuthenticated,
   });
 
   final AuthRepository repository;
+  final LegalComplianceRepository legalRepository;
   final ValueChanged<UserAccount> onAuthenticated;
 
   @override
@@ -141,6 +148,7 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         _buildTrustSection(theme, wide: true),
+        AppFooter(legalRepository: widget.legalRepository),
       ],
     );
   }
@@ -151,7 +159,49 @@ class _AuthScreenState extends State<AuthScreen> {
       children: [
         _buildFormPane(theme, wide: false),
         _buildTrustSection(theme, wide: false),
+        AppFooter(legalRepository: widget.legalRepository),
       ],
+    );
+  }
+
+  /// A checkbox label of the form "I accept the [linkText]", where
+  /// [linkText] opens the real, current policy content
+  /// ([LegalPolicyScreen]) rather than asking the user to accept text
+  /// they have no way to actually read.
+  Widget _buildPolicyAcceptanceLabel(
+    ThemeData theme, {
+    required String prefix,
+    required String linkText,
+    required LegalPolicyType policyType,
+    required String policyTitle,
+  }) {
+    final bodyStyle =
+        theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
+    return Text.rich(
+      TextSpan(
+        style: bodyStyle,
+        children: [
+          TextSpan(text: prefix),
+          TextSpan(
+            text: linkText,
+            style: TextStyle(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => LegalPolicyScreen(
+                    repository: widget.legalRepository,
+                    policyType: policyType,
+                    title: policyTitle,
+                  ),
+                ),
+              ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -310,7 +360,13 @@ class _AuthScreenState extends State<AuthScreen> {
                             controlAffinity: ListTileControlAffinity.leading,
                             visualDensity: VisualDensity.standard,
                             value: _acceptPrivacy,
-                            title: const Text('Accept the privacy policy'),
+                            title: _buildPolicyAcceptanceLabel(
+                              theme,
+                              prefix: 'I accept the ',
+                              linkText: 'privacy policy',
+                              policyType: LegalPolicyType.privacyPolicy,
+                              policyTitle: 'Privacy Policy',
+                            ),
                             onChanged: _busy
                                 ? null
                                 : (value) => setState(
@@ -322,8 +378,12 @@ class _AuthScreenState extends State<AuthScreen> {
                             controlAffinity: ListTileControlAffinity.leading,
                             visualDensity: VisualDensity.standard,
                             value: _acceptTerms,
-                            title: const Text(
-                              'Accept the terms and conditions',
+                            title: _buildPolicyAcceptanceLabel(
+                              theme,
+                              prefix: 'I accept the ',
+                              linkText: 'terms and conditions',
+                              policyType: LegalPolicyType.termsAndConditions,
+                              policyTitle: 'Terms & Conditions',
                             ),
                             onChanged: _busy
                                 ? null

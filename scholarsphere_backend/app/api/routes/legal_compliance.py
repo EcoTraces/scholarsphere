@@ -98,9 +98,12 @@ async def publish_policy(
 @router.get("/policies/{policy_type}/current", response_model=LegalPolicyRead | None)
 async def get_current_policy(
     policy_type: str,
-    _: Annotated[AuthenticatedUser, any_authenticated],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> LegalPolicyRead | None:
+    # Deliberately public, unlike every other route in this file: a
+    # visitor must be able to read Terms & Conditions / Privacy Policy
+    # before creating an account (the registration form's own consent
+    # checkboxes link here), not only after signing in.
     policy = await _current_policy(session, policy_type_from_wire(policy_type))
     return None if policy is None else LegalPolicyRead.model_validate(policy)
 

@@ -51,6 +51,7 @@ from app.core.errors import install_error_handling
 from app.core.rate_limit import install_rate_limiting
 from app.core.security_headers import install_security_headers
 from app.db.session import AsyncSessionFactory, dispose_engine
+from app.services.legal_policy_seed import seed_default_legal_policies
 from app.services.premium_plan_seed import seed_default_plan
 
 settings = get_settings()
@@ -89,6 +90,7 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionFactory() as session:
         async with session.begin():
             await seed_default_plan(session)
+            await seed_default_legal_policies(session)
     yield
     await app.state.rate_limiter.close()
     await dispose_engine()

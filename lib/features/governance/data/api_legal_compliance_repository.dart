@@ -66,8 +66,14 @@ class ApiLegalComplianceRepository implements LegalComplianceRepository {
 
   @override
   Future<LegalPolicy?> current(LegalPolicyType type) async {
+    // Deliberately the one call in this repository that works signed out
+    // (matches the backend route, which is public for the same reason):
+    // a visitor must be able to read Terms & Conditions / Privacy Policy
+    // from the public footer or the registration form's consent
+    // checkboxes before ever creating an account.
     final body = await _get(
       '/legal/policies/${_policyTypeToWire(type)}/current',
+      requireAuth: false,
     );
     if (body == null) return null;
     return _toPolicy(body as Map<String, dynamic>);
@@ -258,8 +264,8 @@ class ApiLegalComplianceRepository implements LegalComplianceRepository {
         _ => throw LiveBackendException('Unknown legal request status: $value'),
       };
 
-  Future<dynamic> _get(String path) async {
-    final headers = await _headers();
+  Future<dynamic> _get(String path, {bool requireAuth = true}) async {
+    final headers = requireAuth ? await _headers() : await _optionalHeaders();
     final uri = Uri.parse('$baseUrl$path');
     return _handle(() => _client.get(uri, headers: headers));
   }
@@ -316,6 +322,21 @@ class ApiLegalComplianceRepository implements LegalComplianceRepository {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     };
+  }
+
+  /// Same as [_headers], but for the one endpoint that also serves signed
+  /// out visitors: sends a bearer token when one is available, omits it
+  /// otherwise, rather than throwing.
+  Future<Map<String, String>> _optionalHeaders() async {
+    final user = _auth.currentUser;
+    final headers = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    if (user != null) {
+      headers['Authorization'] = 'Bearer ${await user.getIdToken()}';
+    }
+    return headers;
   }
 
   void dispose() => _client.close();

@@ -547,6 +547,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
     if (user == null) {
       return AuthScreen(
         repository: _authRepository,
+        legalRepository: _legalRepository,
         onAuthenticated: _handleAuthenticated,
       );
     }

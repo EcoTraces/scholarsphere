@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -11,6 +12,8 @@ from app.core.auth import AuthenticatedUser, get_current_user
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.legal_compliance import LegalPolicy, LegalPolicyType
+from app.services.legal_policy_seed import seed_default_legal_policies
 
 
 @pytest_asyncio.fixture
@@ -76,13 +79,29 @@ async def _publish(
 
 
 @pytest.mark.asyncio
-async def test_legal_requires_authentication(session: AsyncSession) -> None:
+async def test_current_policy_is_public(session: AsyncSession) -> None:
+    # Deliberately the one legal-compliance endpoint with no auth
+    # requirement: a visitor must be able to read Terms & Conditions /
+    # Privacy Policy from the public footer before ever signing in, not
+    # only after creating an account.
     overrides(session, "applicant")
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         app.dependency_overrides.pop(get_current_user, None)
         response = await client.get("/api/v1/legal/policies/termsAndConditions/current")
+        assert response.status_code == 200
+        assert response.json() is None
+
+
+@pytest.mark.asyncio
+async def test_versions_still_requires_authentication(session: AsyncSession) -> None:
+    overrides(session, "applicant")
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        app.dependency_overrides.pop(get_current_user, None)
+        response = await client.get("/api/v1/legal/policies/termsAndConditions/versions")
         assert response.status_code in (401, 403, 422)
 
 
@@ -268,6 +287,28 @@ async def test_legal_requests_require_staff(session: AsyncSession) -> None:
 
         listed = await client.get("/api/v1/legal/requests")
         assert len(listed.json()) == 1
+
+
+@pytest.mark.asyncio
+async def test_seed_default_legal_policies_is_idempotent(session: AsyncSession) -> None:
+    await seed_default_legal_policies(session)
+    await session.commit()
+
+    seeded = (await session.scalars(select(LegalPolicy))).all()
+    seeded_types = {policy.type for policy in seeded}
+    assert seeded_types == {
+        LegalPolicyType.terms_and_conditions,
+        LegalPolicyType.privacy_policy,
+        LegalPolicyType.cookie_policy,
+    }
+    assert all(policy.content.strip() for policy in seeded)
+
+    # Re-running never overwrites/duplicates - matches
+    # seed_default_plan's "seed, not sync" contract.
+    await seed_default_legal_policies(session)
+    await session.commit()
+    again = (await session.scalars(select(LegalPolicy))).all()
+    assert len(again) == len(seeded)
 
 
 @pytest.mark.asyncio
