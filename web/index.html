@@ -252,16 +252,41 @@
       if (webglSupport === 'none' || webglSupport === 'error') {
         // No point waiting on Flutter at all - it cannot render without
         // WebGL with this build's renderer. Fail fast and clearly instead
-        // of a silent 10s hang into a blank screen.
+        // of a long hang into a blank screen.
         showLoadError();
       } else {
         window.addEventListener('flutter-first-frame', removeSplash);
-        // Safety net in case the engine doesn't fire the event within a
-        // reasonable time - show the diagnostic panel rather than
-        // silently revealing an unrendered blank page.
+
+        // This app's critical rendering path is genuinely large (CanvasKit
+        // alone is ~7MB, plus main.dart.js and the self-hosted Firebase
+        // SDK - see git history for exact sizes) - on a slow mobile
+        // connection, simply downloading and parsing all of it can
+        // legitimately take much longer than a few seconds. An earlier,
+        // shorter timeout here was firing before a real, working load had
+        // even finished downloading, wrongly telling a working device it
+        // couldn't run the app. Reassure first, only declare failure
+        // after a much longer wait.
+        var reassured = false;
+        setTimeout(function () {
+          if (removed || reassured) return;
+          reassured = true;
+          var note = document.createElement('div');
+          note.textContent = 'Still loading - this can take a while on a slower connection.';
+          note.style.cssText = 'position:absolute;bottom:15%;left:0;right:0;text-align:center;' +
+            'color:#C7D4EE;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;' +
+            'font-size:13px;padding:0 24px;';
+          var splash = document.getElementById('app-splash');
+          if (splash) splash.appendChild(note);
+        }, 8000);
+
+        // Safety net in case the engine genuinely never fires the event -
+        // show the diagnostic panel rather than silently revealing an
+        // unrendered blank page. Long enough to not fire on a real, just-
+        // slow load; still bounded so a genuine failure doesn't hang
+        // forever with no feedback.
         setTimeout(function () {
           if (!removed) showLoadError();
-        }, 12000);
+        }, 60000);
       }
     })();
   </script>
