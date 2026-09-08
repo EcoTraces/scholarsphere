@@ -636,18 +636,20 @@ class _AuthScreenState extends State<AuthScreen> {
   static const _trustItems = [
     (
       Icons.verified_user_outlined,
-      'Secure & trusted',
-      'Your data is protected with industry-standard security.',
+      'Firebase Authentication',
+      'Sign-in and encrypted document uploads, not a custom login system.',
     ),
     (
       Icons.public,
-      'Global opportunities',
-      'Access scholarships, grants, and internships worldwide.',
+      'Official sources only',
+      'Every scholarship, grant, and internship is checked against the '
+          'issuing institution before it\'s published.',
     ),
     (
       Icons.groups_outlined,
-      'For everyone',
-      'Students, professionals, and organizations, all in one place.',
+      'Built for every role',
+      'Separate workspaces for applicants, opportunity providers, and '
+          'verification staff.',
     ),
   ];
 
@@ -776,106 +778,75 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Widget _buildSidePanel(ThemeData theme) {
     const ink = Color(0xFF14213D);
-    const teal = Color(0xFF007C72);
     return ClipRect(
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [ink, teal],
+        color: ink,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(48),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 108,
+                  height: 108,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                  child: Image.asset(
+                    'assets/branding/icon-foreground-1024.png',
+                    fit: BoxFit.contain,
+                    cacheWidth: 204,
+                    semanticLabel: 'ScholarSphere',
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  _registering
+                      ? 'Create a free account to get\nmatched to real opportunities.'
+                      : 'Discover opportunities\nwithout borders.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _registering
+                      ? 'Every listing is checked against its official '
+                            'source before it reaches you.'
+                      : 'ScholarSphere connects you with verified '
+                            'scholarships, grants, and internships.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSideFeature(
+                        'Every opportunity verified against its official source',
+                      ),
+                      _buildSideFeature(
+                        'Matched to your academic profile and preferences',
+                      ),
+                      _buildSideFeature(
+                        'Applications tracked from submission to decision',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -50,
-              left: -50,
-              child: _decorativeCircle(
-                140,
-                Colors.white.withValues(alpha: 0.06),
-              ),
-            ),
-            Positioned(
-              bottom: -70,
-              right: -40,
-              child: _decorativeCircle(
-                220,
-                Colors.white.withValues(alpha: 0.06),
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(48),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 108,
-                      height: 108,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.12),
-                      ),
-                      child: Image.asset(
-                        'assets/branding/icon-foreground-1024.png',
-                        fit: BoxFit.contain,
-                        cacheWidth: 204,
-                        semanticLabel: 'ScholarSphere',
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    Text(
-                      _registering
-                          ? 'Join a global community of\nchangemakers.'
-                          : 'Discover opportunities\nwithout borders.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _registering
-                          ? 'Get personalized recommendations that match '
-                                'your goals.'
-                          : 'ScholarSphere connects you with verified '
-                                'scholarships, grants, and internships.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSideFeature('Verified & trusted platform'),
-                          _buildSideFeature(
-                            'Personalized opportunity matching',
-                          ),
-                          _buildSideFeature('A global network of changemakers'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
-    );
-  }
-
-  Widget _decorativeCircle(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 
@@ -883,15 +854,17 @@ class _AuthScreenState extends State<AuthScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(Icons.check_circle, size: 18, color: Colors.white),
           const SizedBox(width: 10),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

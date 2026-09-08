@@ -4260,6 +4260,34 @@ fabricated). Dates below are real commit dates.
   as an intentional "unrecognized role" safety net rather than an
   unfinished-feature stub.
 
+- **2026-09-08** — "Don't want the project to look vibe-coded" pass on the
+  auth screen (the only screen in the app with a gradient, and the
+  clearest concentration of generic marketing filler). Audited the whole
+  `lib/` tree first for the other four named patterns — fake reviews,
+  purple gradient, fake metrics, pill-shaped buttons — and found none of
+  them: testimonials/success-story stats are 100% real backend aggregates
+  that go honestly absent rather than showing a fabricated number (see
+  `success_stories_screen.dart`'s own comment), the theme's buttons are
+  12px rounded rects (not pills, no `StadiumBorder` anywhere in `lib/`),
+  and no purple/violet/indigo color exists anywhere in the app — the
+  theme is navy/teal/amber. What did exist: the auth screen's side panel
+  had a navy-to-teal gradient with two floating decorative circles (a
+  generic SaaS-template pattern) and vague, unverifiable copy ("Your data
+  is protected with industry-standard security.", "Students,
+  professionals, and organizations, all in one place."). Replaced the
+  gradient+circles with a flat panel, and rewrote every line of side-panel
+  and below-the-fold trust-badge copy to state concrete, true facts about
+  what the app actually does (official-source verification before
+  publishing, Firebase Authentication + encrypted document uploads,
+  separate workspaces per role) instead of generic claims. Fixed a
+  pre-existing latent overflow bug this surfaced: `_buildSideFeature`'s
+  `Row` had no `Expanded`/`Flexible` around its `Text`, so it only
+  "worked" by accident with the old short copy and overflowed once the
+  copy got longer - fixed properly (wrapped in `Expanded`) rather than by
+  shortening the new copy to fit. Files:
+  `lib/features/authentication/presentation/auth_screen.dart`. Verified:
+  `flutter analyze` clean, full `flutter test` suite green (97/97).
+
 ### Known outstanding items carried into Task.md
 - ~~Search-index rebuild / expired-opportunity-detection background jobs
   still read from demo (fake) opportunity data instead of the real API
