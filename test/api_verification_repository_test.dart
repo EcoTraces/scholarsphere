@@ -265,6 +265,99 @@ void main() {
     expect(evidence.rawPayload['id'], 'opp-1');
   });
 
+  test(
+    'getAwaitingPublication keeps only verified-but-unpublished items',
+    () async {
+      final repository = repositoryFor((request) async {
+        expect(
+          request.url.toString(),
+          contains('/external-opportunities/opportunities'),
+        );
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'id': 'opp-verified-unpublished',
+                'title': 'Ready to publish',
+                'provider_name': 'Ministry of Example',
+                'opportunity_type': 'grant',
+                'country': 'Sierra Leone',
+                'description': 'A grant.',
+                'opening_date': '2026-01-01',
+                'deadline': '2026-12-31',
+                'official_source_url': 'https://example.test/ready',
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-01T00:00:00Z',
+                'verification_status': 'verified',
+                'publication_status': 'unpublished',
+              },
+              {
+                'id': 'opp-already-published',
+                'title': 'Already live',
+                'provider_name': 'Ministry of Example',
+                'opportunity_type': 'grant',
+                'country': 'Sierra Leone',
+                'description': 'A grant.',
+                'opening_date': '2026-01-01',
+                'deadline': '2026-12-31',
+                'official_source_url': 'https://example.test/live',
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-01T00:00:00Z',
+                'verification_status': 'verified',
+                'publication_status': 'published',
+              },
+              {
+                'id': 'opp-still-pending',
+                'title': 'Not verified yet',
+                'provider_name': 'Ministry of Example',
+                'opportunity_type': 'grant',
+                'country': 'Sierra Leone',
+                'description': 'A grant.',
+                'opening_date': '2026-01-01',
+                'deadline': '2026-12-31',
+                'official_source_url': 'https://example.test/pending',
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-01T00:00:00Z',
+                'verification_status': 'pending',
+                'publication_status': 'unpublished',
+              },
+            ],
+            'total': 3,
+            'page': 1,
+            'page_size': 100,
+          }),
+          200,
+        );
+      });
+
+      final awaiting = await repository.getAwaitingPublication();
+
+      expect(awaiting, hasLength(1));
+      expect(awaiting.single.id, 'opp-verified-unpublished');
+      expect(awaiting.single.verificationStatus, VerificationStatus.verified);
+    },
+  );
+
+  test('setPublished posts the publication decision', () async {
+    late http.Request captured;
+    final repository = repositoryFor((request) async {
+      captured = request;
+      return http.Response('', 200);
+    });
+
+    await repository.setPublished('opp-1', true);
+
+    expect(
+      captured.url.toString(),
+      contains('/external-opportunities/opportunities/opp-1/publication'),
+    );
+    expect(captured.method, 'POST');
+    expect(jsonDecode(captured.body), {'published': true});
+  });
+
   test('throws when no user is signed in', () async {
     when(() => auth.currentUser).thenReturn(null);
     final repository = repositoryFor((request) async {

@@ -333,6 +333,50 @@ class ApiVerificationRepository implements VerificationRepository {
         .toList();
   }
 
+  /// Every verified-but-not-yet-published opportunity, across every
+  /// source - the admin-only publication queue. Paginates through the
+  /// full admin listing (verification_status/publication_status aren't
+  /// filterable server-side on this endpoint) rather than assuming one
+  /// page covers everything.
+  Future<List<Opportunity>> getAwaitingPublication() async {
+    final results = <Opportunity>[];
+    var page = 1;
+    const pageSize = 100;
+    while (true) {
+      final body =
+          await _get('/external-opportunities/opportunities', {
+                'page': '$page',
+                'page_size': '$pageSize',
+              })
+              as Map<String, dynamic>;
+      final items = body['items'] as List<dynamic>;
+      results.addAll(
+        items
+            .cast<Map<String, dynamic>>()
+            .where(
+              (item) =>
+                  item['verification_status'] == 'verified' &&
+                  item['publication_status'] == 'unpublished',
+            )
+            .map(_toOpportunity)
+            .whereType<Opportunity>(),
+      );
+      final total = body['total'] as int;
+      if (items.length < pageSize || page * pageSize >= total) break;
+      page++;
+    }
+    return results;
+  }
+
+  /// Makes a verified opportunity visible to applicants (or reverses
+  /// that). The backend rejects publishing anything not yet verified.
+  Future<void> setPublished(String opportunityId, bool published) async {
+    await _post(
+      '/external-opportunities/opportunities/$opportunityId/publication',
+      {'published': published},
+    );
+  }
+
   /// The live review state for one opportunity, or `null` if none exists
   /// yet (an opportunity always gets a review row at import time, so this
   /// is effectively always non-null for imported opportunities).
@@ -582,9 +626,9 @@ class ApiVerificationRepository implements VerificationRepository {
       funding: FundingType.partiallyFunded,
       deadline: deadline,
       applicationOpenDate: opening,
-      // The pending-verification endpoint only ever lists opportunities
-      // with verification_status == pending, so this is always accurate.
-      verificationStatus: VerificationStatus.pending,
+      verificationStatus: _mapVerificationStatus(
+        json['verification_status'] as String?,
+      ),
       lastVerifiedAt: null,
       officialSourceUrl: json['official_source_url'] as String? ?? '',
       applicationUrl:
@@ -611,6 +655,31 @@ class ApiVerificationRepository implements VerificationRepository {
       deliveryFormat: DeliveryFormat.physical,
       applicationFee: null,
     );
+  }
+
+  /// `null` covers the pending-verification queue endpoint, whose items
+  /// never carry this field since it's implied by the endpoint's own
+  /// filter (verification_status == pending, per PendingOpportunityItem).
+  static VerificationStatus _mapVerificationStatus(String? raw) {
+    switch (raw) {
+      case 'verified':
+        return VerificationStatus.verified;
+      case 'rejected':
+        return VerificationStatus.rejected;
+      case 'reverification_required':
+        return VerificationStatus.verificationExpired;
+      case 'expired':
+      case 'source_unavailable':
+        return VerificationStatus.expired;
+      case 'suspicious':
+        return VerificationStatus.suspicious;
+      case 'archived':
+        return VerificationStatus.archived;
+      case null:
+      case 'pending':
+      default:
+        return VerificationStatus.pending;
+    }
   }
 
   static OpportunityType _mapType(String rawType) {

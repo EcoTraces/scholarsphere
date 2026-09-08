@@ -657,6 +657,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         legalRepository: _legalRepository,
         fraudInvestigationRepository: _fraudInvestigationRepository,
         taxonomyRepository: _taxonomyRepository,
+        verificationRepository: _apiVerificationRepository,
         onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );

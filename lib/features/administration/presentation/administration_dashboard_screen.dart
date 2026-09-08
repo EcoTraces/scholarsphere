@@ -25,6 +25,8 @@ import '../../governance/domain/data_lifecycle_repository.dart';
 import '../../governance/domain/legal_compliance_repository.dart';
 import '../../governance/presentation/data_governance_screen.dart';
 import '../../taxonomy/domain/taxonomy_repository.dart';
+import '../../verification/data/api_verification_repository.dart';
+import '../../verification/presentation/publication_queue_screen.dart';
 
 class AdministrationDashboardScreen extends StatefulWidget {
   const AdministrationDashboardScreen({
@@ -45,6 +47,7 @@ class AdministrationDashboardScreen extends StatefulWidget {
     required this.legalRepository,
     required this.fraudInvestigationRepository,
     required this.taxonomyRepository,
+    required this.verificationRepository,
     required this.onOpenNotifications,
     required this.onSignOut,
   });
@@ -65,6 +68,7 @@ class AdministrationDashboardScreen extends StatefulWidget {
   final LegalComplianceRepository legalRepository;
   final FraudInvestigationRepository fraudInvestigationRepository;
   final TaxonomyRepository taxonomyRepository;
+  final ApiVerificationRepository verificationRepository;
   final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
@@ -176,7 +180,7 @@ class _AdministrationDashboardScreenState
     onOpportunities: _openCollection,
     onProviders: _openProviders,
     onUsers: _openUsers,
-    onVerifications: _openCollection,
+    onVerifications: _openPublicationQueue,
     onSources: _openSources,
     onMonitoring: _openOperations,
     onJobs: _openJobs,
@@ -242,6 +246,15 @@ class _AdministrationDashboardScreenState
         legalRepository: widget.legalRepository,
         fraudRepository: widget.fraudInvestigationRepository,
         taxonomyRepository: widget.taxonomyRepository,
+      ),
+    ),
+  );
+
+  void _openPublicationQueue() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => PublicationQueueScreen(
+        repository: widget.verificationRepository,
+        onSignOut: widget.onSignOut,
       ),
     ),
   );
