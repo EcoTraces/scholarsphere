@@ -1,6 +1,7 @@
 "use strict";
 
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {initializeApp} = require("firebase-admin/app");
 const {getAuth} = require("firebase-admin/auth");
 const {FieldValue, getFirestore} = require("firebase-admin/firestore");
@@ -16,6 +17,8 @@ const managedRoles = new Set([
   "securityAdministrator",
   "superAdministrator",
 ]);
+
+const allRoles = new Set(["applicant", ...managedRoles]);
 
 function requireAdministrator(request) {
   const role = request.auth && request.auth.token.role;
@@ -132,3 +135,33 @@ exports.suspendUser = onCall(async (request) => {
   await getAuth().revokeRefreshTokens(userId);
   return {userId, status: "suspended"};
 });
+
+// Keeps each user's Firebase Auth custom claim (`role`, read by
+// firestore.rules' isAdministrator() and the FastAPI backend's
+// get_current_user()) in sync with their `users/{userId}` document -
+// the only source of truth the client UI actually reads for routing.
+// Without this, any role set outside createManagedUser (a direct
+// Firestore edit, a future admin UI, a data migration) leaves the
+// account routed to the right dashboard by the client while every real
+// data request 403s, because the token backing those requests still
+// carries no role (or a stale one). Fires on every write rather than
+// diffing old/new values - `setCustomUserClaims` is idempotent and cheap
+// against the low, per-user write rate this collection sees, and this
+// also repairs documents that already existed before this trigger was
+// deployed, the next time they're touched.
+exports.syncUserRoleClaim = onDocumentWritten(
+    "users/{userId}",
+    async (event) => {
+      const after = event.data && event.data.after;
+      if (!after || !after.exists) return;
+      const role = after.data().role;
+      if (!allRoles.has(role)) {
+        console.warn(
+            `syncUserRoleClaim: unrecognized role "${role}" for user ` +
+            `${event.params.userId}, skipping.`,
+        );
+        return;
+      }
+      await getAuth().setCustomUserClaims(event.params.userId, {role});
+    },
+);
