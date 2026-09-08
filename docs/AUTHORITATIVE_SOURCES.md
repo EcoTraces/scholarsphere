@@ -591,6 +591,30 @@ program.
   Scholarship for Global Professionals"; deadline `null` (this page states
   the application window only as month names without an adjacent year at
   fetch time — honestly left unset)
+- **Update, 2026-09-08 (re-verification following a "Sweden government
+  scholarship" request)**: confirmed Sierra Leone is one of the 34
+  eligible countries, and that SISGP is the *only* Swedish Institute
+  Master's scholarship to source — it replaced a separate, now-
+  discontinued "SI Study Scholarships" programme, so there is no second
+  distinct Swedish government program to add. **Found and fixed a real
+  selector bug while re-verifying live**: `content_selectors`' original
+  first choice, `.content__body`, never matches on the actual page
+  (confirmed this was latent since day one — it didn't match even in
+  the original 2026-08-23 fixture) — it was silently falling through to
+  the second choice, `article`, which today matches *two* elements
+  (`article.scholarship`, the real content, and an unrelated
+  `article.blurb__container` FAQ teaser), landing on the correct one
+  only by document-order luck. Fixed with `article.scholarship` as the
+  explicit first choice, verified unique. `robots.txt` on the direct
+  path still 403s (unchanged, still monitored not blocked); the content
+  page itself still returns 200. Application status as of this date:
+  the page states "Application closed" — no day+month+year deadline
+  literal appears near any `deadline_keywords` match, so `deadline`
+  still correctly resolves to `None`, now resting on a correct selector
+  rather than luck. Fixture refreshed from the live page; regression
+  test strengthened to assert description content, `funding_type`, and
+  `deadline` (previously checked only `external_id`/`country`/
+  `provider_name`).
 
 ## 18. Eswatini Scholarship Loan Application System (SLAS)
 

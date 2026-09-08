@@ -6157,3 +6157,91 @@ for the full dated history.
     phrase each source's classification rests on. Full backend suite
     green afterward, plus `test_opportunity_import.py`'s updated
     source-count assertion, 103 -> 110 registered sources.
+
+  - **[2026-09-08] Screenshot listing five "Brazil fully funded
+    scholarship" resources (GCUB, CAPES, "Official Study in Brazil"
+    portal, "Post graduate programs in Brazil," CAPES's application
+    portal), asked to research and check current status.** Researched
+    each live rather than accepting the list at face value.
+
+    Four of the five turned out to be either already covered or not a
+    real source at all: CAPES itself and "Post graduate programs in
+    Brazil" (capes.gov.br) are the same organization already
+    implemented as PEC-PG (source #102); the CAPES application portal
+    (inscricao.capes.gov.br) is the shared registration system PEC-PG
+    already links to, not a distinct opportunity; "Official Study in
+    Brazil" (studyinbrazil.com) traced to BELTA, a private
+    educational-travel-agency trade association - not a government or
+    university source, declined on that basis alone regardless of
+    content quality.
+
+    The fifth, GCUB (Grupo de Cooperação Internacional de Universidades
+    Brasileiras), is genuinely real and substantial - GCUB-Mob offers
+    539 Master's + 350 PhD scholarships across 62 Brazilian
+    universities, open to applicants from all five continents (broader
+    than PEC-PG's country list). Checked `gcub.org.br/robots.txt`
+    anyway before treating it as a candidate, and found something worth
+    stopping for: a Cloudflare-managed block list that explicitly names
+    and disallows `ClaudeBot` - not just a generic bot-detection
+    challenge, but a rule naming this exact family of agent - alongside
+    GPTBot, CCBot, Bytespider, and others, plus a `Content-Signal:
+    ai-train=no, use=reference` declaration. This session runs on
+    Claude. The literal user-agent this scraper sends (`ScholarSphere/
+    1.0`) isn't the string being blocked, so technically the fetch
+    would succeed - but treating that as permission would mean routing
+    around a restriction aimed specifically at this project's own
+    identity, the same category of "don't spoof past an explicit block"
+    line already drawn elsewhere in this project for bot-challenge
+    sites. Declined GCUB on that principle, not as a technicality to
+    work around, and said so directly rather than quietly implementing
+    it under a UA that happens not to be named. GCUB-Mob's current
+    cycle (opened May 25, closed July 6, 2026) is also already closed
+    as of this research date regardless.
+
+    **No new sources this entry** - an honest null result, all four
+    docs updated to record the reasoning rather than silently doing
+    nothing.
+
+  - **[2026-09-08] "Sweden government scholarship."** Sweden already
+    has a real source (Swedish Institute Scholarships for Global
+    Professionals, SISGP, implemented 2026-08-23) - rather than treating
+    a short repeat request as a no-op, re-verified it live and checked
+    whether a second, distinct Swedish government Master's programme
+    exists to add.
+
+    Confirmed Sierra Leone remains one of the 34 eligible countries, and
+    confirmed there is no second program to add: SISGP replaced a
+    separate, now-discontinued "SI Study Scholarships" programme, so
+    there was only ever meant to be one.
+
+    Re-fetching the live page instead of assuming it still matched
+    surfaced a real bug that had been sitting there since the source was
+    first built: `content_selectors`' first choice, `.content__body`,
+    has never actually matched anything on the real page - confirmed
+    this was true even in the original 2026-08-23 fixture, so it was
+    latent from day one, not something that broke later. The code was
+    silently falling through to its second choice, `article`, which
+    today matches *two* elements - the real scholarship content
+    (`article.scholarship`) and an unrelated FAQ teaser card
+    (`article.blurb__container`) - and happened to extract the right
+    one only because it comes first in document order. A future page
+    reshuffle could have broken this silently with no test ever
+    catching it, since the existing test only asserted `external_id`/
+    `country`/`provider_name`, never the actual description content.
+    Fixed by making `article.scholarship` the explicit first choice,
+    verified unique on the live page. Refreshed the fixture from today's
+    real fetch and strengthened the test to assert description content,
+    `funding_type`, and `deadline` - closing the exact gap that let the
+    original bug ship unnoticed.
+
+    Application status confirmed as of this date: the page states
+    "Application closed" (the 2027/2028 cycle isn't expected to open
+    until roughly February 2027 per secondary reporting); no
+    day+month+year deadline literal appears near any `deadline_keywords`
+    match on the live page, so `deadline` correctly stays `None` - now
+    resting on a selector that's actually correct, not on luck.
+
+    **Verified for real**: `pyflakes` clean. Full
+    `test_national_scholarship_programs.py` + `test_opportunity_import.py`
+    green, 187 passed - no source-count change, since this fixed an
+    existing source rather than adding a new one.

@@ -28,6 +28,48 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [2026-09-08] — Brazil GCUB researched (declined) and Sweden SI scholarship re-verified with a real bug fix
+
+### Added
+- Nothing new. A "Group of Brazilian Universities Scholarship GCUB"
+  screenshot was researched live rather than implemented: GCUB-Mob (539
+  Master's + 350 PhD scholarships, 62 universities) and PAEC OEA-GCUB
+  (OAS-member-only, excludes Sierra Leone) are real programs, but
+  `gcub.org.br/robots.txt` explicitly names and disallows `ClaudeBot`
+  (alongside GPTBot/CCBot/Bytespider) with a `Content-Signal:
+  ai-train=no, use=reference` declaration - since this session runs on
+  Claude, routing around that named block via a different user-agent
+  would evade a restriction aimed directly at this project, not just a
+  generic bot-detection wall. Declined on that basis, not as a
+  technicality. The other 4 items on the same screenshot were either
+  already covered (CAPES/PEC-PG, source #102) or not an official source
+  (studyinbrazil.com, traced to BELTA, a private travel-agency trade
+  association, not a government or university site).
+
+### Fixed
+- **Swedish Institute Scholarships for Global Professionals** (source
+  #17) - a "Sweden government scholarship" request triggered a live
+  re-verification rather than a no-op confirmation, which surfaced a
+  real, previously undetected bug: `content_selectors`' original first
+  choice, `.content__body`, has never matched the actual page (latent
+  since the source's original 2026-08-23 implementation, not a later
+  regression) and was silently falling through to a second choice,
+  `article`, which today matches two different elements on the page -
+  it happened to land on the correct one only because of document
+  order, not because the selector was actually unambiguous. Fixed with
+  the specific, verified-unique `article.scholarship`. Confirmed Sierra
+  Leone remains eligible (one of 34 countries) and that no second
+  distinct Swedish government Master's scholarship exists to add
+  (SISGP replaced a now-discontinued separate programme). Fixture
+  refreshed from the live page; regression test strengthened to assert
+  description content, `funding_type`, and `deadline`, not just
+  `external_id`/`country`/`provider_name`. `pyflakes` clean; full
+  `test_national_scholarship_programs.py` + `test_opportunity_import.py`
+  green (187 passed) - no source-count change, since this is a fix to
+  an existing source, not a new one.
+
+---
+
 ## [2026-09-07] — US liberal arts colleges verified: 7 of 10 screenshot schools added, 3 honestly declined
 
 ### Added

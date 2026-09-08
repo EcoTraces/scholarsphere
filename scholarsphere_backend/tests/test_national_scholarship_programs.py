@@ -278,6 +278,11 @@ async def test_india_iccr_collect_normalizes_real_fixture(
 async def test_sweden_si_collect_normalizes_real_fixture(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Fixture refreshed 2026-09-08 after live re-verification found the
+    original first-choice selector (`.content__body`) never matches on
+    the real page; `article.scholarship` isolates the real content from
+    an unrelated `article.blurb__container` FAQ teaser also present on
+    the page."""
     source = SwedishInstituteScholarshipSource()
     monkeypatch.setattr(
         web_scraper_base,
@@ -290,8 +295,13 @@ async def test_sweden_si_collect_normalizes_real_fixture(
     assert len(result) == 1
     opportunity = result[0]
     assert opportunity.external_id == "sweden-si-scholarship-global-professionals"
+    assert opportunity.title == "SI Scholarship for Global Professionals"
     assert opportunity.country == "Sweden"
     assert opportunity.provider_name == "Swedish Institute (Svenska institutet)"
+    assert opportunity.description is not None
+    assert "Sweden invests in global talent" in opportunity.description
+    assert opportunity.funding_type == "fully_funded"
+    assert opportunity.deadline is None
 
 
 # --- Italy MAECI: real fixtures, fetched 2026-08-23 -----------------------

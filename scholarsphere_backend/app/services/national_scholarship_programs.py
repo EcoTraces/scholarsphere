@@ -294,12 +294,46 @@ class IndiaIccrSource(_SingleProgramSource):
 class SwedishInstituteScholarshipSource(_SingleProgramSource):
     """Swedish Institute Scholarships for Global Professionals (SISGP) -
     the Swedish Institute (Svenska institutet), a Swedish government
-    agency. Confirmed 2026-08-22: the scholarship page itself returns
-    real HTML (200, ~32KB) with `<h1 class="content__title">SI
-    Scholarship for Global Professionals</h1>`; robots.txt returned a
-    403 when fetched directly (likely edge-level bot filtering on that
-    specific path) but the actual content page did not, so this is
-    monitored rather than treated as fully blocked.
+    agency. Sierra Leone is one of the 34 eligible developing countries
+    per the programme's own eligibility list (SISGP replaced the
+    now-discontinued separate "SI Study Scholarships" programme, so
+    there is only one Swedish Institute Master's scholarship to source
+    from, not two).
+
+    Re-verified live 2026-09-08 (originally implemented 2026-08-22):
+    the scholarship page itself still returns real HTML (200) with
+    `<h1 class="content__title">SI Scholarship for Global
+    Professionals</h1>`; robots.txt still returns a 403 when fetched
+    directly (edge-level bot filtering on that specific path) but the
+    actual content page does not, so this remains monitored rather than
+    treated as fully blocked.
+
+    **Selector drift caught and fixed this pass**: `content_selectors`'
+    original first choice, `.content__body`, does not match anywhere on
+    the live page (confirmed directly - it never matched even in the
+    original 2026-08-22 fixture either, so this was latent from day
+    one, not a later regression). It was silently falling through to
+    the second choice, `article`, which today matches *two* elements on
+    the page (`article.scholarship`, the real content, and
+    `article.blurb__container`, an unrelated FAQ teaser card) -
+    `_first_match`'s `select_one` happened to land on the correct one
+    only because it comes first in document order, not because the
+    selector is actually unambiguous. Fixed by making
+    `article.scholarship` the explicit first choice, verified unique on
+    the page and directly confirmed to hold the real "Application
+    closed / Overview / What's included / Criteria..." content.
+
+    Application status as of this research date: the page's own content
+    states "Application closed" at the top - the 2027/2028 cycle's
+    portal is reported (secondary sources, not yet reflected on this
+    page itself) to open for roughly two weeks in February 2027, with
+    University Admissions' own separate January 2027 deadline gating
+    eligibility beforehand. No day+month+year deadline literal appears
+    within 300 characters of any of this class's `deadline_keywords` on
+    the live page today, so `deadline` correctly resolves to `None`
+    rather than a guessed date - unchanged behavior from before this
+    fix, just now resting on a selector that is actually correct rather
+    than on document-order luck.
     """
 
     source_code = "sweden_si_scholarship"
@@ -307,7 +341,7 @@ class SwedishInstituteScholarshipSource(_SingleProgramSource):
         "/en/apply/scholarships/swedish-institute-scholarships-for-global-professionals/"
     )
     title_selectors = ("h1.content__title", "h1")
-    content_selectors = (".content__body", "article", "main")
+    content_selectors = ("article.scholarship", "article", "main")
     deadline_keywords = ("deadline", "application period", "closing date")
     provider_name = "Swedish Institute (Svenska institutet)"
     country = "Sweden"
