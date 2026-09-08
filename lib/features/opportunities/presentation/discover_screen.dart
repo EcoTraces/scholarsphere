@@ -411,44 +411,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                             ),
                           ),
                           const SizedBox(height: 14),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: _openFilters,
-                                icon: const Icon(Icons.filter_alt_outlined),
-                                label: Text(
-                                  _filter.activeCount == 0
-                                      ? 'Filters'
-                                      : 'Filters (${_filter.activeCount})',
-                                ),
-                              ),
-                              ChoiceChip(
-                                label: const Text('All opportunities'),
-                                selected: _category == null,
-                                onSelected: (_) =>
-                                    setState(() => _category = null),
-                              ),
-                              ...RecommendationCategory.values.map(
-                                (category) => ChoiceChip(
-                                  label: Text(_categoryLabel(category)),
-                                  selected: _category == category,
-                                  onSelected: data.personalizationEnabled
-                                      ? (_) =>
-                                            setState(() => _category = category)
-                                      : null,
-                                ),
-                              ),
-                              if (!data.personalizationEnabled)
-                                const Chip(
-                                  avatar: Icon(Icons.privacy_tip_outlined),
-                                  label: Text(
-                                    'Personalized recommendations disabled',
-                                  ),
-                                ),
-                            ],
+                          OutlinedButton.icon(
+                            onPressed: () =>
+                                _openFilters(data.personalizationEnabled),
+                            icon: const Icon(Icons.filter_alt_outlined),
+                            label: Text(_filtersButtonLabel()),
                           ),
                           const SizedBox(height: 28),
                           Text(
@@ -515,13 +482,29 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Future<void> _openFilters() async {
-    final filter = await Navigator.of(context).push<OpportunityFilter>(
+  String _filtersButtonLabel() {
+    final parts = <String>[];
+    if (_filter.activeCount > 0) parts.add('${_filter.activeCount} filter');
+    if (_category != null) parts.add('1 lens');
+    return parts.isEmpty ? 'Filters' : 'Filters (${parts.join(', ')})';
+  }
+
+  Future<void> _openFilters(bool personalizationEnabled) async {
+    final result = await Navigator.of(context).push<OpportunityFilterResult>(
       MaterialPageRoute(
-        builder: (context) => OpportunityFilterScreen(initial: _filter),
+        builder: (context) => OpportunityFilterScreen(
+          initial: _filter,
+          initialCategory: _category,
+          personalizationEnabled: personalizationEnabled,
+        ),
       ),
     );
-    if (filter != null && mounted) setState(() => _filter = filter);
+    if (result != null && mounted) {
+      setState(() {
+        _filter = result.filter;
+        _category = result.category;
+      });
+    }
   }
 
   Future<void> _openProfile() async {
@@ -656,22 +639,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
     if (mounted) setState(() => _data = _loadData());
   }
-
-  String _categoryLabel(RecommendationCategory category) => switch (category) {
-    RecommendationCategory.bestMatches => 'Best matches',
-    RecommendationCategory.newlyPublished => 'Newly published',
-    RecommendationCategory.fullyFunded => 'Fully funded',
-    RecommendationCategory.noApplicationFee => 'No application fee',
-    RecommendationCategory.closingSoon => 'Closing soon',
-    RecommendationCategory.suitableForCountry => 'For your country',
-    RecommendationCategory.suitableForDegree => 'For your degree',
-    RecommendationCategory.online => 'Online',
-    RecommendationCategory.noIelts => 'No IELTS',
-    RecommendationCategory.undergraduate => 'Undergraduate',
-    RecommendationCategory.masters => 'Master\'s',
-    RecommendationCategory.phd => 'PhD',
-    RecommendationCategory.professional => 'Professional',
-  };
 }
 
 class _OpportunityCard extends StatelessWidget {

@@ -1,12 +1,29 @@
 import 'package:flutter/material.dart';
 
 import '../../opportunities/domain/opportunity.dart';
+import '../../recommendations/domain/recommendation.dart';
 import '../domain/opportunity_filter.dart';
 
+/// What [OpportunityFilterScreen] hands back: the structured filter fields
+/// plus the selected recommendation lens (`null` = "All opportunities") -
+/// both live behind the single "Filters" entry point now, rather than the
+/// category chips also sitting permanently on the Discover screen itself.
+typedef OpportunityFilterResult = ({
+  OpportunityFilter filter,
+  RecommendationCategory? category,
+});
+
 class OpportunityFilterScreen extends StatefulWidget {
-  const OpportunityFilterScreen({super.key, required this.initial});
+  const OpportunityFilterScreen({
+    super.key,
+    required this.initial,
+    required this.initialCategory,
+    required this.personalizationEnabled,
+  });
 
   final OpportunityFilter initial;
+  final RecommendationCategory? initialCategory;
+  final bool personalizationEnabled;
 
   @override
   State<OpportunityFilterScreen> createState() =>
@@ -23,10 +40,12 @@ class _OpportunityFilterScreenState extends State<OpportunityFilterScreen> {
   OpportunityAvailability _availability = OpportunityAvailability.open;
   bool _noFee = false;
   bool _verified = true;
+  late RecommendationCategory? _category;
 
   @override
   void initState() {
     super.initState();
+    _category = widget.initialCategory;
     final initial = widget.initial;
     _controllers = {
       'country': TextEditingController(text: initial.country),
@@ -65,8 +84,9 @@ class _OpportunityFilterScreenState extends State<OpportunityFilterScreen> {
         title: const Text('Search filters'),
         actions: [
           TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop(const OpportunityFilter()),
+            onPressed: () => Navigator.of(
+              context,
+            ).pop((filter: const OpportunityFilter(), category: null)),
             child: const Text('Clear'),
           ),
           const SizedBox(width: 8),
@@ -79,7 +99,47 @@ class _OpportunityFilterScreenState extends State<OpportunityFilterScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Recommendation lens',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  if (!widget.personalizationEnabled)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Personalized recommendations are disabled, so only '
+                        '"All opportunities" is available.',
+                      ),
+                    ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('All opportunities'),
+                        selected: _category == null,
+                        onSelected: (_) => setState(() => _category = null),
+                      ),
+                      ...RecommendationCategory.values.map(
+                        (category) => ChoiceChip(
+                          label: Text(_categoryLabel(category)),
+                          selected: _category == category,
+                          onSelected: widget.personalizationEnabled
+                              ? (_) => setState(() => _category = category)
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Structured filters',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
                   _enumField(
                     'Opportunity type',
                     _type,
@@ -202,8 +262,8 @@ class _OpportunityFilterScreenState extends State<OpportunityFilterScreen> {
   );
 
   void _apply() {
-    Navigator.of(context).pop(
-      OpportunityFilter(
+    Navigator.of(context).pop((
+      filter: OpportunityFilter(
         query: widget.initial.query,
         type: _type,
         country: _value('country'),
@@ -224,8 +284,26 @@ class _OpportunityFilterScreenState extends State<OpportunityFilterScreen> {
         verifiedOnly: _verified,
         availability: _availability,
       ),
-    );
+      category: widget.personalizationEnabled ? _category : null,
+    ));
   }
+
+  static String _categoryLabel(RecommendationCategory category) =>
+      switch (category) {
+        RecommendationCategory.bestMatches => 'Best matches',
+        RecommendationCategory.newlyPublished => 'Newly published',
+        RecommendationCategory.fullyFunded => 'Fully funded',
+        RecommendationCategory.noApplicationFee => 'No application fee',
+        RecommendationCategory.closingSoon => 'Closing soon',
+        RecommendationCategory.suitableForCountry => 'For your country',
+        RecommendationCategory.suitableForDegree => 'For your degree',
+        RecommendationCategory.online => 'Online',
+        RecommendationCategory.noIelts => 'No IELTS',
+        RecommendationCategory.undergraduate => 'Undergraduate',
+        RecommendationCategory.masters => 'Master\'s',
+        RecommendationCategory.phd => 'PhD',
+        RecommendationCategory.professional => 'Professional',
+      };
 
   String? _value(String key) {
     final value = _controllers[key]!.text.trim();
