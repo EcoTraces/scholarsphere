@@ -375,85 +375,95 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     .map((item) => item.opportunity)
                     .toList();
               }
-              return ListView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-                children: [
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1080),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Find your next opportunity',
-                            style: Theme.of(context).textTheme.headlineLarge,
+              final columns = MediaQuery.sizeOf(context).width >= 850 ? 2 : 1;
+              return CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1080),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Find your next opportunity',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineLarge,
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Search trusted scholarships, fellowships, internships, and events.',
+                              ),
+                              const SizedBox(height: 22),
+                              TextField(
+                                key: const Key('opportunity-search'),
+                                onChanged: (value) => setState(
+                                  () =>
+                                      _filter = _filter.copyWith(query: value),
+                                ),
+                                onSubmitted: (value) {
+                                  final query = value.trim();
+                                  if (query.isNotEmpty &&
+                                      !_previousSearches.contains(query)) {
+                                    setState(
+                                      () => _previousSearches.add(query),
+                                    );
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.search),
+                                  hintText:
+                                      'Search by title, provider, or country',
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    _openFilters(data.personalizationEnabled),
+                                icon: const Icon(Icons.filter_alt_outlined),
+                                label: Text(_filtersButtonLabel()),
+                              ),
+                              const SizedBox(height: 28),
+                              Text(
+                                '${results.length} opportunities',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Search trusted scholarships, fellowships, internships, and events.',
-                          ),
-                          const SizedBox(height: 22),
-                          TextField(
-                            key: const Key('opportunity-search'),
-                            onChanged: (value) => setState(
-                              () => _filter = _filter.copyWith(query: value),
-                            ),
-                            onSubmitted: (value) {
-                              final query = value.trim();
-                              if (query.isNotEmpty &&
-                                  !_previousSearches.contains(query)) {
-                                setState(() => _previousSearches.add(query));
-                              }
-                            },
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.search),
-                              hintText: 'Search by title, provider, or country',
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          OutlinedButton.icon(
-                            onPressed: () =>
-                                _openFilters(data.personalizationEnabled),
-                            icon: const Icon(Icons.filter_alt_outlined),
-                            label: Text(_filtersButtonLabel()),
-                          ),
-                          const SizedBox(height: 28),
-                          Text(
-                            '${results.length} opportunities',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 12),
-                          if (results.isEmpty)
-                            const _EmptyResults()
-                          else
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final columns = constraints.maxWidth >= 850
-                                    ? 2
-                                    : 1;
-                                return GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: results.length,
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: columns,
-                                        crossAxisSpacing: 14,
-                                        mainAxisSpacing: 14,
-                                        mainAxisExtent: 270,
-                                      ),
-                                  itemBuilder: (_, index) => _OpportunityCard(
-                                    opportunity: results[index],
-                                    onTap: () =>
-                                        _openOpportunity(results[index]),
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
+                  if (results.isEmpty)
+                    const SliverToBoxAdapter(child: _EmptyResults())
+                  else
+                    SliverConstrainedCrossAxis(
+                      maxExtent: 1080,
+                      sliver: SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                crossAxisSpacing: 14,
+                                mainAxisSpacing: 14,
+                                mainAxisExtent: 270,
+                              ),
+                          delegate: SliverChildBuilderDelegate(
+                            (_, index) => _OpportunityCard(
+                              opportunity: results[index],
+                              onTap: () => _openOpportunity(results[index]),
+                            ),
+                            childCount: results.length,
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 40)),
                 ],
               );
             },
