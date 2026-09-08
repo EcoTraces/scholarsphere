@@ -144,10 +144,24 @@ credentials to put behind them.
 
 ## What's still not covered here
 
-- The Celery worker/beat processes (scheduled scraping, notification
-  delivery, link-health monitoring) — no equivalent free host identified
+- The Celery worker/beat processes — no equivalent free host identified
   yet; see `render.yaml`'s top comment. The API works standalone, just
   without those background jobs.
+  - **Opportunity-source scraping/collection is covered separately**:
+    `.github/workflows/sync-opportunities.yml` runs
+    `scholarsphere_backend/scripts/sync_all_sources.py` on a daily
+    schedule (and on manual `workflow_dispatch`) on a GitHub-hosted
+    runner, calling the exact same `_run_source_sync` coroutine the real
+    Celery tasks call, directly against the production `DATABASE_URL`
+    (set as a GitHub Actions repository secret). This exists because
+    Render's free tier can't run a worker at all, and because this
+    sandbox/agent environment itself has no outbound access to Postgres
+    (HTTPS-proxy-only egress) — a GitHub-hosted runner has normal internet
+    access to both the database and every source site. Import only; a
+    verification officer still has to review and publish each candidate
+    in the app.
+  - Notification delivery and link-health monitoring remain uncovered —
+    no scheduled replacement exists for those yet.
 - A second payment provider, real payment SDK wiring on the Flutter side,
   and the individual premium document-builder Flutter screens — all
   unrelated to backend deployment; see `Task.md` for those.
