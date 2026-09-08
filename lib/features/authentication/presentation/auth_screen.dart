@@ -982,11 +982,19 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
     if (accepted != true || !mounted) return;
-    setState(() => _busy = true);
-    final account = await widget.repository.signInWithGoogle();
-    if (!mounted) return;
-    setState(() => _busy = false);
-    widget.onAuthenticated(account);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final account = await widget.repository.signInWithGoogle();
+      if (!mounted) return;
+      widget.onAuthenticated(account);
+    } on AuthFailure catch (failure) {
+      if (mounted) setState(() => _error = failure.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _resetPassword() async {
