@@ -703,7 +703,12 @@ class _OpportunityCard extends StatelessWidget {
                 runSpacing: 6,
                 children: [
                   Chip(label: Text(opportunity.fundingLabel)),
-                  Chip(label: Text(opportunity.studyLevels.first)),
+                  // Some real, live-imported opportunities have no
+                  // structured study level yet (the source didn't have one
+                  // to honestly extract) - omit the chip rather than
+                  // crashing on an empty list or fabricating a value.
+                  if (opportunity.studyLevels.isNotEmpty)
+                    Chip(label: Text(opportunity.studyLevels.first)),
                 ],
               ),
               const SizedBox(height: 8),
