@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/launch_link.dart';
 import '../../applications/domain/application_repository.dart';
 import '../../documents/domain/document_repository.dart';
 import '../../documents/presentation/document_readiness_panel.dart';
@@ -194,9 +195,8 @@ class OpportunityDetailScreen extends StatelessWidget {
                     items: opportunity.languageRequirements,
                     icon: Icons.language_outlined,
                   ),
-                  Text(
-                    'Contact: ${opportunity.contactInformation}',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  _ContactRow(
+                    contactInformation: opportunity.contactInformation,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -204,14 +204,14 @@ class OpportunityDetailScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
-                  SelectableText(opportunity.applicationUrl),
+                  _LaunchableUrlRow(url: opportunity.applicationUrl),
                   const SizedBox(height: 24),
                   Text(
                     'Official source',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
-                  SelectableText(opportunity.officialSourceUrl),
+                  _LaunchableUrlRow(url: opportunity.officialSourceUrl),
                   const SizedBox(height: 36),
                   SizedBox(
                     width: double.infinity,
@@ -308,6 +308,55 @@ class _DeadlineBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ContactRow extends StatelessWidget {
+  const _ContactRow({required this.contactInformation});
+
+  final String contactInformation;
+
+  bool get _looksLikeEmail =>
+      RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(contactInformation);
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_looksLikeEmail) {
+      return Text(
+        'Contact: $contactInformation',
+        style: Theme.of(context).textTheme.titleLarge,
+      );
+    }
+    return InkWell(
+      onTap: () => openEmail(context, contactInformation),
+      child: Text(
+        'Contact: $contactInformation',
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}
+
+class _LaunchableUrlRow extends StatelessWidget {
+  const _LaunchableUrlRow({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: SelectableText(url)),
+        IconButton(
+          tooltip: 'Open link',
+          icon: const Icon(Icons.open_in_new),
+          onPressed: () => openExternalLink(context, url),
+        ),
+      ],
     );
   }
 }

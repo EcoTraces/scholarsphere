@@ -110,14 +110,27 @@ class _ModerationQueueScreenState extends State<ModerationQueueScreen> {
       ),
     );
     if (action == null) return;
-    await widget.repository.transition(
-      caseId: report.id,
-      actorId: widget.user.id,
-      status: action,
-      notes: 'Moderator action: ${_label(action.name)}.',
-      hideContent: action == ModerationStatus.underReview,
-    );
-    if (mounted) setState(_reload);
+    try {
+      await widget.repository.transition(
+        caseId: report.id,
+        actorId: widget.user.id,
+        status: action,
+        notes: 'Moderator action: ${_label(action.name)}.',
+        hideContent: action == ModerationStatus.underReview,
+      );
+      if (mounted) {
+        setState(_reload);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Case marked as ${_label(action.name)}.')),
+        );
+      }
+    } on ModerationFailure catch (failure) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+      }
+    }
   }
 
   static String _label(String value) => value.replaceAllMapped(

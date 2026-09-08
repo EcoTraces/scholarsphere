@@ -13,11 +13,13 @@ class ModeratorDashboardScreen extends StatefulWidget {
     required this.user,
     required this.repository,
     required this.testimonialRepository,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
   final UserAccount user;
   final ModerationRepository repository;
   final TestimonialRepository testimonialRepository;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -83,6 +85,7 @@ class _ModeratorDashboardScreenState extends State<ModeratorDashboardScreen> {
                     showMenu: !desktop,
                     user: widget.user,
                     onRefresh: () => setState(_reload),
+                    onOpenNotifications: widget.onOpenNotifications,
                     onSignOut: widget.onSignOut,
                   ),
                   Expanded(
@@ -141,6 +144,7 @@ class _ModeratorDashboardScreenState extends State<ModeratorDashboardScreen> {
     user: widget.user,
     onQueue: _openQueue,
     onTestimonials: _openTestimonials,
+    onLogoTap: () => setState(_reload),
   );
 }
 
@@ -155,11 +159,13 @@ class _ModeratorHeader extends StatelessWidget {
     required this.showMenu,
     required this.user,
     required this.onRefresh,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
   final bool showMenu;
   final UserAccount user;
   final VoidCallback onRefresh;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -214,7 +220,7 @@ class _ModeratorHeader extends StatelessWidget {
         ),
         IconButton(
           tooltip: 'Notifications',
-          onPressed: () {},
+          onPressed: onOpenNotifications,
           icon: const Icon(Icons.notifications_none),
         ),
         PopupMenuButton<String>(
@@ -237,10 +243,12 @@ class _ModeratorNavigation extends StatelessWidget {
     required this.user,
     required this.onQueue,
     required this.onTestimonials,
+    required this.onLogoTap,
   });
   final UserAccount user;
   final VoidCallback onQueue;
   final VoidCallback onTestimonials;
+  final VoidCallback onLogoTap;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -248,39 +256,42 @@ class _ModeratorNavigation extends StatelessWidget {
     child: SafeArea(
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.admin_panel_settings_outlined,
-                  color: Color(0xFFE09F3E), // brand amber
-                  size: 36,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ScholarSphere',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        'Moderator Portal',
-                        style: TextStyle(
-                          color: Color(0xFFB8C7DC),
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
+          InkWell(
+            onTap: onLogoTap,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.admin_panel_settings_outlined,
+                    color: Color(0xFFE09F3E), // brand amber
+                    size: 36,
                   ),
-                ),
-              ],
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ScholarSphere',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          'Moderator Portal',
+                          style: TextStyle(
+                            color: Color(0xFFB8C7DC),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(

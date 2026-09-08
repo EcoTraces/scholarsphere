@@ -419,39 +419,42 @@ class _SideNavigation extends StatelessWidget {
     child: SafeArea(
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(22, 18, 16, 22),
-            child: Row(
-              children: [
-                Icon(Icons.school_outlined, color: Colors.white, size: 34),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ScholarSphere',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+          InkWell(
+            onTap: openDashboard,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(22, 18, 16, 22),
+              child: Row(
+                children: [
+                  Icon(Icons.school_outlined, color: Colors.white, size: 34),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ScholarSphere',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Opportunities Without Borders',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Color(0xFFB8C7DC),
-                          fontSize: 10,
+                        Text(
+                          'Opportunities Without Borders',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFFB8C7DC),
+                            fontSize: 10,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Expanded(

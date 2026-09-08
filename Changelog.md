@@ -4239,6 +4239,26 @@ fabricated). Dates below are real commit dates.
   security review, which predates them).
 - **2026-08-21** — Further backend feature work landed ("backend
   features01", "completed features" per commit history).
+- **2026-09-08** — Frontend pre-launch QA pass against a 20-item generic
+  website checklist, adapted to the Flutter app's actual structure (no
+  traditional footer/multi-page nav exists, so items were mapped to their
+  real equivalents): added the `url_launcher` dependency (previously
+  missing entirely, so no application link, contact email, or official
+  source link could ever be opened) and a shared `lib/app/launch_link.dart`
+  helper; wired it into the opportunity detail screen's application link,
+  official source link, and email-shaped contact info. Fixed six dead
+  "Notifications" bell buttons (verification officer, administration,
+  provider, moderator, support, security dashboards) to open
+  `NotificationCenterScreen`. Fixed the moderation queue's case-transition
+  action, which previously had no error handling and no success feedback,
+  to show a success/error `SnackBar` and surface `ModerationFailure`
+  messages. Made the "ScholarSphere" wordmark clickable across all eight
+  role dashboards/headers, reusing each screen's existing reload/reset
+  semantics (and fixing two previously dead `onDashboard: () {}`/no-op nav
+  handlers found along the way, in the security administrator and provider
+  dashboards). Reworded the `RoleWorkspaceScreen` fallback text so it reads
+  as an intentional "unrecognized role" safety net rather than an
+  unfinished-feature stub.
 
 ### Known outstanding items carried into Task.md
 - ~~Search-index rebuild / expired-opportunity-detection background jobs
@@ -4252,6 +4272,17 @@ fabricated). Dates below are real commit dates.
   checklist.
 - Firebase console bundle-ID re-registration and real release signing
   remain blocked on access this session/tooling can't provide.
+- From the 2026-09-08 QA pass: no footer/legal-links equivalent exists
+  anywhere, and the `LegalPolicy` domain model it would point to is never
+  seeded with real Terms/Privacy content in the demo governance
+  repository — writing that copy is a product/legal decision, not a code
+  fix, so it was left alone. The provider dashboard's "My Opportunities /
+  Drafts / Submissions / Published / Expired / Archived" nav items and its
+  header's search field are still non-functional (`() {}` handlers, a
+  `readOnly` `TextField`) — they imply status-filtering and search
+  features that don't exist yet in the opportunity domain model; building
+  them is a feature addition, not a QA nit, so only the dashboard-level
+  "Dashboard" nav item and logo were wired to a real action.
 
 See `Road_map.md` for the full phase-by-phase status and `Task.md` for the
 active task board.

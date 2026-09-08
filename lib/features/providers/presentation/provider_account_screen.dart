@@ -16,6 +16,7 @@ class ProviderAccountScreen extends StatefulWidget {
     required this.providerRepository,
     required this.opportunityRepository,
     required this.analyticsRepository,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
 
@@ -23,6 +24,7 @@ class ProviderAccountScreen extends StatefulWidget {
   final ProviderRepository providerRepository;
   final OpportunityRepository opportunityRepository;
   final ProviderAnalyticsRepository analyticsRepository;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -55,6 +57,7 @@ class _ProviderAccountScreenState extends State<ProviderAccountScreen> {
           user: widget.user,
           repository: widget.opportunityRepository,
           analyticsRepository: widget.analyticsRepository,
+          onOpenNotifications: widget.onOpenNotifications,
           onSignOut: widget.onSignOut,
         );
       }

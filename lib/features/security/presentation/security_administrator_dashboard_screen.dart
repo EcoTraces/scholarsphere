@@ -13,12 +13,14 @@ class SecurityAdministratorDashboardScreen extends StatefulWidget {
     required this.securityRepository,
     required this.auditRepository,
     required this.onOpenSecurityCenter,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
   final UserAccount user;
   final SecurityRepository securityRepository;
   final AuditRepository auditRepository;
   final VoidCallback onOpenSecurityCenter;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -63,6 +65,7 @@ class _SecurityAdministratorDashboardScreenState
                     showMenu: !desktop,
                     user: widget.user,
                     onRefresh: () => setState(_reload),
+                    onOpenNotifications: widget.onOpenNotifications,
                     onSignOut: widget.onSignOut,
                   ),
                   Expanded(
@@ -116,7 +119,7 @@ class _SecurityAdministratorDashboardScreenState
 
   Widget _navigation() => _SecurityNavigation(
     user: widget.user,
-    onDashboard: () {},
+    onDashboard: () => setState(_reload),
     onSecurityCenter: widget.onOpenSecurityCenter,
     onAudit: () => Navigator.of(context).push<void>(
       MaterialPageRoute(
@@ -171,11 +174,13 @@ class _SecurityHeader extends StatelessWidget {
     required this.showMenu,
     required this.user,
     required this.onRefresh,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
   final bool showMenu;
   final UserAccount user;
   final VoidCallback onRefresh;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -228,7 +233,7 @@ class _SecurityHeader extends StatelessWidget {
         ),
         IconButton(
           tooltip: 'Security alerts',
-          onPressed: () {},
+          onPressed: onOpenNotifications,
           icon: const Icon(Icons.notifications_none),
         ),
         PopupMenuButton<String>(
@@ -267,38 +272,44 @@ class _SecurityNavigation extends StatelessWidget {
     child: SafeArea(
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.shield_outlined,
-                  color: Color(0xFFE09F3E), // brand amber
-                  size: 36,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ScholarSphere',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        'Secure. Trusted. Global Opportunities.',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Color(0xFFB8C7DC), fontSize: 9),
-                      ),
-                    ],
+          InkWell(
+            onTap: onDashboard,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.shield_outlined,
+                    color: Color(0xFFE09F3E), // brand amber
+                    size: 36,
                   ),
-                ),
-              ],
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ScholarSphere',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          'Secure. Trusted. Global Opportunities.',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFFB8C7DC),
+                            fontSize: 9,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(

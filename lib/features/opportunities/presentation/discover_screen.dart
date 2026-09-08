@@ -109,6 +109,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _data = _loadData();
   }
 
+  void _goHome() => setState(() {
+    _filter = const OpportunityFilter();
+    _category = null;
+    _data = _loadData();
+  });
+
   Future<
     ({
       List<Opportunity> opportunities,
@@ -158,16 +164,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.public),
-            SizedBox(width: 10),
-            Text(
-              'ScholarSphere',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ],
+        title: InkWell(
+          onTap: _goHome,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.public),
+              SizedBox(width: 10),
+              Text(
+                'ScholarSphere',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(

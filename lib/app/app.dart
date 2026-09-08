@@ -599,6 +599,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         providerRepository: _providerRepository,
         opportunityRepository: _apiProviderOpportunityRepository,
         analyticsRepository: _providerAnalyticsRepository,
+        onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );
     }
@@ -607,6 +608,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         user: user,
         liveRepository: _apiVerificationRepository,
         providerRepository: _providerRepository,
+        onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );
     }
@@ -615,6 +617,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         user: user,
         repository: _moderationRepository,
         testimonialRepository: _testimonialRepository,
+        onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );
     }
@@ -622,6 +625,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
       return SupportAgentScreen(
         user: user,
         repository: _supportRepository,
+        onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );
     }
@@ -631,6 +635,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         securityRepository: _securityRepository,
         auditRepository: _auditRepository,
         onOpenSecurityCenter: () => _openApplicantSettings(user),
+        onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );
     }
@@ -652,6 +657,7 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         legalRepository: _legalRepository,
         fraudInvestigationRepository: _fraudInvestigationRepository,
         taxonomyRepository: _taxonomyRepository,
+        onOpenNotifications: () => _openStaffNotifications(user),
         onSignOut: _signOut,
       );
     }
@@ -677,6 +683,23 @@ class _ScholarSphereAppState extends State<ScholarSphereApp> {
         builder: (_) => NotificationCenterScreen(
           userId: user.id,
           opportunities: opportunities,
+          repository: _notificationRepository,
+        ),
+      ),
+    );
+  }
+
+  /// Staff roles (verification, moderation, support, security,
+  /// administration) don't browse the published opportunity catalogue the
+  /// way applicants do, so there's no natural opportunity list to pass -
+  /// an empty list still lets [NotificationCenterScreen] render any
+  /// non-opportunity-linked notification correctly.
+  void _openStaffNotifications(UserAccount user) {
+    _navigatorKey.currentState?.push<void>(
+      MaterialPageRoute(
+        builder: (_) => NotificationCenterScreen(
+          userId: user.id,
+          opportunities: const [],
           repository: _notificationRepository,
         ),
       ),

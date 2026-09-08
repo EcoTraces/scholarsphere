@@ -58,8 +58,9 @@ class RoleWorkspaceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'This account is authorized for its dedicated workspace. '
-                  'The workflow will be implemented in its feature module.',
+                  "We couldn't match this account to a workspace. "
+                  'Sign out and sign back in, or contact support if this '
+                  'keeps happening.',
                   textAlign: TextAlign.center,
                 ),
               ],

@@ -45,6 +45,7 @@ class AdministrationDashboardScreen extends StatefulWidget {
     required this.legalRepository,
     required this.fraudInvestigationRepository,
     required this.taxonomyRepository,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
 
@@ -64,6 +65,7 @@ class AdministrationDashboardScreen extends StatefulWidget {
   final LegalComplianceRepository legalRepository;
   final FraudInvestigationRepository fraudInvestigationRepository;
   final TaxonomyRepository taxonomyRepository;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -103,6 +105,7 @@ class _AdministrationDashboardScreenState
                     user: widget.user,
                     title: _showReports ? 'Reports & Analytics' : 'Dashboard',
                     onRefresh: () => setState(_reload),
+                    onOpenNotifications: widget.onOpenNotifications,
                     onSignOut: widget.onSignOut,
                     onAddOpportunity: _openCollection,
                   ),
@@ -263,6 +266,7 @@ class _AdminHeader extends StatelessWidget {
     required this.user,
     required this.title,
     required this.onRefresh,
+    required this.onOpenNotifications,
     required this.onSignOut,
     required this.onAddOpportunity,
   });
@@ -270,6 +274,7 @@ class _AdminHeader extends StatelessWidget {
   final UserAccount user;
   final String title;
   final VoidCallback onRefresh;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
   final VoidCallback onAddOpportunity;
 
@@ -325,7 +330,7 @@ class _AdminHeader extends StatelessWidget {
         ),
         IconButton(
           tooltip: 'Notifications',
-          onPressed: () {},
+          onPressed: onOpenNotifications,
           icon: const Icon(Icons.notifications_none),
         ),
         if (MediaQuery.sizeOf(context).width >= 620)
@@ -411,38 +416,41 @@ class _AdminNavigation extends StatelessWidget {
     child: SafeArea(
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
-            child: Row(
-              children: [
-                Icon(Icons.school_outlined, color: Colors.white, size: 34),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ScholarSphere',
-                        maxLines: 1,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+          InkWell(
+            onTap: onDashboard,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
+              child: Row(
+                children: [
+                  Icon(Icons.school_outlined, color: Colors.white, size: 34),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ScholarSphere',
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Opportunities Without Borders',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Color(0xFFB8C7DC),
-                          fontSize: 10,
+                        Text(
+                          'Opportunities Without Borders',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFFB8C7DC),
+                            fontSize: 10,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Expanded(

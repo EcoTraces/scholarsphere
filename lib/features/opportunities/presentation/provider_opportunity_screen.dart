@@ -12,12 +12,14 @@ class ProviderOpportunityScreen extends StatefulWidget {
     required this.user,
     required this.repository,
     required this.analyticsRepository,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
 
   final UserAccount user;
   final OpportunityRepository repository;
   final ProviderAnalyticsRepository analyticsRepository;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -66,6 +68,7 @@ class _ProviderOpportunityScreenState extends State<ProviderOpportunityScreen> {
                     user: widget.user,
                     onCreate: _createOpportunity,
                     onRefresh: () => setState(_reload),
+                    onOpenNotifications: widget.onOpenNotifications,
                     onSignOut: widget.onSignOut,
                   ),
                   Expanded(
@@ -110,6 +113,7 @@ class _ProviderOpportunityScreenState extends State<ProviderOpportunityScreen> {
     user: widget.user,
     onCreate: _createOpportunity,
     onAnalytics: _openAnalytics,
+    onLogoTap: () => setState(_reload),
     onSignOut: widget.onSignOut,
   );
 
@@ -174,12 +178,14 @@ class _ProviderHeader extends StatelessWidget {
     required this.user,
     required this.onCreate,
     required this.onRefresh,
+    required this.onOpenNotifications,
     required this.onSignOut,
   });
   final bool showMenu;
   final UserAccount user;
   final VoidCallback onCreate;
   final VoidCallback onRefresh;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSignOut;
 
   @override
@@ -234,7 +240,7 @@ class _ProviderHeader extends StatelessWidget {
         ),
         IconButton(
           tooltip: 'Notifications',
-          onPressed: () {},
+          onPressed: onOpenNotifications,
           icon: const Icon(Icons.notifications_none),
         ),
         if (MediaQuery.sizeOf(context).width >= 620)
@@ -266,11 +272,13 @@ class _ProviderNavigation extends StatelessWidget {
     required this.user,
     required this.onCreate,
     required this.onAnalytics,
+    required this.onLogoTap,
     required this.onSignOut,
   });
   final UserAccount user;
   final VoidCallback onCreate;
   final VoidCallback onAnalytics;
+  final VoidCallback onLogoTap;
   final VoidCallback onSignOut;
 
   @override
@@ -279,32 +287,38 @@ class _ProviderNavigation extends StatelessWidget {
     child: SafeArea(
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
-            child: Row(
-              children: [
-                Icon(Icons.school_outlined, color: Colors.white, size: 34),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ScholarSphere',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+          InkWell(
+            onTap: onLogoTap,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, 14, 20),
+              child: Row(
+                children: [
+                  Icon(Icons.school_outlined, color: Colors.white, size: 34),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ScholarSphere',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Opportunities Without Borders',
-                        style: TextStyle(color: Color(0xFFB8C7DC), fontSize: 9),
-                      ),
-                    ],
+                        Text(
+                          'Opportunities Without Borders',
+                          style: TextStyle(
+                            color: Color(0xFFB8C7DC),
+                            fontSize: 9,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -314,7 +328,7 @@ class _ProviderNavigation extends StatelessWidget {
                 _providerNav(
                   Icons.dashboard_outlined,
                   'Dashboard',
-                  () {},
+                  onLogoTap,
                   true,
                 ),
                 _providerSection('OPPORTUNITIES'),

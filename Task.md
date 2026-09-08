@@ -6245,3 +6245,48 @@ for the full dated history.
     `test_national_scholarship_programs.py` + `test_opportunity_import.py`
     green, 187 passed - no source-count change, since this fixed an
     existing source rather than adding a new one.
+
+- [x] **(2026-09-08)** Frontend pre-launch QA pass ("enforce this
+      details" against a 20-item generic website checklist, mapped onto
+      the Flutter app's actual mobile-first, no-footer structure rather
+      than forced onto website-shaped assumptions). Added the missing
+      `url_launcher` dependency and `lib/app/launch_link.dart` helper so
+      application links, official-source links, and email-shaped contact
+      info on the opportunity detail screen are actually clickable (they
+      never were before this - a real product gap, not a cosmetic one).
+      Wired six dead notification-bell `IconButton`s (verification
+      officer, administration, provider, moderator, support, security
+      dashboards) to `NotificationCenterScreen`. Added error handling +
+      success/error `SnackBar` feedback to the moderation queue's
+      case-transition action (previously silent on both success and
+      `ModerationFailure`). Made the "ScholarSphere" wordmark clickable
+      across all eight role dashboards/headers/screens, reusing each
+      screen's own existing reload/reset logic - which surfaced and fixed
+      two more genuinely dead `onDashboard: () {}` nav handlers (security
+      administrator, provider dashboards) along the way. Reworded
+      `RoleWorkspaceScreen`'s fallback copy so it reads as an intentional
+      "unrecognized role" safety net instead of an unfinished-feature
+      stub. Left two items as flagged, out-of-scope findings rather than
+      fabricating a fix: footer/legal links have nothing real to point to
+      (`LegalPolicy` demo repository is never seeded with actual
+      Terms/Privacy text - a legal-content decision, not a code fix), and
+      the provider dashboard's status-filter nav items
+      (Drafts/Submissions/Published/Expired/Archived) plus its header
+      search field are still non-functional placeholders for filtering/
+      search features that don't exist yet in the opportunity domain
+      model. Files: `lib/app/launch_link.dart` (new),
+      `lib/app/app.dart`, `lib/features/opportunities/presentation/
+      opportunity_detail_screen.dart`, `.../provider_opportunity_screen.dart`,
+      `.../discover_screen.dart`, `lib/features/providers/presentation/
+      provider_account_screen.dart`, `lib/features/verification/
+      presentation/verification_officer_dashboard_screen.dart`,
+      `lib/features/administration/presentation/
+      administration_dashboard_screen.dart`, `lib/features/moderation/
+      presentation/moderator_dashboard_screen.dart` and
+      `moderation_queue_screen.dart`, `lib/features/support/presentation/
+      support_agent_screen.dart`, `lib/features/security/presentation/
+      security_administrator_dashboard_screen.dart`,
+      `lib/features/dashboard/presentation/applicant_dashboard_screen.dart`,
+      `lib/features/authentication/presentation/role_workspace_screen.dart`.
+      **Verified for real**: `flutter analyze` clean (0 issues), full
+      `flutter test` suite green (97/97).
