@@ -16,6 +16,41 @@
   -->
   <base href="$FLUTTER_BASE_HREF">
 
+  <!--
+    Self-hosted Firebase JS SDK (see web/firebase/, vendored from
+    https://www.gstatic.com/firebasejs/12.15.0/ to match
+    firebase_core_web's supportedFirebaseJsSdkVersion exactly - keep
+    these in sync if that package version ever changes).
+
+    Without this, firebase_core_web dynamically imports the Firebase JS
+    SDK straight from Google's www.gstatic.com CDN at runtime
+    (see firebase_core_web's injectSrcScript/_initializeCore) - every one
+    of those vendored files also has its own internal, hardcoded
+    "from https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js"
+    import. If a visitor's network can't reliably reach gstatic.com
+    (mobile carrier filtering/throttling, a slow/blocked CDN edge - a
+    real risk for this platform's target audience), Firebase never
+    initializes, main.dart's startup never resolves, and the app never
+    paints anything past its splash screen - a permanent white screen.
+
+    This import map transparently redirects every one of those
+    gstatic.com URLs (both FlutterFire's own dynamic imports and each
+    vendored file's internal cross-imports) to the local copies below,
+    with no changes needed to the vendored files themselves or to any
+    Dart code - the browser's own module resolution does the rest.
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js": "./firebase/firebase-app.js",
+      "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-pipelines.js": "./firebase/firebase-firestore-pipelines.js",
+      "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js": "./firebase/firebase-functions.js",
+      "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js": "./firebase/firebase-auth.js",
+      "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js": "./firebase/firebase-storage.js"
+    }
+  }
+  </script>
+
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Find and get notified about verified scholarships, fellowships, internships, and grants from recognized institutions worldwide.">

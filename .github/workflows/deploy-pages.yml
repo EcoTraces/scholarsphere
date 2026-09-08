@@ -59,9 +59,24 @@ jobs:
         # scholarsphere_backend/ instance before relying on this
         # deployment for anything beyond a static preview - this backend
         # is not deployed anywhere by this workflow or this repository.
+        #
+        # --no-web-resources-cdn: without this, Flutter defaults to
+        # fetching the CanvasKit renderer from Google's own
+        # www.gstatic.com CDN at runtime, even though flutter build web
+        # already bundles a full local copy of it at build/web/canvaskit/.
+        # If a visitor's network can't reliably reach gstatic.com (mobile
+        # carrier filtering/throttling, a corporate/campus proxy, or the
+        # CDN simply being slow on that network) - a real risk for this
+        # platform's target audience - the app never paints anything: the
+        # splash screen (web/index.html) times out and force-removes
+        # itself after 10s regardless of whether Flutter ever loaded, and
+        # nothing else ever renders behind it, leaving a blank white
+        # screen. This flag makes the deploy fully self-contained, so
+        # CanvasKit always loads from the same origin as everything else.
         run: |
           flutter build web --release \
             --base-href "/${{ github.event.repository.name }}/" \
+            --no-web-resources-cdn \
             --dart-define=SCHOLARSPHERE_API_BASE_URL="${{ vars.SCHOLARSPHERE_API_BASE_URL || 'http://localhost:8000/api/v1' }}"
       - name: Add SPA fallback and disable Jekyll processing
         # This app navigates in-memory (a single MaterialApp with a
