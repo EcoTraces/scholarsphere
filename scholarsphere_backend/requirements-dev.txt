@@ -3,5 +3,5 @@
 pytest==9.0.3
 pytest-asyncio==1.4.0
 respx==0.22.0
-aiosqlite==0.21.0
+aiosqlite==0.22.1
 pip-audit==2.10.1
