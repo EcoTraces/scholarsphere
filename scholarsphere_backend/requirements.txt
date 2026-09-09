@@ -5,7 +5,7 @@ httpx==0.28.1
 pydantic==2.12.5
 pydantic-settings==2.15.0
 python-multipart==0.0.32
-sqlalchemy[asyncio]==2.0.41
+sqlalchemy[asyncio]==2.0.52
 asyncpg==0.31.0
 alembic==1.16.4
 celery==5.5.3
