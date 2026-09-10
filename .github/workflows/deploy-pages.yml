@@ -73,10 +73,27 @@ jobs:
         # nothing else ever renders behind it, leaving a blank white
         # screen. This flag makes the deploy fully self-contained, so
         # CanvasKit always loads from the same origin as everything else.
+        #
+        # --pwa-strategy=none: Flutter's default ("offlineFirst") ships a
+        # service worker that actively *prefers its offline cache over the
+        # network* for every asset, including main.dart.js itself. On a
+        # site like this one that ships real fixes often, that means a
+        # visitor's browser can keep painting an old, already-fixed build
+        # indefinitely - or worse, a mix of an old cached main.dart.js
+        # alongside a freshly-fetched index.html/flutter_bootstrap.js,
+        # which is exactly the kind of half-old-half-new corruption that
+        # produced screens with some fields duplicated and others not (see
+        # git history for the applicant-profile "duplicate fields" report,
+        # confirmed on read to not exist anywhere in source - twice). This
+        # app is not meant to work offline, so there is no upside to
+        # caching it that way; `none` makes the generated service worker a
+        # no-op and every load a normal, cache-header-governed network
+        # fetch instead.
         run: |
           flutter build web --release \
             --base-href "/${{ github.event.repository.name }}/" \
             --no-web-resources-cdn \
+            --pwa-strategy=none \
             --dart-define=SCHOLARSPHERE_API_BASE_URL="${{ vars.SCHOLARSPHERE_API_BASE_URL || 'http://localhost:8000/api/v1' }}"
       - name: Add SPA fallback and disable Jekyll processing
         # This app navigates in-memory (a single MaterialApp with a
