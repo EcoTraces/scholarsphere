@@ -112,6 +112,146 @@ void main() {
     },
   );
 
+  test(
+    'getLiveQueue separates reviewable items from ones missing a deadline',
+    () async {
+      final repository = repositoryFor((request) async {
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'id': 'opp-with-deadline',
+                'title': 'Has A Deadline',
+                'provider_name': 'Example Agency',
+                'opportunity_type': 'grant',
+                'country': 'Testland',
+                'description': 'A grant.',
+                'opening_date': '2026-01-01',
+                'deadline': '2026-12-31',
+                'official_source_url': 'https://example.test/has-deadline',
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-01T00:00:00Z',
+              },
+              {
+                'id': 'opp-no-deadline-1',
+                'title': 'No Deadline One',
+                'provider_name': 'Example Agency',
+                'opportunity_type': 'grant',
+                'country': null,
+                'description': null,
+                'opening_date': null,
+                'deadline': null,
+                'official_source_url': null,
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-01T00:00:00Z',
+              },
+              {
+                'id': 'opp-no-deadline-2',
+                'title': 'No Deadline Two',
+                'provider_name': 'Example Agency',
+                'opportunity_type': 'grant',
+                'country': null,
+                'description': null,
+                'opening_date': null,
+                'deadline': null,
+                'official_source_url': null,
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-01T00:00:00Z',
+              },
+            ],
+            'total': 3,
+            'page': 1,
+            'page_size': 100,
+          }),
+          200,
+        );
+      });
+
+      final result = await repository.getLiveQueue();
+
+      expect(result.items, hasLength(1));
+      expect(result.items.single.id, 'opp-with-deadline');
+      expect(result.missingDeadlineCount, 2);
+    },
+  );
+
+  test(
+    'getLiveQueue paginates across every page instead of only the first',
+    () async {
+      var requestCount = 0;
+      final repository = repositoryFor((request) async {
+        requestCount++;
+        final page = request.url.queryParameters['page'];
+        // Page 1: 100 items, all missing a deadline (mirrors production,
+        // where the most-recently-collected records dominate a
+        // recency-sorted first page). Page 2: 1 item with a real deadline -
+        // it must still surface, not be lost because the first page filled
+        // up on unreviewable records.
+        if (page == '1') {
+          return http.Response(
+            jsonEncode({
+              'items': List.generate(
+                100,
+                (i) => {
+                  'id': 'opp-no-deadline-$i',
+                  'title': 'No Deadline $i',
+                  'provider_name': 'Example Agency',
+                  'opportunity_type': 'grant',
+                  'country': null,
+                  'description': null,
+                  'opening_date': null,
+                  'deadline': null,
+                  'official_source_url': null,
+                  'official_application_url': null,
+                  'duplicate_review_required': false,
+                  'collected_at': '2026-01-01T00:00:00Z',
+                },
+              ),
+              'total': 101,
+              'page': 1,
+              'page_size': 100,
+            }),
+            200,
+          );
+        }
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'id': 'opp-reviewable',
+                'title': 'Reviewable On Page Two',
+                'provider_name': 'Example Agency',
+                'opportunity_type': 'grant',
+                'country': 'Testland',
+                'description': 'A grant.',
+                'opening_date': '2026-01-01',
+                'deadline': '2026-12-31',
+                'official_source_url': 'https://example.test/page-two',
+                'official_application_url': null,
+                'duplicate_review_required': false,
+                'collected_at': '2026-01-02T00:00:00Z',
+              },
+            ],
+            'total': 101,
+            'page': 2,
+            'page_size': 100,
+          }),
+          200,
+        );
+      });
+
+      final result = await repository.getLiveQueue();
+
+      expect(requestCount, 2);
+      expect(result.items, hasLength(1));
+      expect(result.items.single.id, 'opp-reviewable');
+      expect(result.missingDeadlineCount, 100);
+    },
+  );
+
   test('submitDecision posts the decision and checklist', () async {
     late http.Request captured;
     final repository = repositoryFor((request) async {

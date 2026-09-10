@@ -32,7 +32,7 @@ class LiveVerificationQueueScreen extends StatefulWidget {
 
 class _LiveVerificationQueueScreenState
     extends State<LiveVerificationQueueScreen> {
-  late Future<List<Opportunity>> _queue;
+  late Future<LiveVerificationQueueResult> _queue;
 
   @override
   void initState() {
@@ -40,7 +40,7 @@ class _LiveVerificationQueueScreenState
     _reload();
   }
 
-  void _reload() => _queue = widget.repository.getQueue();
+  void _reload() => _queue = widget.repository.getLiveQueue();
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +61,7 @@ class _LiveVerificationQueueScreenState
           const SizedBox(width: 8),
         ],
       ),
-      body: FutureBuilder<List<Opportunity>>(
+      body: FutureBuilder<LiveVerificationQueueResult>(
         future: _queue,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -73,7 +73,8 @@ class _LiveVerificationQueueScreenState
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final queue = snapshot.data!;
+          final result = snapshot.data!;
+          final queue = result.items;
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -94,7 +95,13 @@ class _LiveVerificationQueueScreenState
                         'every check below to pass.',
                       ),
                       const SizedBox(height: 24),
-                      if (queue.isEmpty)
+                      if (result.missingDeadlineCount > 0)
+                        _MissingDeadlineBanner(
+                          count: result.missingDeadlineCount,
+                        ),
+                      if (result.missingDeadlineCount > 0)
+                        const SizedBox(height: 16),
+                      if (queue.isEmpty && result.missingDeadlineCount == 0)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 48),
                           child: Center(
@@ -140,6 +147,36 @@ class _LiveVerificationQueueScreenState
     );
     if (changed == true && mounted) setState(_reload);
   }
+}
+
+class _MissingDeadlineBanner extends StatelessWidget {
+  const _MissingDeadlineBanner({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF4E5),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: const Color(0xFFE09F3E)),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.info_outline, color: Color(0xFFE09F3E)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            '$count more pending opportunit${count == 1 ? 'y is' : 'ies are'} '
+            "missing a deadline from their source, so they can't be shown "
+            'here for review yet.',
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _ErrorPanel extends StatelessWidget {

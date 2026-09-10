@@ -273,6 +273,19 @@ class LiveDiscoverySummary {
   final int brokenLinks;
 }
 
+/// The live pending-verification queue plus how many further pending
+/// records exist but couldn't be shown - see
+/// [ApiVerificationRepository.getLiveQueue].
+class LiveVerificationQueueResult {
+  const LiveVerificationQueueResult({
+    required this.items,
+    required this.missingDeadlineCount,
+  });
+
+  final List<Opportunity> items;
+  final int missingDeadlineCount;
+}
+
 /// Reads and acts on the real verification queue from the ScholarSphere
 /// Python backend (scholarsphere_backend/).
 ///
@@ -321,16 +334,53 @@ class ApiVerificationRepository implements VerificationRepository {
       _authOverride ?? firebase.FirebaseAuth.instance;
 
   @override
-  Future<List<Opportunity>> getQueue() async {
-    final body = await _get(
-      '/external-opportunities/pending-verification',
-      const {'page_size': '100'},
+  Future<List<Opportunity>> getQueue() async => (await getLiveQueue()).items;
+
+  /// The full pending-verification queue, paginated across every page
+  /// rather than just the first 100 most-recently-collected records - a
+  /// single unpaginated page can otherwise come back entirely empty after
+  /// client-side filtering (see [missingDeadlineCount] below) purely
+  /// because of import recency, hiding genuinely reviewable opportunities
+  /// further back in the list.
+  ///
+  /// Also reports how many pending records were left out because their
+  /// source never gave them a deadline. [Opportunity.deadline] is
+  /// non-nullable and this project never fabricates a value the source
+  /// didn't provide (see [ApiOpportunityRepository]'s class doc comment
+  /// for the same rule), so those records can't be represented as an
+  /// [Opportunity] yet - but silently dropping them left the dashboard
+  /// showing hundreds "pending" while the queue screen claimed to be
+  /// clear, with no indication anything was wrong.
+  Future<LiveVerificationQueueResult> getLiveQueue() async {
+    final items = <Opportunity>[];
+    var missingDeadlineCount = 0;
+    var page = 1;
+    const pageSize = 100;
+    while (true) {
+      final body =
+          await _get('/external-opportunities/pending-verification', {
+                'page': '$page',
+                'page_size': '$pageSize',
+              })
+              as Map<String, dynamic>;
+      final rawItems = body['items'] as List<dynamic>;
+      for (final raw in rawItems) {
+        final opportunity = _toOpportunity(raw as Map<String, dynamic>);
+        if (opportunity == null) {
+          missingDeadlineCount++;
+        } else {
+          items.add(opportunity);
+        }
+      }
+      if (rawItems.length < pageSize) break;
+      final total = body['total'] as int? ?? rawItems.length;
+      if (page * pageSize >= total) break;
+      page++;
+    }
+    return LiveVerificationQueueResult(
+      items: items,
+      missingDeadlineCount: missingDeadlineCount,
     );
-    final items = (body as Map<String, dynamic>)['items'] as List<dynamic>;
-    return items
-        .map((item) => _toOpportunity(item as Map<String, dynamic>))
-        .whereType<Opportunity>()
-        .toList();
   }
 
   /// Every verified-but-not-yet-published opportunity, across every
