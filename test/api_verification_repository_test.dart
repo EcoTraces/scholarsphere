@@ -175,6 +175,12 @@ void main() {
       expect(result.items, hasLength(1));
       expect(result.items.single.id, 'opp-with-deadline');
       expect(result.missingDeadlineCount, 2);
+      expect(
+        result.missingDeadlineRecords.map((r) => r.id),
+        containsAll(['opp-no-deadline-1', 'opp-no-deadline-2']),
+      );
+      expect(result.missingDeadlineRecords.first.title, 'No Deadline One');
+      expect(result.missingDeadlineRecords.first.provider, 'Example Agency');
     },
   );
 

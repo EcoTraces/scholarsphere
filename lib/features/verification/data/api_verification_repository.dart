@@ -273,17 +273,41 @@ class LiveDiscoverySummary {
   final int brokenLinks;
 }
 
-/// The live pending-verification queue plus how many further pending
-/// records exist but couldn't be shown - see
+/// A pending opportunity whose source never published a deadline, so it
+/// can't be represented as an [Opportunity] ([Opportunity.deadline] is
+/// non-nullable) and can't enter the normal review queue yet. Deliberately
+/// minimal - just enough to show the officer what it is and let them look
+/// up the real deadline at [officialSourceUrl] before adding it via
+/// [ApiVerificationRepository.editFields].
+class PendingRecordMissingDeadline {
+  const PendingRecordMissingDeadline({
+    required this.id,
+    required this.title,
+    required this.provider,
+    required this.officialSourceUrl,
+    required this.collectedAt,
+  });
+
+  final String id;
+  final String title;
+  final String provider;
+  final String? officialSourceUrl;
+  final DateTime collectedAt;
+}
+
+/// The live pending-verification queue plus every pending record that
+/// couldn't be shown there because it's missing a deadline - see
 /// [ApiVerificationRepository.getLiveQueue].
 class LiveVerificationQueueResult {
   const LiveVerificationQueueResult({
     required this.items,
-    required this.missingDeadlineCount,
+    required this.missingDeadlineRecords,
   });
 
   final List<Opportunity> items;
-  final int missingDeadlineCount;
+  final List<PendingRecordMissingDeadline> missingDeadlineRecords;
+
+  int get missingDeadlineCount => missingDeadlineRecords.length;
 }
 
 /// Reads and acts on the real verification queue from the ScholarSphere
@@ -353,7 +377,7 @@ class ApiVerificationRepository implements VerificationRepository {
   /// clear, with no indication anything was wrong.
   Future<LiveVerificationQueueResult> getLiveQueue() async {
     final items = <Opportunity>[];
-    var missingDeadlineCount = 0;
+    final missingDeadline = <PendingRecordMissingDeadline>[];
     var page = 1;
     const pageSize = 100;
     while (true) {
@@ -365,9 +389,10 @@ class ApiVerificationRepository implements VerificationRepository {
               as Map<String, dynamic>;
       final rawItems = body['items'] as List<dynamic>;
       for (final raw in rawItems) {
-        final opportunity = _toOpportunity(raw as Map<String, dynamic>);
+        final json = raw as Map<String, dynamic>;
+        final opportunity = _toOpportunity(json);
         if (opportunity == null) {
-          missingDeadlineCount++;
+          missingDeadline.add(_toMissingDeadlineRecord(json));
         } else {
           items.add(opportunity);
         }
@@ -379,7 +404,7 @@ class ApiVerificationRepository implements VerificationRepository {
     }
     return LiveVerificationQueueResult(
       items: items,
-      missingDeadlineCount: missingDeadlineCount,
+      missingDeadlineRecords: missingDeadline,
     );
   }
 
@@ -731,6 +756,19 @@ class ApiVerificationRepository implements VerificationRepository {
         return VerificationStatus.pending;
     }
   }
+
+  /// Minimal parse for a pending record [_toOpportunity] rejected for
+  /// missing a deadline - only what's needed to show it and let an
+  /// officer look up the real deadline at the source before adding it.
+  static PendingRecordMissingDeadline _toMissingDeadlineRecord(
+    Map<String, dynamic> json,
+  ) => PendingRecordMissingDeadline(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    provider: json['provider_name'] as String? ?? _notSpecified,
+    officialSourceUrl: json['official_source_url'] as String?,
+    collectedAt: DateTime.parse(json['collected_at'] as String),
+  );
 
   static OpportunityType _mapType(String rawType) {
     if (rawType.contains('internship')) return OpportunityType.internship;

@@ -98,6 +98,7 @@ class _LiveVerificationQueueScreenState
                       if (result.missingDeadlineCount > 0)
                         _MissingDeadlineBanner(
                           count: result.missingDeadlineCount,
+                          onTap: _openMissingDeadlineQueue,
                         ),
                       if (result.missingDeadlineCount > 0)
                         const SizedBox(height: 16),
@@ -147,34 +148,57 @@ class _LiveVerificationQueueScreenState
     );
     if (changed == true && mounted) setState(_reload);
   }
+
+  Future<void> _openMissingDeadlineQueue() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => MissingDeadlineQueueScreen(
+          repository: widget.repository,
+          onSignOut: widget.onSignOut,
+        ),
+      ),
+    );
+    if (mounted) setState(_reload);
+  }
 }
 
 class _MissingDeadlineBanner extends StatelessWidget {
-  const _MissingDeadlineBanner({required this.count});
+  const _MissingDeadlineBanner({required this.count, required this.onTap});
 
   final int count;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFFF4E5),
+  Widget build(BuildContext context) => Material(
+    color: const Color(0xFFFFF4E5),
+    borderRadius: BorderRadius.circular(8),
+    child: InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFE09F3E)),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.info_outline, color: Color(0xFFE09F3E)),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            '$count more pending opportunit${count == 1 ? 'y is' : 'ies are'} '
-            "missing a deadline from their source, so they can't be shown "
-            'here for review yet.',
-          ),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE09F3E)),
         ),
-      ],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline, color: Color(0xFFE09F3E)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$count more pending opportunit${count == 1 ? 'y is' : 'ies are'} '
+                "missing a deadline from their source, so they can't be "
+                'shown here for review yet. Tap to add the real deadline '
+                'from the official source.',
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: Color(0xFFE09F3E)),
+          ],
+        ),
+      ),
     ),
   );
 }
@@ -556,4 +580,303 @@ class _ReviewContext {
   final LiveOpportunityEvidence evidence;
   final LiveVerificationReview? review;
   final List<LiveVerificationHistoryEntry> history;
+}
+
+/// Lists every pending opportunity missing a deadline - opened from the
+/// banner on [LiveVerificationQueueScreen]. Tapping one opens
+/// [_AddDeadlineScreen] to add the real deadline from the official
+/// source; once saved, the record has everything [Opportunity] requires
+/// and shows up in the normal queue on the next reload there.
+class MissingDeadlineQueueScreen extends StatefulWidget {
+  const MissingDeadlineQueueScreen({
+    super.key,
+    required this.repository,
+    required this.onSignOut,
+  });
+
+  final ApiVerificationRepository repository;
+  final VoidCallback onSignOut;
+
+  @override
+  State<MissingDeadlineQueueScreen> createState() =>
+      _MissingDeadlineQueueScreenState();
+}
+
+class _MissingDeadlineQueueScreenState
+    extends State<MissingDeadlineQueueScreen> {
+  late Future<List<PendingRecordMissingDeadline>> _records;
+
+  @override
+  void initState() {
+    super.initState();
+    _reload();
+  }
+
+  void _reload() {
+    _records = widget.repository.getLiveQueue().then(
+      (result) => result.missingDeadlineRecords,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Missing a deadline'),
+        actions: [
+          IconButton(
+            onPressed: () => setState(_reload),
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            onPressed: widget.onSignOut,
+            tooltip: 'Sign out',
+            icon: const Icon(Icons.logout),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: FutureBuilder<List<PendingRecordMissingDeadline>>(
+        future: _records,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return _ErrorPanel(
+              error: snapshot.error,
+              onRetry: () => setState(_reload),
+            );
+          }
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final records = snapshot.data!;
+          return ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Missing a deadline',
+                        style: Theme.of(context).textTheme.headlineLarge,
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        "These opportunities were imported from official "
+                        "sources that didn't publish a deadline. Confirm "
+                        'the real deadline at the official source link '
+                        'below and add it - never guess or invent one - '
+                        'before the opportunity can enter the regular '
+                        'verification queue.',
+                      ),
+                      const SizedBox(height: 24),
+                      if (records.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 48),
+                          child: Center(
+                            child: Text(
+                              'Nothing is missing a deadline right now.',
+                            ),
+                          ),
+                        )
+                      else
+                        ...records.map(
+                          (record) => Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              title: Text(record.title),
+                              subtitle: Text(
+                                '${record.provider} · imported '
+                                '${record.collectedAt.toLocal().toString().split(' ').first}',
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () => _addDeadline(record),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _addDeadline(PendingRecordMissingDeadline record) async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) =>
+            _AddDeadlineScreen(record: record, repository: widget.repository),
+      ),
+    );
+    if (changed == true && mounted) setState(_reload);
+  }
+}
+
+class _AddDeadlineScreen extends StatefulWidget {
+  const _AddDeadlineScreen({required this.record, required this.repository});
+
+  final PendingRecordMissingDeadline record;
+  final ApiVerificationRepository repository;
+
+  @override
+  State<_AddDeadlineScreen> createState() => _AddDeadlineScreenState();
+}
+
+class _AddDeadlineScreenState extends State<_AddDeadlineScreen> {
+  DateTime? _deadline;
+  final _reason = TextEditingController();
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final record = widget.record;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Add deadline')),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    record.title,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(record.provider),
+                  const SizedBox(height: 20),
+                  if (record.officialSourceUrl != null) ...[
+                    Text(
+                      'Official source',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Confirm the real deadline here before entering it '
+                      'below.',
+                    ),
+                    const SizedBox(height: 6),
+                    SelectableText(record.officialSourceUrl!),
+                    const SizedBox(height: 20),
+                  ] else ...[
+                    Text(
+                      'This record has no official source link either - '
+                      'contact an administrator rather than guessing a '
+                      'deadline.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  Text(
+                    'Deadline',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      _deadline == null
+                          ? 'No deadline selected'
+                          : _deadline!.toLocal().toString().split(' ').first,
+                    ),
+                    trailing: OutlinedButton(
+                      onPressed: _pickDeadline,
+                      child: const Text('Pick deadline'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _reason,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Reason (required, audited)',
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _error!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _saving ? null : _save,
+                      icon: const Icon(Icons.save_outlined),
+                      label: Text(_saving ? 'Saving...' : 'Save deadline'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickDeadline() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _deadline ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 10),
+    );
+    if (picked != null) setState(() => _deadline = picked);
+  }
+
+  Future<void> _save() async {
+    if (_deadline == null) {
+      setState(
+        () => _error = 'Pick the real deadline from the official source '
+            'first.',
+      );
+      return;
+    }
+    if (_reason.text.trim().isEmpty) {
+      setState(() => _error = 'A reason is required.');
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.editFields(
+        opportunityId: widget.record.id,
+        reason: _reason.text.trim(),
+        deadline: _deadline,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } on LiveBackendException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 }
