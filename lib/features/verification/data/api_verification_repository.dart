@@ -698,7 +698,7 @@ class ApiVerificationRepository implements VerificationRepository {
       hostInstitution: provider,
       hostCountry: country,
       type: _mapType(rawType),
-      funding: FundingType.partiallyFunded,
+      funding: _mapFundingType(json['funding_type'] as String?),
       deadline: deadline,
       applicationOpenDate: opening,
       verificationStatus: _mapVerificationStatus(
@@ -756,6 +756,15 @@ class ApiVerificationRepository implements VerificationRepository {
         return VerificationStatus.pending;
     }
   }
+
+  /// See [ApiOpportunityRepository]'s copy of this mapping for why
+  /// unrecognized/absent values fall back to [FundingType.partiallyFunded]
+  /// rather than claiming "fully funded" without evidence.
+  static FundingType _mapFundingType(String? raw) => switch (raw) {
+    'fully_funded' => FundingType.fullyFunded,
+    'partial_funding' => FundingType.partiallyFunded,
+    _ => FundingType.partiallyFunded,
+  };
 
   /// Minimal parse for a pending record [_toOpportunity] rejected for
   /// missing a deadline - only what's needed to show it and let an

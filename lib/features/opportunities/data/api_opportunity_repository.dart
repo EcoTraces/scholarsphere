@@ -187,7 +187,7 @@ class ApiOpportunityRepository implements OpportunityRepository {
       hostInstitution: provider,
       hostCountry: country,
       type: type,
-      funding: FundingType.partiallyFunded,
+      funding: _mapFundingType(json['funding_type'] as String?),
       deadline: deadline,
       applicationOpenDate: opening,
       verificationStatus: verificationStatus,
@@ -230,6 +230,21 @@ class ApiOpportunityRepository implements OpportunityRepository {
 
   static DateTime? _date(dynamic value) =>
       value == null ? null : DateTime.tryParse(value as String);
+
+  /// The backend's real `funding_type` values are `fully_funded` or
+  /// `partial_funding` when a source's coverage was actually researched
+  /// (see e.g. app/services/national_scholarship_programs.py) - both
+  /// mapped honestly here. Most bulk-imported records (Grants.gov,
+  /// USAJOBS, ReliefWeb...) never set this field at all, and a `grant`
+  /// value only reflects the record's opportunity type, not its funding
+  /// coverage - neither tells us whether the award is full or partial,
+  /// so both fall back to [FundingType.partiallyFunded] rather than
+  /// claiming "fully funded" without evidence.
+  static FundingType _mapFundingType(String? raw) => switch (raw) {
+    'fully_funded' => FundingType.fullyFunded,
+    'partial_funding' => FundingType.partiallyFunded,
+    _ => FundingType.partiallyFunded,
+  };
 
   Future<dynamic> _get(String path, Map<String, String> query) async {
     final uri = Uri.parse(

@@ -199,19 +199,36 @@ class OpportunityDetailScreen extends StatelessWidget {
                     contactInformation: opportunity.contactInformation,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Application link',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  _LaunchableUrlRow(url: opportunity.applicationUrl),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Official source',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  _LaunchableUrlRow(url: opportunity.officialSourceUrl),
+                  if (opportunity.applicationUrl == opportunity.officialSourceUrl) ...[
+                    // The source never published a separate application
+                    // page - applicationUrl already falls back to the
+                    // official source link rather than fabricating a
+                    // distinct one (see ApiOpportunityRepository). Showing
+                    // both labeled sections here would just repeat the
+                    // same link twice under different headings.
+                    Text(
+                      'Official source',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    const Text('Applications are also submitted here.'),
+                    const SizedBox(height: 8),
+                    _LaunchableUrlRow(url: opportunity.officialSourceUrl),
+                  ] else ...[
+                    Text(
+                      'Application link',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    _LaunchableUrlRow(url: opportunity.applicationUrl),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Official source',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    _LaunchableUrlRow(url: opportunity.officialSourceUrl),
+                  ],
                   const SizedBox(height: 36),
                   SizedBox(
                     width: double.infinity,

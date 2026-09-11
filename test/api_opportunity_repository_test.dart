@@ -71,6 +71,62 @@ void main() {
     expect(opportunities.single.type, OpportunityType.grant);
   });
 
+  ApiOpportunityRepository repositoryWithFundingType(String? fundingType) {
+    return ApiOpportunityRepository(
+      baseUrl: 'https://backend.test/api/v1',
+      auth: auth,
+      client: MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'id': 'opp-1',
+                'title': 'Example opportunity',
+                'provider_name': 'Example Institution',
+                'opportunity_type': 'scholarship',
+                'country': 'Germany',
+                'description': 'An opportunity.',
+                'opening_date': '2026-01-01',
+                'deadline': '2026-12-31',
+                'official_source_url': 'https://example.test/opp-1',
+                'funding_type': fundingType,
+              },
+            ],
+          }),
+          200,
+        );
+      }),
+    );
+  }
+
+  test('funding_type=fully_funded maps to FundingType.fullyFunded', () async {
+    final opportunities = await repositoryWithFundingType(
+      'fully_funded',
+    ).getPublished();
+    expect(opportunities.single.funding, FundingType.fullyFunded);
+  });
+
+  test(
+    'funding_type=partial_funding maps to FundingType.partiallyFunded',
+    () async {
+      final opportunities = await repositoryWithFundingType(
+        'partial_funding',
+      ).getPublished();
+      expect(opportunities.single.funding, FundingType.partiallyFunded);
+    },
+  );
+
+  test(
+    'a missing funding_type falls back to FundingType.partiallyFunded '
+    'rather than claiming fully funded without evidence',
+    () async {
+      final opportunities = await repositoryWithFundingType(
+        null,
+      ).getPublished();
+      expect(opportunities.single.funding, FundingType.partiallyFunded);
+    },
+  );
+
   Map<String, dynamic> _adminItem(String id, String verificationStatus) => {
     'id': id,
     'title': 'Example opportunity $id',

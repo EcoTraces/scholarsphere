@@ -74,6 +74,40 @@ void main() {
     expect(queue, hasLength(1));
     expect(queue.single.title, 'Community Grant');
     expect(queue.single.officialSourceUrl, 'https://example.test/opp-1');
+    expect(queue.single.funding, FundingType.partiallyFunded);
+  });
+
+  test('getQueue maps a real fully_funded funding_type honestly', () async {
+    final repository = repositoryFor((request) async {
+      return http.Response(
+        jsonEncode({
+          'items': [
+            {
+              'id': 'opp-1',
+              'title': 'Fully Funded Scholarship',
+              'provider_name': 'Example University',
+              'opportunity_type': 'scholarship',
+              'country': 'Testland',
+              'description': 'A scholarship.',
+              'opening_date': '2026-01-01',
+              'deadline': '2026-12-31',
+              'official_source_url': 'https://example.test/opp-1',
+              'duplicate_review_required': false,
+              'collected_at': '2026-01-01T00:00:00Z',
+              'funding_type': 'fully_funded',
+            },
+          ],
+          'total': 1,
+          'page': 1,
+          'page_size': 100,
+        }),
+        200,
+      );
+    });
+
+    final queue = await repository.getQueue();
+
+    expect(queue.single.funding, FundingType.fullyFunded);
   });
 
   test(
